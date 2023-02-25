@@ -1,0 +1,18 @@
+{
+  "name": "@cards/react",
+  "author": "cards-team",
+  "license": "BSD-3-Clause-Clear",
+  "version": "1.0.0",
+  "dependencies": {
+    "@rainbow-me/rainbowkit": "^0.8.1",
+    "ethers": "^5.7.2",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "wagmi": "^0.10.10"
+  },
+  "devDependencies": {
+    "dotenv": "^16.0.3",
+    "esbuild": "^0.16.17",
+    "reload": "^3.2.1"
+  }
+}

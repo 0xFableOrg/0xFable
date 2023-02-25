@@ -1,0 +1,21 @@
+# Environment variables
+*.env
+
+# MacOS
+.DS_Store
+
+# Node
+node_modules
+
+# Foundry
+packages/contracts/cache/
+packages/contracts/out/
+packages/contracts/broadcast/
+
+# IntelliJ config
+.idea/
+*.iml
+
+# React outputs
+packages/react/www/app.js
+packages/react/www/app.css

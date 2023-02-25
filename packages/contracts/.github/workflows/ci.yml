@@ -1,0 +1,38 @@
+name: Tests
+
+on:
+  - push
+  - pull_request
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Install Foundry
+        uses: onbjerg/foundry-toolchain@v1.0.6
+        with:
+          version: nightly
+
+      - name: Install node
+        uses: actions/setup-node@v2
+
+      - name: Clone repo with submodules
+        uses: actions/checkout@v2
+        with:
+          submodules: recursive
+
+      - name: Install pnpm
+        run: npm i -g pnpm
+
+      - name: Install dependencies
+        run: make
+
+      - name: Show Foundry config
+        run: forge config
+        
+      - name: Check contracts are linted
+        run: pnpm run lint:check
+
+      - name: Run tests
+        run: make test
