@@ -49,13 +49,13 @@ anvil:
 .PHONY: anvil
 
 deploy-local:
-	forge script src/deploy/Deploy.s.sol:DeployLocal \
+	@forge script src/deploy/Deploy.s.sol:DeployLocal \
 		--fork-url http://localhost:8545 \
 		--private-key $(PRIVATE_KEY0) \
 		--broadcast \
 		| grep "address " > out/deployment.txt
-	cat out/deployment.txt
-	node scripts/extract_contract_addresses_abis.js \
+	@cat out/deployment.txt
+	@node scripts/extract_contract_addresses_abis.js \
 		out/deployment.txt \
 		out/abis.json \
 		> out/deployment.json
