@@ -8,6 +8,7 @@ import "openzeppelin/token/ERC721/ERC721.sol";
 contract InventoryCardsCollection is ERC721 {
 
     error CardNotInInventory(uint256 cardID);
+    error CallerNotInventory();
 
     CardsCollection public cardsCollection;
     address public inventory;
@@ -18,8 +19,16 @@ contract InventoryCardsCollection is ERC721 {
     }
 
     function mint(address to, uint256 tokenID) external {
+        // No need to check for caller: inventory is minted after card transfer,
+        // and minting can only occur once.
         if (cardsCollection.ownerOf(tokenID) != inventory)
             revert CardNotInInventory(tokenID);
         _safeMint(to, tokenID);
+    }
+
+    function burn(uint256 tokenID) external {
+        if (msg.sender != inventory)
+            revert CallerNotInventory();
+        _burn(tokenID);
     }
 }

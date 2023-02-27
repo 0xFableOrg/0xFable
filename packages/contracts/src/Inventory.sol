@@ -6,102 +6,212 @@ import "./InventoryCardsCollection.sol";
 
 import "openzeppelin/access/Ownable.sol";
 
-// TODO
-// - player must stake cards in singleton contract to play (transfer ownership)
-// - list all staked cards per player
-// - deck lists: uint16 into list of staked cards (max 65k cards staked per player)
-// - cards in deck mapping: uint256 bitfields, one bit per deck (max 256 decks)
-
 contract Inventory {
+
+    // =============================================================================================
+    // ERRORS
+
+    // Deck size is below MIN_DECK_SIZE.
+    error SmallDeckEnergy();
+
+    // Deck size exceeds MAX_DECK_SIZE.
     error BigDeckEnergy();
-    error DeckDoesNotExist();
-    error CardNotOwned(uint256 id);
 
-    struct Deck {
-        // index into the `cards` mapping
-        uint16[] cards;
-    }
+    // The user has attributed all consecutive deck IDs. However, it is possible that there exists
+    // empty deck IDs that can be used via `replaceDeck`.
+    error OutOfDeckIDs();
 
-    // Max number of cards that can be staked in the inventory for each player.
-    uint256 constant MAX_STAKED_CARDS = type(uint16).max;
+    // Using an unknown deck ID.
+    error DeckDoesNotExist(uint8 deckID);
+
+    // A deck contains a card that the player hasn't transferred to the inventory.
+    error CardNotInInventory(uint256 cardID);
+
+    // =============================================================================================
+    // EVENTS
+
+    // A player added a card to the inventory.
+    event CardAdded(address indexed player, uint256 indexed cardID);
+
+    // A player removed a card from the inventory.
+    event CardRemoved(address indexed player, uint256 indexed cardID);
+
+    event DeckAdded(uint8 deckID);
+
+    event DeckRemoved(uint8 indexed deckID);
+
+    event CardAddedToDeck(uint8 indexed deckID, uint256 indexed cardID);
+
+    event CardRemovedFromDeck(uint8 indexed deckID, uint256 indexed cardID);
+
+    // =============================================================================================
+    // CONSTANTS
+
+    // Max number of cards that can be held in the inventory for each player.
+    uint256 constant MAX_INVENTORY_CARDS = type(uint16).max;
 
     // Max number of decks that each player can have.
     uint256 constant MAX_DECKS = 256;
 
-    InventoryCardsCollection public inventoryCardsCollection;
+    // Min number of cards in a deck.
+    uint256 constant MIN_DECK_SIZE = 60;
 
-    // player to list of cards
-    mapping(address => uint256[]) private cards;
+    // Max number of cards in a deck.
+    uint256 constant MAX_DECK_SIZE = 60;
 
-    // player to list of their decks
+    // =============================================================================================
+    // TYPES
+
+    // We need a struct because Solidity is unable to copy an array from memory to storage
+    // directly, but can do it when the array is embedded in a struct.
+    struct Deck {
+        uint256[] cards;
+    }
+
+    // =============================================================================================
+    // FIELDS
+
+    // Maps a player to list of their decks.
     mapping(address => Deck[]) private decks;
-
-    // player to a list of bitfields
-    // - each bitfield represents the cards at the same index in `cards`
-    // - in each bitfield, a bit is 1 if the deck at the corresponding index has the card
-    mapping(address => uint256[]) private cardsInDecks;
 
     // The NFT collection that contains all admissible cards for use with this inventory contract.
     CardsCollection public cardsCollection;
 
+    // The NFT collecton that contains soulbound tokens matching cards transferred to the inventory
+    // by a player.
+    InventoryCardsCollection public inventoryCardsCollection;
+
+    // =============================================================================================
+
+    modifier exists(uint8 deckID) {
+        if (deckID >= decks[msg.sender].length || decks[msg.sender][deckID].cards.length == 0)
+            revert DeckDoesNotExist(deckID);
+        _;
+    }
+
+    // =============================================================================================
+
+    // deploySalt is the CREATE2 salt used to deplay the InventoryCardsCollection.
     constructor(bytes32 deploySalt, CardsCollection cardsCollection_) {
         cardsCollection = cardsCollection_;
         inventoryCardsCollection = new InventoryCardsCollection{salt: deploySalt}(cardsCollection);
     }
 
-    function addCard(uint256 cardID) public {
+    // =============================================================================================
+    // FUNCTIONS
+    
+    // Transfers a card of the sender to the inventory, mints a soulbound inventory card to the
+    // sender in return.
+    function addCard(uint256 cardID) external {
         cardsCollection.transferFrom(msg.sender, address(this), cardID);
-        cards[msg.sender].push(cardID);
+        inventoryCardsCollection.mint(msg.sender, cardID);
+        emit CardAdded(msg.sender, cardID);
     }
 
-    function checkDeck(address player, uint8 deckID) public view {
-        Deck storage deck = decks[player][deckID];
-        for (uint256 i = 0; i < deck.cards.length ; ++i) {
-            uint16 playerCardID = deck.cards[i];
-            uint256 cardID = cards[player][playerCardID];
-            if (cardsCollection.ownerOf(cardID) != player)
-                revert CardNotOwned(cardID);
-        }
+    // ---------------------------------------------------------------------------------------------
+
+    // Burns the sender's inventory card and transfers the card back to him.
+    function removeCard(uint256 cardID) external {
+        inventoryCardsCollection.burn(cardID);
+        cardsCollection.transferFrom(address(this), msg.sender, cardID);
+        emit CardRemoved(msg.sender, cardID);
     }
 
-    function addDeck(Deck calldata deck) public returns (uint8 deckID) {
-        if (deck.cards.length > 60)
+    // ---------------------------------------------------------------------------------------------
+
+    function checkDeckSize(Deck storage deck) internal view {
+        if (deck.cards.length > MAX_DECK_SIZE)
             revert BigDeckEnergy();
-        decks[msg.sender].push(deck);
-        deckID = uint8(decks[msg.sender].length - 1);
     }
 
-    function addCardToDeck(uint8 deckID, uint16 playerCardID) public {
-        Deck storage deck = decks[msg.sender][deckID];
-        if (deck.cards.length == 60)
+    // ---------------------------------------------------------------------------------------------
+
+    function _addDeck(uint8 deckID, Deck calldata deck) internal {
+        if (deck.cards.length < MIN_DECK_SIZE)
+            revert SmallDeckEnergy();
+        if (deck.cards.length > MAX_DECK_SIZE)
             revert BigDeckEnergy();
-        deck.cards.push(playerCardID);
+        decks[msg.sender][deckID] = deck;
     }
 
-    function removeCardFromDeck(uint8 deckID, uint8 index) public {
+    // ---------------------------------------------------------------------------------------------
+
+    // Adds a new deck with the given cards for the sender. The player does not need to have the
+    // cards in the inventory to do this (however, if he does not, the deck will not be playable).
+    function addDeck(Deck calldata deck) external returns (uint8 deckID) {
+        uint256 longDeckID = decks[msg.sender].length;
+        if (longDeckID >= MAX_DECKS)
+            revert OutOfDeckIDs();
+        deckID = uint8(longDeckID);
+        decks[msg.sender].push();
+        _addDeck(deckID, deck);
+        emit DeckAdded(deckID);
+    }
+
+    // ---------------------------------------------------------------------------------------------
+
+    // Remove the given deck for the sender, leaving the deck at the given ID empty.
+    function removeDeck(uint8 deckID) external exists(deckID) {
+        delete decks[msg.sender][deckID];
+        emit DeckRemoved(deckID);
+    }
+
+    // ---------------------------------------------------------------------------------------------
+
+    // Replace the deck with the given ID. This can be a deck that was previously removed, granted
+    // that there exists a deck with a higher ID. Emits events for deck removal and adding.
+    function replaceDeck(uint8 deckID, Deck calldata deck) external exists(deckID) {
+        _addDeck(deckID, deck);
+        emit DeckRemoved(deckID);
+        emit DeckAdded(deckID);
+    }
+
+    // ---------------------------------------------------------------------------------------------
+
+    // Add the given card to the given deck. The player does not need to have the card in the
+    // inventory to do this (however, if he does not, the deck will not be playable).
+    // You can't remove a card from a deck if it would bring the size to above the maximum size.
+    function addCardToDeck(uint8 deckID, uint256 cardID) external exists(deckID) {
         Deck storage deck = decks[msg.sender][deckID];
+        if (deck.cards.length == MAX_DECK_SIZE)
+            revert BigDeckEnergy();
+        deck.cards.push(cardID);
+        emit CardAddedToDeck(deckID, cardID);
+    }
+
+    // ---------------------------------------------------------------------------------------------
+
+    // Remove the card a the given index in the given deck.
+    // You can't remove a card from a deck if it would bring the size to below the minimum size.
+    function removeCardFromDeck(uint8 deckID, uint8 index) external exists(deckID) {
+        Deck storage deck = decks[msg.sender][deckID];
+        if (deck.cards.length == MIN_DECK_SIZE)
+            revert BigDeckEnergy();
+        uint256 cardID = deck.cards[index];
         deck.cards[index] = deck.cards[deck.cards.length - 1];
         deck.cards.pop();
+        emit CardRemovedFromDeck(deckID, cardID);
     }
 
-    function removeDeck(uint8 deckID) public {
-        delete decks[msg.sender][deckID];
-    }
+    // ---------------------------------------------------------------------------------------------
 
-    function replaceDeck(uint8 deckID, Deck calldata deck) public {
-        Deck[] storage playerDecks = decks[msg.sender];
-        if (deckID >= playerDecks.length)
-            revert DeckDoesNotExist();
-        if (deck.cards.length > 60)
-            revert BigDeckEnergy();
-        playerDecks[deckID] = deck;
-    }
-
-    function getCards(address player, uint8 deckID) public view returns (uint256[] memory deckCards) {
+    // Checks that the player has all the cards in the given deck in the inventory.
+    function checkDeck(address player, uint8 deckID) external view exists(deckID) {
         Deck storage deck = decks[player][deckID];
-        deckCards = new uint256[](deck.cards.length);
-        for (uint256 i = 0; i < deck.cards.length; ++i) {
-            deckCards[i] = cards[player][deck.cards[i]];
+        for (uint256 i = 0; i < deck.cards.length ; ++i) {
+            uint256 cardID = deck.cards[i];
+            if (cardsCollection.ownerOf(cardID) != player)
+                revert CardNotInInventory(cardID);
         }
     }
+
+    // ---------------------------------------------------------------------------------------------
+
+    // Return the list of cards in the given deck of the given player.
+    function getCards(address player, uint8 deckID) external view exists(deckID)
+            returns (uint256[] memory deckCards) {
+        return decks[player][deckID].cards;
+    }
+
+    // ---------------------------------------------------------------------------------------------
 }
