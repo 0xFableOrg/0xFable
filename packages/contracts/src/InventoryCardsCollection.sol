@@ -9,6 +9,7 @@ contract InventoryCardsCollection is ERC721 {
 
     error CardNotInInventory(uint256 cardID);
     error CallerNotInventory();
+    error TokenIsSoulbound();
 
     CardsCollection public cardsCollection;
     address public inventory;
@@ -30,5 +31,10 @@ contract InventoryCardsCollection is ERC721 {
         if (msg.sender != inventory)
             revert CallerNotInventory();
         _burn(tokenID);
+    }
+
+    function _beforeTokenTransfer(address from, address to, uint256 firstTokenId, uint256 batchSize) override internal {
+        super._beforeTokenTransfer(from, to, firstTokenId, batchSize);
+        revert TokenIsSoulbound();
     }
 }
