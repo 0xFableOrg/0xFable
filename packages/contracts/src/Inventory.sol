@@ -47,9 +47,6 @@ contract Inventory {
     // =============================================================================================
     // CONSTANTS
 
-    // Max number of cards that can be held in the inventory for each player.
-    uint256 constant MAX_INVENTORY_CARDS = type(uint16).max;
-
     // Max number of decks that each player can have.
     uint256 constant MAX_DECKS = 256;
 
@@ -99,7 +96,7 @@ contract Inventory {
 
     // =============================================================================================
     // FUNCTIONS
-    
+
     // Transfers a card of the sender to the inventory, mints a soulbound inventory card to the
     // sender in return.
     function addCard(uint256 cardID) external {
