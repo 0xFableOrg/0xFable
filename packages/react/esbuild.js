@@ -1,4 +1,4 @@
-const { build } = require('esbuild')
+const esbuild = require('esbuild')
 const dotenv = require('dotenv')
 const fs = require('fs')
 
@@ -25,7 +25,6 @@ const options = {
   outdir: './www/',
   bundle: true,
   minify: node_env === 'prod',
-  watch: watch,
   define: {
     'process.env.NODE_ENV': JSON.stringify(node_env)
   },
@@ -37,4 +36,12 @@ for (const k in env) {
   options.define[`process.env.${k}`] = JSON.stringify(env[k])
 }
 
-build(options).catch(() => process.exit(1))
+esbuild.context(options).then(ctx => {
+  if (watch)
+    ctx.watch()
+  else
+    ctx.rebuild().then(result => {
+      console.log(result)
+      ctx.dispose()
+    })
+})
