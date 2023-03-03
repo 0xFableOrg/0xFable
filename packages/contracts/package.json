@@ -7,12 +7,12 @@
     "*.sol"
   ],
   "devDependencies": {
-    "prettier": "^2.8.2",
-    "prettier-plugin-solidity": "^1.1.1",
-    "solhint": "^3.3.7",
+    "prettier": "^2.8.4",
+    "prettier-plugin-solidity": "^1.1.3",
+    "solhint": "^3.4.0",
     "solhint-plugin-prettier": "^0.0.5"
   },
   "dependencies": {
-    "@openzeppelin/contracts": "^4.8.0"
+    "@openzeppelin/contracts": "^4.8.2"
   }
 }
