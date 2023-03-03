@@ -2,10 +2,11 @@
 # https://book.getfoundry.sh/reference/config/
 
 [profile.default]
-solc_version = "0.8.13"
+solc_version = "0.8.19"
 optimizer = true
 optimizer_runs = 20000
 gas_reports = ["*"]
+via_ir = true
 
 # allow all paths — necessary for pnpm
 allow_paths = ["/"]

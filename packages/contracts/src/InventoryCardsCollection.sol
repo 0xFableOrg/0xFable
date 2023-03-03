@@ -35,6 +35,7 @@ contract InventoryCardsCollection is ERC721 {
 
     function _beforeTokenTransfer(address from, address to, uint256 firstTokenId, uint256 batchSize) override internal {
         super._beforeTokenTransfer(from, to, firstTokenId, batchSize);
-        revert TokenIsSoulbound();
+        if (from != address(0) && to != address(0))
+            revert TokenIsSoulbound();
     }
 }

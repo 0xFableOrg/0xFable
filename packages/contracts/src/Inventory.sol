@@ -71,6 +71,10 @@ contract Inventory {
     // Maps a player to list of their decks.
     mapping(address => Deck[]) private decks;
 
+    // Map a player to whether he's currently engaged in a game (in which case he cannot remove
+    // cards from the inventory).
+    mapping(address => bool) inGame;
+
     // The NFT collection that contains all admissible cards for use with this inventory contract.
     CardsCollection public cardsCollection;
 
