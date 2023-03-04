@@ -69,6 +69,8 @@ contract Game {
     // =============================================================================================
     // EVENTS
 
+    // Replace player indexes in all of those by addresses.
+
     // NOTE(norswap): we represented players as an address when the event can contribute to their
     //  match stats, and as a uint8 index when these are internal game events.
 
@@ -91,10 +93,10 @@ contract Game {
     event CardPlayed(uint256 indexed gameID, uint8 player, uint256 card);
 
     // A player attacked another player.
-    event PlayerAttacked(uint256 indexed gameID, uint8 attackingPlayer, uint8 defendingPlayer);
+    event PlayerAttacked(uint256 indexed gameID, address attackingPlayer, address defendingPlayer);
 
     // A player defended against another player.
-    event PlayerDefended(uint256 indexed gameID, uint8 attackingPlayer, uint8 defendingPlayer);
+    event PlayerDefended(uint256 indexed gameID, address attackingPlayer, address defendingPlayer);
 
     // A player ended his turn without attacking.
     event PlayerPassed(uint256 indexed gameID, uint8 player);
@@ -109,7 +111,7 @@ contract Game {
     // The battlefield index matches the battlefield before the battle (defender defending),
     // which will not match the on-chain battlefield after the battle (because the destroyed
     // creatures are removed).
-    event CreatureDestroyed(uint256 indexed gameID, uint8 player, uint8 cardIndex);
+    event CreatureDestroyed(uint256 indexed gameID, address player, uint8 cardIndex);
 
     // A player was defeated by an ennemy attack.
     event PlayerDefeated(uint256 indexed gameID, address indexed player);
@@ -151,10 +153,10 @@ contract Game {
         mapping(address => PlayerData) playerData;
         address[] players;
         uint256 lastBlockNum;
+        uint8 playersJoined;
         uint8 currentPlayer;
         GameStep currentStep;
-        uint8 attackingPlayer;
-        uint8 playersJoined;
+        address attackingPlayer;
         uint256[] cards;
     }
 
@@ -213,7 +215,7 @@ contract Game {
             revert NoGameNoLife();
         if (gdata.players[gdata.currentPlayer] != msg.sender)
             revert WrongPlayer();
-        if (gdata.lastBlockNum < block.number - 256) {
+        if (block.number > 256 && gdata.lastBlockNum < block.number - 256) {
             // Action timed out: the player loses.
             concedeGame(gameID);
             emit PlayerTimedOut(gameID, msg.sender);
@@ -261,6 +263,12 @@ contract Game {
 
     // =============================================================================================
 
+    function playerData(uint256 gameID, address player) external view returns(PlayerData memory) {
+        return gameData[gameID].playerData[player];
+    }
+
+    // ---------------------------------------------------------------------------------------------
+
     // Create a new game with the given players and decks. All players (including the game
     // initiator, who needs not be a player) need to join the game for it to start. Joining the
     // game must happen on a later block than starting the game.
@@ -288,12 +296,9 @@ contract Game {
         // Initialize `gdata.cards` with all players' decks.
         uint256 offset = 0;
         for (uint256 i = 0; i < decks.length; i++) {
-            console.log("deck", i);
             uint256[] memory deck = inventory.getDeck(players[i], decks[i]);
-            console.log("deck size", deck.length);
             for (uint256 j = 0; j < deck.length; j++)
                 gdata.cards.push(deck[j]);
-            console.log("done parsing deck");
             PlayerData storage pdata = gdata.playerData[players[i]];
             pdata.deckStart = uint8(offset);
             offset += deck.length;
@@ -461,6 +466,14 @@ contract Game {
         pdata.handRoot = handRoot;
         pdata.deckRoot = deckRoot;
         emit CardDrawn(gameID, gdata.currentPlayer);
+
+        // TODO(LATER) if you can't draw you lose the game!
+    }
+
+    // ---------------------------------------------------------------------------------------------
+
+    function pass(uint256 gameID) step(gameID, GameStep.PASS) external {
+        // empty: everything happens in the step function
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -531,7 +544,8 @@ contract Game {
 
         clear(pdata.attacking); // Delete old attacking array.
         pdata.attacking = attacking;
-        emit PlayerAttacked(gameID, gdata.currentPlayer, targetPlayer);
+        gdata.attackingPlayer = msg.sender;
+        emit PlayerAttacked(gameID, msg.sender, gdata.players[targetPlayer]);
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -543,7 +557,7 @@ contract Game {
 
         GameData storage gdata = gameData[gameID];
         PlayerData storage defender = gdata.playerData[msg.sender];
-        PlayerData storage attacker = gdata.playerData[msg.sender];
+        PlayerData storage attacker = gdata.playerData[gdata.attackingPlayer];
         uint8[] storage attacking = attacker.attacking;
 
         if (attacking.length != defending.length)
@@ -583,7 +597,7 @@ contract Game {
                 if (attackerStats.attack >= defenderStats.defense) {
                     defender.battlefield -= (1 << defending[i]);
                     defender.graveyard   |= (1 << defending[i]);
-                    emit CreatureDestroyed(gameID, gdata.currentPlayer, defending[i]);
+                    emit CreatureDestroyed(gameID, msg.sender, defending[i]);
                 }
 
                 if (defenderStats.attack >= attackerStats.defense) {
@@ -594,7 +608,7 @@ contract Game {
             }
         }
 
-        emit PlayerDefended(gameID, gdata.attackingPlayer, gdata.currentPlayer);
+        emit PlayerDefended(gameID, gdata.attackingPlayer, msg.sender);
     }
 
     // ---------------------------------------------------------------------------------------------
