@@ -9,7 +9,7 @@ build:
 .PHONY: build
 
 test:
-	forge test
+	forge test -vv
 .PHONY: test
 
 testv:

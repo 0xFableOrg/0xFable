@@ -5,6 +5,7 @@ import "./CardsCollection.sol";
 import "./InventoryCardsCollection.sol";
 
 import "openzeppelin/access/Ownable.sol";
+import "forge-std/console.sol";
 
 contract Inventory {
 
@@ -205,13 +206,16 @@ contract Inventory {
     // ---------------------------------------------------------------------------------------------
 
     // Checks that the player has all the cards in the given deck in the inventory.
-    function checkDeck(address player, uint8 deckID) external view exists(deckID) {
+    function checkDeck(address player, uint8 deckID) external view {
+        checkDeckExists(player, deckID);
         Deck storage deck = decks[player][deckID];
         for (uint256 i = 0; i < deck.cards.length ; ++i) {
             uint256 cardID = deck.cards[i];
-            if (cardsCollection.ownerOf(cardID) != player)
+            if (inventoryCardsCollection.ownerOf(cardID) != player)
                 revert CardNotInInventory(cardID);
         }
+        // NOTE(norswap): Deck size is implicitly checked when updating the deck.
+        // TODO(LATER): check that each card does not exceed its maximum amount of copies
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -219,7 +223,7 @@ contract Inventory {
     // Return the list of cards in the given deck of the given player.
     function getDeck(address player, uint8 deckID) external view
             returns (uint256[] memory deckCards) {
-
+        checkDeckExists(player, deckID);
         return decks[player][deckID].cards;
     }
 

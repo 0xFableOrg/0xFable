@@ -14,3 +14,58 @@ function compress(uint8[] storage array) internal {
     for (; i < array.length; ++i)
         array.pop();
 }
+
+// Initialize `gdata.cards` with all players' decks.
+uint256 offset = 0;
+for (uint256 i = 0; i < decks.length; i++) {
+    uint256[] memory deck = inventory.getDeck(players[i], decks[i]);
+    for (uint256 j = 0; j < deck.length; j++)
+        gdata.cards.push(deck[j]);
+    PlayerData storage pdata = gdata.playerData[players[i]];
+    pdata.deckStart = uint8(offset);
+    offset += deck.length;
+    pdata.deckEnd = uint8(offset);
+}
+
+
+    // ---------------------------------------------------------------------------------------------
+
+    // Create a new game with the given players and decks. All players (including the game
+    // initiator, who needs not be a player) need to join the game for it to start. Joining the
+    // game must happen on a later block than starting the game.
+    function createGame(address[] calldata players, uint8[] calldata decks)
+            external returns (uint256 gameID) {
+
+        unchecked { // for gas efficiency lol
+            gameID = nextID++;
+        }
+
+        if (players.length < 2)
+            revert YoullNeverPlayAlone();
+
+        if (players.length != decks.length)
+            revert WrongNumberOfDecks();
+
+        GameData storage gdata = gameData[gameID];
+        gdata.players = players;
+        gdata.lastBlockNum = block.number;
+        gdata.currentStep = GameStep.PLAY;
+        // gdata.playersJoined = 0; (implicit)
+        // gdata.currentPlayer is initialized when the game is started. This needs to happen in
+        // another block so that the blockhash of this block can be used as randomness.
+
+        // Initialize `gdata.cards` with all players' decks.
+        uint256 offset = 0;
+        for (uint256 i = 0; i < decks.length; i++) {
+            uint256[] memory deck = inventory.getDeck(players[i], decks[i]);
+            for (uint256 j = 0; j < deck.length; j++)
+                gdata.cards.push(deck[j]);
+            PlayerData storage pdata = gdata.playerData[players[i]];
+            pdata.deckStart = uint8(offset);
+            offset += deck.length;
+            pdata.deckEnd = uint8(offset);
+        }
+
+        for (uint256 i = 0; i < players.length; ++i)
+            emit GameCreated(gameID, players[i]);
+    }

@@ -77,17 +77,19 @@ contract Integration is Test {
         createDeck(24, player2);
     }
 
+    // TODO: this uses a single deck for both players, offset all of player 2's cards by 24
+
+    // Offset for player 2 deck IDs.
+    uint8 private constant p2o = 24;
+
     function testGame() public {
         uint256 gameID = 0;
-        address[] memory players = new address[](2);
-        uint8[] memory decks = new uint8[](2); // [0, 0]
-        players[0] = player1;
-        players[1] = player2;
-        game.createGame(players, decks);
+        game.createGame(2, game.allowAnyPlayerAndDeck);
+        inventory.getDeck(player1, 0);
         vm.prank(player1);
-        game.joinGame(gameID, HAND_ROOT, DECK_ROOT, PROOF);
+        game.joinGame(gameID, 0, bytes(""), HAND_ROOT, DECK_ROOT, PROOF);
         vm.prank(player2);
-        game.joinGame(gameID, HAND_ROOT, DECK_ROOT, PROOF);
+        game.joinGame(gameID, 0, bytes(""), HAND_ROOT, DECK_ROOT, PROOF);
 
         Game.PlayerData memory pdata;
         uint8[] memory size1array = new uint8[](1);

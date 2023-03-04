@@ -5,7 +5,6 @@ import "./Inventory.sol";
 import "./CardsCollection.sol";
 
 import "forge-std/console.sol";
-
 // Data + logic to play a game.
 contract Game {
 
@@ -30,11 +29,20 @@ contract Game {
     // Trying to join or decline a game that you already joined.
     error AlreadyJoined();
 
-    // Trying to join or decline a game that you are not participating in.
-    error PlayerNotInGame();
+    // Trying to cancel a game you didn't create.
+    error OvereagerCanceller();
+
+    // Trying to cancel or join a game that has already started.
+    error GameAlreadyStarted();
 
     // ZK proof didn't verify.
     error WrongProof();
+
+    // Attempt to join game was rejected by the join check.
+    error NotAllowedToJoin();
+
+    // Trying to concede a game that you are not participating in.
+    error PlayerNotInGame();
 
     // Trying to play a card whose index is invalid (bigger than card array size).
     error CardIndexTooHigh();
@@ -77,11 +85,8 @@ contract Game {
     // The player took to long to submit an action and lost as a consequence.
     event PlayerTimedOut(uint256 indexed gameID, address indexed player);
 
-    // A game was created that includes the given player.
-    event GameCreated(uint256 gameID, address indexed player);
-
-    // A player declined to participate in a game.
-    event GameDeclined(uint256 indexed gameID, address player);
+    // A game was created by the given creator.
+    event GameCreated(uint256 gameID, address indexed creator);
 
     // The game started (all players specified at the game creation joined).
     event GameStarted(uint256 indexed gameID);
@@ -150,10 +155,12 @@ contract Game {
 
     // All the data for a single game instance.
     struct GameData {
+        address gameCreator;
         mapping(address => PlayerData) playerData;
         address[] players;
         uint256 lastBlockNum;
-        uint8 playersJoined;
+        uint8 playersLeftToJoin;
+        function (uint256, address, uint8, bytes memory) external returns (bool) joinCheck;
         uint8 currentPlayer;
         GameStep currentStep;
         address attackingPlayer;
@@ -182,17 +189,6 @@ contract Game {
     modifier exists(uint256 gameID) {
         if (gameData[gameID].lastBlockNum == 0)
             revert NoGameNoLife();
-        _;
-    }
-
-    // ---------------------------------------------------------------------------------------------
-
-    // Checks that the game exists and the message sender is a participant.
-    modifier participant(uint256 gameID) {
-        if (gameData[gameID].lastBlockNum == 0)
-            revert NoGameNoLife();
-        if (gameData[gameID].playerData[msg.sender].deckEnd == 0)
-            revert PlayerNotInGame();
         _;
     }
 
@@ -267,47 +263,46 @@ contract Game {
         return gameData[gameID].playerData[player];
     }
 
+
     // ---------------------------------------------------------------------------------------------
 
-    // Create a new game with the given players and decks. All players (including the game
-    // initiator, who needs not be a player) need to join the game for it to start. Joining the
-    // game must happen on a later block than starting the game.
-    function createGame(address[] calldata players, uint8[] calldata decks)
-            external returns (uint256 gameID) {
+    // To be used as callback for `createGame`, allow any player to join with any deck.
+    function allowAnyPlayerAndDeck(uint256 /*gameID*/, address /*player*/, uint8 /*deckID*/, bytes memory /*data*/)
+            external pure returns(bool) {
+        return true;
+    }
+
+    // ---------------------------------------------------------------------------------------------
+
+    // Starts a game for the given number of players (only works for 2 currently) with a function to
+    // check if a given player is allowed to join. For testing purposes, you can use the
+    // `allowAnyPlayerInDeck` function in this contract. Joining the game must happen on a later
+    // block than starting the game.
+    function createGame(
+        uint8 numberOfPlayers,
+        function (uint256, address, uint8, bytes memory) external returns (bool) joinCheck
+        ) external returns (uint256 gameID) {
 
         unchecked { // for gas efficiency lol
             gameID = nextID++;
         }
 
-        if (players.length < 2)
+        if (numberOfPlayers < 2)
             revert YoullNeverPlayAlone();
 
-        if (players.length != decks.length)
-            revert WrongNumberOfDecks();
-
         GameData storage gdata = gameData[gameID];
-        gdata.players = players;
+        gdata.gameCreator = msg.sender;
+        gdata.playersLeftToJoin = numberOfPlayers;
         gdata.lastBlockNum = block.number;
         gdata.currentStep = GameStep.PLAY;
-        // gdata.playersJoined = 0; (implicit)
-        // gdata.currentPlayer is initialized when the game is started. This needs to happen in
+        gdata.joinCheck = joinCheck;
+        // `gdata.players` is filled as players join.
+        // `gdata.currentPlayer` is initialized when the game is started. This needs to happen in
         // another block so that the blockhash of this block can be used as randomness.
 
-        // Initialize `gdata.cards` with all players' decks.
-        uint256 offset = 0;
-        for (uint256 i = 0; i < decks.length; i++) {
-            uint256[] memory deck = inventory.getDeck(players[i], decks[i]);
-            for (uint256 j = 0; j < deck.length; j++)
-                gdata.cards.push(deck[j]);
-            PlayerData storage pdata = gdata.playerData[players[i]];
-            pdata.deckStart = uint8(offset);
-            offset += deck.length;
-            pdata.deckEnd = uint8(offset);
-        }
-
-        for (uint256 i = 0; i < players.length; ++i)
-            emit GameCreated(gameID, players[i]);
+        emit GameCreated(gameID, msg.sender);
     }
+
 
     // ---------------------------------------------------------------------------------------------
 
@@ -351,25 +346,22 @@ contract Game {
 
     // ---------------------------------------------------------------------------------------------
 
-    // Decline to participate in a game that you are included in, but haven't joined yet.
-    function declineGame(uint256 gameID, uint8 playerIndex) external exists(gameID) {
-
-        GameData storage gdata = gameData[gameID];
-        if (gdata.players[playerIndex] != msg.sender)
-            revert PlayerNotInGame();
-
-        PlayerData storage pdata = gdata.playerData[msg.sender];
-        if (pdata.handRoot != 0)
-            revert AlreadyJoined();
-
-        deleteGame(gdata, gameID);
-        emit GameDeclined(gameID, msg.sender);
-    }
-
     // TODO(LATER): Clear data for games that were created but never started.
     //   - Probably need to map a user to the games they started and enforce some housekeeping.
     //   - Could let anybody do it - it's beneficial because of gas rebates.
     //   - Just track game created but not started per creation block and enforce a timeout.
+
+    // ---------------------------------------------------------------------------------------------
+
+    // Cancel a game you created, before it is started.
+    function cancelGame(uint256 gameID) external {
+        GameData storage gdata = gameData[gameID];
+        if (gdata.gameCreator != msg.sender)
+            revert OvereagerCanceller();
+        if (gdata.playersLeftToJoin == 0)
+            revert GameAlreadyStarted();
+        deleteGame(gdata, gameID);
+    }
 
     // ---------------------------------------------------------------------------------------------
 
@@ -388,29 +380,45 @@ contract Game {
 
     // Joins a game that you a player is included in but hasn't joined yet. Calling this function
     // means you agree with the deck listing that was reported by the `createGame` function.
-    function joinGame(uint256 gameID, bytes32 handRoot, bytes32 deckRoot, bytes calldata proof)
-            external participant(gameID) {
+    function joinGame(uint256 gameID, uint8 deckID, bytes calldata data, bytes32 handRoot, bytes32 deckRoot,
+            bytes calldata proof) external {
 
         GameData storage gdata = gameData[gameID];
         PlayerData storage pdata = gdata.playerData[msg.sender];
         if (pdata.handRoot != 0)
             revert AlreadyJoined();
 
+        if (gdata.playersLeftToJoin == 0)
+            revert GameAlreadyStarted();
+        if (!gdata.joinCheck(gameID, msg.sender, deckID, data))
+            revert NotAllowedToJoin();
+        gdata.players.push(msg.sender);
+
+        // Add the player's cards to `gdata.cards`.
+        uint256[] storage cards = gdata.cards;
+        pdata.deckStart = uint8(cards.length);
+        inventory.checkDeck(msg.sender, deckID);
+        uint256[] memory deck = inventory.getDeck(msg.sender, deckID);
+
+        for (uint256 i = 0; i < deck.length; i++)
+            cards.push(deck[i]);
+        pdata.deckEnd = uint8(cards.length);
+
         pdata.health = STARTING_HEALTH;
         pdata.handRoot = handRoot;
         pdata.deckRoot = deckRoot;
-        // `pdata.deckStart` and `pdata.deckEnd` were initialized in `createGame`.
-        // All the player data arrays are implicity initialized empty.
 
         uint256 randomness = uint256(blockhash(gdata.lastBlockNum));
         checkInitialHandProof(pdata, gdata.cards, randomness, proof);
 
-        if (++gdata.playersJoined == gdata.players.length) {
+        if (--gdata.playersLeftToJoin == 0) {
             // Start the game!
             gdata.currentPlayer = uint8(randomness % gdata.players.length);
             gdata.currentStep = GameStep.PLAY; // first player doesn't draw
             gdata.lastBlockNum = block.number;
             emit GameStarted(gameID);
+
+            // TODO(LATER) let the game creator reorder the players, and choose the first player
         }
     }
 
@@ -434,7 +442,9 @@ contract Game {
     // ---------------------------------------------------------------------------------------------
 
     // Let a player concede defeat.
-    function concedeGame(uint256 gameID) public participant(gameID) {
+    function concedeGame(uint256 gameID) public exists(gameID) {
+        if (gameData[gameID].playerData[msg.sender].handRoot == 0)
+            revert PlayerNotInGame();
         GameData storage gdata = gameData[gameID];
         gdata.playerData[msg.sender].health = 0;
         emit PlayerConceded(gameID, msg.sender);
