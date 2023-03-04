@@ -84,9 +84,9 @@ contract Inventory {
 
     // =============================================================================================
 
+    // Checks that the message sender has a deck with the given ID.
     modifier exists(uint8 deckID) {
-        if (deckID >= decks[msg.sender].length || decks[msg.sender][deckID].cards.length == 0)
-            revert DeckDoesNotExist(deckID);
+        checkDeckExists(msg.sender, deckID);
         _;
     }
 
@@ -100,6 +100,14 @@ contract Inventory {
 
     // =============================================================================================
     // FUNCTIONS
+
+    // Checks that the given player has a deck with the given ID.
+    function checkDeckExists(address player, uint8 deckID) view internal {
+        if (deckID >= decks[player].length || decks[player][deckID].cards.length == 0)
+            revert DeckDoesNotExist(deckID);
+    }
+
+    // ---------------------------------------------------------------------------------------------
 
     // Transfers a card of the sender to the inventory, mints a soulbound inventory card to the
     // sender in return.
@@ -209,8 +217,9 @@ contract Inventory {
     // ---------------------------------------------------------------------------------------------
 
     // Return the list of cards in the given deck of the given player.
-    function getCards(address player, uint8 deckID) external view exists(deckID)
+    function getDeck(address player, uint8 deckID) external view
             returns (uint256[] memory deckCards) {
+
         return decks[player][deckID].cards;
     }
 

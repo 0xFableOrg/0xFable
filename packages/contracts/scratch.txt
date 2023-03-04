@@ -1,0 +1,16 @@
+// Removes items with value 255 (NONE) from the array, and makes sure remaining items are
+// contiguous (and in the same relative order as before).
+function compress(uint8[] storage array) internal {
+    uint256 shift = 0;
+    uint256 i = 0;
+    while (i + shift < array.length) {
+        if (array[i + shift] == NONE)
+            ++shift;
+        else {
+            if (shift != 0) array[i] = array[i + shift];
+            ++i;
+        }
+    }
+    for (; i < array.length; ++i)
+        array.pop();
+}

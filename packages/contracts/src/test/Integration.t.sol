@@ -64,10 +64,15 @@ contract Integration is Test {
         game = new Game(inventory);
 
         createDeck(0,  player1);
-        //createDeck(24, player2);
+        createDeck(24, player2);
     }
 
-    function testStuff() public {
+    function testGame() public {
+        address[] memory players = new address[](2);
+        uint8[] memory decks = new uint8[](2); // [0, 0]
+        players[0] = player1;
+        players[1] = player2;
+        game.createGame(players, decks);
         uint256 x = 1;
         assertEq(x, x);
     }

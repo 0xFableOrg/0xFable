@@ -4,6 +4,8 @@ pragma solidity ^0.8.0;
 import "./Inventory.sol";
 import "./CardsCollection.sol";
 
+import "forge-std/console.sol";
+
 // Data + logic to play a game.
 contract Game {
 
@@ -22,29 +24,29 @@ contract Game {
     // Trying to start a game with fewer than 2 people.
     error YoullNeverPlayAlone();
 
+    // Game creators didn't supply the same number of decks than the number of players.
+    error WrongNumberOfDecks();
+
     // Trying to join or decline a game that you already joined.
     error AlreadyJoined();
 
     // Trying to join or decline a game that you are not participating in.
     error PlayerNotInGame();
 
-    // ZK proof didn't verify.;
+    // ZK proof didn't verify.
     error WrongProof();
 
     // Trying to play a card whose index is invalid (bigger than card array size).
-    error WrongCardIndex();
+    error CardIndexTooHigh();
 
     // Trying to attack a player whose index is out of range, or trying to attack oneself.
     error WrongAttackTarget();
 
-    // The defender did not sort the attacker indexes.
-    error AttackerIndexesNotSorted();
+    // Signals that an attacker was specified that is not on the player's battlefield.
+    error AttackerNotOnBattlefield();
 
-    // Mismatch between the number of specified attacker and defenders.
+    // Mismatch between the number of specified attackers and defenders.
     error AttackerDefenderMismatch();
-
-    // The defender specified more blockers than there are attacking creatures.
-    error TooManyBlockers();
 
     // Specifiying the same attacking creature multiple time.
     error DuplicateAttacker();
@@ -58,12 +60,11 @@ contract Game {
     // Specifying an attacker with an index bigger than the number of attacking creatures.
     error AttackerIndexTooHigh(uint8 index);
 
+    // Signals that a defender was specified that is not on the player's battlefield.
+    error DefenderNotOnBattlefield();
+
     // Trying to defend with an attacker (on the battlefield at the given index).
     error DefenderAttacking(uint8 index);
-
-    // Either the attacker indexes are not sorted, or they contain invalid indexes into the
-    // attacking array.
-    error AttackerIndexesInvalid();
 
     // =============================================================================================
     // EVENTS
@@ -108,7 +109,7 @@ contract Game {
     // The battlefield index matches the battlefield before the battle (defender defending),
     // which will not match the on-chain battlefield after the battle (because the destroyed
     // creatures are removed).
-    event CreatureDestroyed(uint256 indexed gameID, uint8 player, uint8 battlefieldIndex, uint256 card);
+    event CreatureDestroyed(uint256 indexed gameID, uint8 player, uint8 cardIndex);
 
     // A player was defeated by an ennemy attack.
     event PlayerDefeated(uint256 indexed gameID, address indexed player);
@@ -117,6 +118,9 @@ contract Game {
     // CONSTANTS
 
     uint16 constant STARTING_HEALTH = 20;
+
+    // Marks the absence of index inside an index array.
+    uint8 constant NONE = 255;
 
     // =============================================================================================
     // TYPES
@@ -137,8 +141,8 @@ contract Game {
         uint8 deckEnd;
         bytes32 handRoot;
         bytes32 deckRoot;
-        uint8[] battlefield;
-        uint8[] graveyard;
+        uint256 battlefield;
+        uint256 graveyard;
         uint8[] attacking;
     }
 
@@ -260,7 +264,7 @@ contract Game {
     // Create a new game with the given players and decks. All players (including the game
     // initiator, who needs not be a player) need to join the game for it to start. Joining the
     // game must happen on a later block than starting the game.
-    function createGame(address[] calldata players, uint256[][] calldata decks)
+    function createGame(address[] calldata players, uint8[] calldata decks)
             external returns (uint256 gameID) {
 
         unchecked { // for gas efficiency lol
@@ -269,6 +273,9 @@ contract Game {
 
         if (players.length < 2)
             revert YoullNeverPlayAlone();
+
+        if (players.length != decks.length)
+            revert WrongNumberOfDecks();
 
         GameData storage gdata = gameData[gameID];
         gdata.players = players;
@@ -281,12 +288,15 @@ contract Game {
         // Initialize `gdata.cards` with all players' decks.
         uint256 offset = 0;
         for (uint256 i = 0; i < decks.length; i++) {
-            for (uint256 j = 0; j < decks[i].length; j++) {
-                gdata.cards[offset + j] = decks[i][j];
-            }
+            console.log("deck", i);
+            uint256[] memory deck = inventory.getDeck(players[i], decks[i]);
+            console.log("deck size", deck.length);
+            for (uint256 j = 0; j < deck.length; j++)
+                gdata.cards.push(deck[j]);
+            console.log("done parsing deck");
             PlayerData storage pdata = gdata.playerData[players[i]];
             pdata.deckStart = uint8(offset);
-            offset += decks[i].length;
+            offset += deck.length;
             pdata.deckEnd = uint8(offset);
         }
 
@@ -327,8 +337,6 @@ contract Game {
         for (uint256 i = 0; i < gdata.players.length; ++i) {
             // TODO(LATER) Is all of this necessary beyond clearing the mapping?
             PlayerData storage pdata = gdata.playerData[gdata.players[i]];
-            clear(pdata.battlefield);
-            clear(pdata.graveyard);
             clear(pdata.attacking);
             delete gdata.playerData[gdata.players[i]];
             delete gdata.players[i];
@@ -472,33 +480,13 @@ contract Game {
         GameData storage gdata = gameData[gameID];
         PlayerData storage pdata = gdata.playerData[msg.sender];
         if (cardIndex > gdata.cards.length)
-            revert WrongCardIndex();
+            revert CardIndexTooHigh();
         uint256 card = gdata.cards[cardIndex];
         uint256 randomness = uint256(blockhash(gdata.lastBlockNum));
         checkPlayProof(pdata, handRoot, card, randomness, proof);
         pdata.handRoot = handRoot;
-        pdata.battlefield.push(cardIndex);
+        pdata.battlefield |= 1 << cardIndex;
         emit CardPlayed(gameID, gdata.currentPlayer, card);
-    }
-
-    // ---------------------------------------------------------------------------------------------
-
-    // Declare attackers as indexes into this player's battlefield array.
-    function attack(uint256 gameID, uint8 targetPlayer, uint8[] calldata attackersIndexes)
-            external step(gameID, GameStep.ATTACK) {
-
-        GameData storage gdata = gameData[gameID];
-        PlayerData storage pdata = gdata.playerData[msg.sender];
-
-        if (gdata.currentPlayer == targetPlayer || targetPlayer > gdata.players.length)
-            revert WrongAttackTarget();
-
-        clear(pdata.attacking); // Delete old attacking array.
-
-        // TODO need to check that these are valid indexes into the battlefield
-
-        pdata.attacking = attackersIndexes;
-        emit PlayerAttacked(gameID, gdata.currentPlayer, targetPlayer);
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -512,11 +500,11 @@ contract Game {
 
     // ---------------------------------------------------------------------------------------------
 
-    // Returns true iff the array contains duplicate elements (in O(n) time).
+    // Returns true iff the array contains duplicate elements (in O(n) time). 255 (NONE) is ignored.
     function hasDuplicate(uint8[] calldata array) internal pure returns(bool) {
         uint256 bitmap = 0;
         for (uint256 i = 0; i < array.length; ++i) {
-            if ((bitmap & (1 << array[i])) != 0) return true;
+            if (array[i] != NONE && (bitmap & (1 << array[i])) != 0) return true;
             bitmap |= 1 << array[i];
         }
         return false;
@@ -524,121 +512,87 @@ contract Game {
 
     // ---------------------------------------------------------------------------------------------
 
-    // Removes items with value 255 from the array, and makes sure remaining items are contiguous
-    // (and in the same relative order as before).
-    function compress(uint8[] storage array) internal {
-        uint256 shift = 0;
-        uint256 i = 0;
-        while (i + shift < array.length) {
-            if (array[i + shift] == 255)
-                ++shift;
-            else {
-                if (shift != 0) array[i] = array[i + shift];
-                ++i;
-            }
-        }
-        for (; i < array.length; ++i)
-            array.pop();
+    // Declare attackers (indexes into the `cards` array).
+    function attack(uint256 gameID, uint8 targetPlayer, uint8[] calldata attacking)
+            external step(gameID, GameStep.ATTACK) {
+
+        GameData storage gdata = gameData[gameID];
+        PlayerData storage pdata = gdata.playerData[msg.sender];
+
+        if (gdata.currentPlayer == targetPlayer || targetPlayer > gdata.players.length)
+            revert WrongAttackTarget();
+
+        if (hasDuplicate(attacking))
+            revert DuplicateAttacker();
+
+        for (uint256 i = 0; i < attacking.length; ++i)
+            if ((pdata.battlefield & (1 << attacking[i])) == 0)
+                revert AttackerNotOnBattlefield();
+
+        clear(pdata.attacking); // Delete old attacking array.
+        pdata.attacking = attacking;
+        emit PlayerAttacked(gameID, gdata.currentPlayer, targetPlayer);
     }
 
     // ---------------------------------------------------------------------------------------------
 
-    // Declare defenders & resolve combat: each creature in `defenderIndexes` will block the
-    // corresponding creature in `attackerIndexes`. The `attackerIndexes` array needs to be sorted.
-    // For now, only one-on-one blocking is allowed. `attackerIndexes` contains indexes into the
-    // attacker's `attacking` array, whereas `defenderIndexes` contains indexes into the defenfer's
-    // `battlefied`.
-    function defend (uint256 gameID, uint8[] calldata attackerIndexes,
-            uint8[] calldata defenderIndexes) external step(gameID, GameStep.DEFEND) {
-
-        if (attackerIndexes.length != defenderIndexes.length)
-            revert AttackerDefenderMismatch();
-
-        if (hasDuplicate(attackerIndexes))
-            revert DuplicateAttacker();
-        if (hasDuplicate(defenderIndexes))
-            revert DuplicateDefender();
+    // Declare defenders & resolve combat: each creature in `defending` will block the
+    // corresponding creature in the attacker's `attacking` array.
+    function defend (uint256 gameID, uint8[] calldata defending)
+            external step(gameID, GameStep.DEFEND) {
 
         GameData storage gdata = gameData[gameID];
         PlayerData storage defender = gdata.playerData[msg.sender];
         PlayerData storage attacker = gdata.playerData[msg.sender];
+        uint8[] storage attacking = attacker.attacking;
 
-        if (attacker.attacking.length < attackerIndexes.length)
-            revert TooManyBlockers();
+        if (attacking.length != defending.length)
+            revert AttackerDefenderMismatch();
 
-        uint8 destroyedDefenders = 0;
-        uint8 destroyedAttackers = 0;
-        uint256 i = 0; // indexes into attackerIndexes/blockerIndexes
-        uint8 lastAttackerIndex = 255;
-
-        // TODO: need to check that i does not overflow the array
-        // TODO: (related) need to move the check that the attacker index is not too high
+        // TODO make sure duplicate 255 are ignored
+        if (hasDuplicate(defending))
+            revert DuplicateDefender();
 
         // iterate over attackers
-        for (uint256 j = 0; j < attacker.attacking.length; ++j) {
-
-            if (i == attackerIndexes.length || attackerIndexes[i] != j) { // attacker not blocked
-                uint8 attackerIndex = attacker.attacking[j];
-                uint256 attackerCard = gdata.cards[attacker.battlefield[attackerIndex]];
-
-                uint8 _attack = cardsCollection.stats(attackerCard).attack;
-                if (defender.health <= _attack) {
+        for (uint256 i = 0; i < attacking.length; ++i) {
+            if (defending[i] == NONE) { // attacker not blocked
+                uint256 attackingCard = gdata.cards[attacking[i]];
+                uint8 damage = cardsCollection.stats(attackingCard).attack;
+                if (defender.health <= damage) {
                     defender.health = 0;
                     maybeEndGame(gdata, gameID);
                     break;
                 } else {
-                    defender.health -= _attack;
+                    defender.health -= damage;
                 }
             } else { // attacker blocked
+                if ((defender.battlefield & (1 << defending[i])) == 0)
+                    revert DefenderNotOnBattlefield();
+                if (contains(defender.attacking, defending[i]))
+                    revert DefenderAttacking(defending[i]);
 
-                // in this branch: j == attackerIndexes[i]
-                if (j != 255 && j <= lastAttackerIndex)
-                    revert AttackerIndexesNotSorted();
-                lastAttackerIndex = attackerIndexes[i];
-
-                // Get + check defender card.
-                uint256 defenderCard;
-                uint8 defenderIndex = defenderIndexes[i];
-                if (defenderIndex >= defender.battlefield.length)
-                    revert DefenderIndexTooHigh(defenderIndex);
-                if (contains(defender.attacking, defenderIndex))
-                    revert DefenderAttacking(defenderIndex);
-                defenderCard = gdata.cards[defender.battlefield[defenderIndex]];
-
-                // Get + check attacker card.
-                if (j >= attacker.attacking.length)
-                    revert AttackerIndexTooHigh(uint8(j));
-                uint8 attackerIndex = attacker.attacking[j];
-                uint256 attackerCard = gdata.cards[attacker.battlefield[attackerIndex]];
-
-                Stats memory defenderStats = cardsCollection.stats(defenderCard);
-                Stats memory attackerStats = cardsCollection.stats(attackerCard);
+                Stats memory attackerStats;
+                Stats memory defenderStats;
+                { // avoid stack too deep
+                   uint256 attackingCard = gdata.cards[attacking[i]];
+                   uint256 defendingCard = gdata.cards[defending[i]];
+                   attackerStats = cardsCollection.stats(attackingCard);
+                   defenderStats = cardsCollection.stats(defendingCard);
+                }
 
                 if (attackerStats.attack >= defenderStats.defense) {
-                    defender.battlefield[defenderIndex] = 255;
-                    emit CreatureDestroyed(gameID, gdata.currentPlayer, defenderIndex, defenderCard);
+                    defender.battlefield -= (1 << defending[i]);
+                    defender.graveyard   |= (1 << defending[i]);
+                    emit CreatureDestroyed(gameID, gdata.currentPlayer, defending[i]);
                 }
 
                 if (defenderStats.attack >= attackerStats.defense) {
-                    attacker.battlefield[attackerIndex] = 255;
-                    emit CreatureDestroyed(gameID, gdata.attackingPlayer, attackerIndex, attackerCard);
+                    attacker.battlefield -= (1 << attacking[i]);
+                    attacker.graveyard   |= (1 << attacking[i]);
+                    emit CreatureDestroyed(gameID, gdata.attackingPlayer, attacking[i]);
                 }
-
-                // Look at next attacker-blocker pair.
-                // When we get to the end of the attacker/defender arrays, all remaining
-                // attackers will be handled as not blocked in the if block.
-                ++i;
             }
         }
-
-        if (i < attackerIndexes.length)
-            // If we didn't get to the end of the blockers, it means that either the attackerIndexes
-            // array is unsorted or contains invalid values.
-            revert AttackerIndexesInvalid();
-
-
-        if (destroyedDefenders > 0) compress(defender.battlefield);
-        if (destroyedAttackers > 0) compress(attacker.battlefield);
 
         emit PlayerDefended(gameID, gdata.attackingPlayer, gdata.currentPlayer);
     }
