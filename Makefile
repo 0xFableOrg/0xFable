@@ -31,7 +31,12 @@ update-deps-latest:
 	pnpm update -r --latest
 .PHONY: update-deps-latest
 
+generate-typechain:
+	cd packages/webapp && pnpm typechain
+.PHONY: generate-typechain
+
 build:
 	cd packages/contracts && make build
-	cd packages/react && make build
+	cd packages/webapp && pnpm typechain && pnpm build
 .PHONY: build
+

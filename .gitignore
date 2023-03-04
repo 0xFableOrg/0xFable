@@ -19,3 +19,7 @@ packages/contracts/broadcast/
 # React outputs
 packages/react/www/app.js
 packages/react/www/app.css
+
+# Webapp outputes
+packages/webapp/build
+packages/webapp/typechain
