@@ -37,8 +37,14 @@ contract Game {
     // Trying to attack a player whose index is out of range, or trying to attack oneself.
     error WrongAttackTarget();
 
+    // The defender did not sort the attacker indexes.
+    error AttackerIndexesNotSorted();
+
     // Mismatch between the number of specified attacker and defenders.
     error AttackerDefenderMismatch();
+
+    // The defender specified more blockers than there are attacking creatures.
+    error TooManyBlockers();
 
     // Specifiying the same attacking creature multiple time.
     error DuplicateAttacker();
@@ -54,6 +60,10 @@ contract Game {
 
     // Trying to defend with an attacker (on the battlefield at the given index).
     error DefenderAttacking(uint8 index);
+
+    // Either the attacker indexes are not sorted, or they contain invalid indexes into the
+    // attacking array.
+    error AttackerIndexesInvalid();
 
     // =============================================================================================
     // EVENTS
@@ -484,6 +494,9 @@ contract Game {
             revert WrongAttackTarget();
 
         clear(pdata.attacking); // Delete old attacking array.
+
+        // TODO need to check that these are valid indexes into the battlefield
+
         pdata.attacking = attackersIndexes;
         emit PlayerAttacked(gameID, gdata.currentPlayer, targetPlayer);
     }
@@ -530,14 +543,11 @@ contract Game {
 
     // ---------------------------------------------------------------------------------------------
 
-    function resolveBlock(uint256 gameID, )
-
-    // ---------------------------------------------------------------------------------------------
-
     // Declare defenders & resolve combat: each creature in `defenderIndexes` will block the
-    // corresponding creature in `attackerIndexes`. For now, only one-on-one blocking is allowed.
-    // `attackerIndexes` contains indexes into the attacker's `attacking` array, whereas
-    // `defenderIndexes` contains indexes into the defenfer's `battlefied`.
+    // corresponding creature in `attackerIndexes`. The `attackerIndexes` array needs to be sorted.
+    // For now, only one-on-one blocking is allowed. `attackerIndexes` contains indexes into the
+    // attacker's `attacking` array, whereas `defenderIndexes` contains indexes into the defenfer's
+    // `battlefied`.
     function defend (uint256 gameID, uint8[] calldata attackerIndexes,
             uint8[] calldata defenderIndexes) external step(gameID, GameStep.DEFEND) {
 
@@ -550,52 +560,87 @@ contract Game {
             revert DuplicateDefender();
 
         GameData storage gdata = gameData[gameID];
-
         PlayerData storage defender = gdata.playerData[msg.sender];
         PlayerData storage attacker = gdata.playerData[msg.sender];
+
+        if (attacker.attacking.length < attackerIndexes.length)
+            revert TooManyBlockers();
+
         uint8 destroyedDefenders = 0;
         uint8 destroyedAttackers = 0;
+        uint256 i = 0; // indexes into attackerIndexes/blockerIndexes
+        uint8 lastAttackerIndex = 255;
 
-        for (uint256 i = 0; i < defenderIndexes.length; ++i) {
+        // TODO: need to check that i does not overflow the array
+        // TODO: (related) need to move the check that the attacker index is not too high
 
-            // Get + check defender card.
-            uint256 defenderCard;
-            uint8 defenderIndex = defenderIndexes[i];
-            if (defenderIndex >= defender.battlefield.length)
-                revert DefenderIndexTooHigh(defenderIndex);
-            if (contains(defender.attacking, defenderIndex))
-                revert DefenderAttacking(defenderIndex);
-            defenderCard = gdata.cards[defender.battlefield[defenderIndex]];
+        // iterate over attackers
+        for (uint256 j = 0; j < attacker.attacking.length; ++j) {
 
-            // Get + check attacker card.
-            // NOTE(norswap): Having the index target the attacking array avoids iterating
-            //   over the attacking array to make sure the attacker selection is valid.
-            uint8 attackerAttackingIndex = attackerIndexes[i];
-            if (attackerAttackingIndex >= attacker.attacking.length)
-                revert AttackerIndexTooHigh(attackerAttackingIndex);
-            uint8 attackerIndex = attacker.attacking[attackerAttackingIndex];
-            uint256 attackerCard = gdata.cards[attacker.battlefield[attackerIndex]];
+            if (i == attackerIndexes.length || attackerIndexes[i] != j) { // attacker not blocked
+                uint8 attackerIndex = attacker.attacking[j];
+                uint256 attackerCard = gdata.cards[attacker.battlefield[attackerIndex]];
 
-            Stats memory defenderStats = cardsCollection.stats(defenderCard);
-            Stats memory attackerStats = cardsCollection.stats(attackerCard);
+                uint8 _attack = cardsCollection.stats(attackerCard).attack;
+                if (defender.health <= _attack) {
+                    defender.health = 0;
+                    maybeEndGame(gdata, gameID);
+                    break;
+                } else {
+                    defender.health -= _attack;
+                }
+            } else { // attacker blocked
 
-            if (attackerStats.attack >= defenderStats.defense) {
-                defender.battlefield[defenderIndex] = 255;
-                emit CreatureDestroyed(gameID, gdata.currentPlayer, defenderIndex, defenderCard);
-            }
+                // in this branch: j == attackerIndexes[i]
+                if (j != 255 && j <= lastAttackerIndex)
+                    revert AttackerIndexesNotSorted();
+                lastAttackerIndex = attackerIndexes[i];
 
-            if (defenderStats.attack >= attackerStats.defense) {
-                attacker.battlefield[attackerIndex] = 255;
-                emit CreatureDestroyed(gameID, gdata.attackingPlayer, attackerIndex, attackerCard);
+                // Get + check defender card.
+                uint256 defenderCard;
+                uint8 defenderIndex = defenderIndexes[i];
+                if (defenderIndex >= defender.battlefield.length)
+                    revert DefenderIndexTooHigh(defenderIndex);
+                if (contains(defender.attacking, defenderIndex))
+                    revert DefenderAttacking(defenderIndex);
+                defenderCard = gdata.cards[defender.battlefield[defenderIndex]];
+
+                // Get + check attacker card.
+                if (j >= attacker.attacking.length)
+                    revert AttackerIndexTooHigh(uint8(j));
+                uint8 attackerIndex = attacker.attacking[j];
+                uint256 attackerCard = gdata.cards[attacker.battlefield[attackerIndex]];
+
+                Stats memory defenderStats = cardsCollection.stats(defenderCard);
+                Stats memory attackerStats = cardsCollection.stats(attackerCard);
+
+                if (attackerStats.attack >= defenderStats.defense) {
+                    defender.battlefield[defenderIndex] = 255;
+                    emit CreatureDestroyed(gameID, gdata.currentPlayer, defenderIndex, defenderCard);
+                }
+
+                if (defenderStats.attack >= attackerStats.defense) {
+                    attacker.battlefield[attackerIndex] = 255;
+                    emit CreatureDestroyed(gameID, gdata.attackingPlayer, attackerIndex, attackerCard);
+                }
+
+                // Look at next attacker-blocker pair.
+                // When we get to the end of the attacker/defender arrays, all remaining
+                // attackers will be handled as not blocked in the if block.
+                ++i;
             }
         }
+
+        if (i < attackerIndexes.length)
+            // If we didn't get to the end of the blockers, it means that either the attackerIndexes
+            // array is unsorted or contains invalid values.
+            revert AttackerIndexesInvalid();
+
 
         if (destroyedDefenders > 0) compress(defender.battlefield);
         if (destroyedAttackers > 0) compress(attacker.battlefield);
 
         emit PlayerDefended(gameID, gdata.attackingPlayer, gdata.currentPlayer);
-
-        // TODO enabling player losing because of health
     }
 
     // ---------------------------------------------------------------------------------------------

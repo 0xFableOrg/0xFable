@@ -51,10 +51,10 @@ contract Inventory {
     uint256 constant MAX_DECKS = 256;
 
     // Min number of cards in a deck.
-    uint256 constant MIN_DECK_SIZE = 60;
+    uint256 constant MIN_DECK_SIZE = 10;
 
     // Max number of cards in a deck.
-    uint256 constant MAX_DECK_SIZE = 60;
+    uint256 constant MAX_DECK_SIZE = 40;
 
     // =============================================================================================
     // TYPES

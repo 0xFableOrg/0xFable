@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 import "../CardsCollection.sol";
 import "../Inventory.sol";
 import "../InventoryCardsCollection.sol";
+import "../Game.sol";
 
 import "forge-std/Script.sol";
 import "multicall/Multicall3.sol";
@@ -17,10 +18,12 @@ contract DeployLocal is Script {
         CardsCollection cardsCollection = new CardsCollection();
         Inventory inventory = new Inventory(salt, cardsCollection);
         InventoryCardsCollection inventoryCardsCollection = inventory.inventoryCardsCollection();
+        Game game = new Game(inventory);
 
         console2.log("CardsCollection address", address(cardsCollection));
         console2.log("Inventory address", address(inventory));
         console2.log("InventoryCardsCollection address", address(inventoryCardsCollection));
+        console2.log("Game address", address(game));
 
         Multicall3 multicall = new Multicall3();
         console2.log("Multicall3 address", address(multicall));
@@ -45,10 +48,12 @@ contract DeployPublic is Script {
         CardsCollection cardsCollection = new CardsCollection{salt: salt}();
         Inventory inventory = new Inventory{salt: salt}(salt, cardsCollection);
         InventoryCardsCollection inventoryCardsCollection = inventory.inventoryCardsCollection();
+        Game game = new Game{salt: salt}(inventory);
 
         console2.log("CardsCollection address", address(cardsCollection));
         console2.log("Inventory address", address(inventory));
         console2.log("InventoryCardsCollection address", address(inventoryCardsCollection));
+        console2.log("Game address", address(game));
 
         console2.log("Multicall3 address", 0xcA11bde05977b3631167028862bE2a173976CA11);
 
