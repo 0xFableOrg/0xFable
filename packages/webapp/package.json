@@ -15,6 +15,7 @@
     "connectkit": "^1.2.0",
     "daisyui": "^2.51.3",
     "ethers": "^5.7.2",
+    "lodash": "^4.17.21",
     "next": "^13.2.1",
     "react": "18.2.0",
     "react-dom": "18.2.0",

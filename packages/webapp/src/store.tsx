@@ -1,18 +1,28 @@
 import { ethers } from "ethers";
 import { create } from "zustand";
-import {
-  useGamePlayerTimedOutEvent,
-  useGameGameCreatedEvent,
-} from "./generated";
 
 type Store = {
-  gameID: ethers.BigNumberish | null;
-  setGameID: (gameId: ethers.BigNumberish) => void;
+  gameId: ethers.BigNumberish | null;
+  selectedCard: ethers.BigNumberish | null;
+  playerBoard: ethers.BigNumberish[] | null;
+  enemyBoard: ethers.BigNumberish[] | null;
+  setGameId: (gameId: ethers.BigNumberish) => void;
+  setSelectedCard: (selectedCard: ethers.BigNumberish) => void;
+  addtoPlayerBoard: (card: ethers.BigNumberish) => void;
+  addtoEnemyBoard: (card: ethers.BigNumberish) => void;
 };
 
 const useStore = create<Store>()((set) => ({
-  gameID: null,
-  setGameID: (gameID) => set({ gameID }),
+  gameId: null,
+  selectedCard: null,
+  playerBoard: [],
+  enemyBoard: [],
+  setGameId: (gameId) => set({ gameId }),
+  setSelectedCard: (selectedCard) => set({ selectedCard }),
+  addtoPlayerBoard: (card) =>
+    set((state) => ({ playerBoard: [...state.playerBoard, card] })),
+  addtoEnemyBoard: (card) =>
+    set((state) => ({ enemyBoard: [...state.enemyBoard, card] })),
 }));
 
 export default useStore;

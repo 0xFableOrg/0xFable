@@ -1,20 +1,24 @@
-import {useGame, useGameJoinGame, usePrepareGameJoinGame} from "../../generated";
+import {
+  useGame,
+  useGameJoinGame,
+  usePrepareGameJoinGame,
+} from "../../generated";
 import { useWaitForTransaction } from "wagmi";
 import { BigNumber } from "ethers";
 import { constants } from "ethers/lib";
 import useStore from "../../store";
-import {useState} from "react";
-import {useRouter} from "next/router";
+import { useState } from "react";
+import { useRouter } from "next/router";
 
-const deployment = require('../../../../contracts/out/deployment.json');
+const deployment = require("../../../../contracts/out/deployment.json");
 
 export const JoinGameModal = () => {
   const [inputGameID, setInputGameID] = useState(null);
-  const setGameID = useStore((state) => state.setGameID);
+  const setGameID = useStore((state) => state.setGameId);
   const router = useRouter();
 
   const gameContract = useGame({
-    address: deployment.Game
+    address: deployment.Game,
   });
 
   const { config } = usePrepareGameJoinGame({
@@ -29,7 +33,7 @@ export const JoinGameModal = () => {
           constants.HashZero,
         ]
       : undefined,
-    enabled: inputGameID != undefined
+    enabled: inputGameID != undefined,
   });
 
   const { data, write } = useGameJoinGame(config);
@@ -38,9 +42,9 @@ export const JoinGameModal = () => {
     hash: data?.hash,
     onSuccess(data) {
       const event = gameContract.interface.parseLog(data.logs[0]);
-      setGameID(event.args.gameID)
-      router.push("/play")
-    }
+      setGameID(event.args.gameID);
+      router.push("/play");
+    },
   });
 
   //check if string is a postive integer
@@ -68,7 +72,9 @@ export const JoinGameModal = () => {
             placeholder="Game ID"
             min={0}
             onChange={(e) => {
-              setInputGameID(isPositiveInteger(e.target.value) ? e.target.value : null)
+              setInputGameID(
+                isPositiveInteger(e.target.value) ? e.target.value : null
+              );
             }}
             className="input-bordered input-warning input mr-2 w-full max-w-xs"
           />
@@ -77,7 +83,7 @@ export const JoinGameModal = () => {
             className="btn"
             disabled={!inputGameID || !write}
             onClick={() => {
-              write?.()
+              write?.();
             }}
           >
             Join Game

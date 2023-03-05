@@ -46,6 +46,7 @@ importers:
       eslint: ^8.34.0
       eslint-config-next: ^13.2.1
       ethers: ^5.7.2
+      lodash: ^4.17.21
       next: ^13.2.1
       postcss: ^8.4.14
       prettier: ^2.8.1
@@ -63,6 +64,7 @@ importers:
       connectkit: 1.2.0_fz36zj7lqr4mpddduwobg5rhxi
       daisyui: 2.51.3_gbtt6ss3tbiz4yjtvdr6fbrj44
       ethers: 5.7.2
+      lodash: 4.17.21
       next: 13.2.3_biqbaboplfbrettd7655fr4n2y
       react: 18.2.0
       react-dom: 18.2.0_react@18.2.0
