@@ -60,10 +60,10 @@ contract Integration is Test {
         vm.startPrank(player);
         cardsCollection.setApprovalForAll(address(inventory), true);
         for (uint256 j = 0; j < i; ++j) {
-            inventory.addCard(start + j);
+            inventory.addCard(player, start + j);
             deck[j] = start + j;
         }
-        inventory.addDeck(Inventory.Deck(deck));
+        inventory.addDeck(player, Inventory.Deck(deck));
         vm.stopPrank();
     }
 
