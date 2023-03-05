@@ -1,11 +1,11 @@
 import { useGameJoinGame, usePrepareGameJoinGame } from "../../generated";
 import { useWaitForTransaction } from "wagmi";
 import { useState } from "react";
-import { BigNumber } from "ethers";
+import { BigNumber, ethers } from "ethers";
 import { constants } from "ethers/lib";
 
 export const JoinGameModal = () => {
-  const [gameId, setGameId] = useState(5);
+  const [gameId, setGameId] = useState<null | ethers.BigNumberish>(null);
 
   const { config, error } = usePrepareGameJoinGame({
     address: process.env.NEXT_PUBLIC_INVENTORY_GAME_CONTRACT as `0x${string}`,
@@ -19,7 +19,7 @@ export const JoinGameModal = () => {
           constants.HashZero,
         ]
       : undefined,
-    // enabled: false,
+    enabled: false,
   });
 
   const { data, write } = useGameJoinGame({
@@ -43,6 +43,12 @@ export const JoinGameModal = () => {
     },
   });
 
+  //check if string is a postive integer
+  const isPositiveInteger = (str: string) => {
+    const n = Math.floor(Number(str));
+    return n !== Infinity && String(n) === str && n >= 0;
+  };
+
   return (
     <>
       <label
@@ -56,12 +62,22 @@ export const JoinGameModal = () => {
       <label htmlFor="join" className="modal cursor-pointer">
         <label className="modal-box relative" htmlFor="">
           <h3 className="text-lg font-bold">Joining Game...</h3>
-          {/* <p className="py-4">
-            
-          </p> */}
+          <p className="py-4">Enter the game ID you want to join.</p>
+          <input
+            type="number"
+            placeholder="Game ID"
+            min={0}
+            onChange={(e) =>
+              setGameId(
+                isPositiveInteger(e.target.value) ? e.target.value : null
+              )
+            }
+            className="input-bordered input-warning input mr-2 w-full max-w-xs"
+          />
+
           <button
             className="btn"
-            disabled={isLoading}
+            disabled={isLoading || !gameId}
             onClick={() => write?.()}
           >
             Join Game

@@ -5,14 +5,14 @@ import {
   useGameGameCreatedEvent,
 } from "./generated";
 
-type GameStore = {
+type Store = {
   gameId: ethers.BigNumberish | null;
   setGameId: (gameId: ethers.BigNumberish) => void;
 };
 
-const useGameStore = create<GameStore>()((set) => ({
+const useStore = create<Store>()((set) => ({
   gameId: null,
   setGameId: (gameId) => set({ gameId }),
 }));
 
-export default useGameStore;
+export default useStore;

@@ -16,9 +16,9 @@ export const MintGameModal = () => {
         <label className="modal-box relative" htmlFor="">
           <h3 className="text-lg font-bold">Minting Deck...</h3>
           <p className="py-4">
-            You've been selected for a chance to get one year of subscription to
-            use Wikipedia for free!
+            Mint a deck of cards to play the game with your friends.
           </p>
+          <button className="btn">Mint Deck</button>
         </label>
       </label>
     </>

@@ -28,7 +28,7 @@ const Home: NextPage = () => {
           {address && isMounted && (
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 md:gap-8">
               <CreateGameModal />
-              {/* <JoinGameModal /> */}
+              <JoinGameModal />
               <MintGameModal />
             </div>
           )}
@@ -37,8 +37,8 @@ const Home: NextPage = () => {
             <div className="">
               <button
                 className="btn-lg btn border-2 border-yellow-500 normal-case hover:scale-105 hover:border-yellow-400"
-                onClick={() => {
-                  open();
+                onClick={async () => {
+                  await open();
                 }}
               >
                 Connect Wallet
@@ -50,7 +50,7 @@ const Home: NextPage = () => {
             <div className="">
               <button
                 className="btn-glass btn normal-case"
-                onClick={() => open()}
+                onClick={async () => await open()}
               >
                 Hello Adventurer, {address}
               </button>
