@@ -8,14 +8,12 @@ export default defineConfig({
     react(),
     foundry({
       project: "../contracts",
-      exclude: [
-        "test.sol",
-        "IERC721.sol",
-        "IERC721Receiver.sol",
-        "IERC721Metadata.sol",
-        "IERC165.sol",
-        "ERC165.sol",
-      ],
+      include: [
+        "CardsCollection.sol/**/*.json",
+        "Game.sol/**/*.json",
+        "Inventory.sol/**/*.json",
+        "InventoryCardsCollection.sol/**/*.json"
+      ]
     }),
   ],
 });
