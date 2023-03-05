@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import throttle from "lodash/throttle";
+import throttle from "lodash";
 
 const timing = (1 / 60) * 1000;
 const decay = (v: any) => -0.1 * ((1 / timing) ^ 4) + v;

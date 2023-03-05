@@ -14,7 +14,7 @@ const deployment = require("../../../../contracts/out/deployment.json");
 
 export const JoinGameModal = () => {
   const [inputGameID, setInputGameID] = useState(null);
-  const setGameID = useStore((state) => state.setGameId);
+  const setGameID = useStore((state) => state.setGameID);
   const router = useRouter();
 
   const gameContract = useGame({

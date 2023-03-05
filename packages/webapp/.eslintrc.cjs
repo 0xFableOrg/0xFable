@@ -1,6 +1,5 @@
 /** @type {import("eslint").Linter.Config} */
 const config = {
-  ignoreDuringBuilds: true,
   overrides: [
     {
       extends: [

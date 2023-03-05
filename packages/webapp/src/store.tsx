@@ -2,22 +2,22 @@ import { ethers } from "ethers";
 import { create } from "zustand";
 
 type Store = {
-  gameId: ethers.BigNumberish | null;
+  gameID: ethers.BigNumberish | null;
   selectedCard: ethers.BigNumberish | null;
   playerBoard: ethers.BigNumberish[] | null;
   enemyBoard: ethers.BigNumberish[] | null;
-  setGameId: (gameId: ethers.BigNumberish) => void;
+  setGameID: (gameID: ethers.BigNumberish) => void;
   setSelectedCard: (selectedCard: ethers.BigNumberish) => void;
   addtoPlayerBoard: (card: ethers.BigNumberish) => void;
   addtoEnemyBoard: (card: ethers.BigNumberish) => void;
 };
 
 const useStore = create<Store>()((set) => ({
-  gameId: null,
+  gameID: null,
   selectedCard: null,
   playerBoard: [],
   enemyBoard: [],
-  setGameId: (gameId) => set({ gameId }),
+  setGameID: (gameID) => set({ gameID: gameID }),
   setSelectedCard: (selectedCard) => set({ selectedCard }),
   addtoPlayerBoard: (card) =>
     set((state) => ({ playerBoard: [...state.playerBoard, card] })),
