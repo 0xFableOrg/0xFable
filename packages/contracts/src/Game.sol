@@ -268,8 +268,8 @@ contract Game {
     }
 
     function initVerifiers() external {
-        drawVerifier = DrawVerifier(verifier);
-        playVerifier = PlayVerifier(verifier);
+        drawVerifier = new DrawVerifier();
+        playVerifier = new PlayVerifier();
     }
 
     // =============================================================================================
@@ -393,7 +393,7 @@ contract Game {
     //
     // The player's deck is cards[pdata.deckStart:pdata.deckEnd].
     function checkInitialHandProof(PlayerData storage pdata, uint256[] storage cards,
-             uint256 randomness, bytes calldata proof) internal {
+             uint256 randomness, bytes calldata proof) view internal {
         // TODO(PROOF)
     }
 
@@ -404,7 +404,7 @@ contract Game {
     function joinGame(uint256 gameID, uint8 deckID, bytes calldata data, bytes32 handRoot, bytes32 deckRoot,
             bytes calldata proof) external {
 
-        emit PlayerJoined(gameID, msg.sender);
+//        emit PlayerJoined(gameID, msg.sender);
 //
 //        GameData storage gdata = gameData[gameID];
 //        PlayerData storage pdata = gdata.playerData[msg.sender];
@@ -482,7 +482,7 @@ contract Game {
     // `pdata.deckRoot`, that removes the drawn card from the deck using fast array removal (swap
     // removed card with last card, and truncate the array by one).
     function checkDrawProof(PlayerData storage pdata, bytes32 handRoot, bytes32 deckRoot,
-            uint256 randomness, bytes calldata proof) internal {
+            uint256 randomness, bytes calldata proof) view internal {
         // TODO(PROOF)
         uint256[] memory pubSignals = new uint256[](5);
         pubSignals[0] = uint256(pdata.deckRoot);
@@ -523,13 +523,13 @@ contract Game {
     // Check that `card` was contained within `pdata.handRoot` and that `handRoot` is a correctly
     // updated version of `pdata.handRoot`, without card, removed using fast array removal.
     function checkPlayProof(PlayerData storage pdata, bytes32 handRoot, uint256 card,
-            uint256 randomness, bytes calldata proof) internal {
-            uint256[] memory pubSignals = new uint256[](3);
-            pubSignals[0] = uint256(pdata.handRoot);
-            pubSignals[1] = uint256(handRoot);
-            pubSignals[2] = card;
+            bytes calldata proof) view internal {
+        uint256[] memory pubSignals = new uint256[](3);
+        pubSignals[0] = uint256(pdata.handRoot);
+        pubSignals[1] = uint256(handRoot);
+        pubSignals[2] = card;
 
-            playVerifier.verifyProof(proof, pubSignals);
+        playVerifier.verifyProof(proof, pubSignals);
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -542,8 +542,7 @@ contract Game {
         if (cardIndex > gdata.cards.length)
             revert CardIndexTooHigh();
         uint256 card = gdata.cards[cardIndex];
-        uint256 randomness = uint256(blockhash(gdata.lastBlockNum));
-        checkPlayProof(pdata, handRoot, card, randomness, proof);
+        checkPlayProof(pdata, handRoot, card, proof);
         pdata.handRoot = handRoot;
         pdata.battlefield |= 1 << cardIndex;
         emit CardPlayed(gameID, gdata.currentPlayer, card);

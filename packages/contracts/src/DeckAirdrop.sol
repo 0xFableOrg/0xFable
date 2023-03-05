@@ -103,11 +103,11 @@ contract DeckAirdrop is IERC721Receiver {
     }
 
     function onERC721Received(
-        address operator,
-        address from,
-        uint256 tokenId,
-        bytes calldata data
-    ) external returns (bytes4) {
+        address /*operator*/,
+        address /*from*/,
+        uint256 /*tokenId*/,
+        bytes calldata /*data*/
+    ) external pure returns(bytes4) {
         return this.onERC721Received.selector;
     }
 }

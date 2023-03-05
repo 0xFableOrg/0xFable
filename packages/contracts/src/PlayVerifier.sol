@@ -21,7 +21,7 @@
 
 pragma solidity >=0.7.0 <0.9.0;
 
-contract PlonkVerifier {
+contract PlayVerifier {
     
     uint32 constant n =   2048;
     uint16 constant nPublic =  3;
