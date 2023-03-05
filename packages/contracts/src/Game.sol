@@ -5,6 +5,7 @@ import "./Inventory.sol";
 import "./CardsCollection.sol";
 
 import "forge-std/console.sol";
+
 // Data + logic to play a game.
 contract Game {
 

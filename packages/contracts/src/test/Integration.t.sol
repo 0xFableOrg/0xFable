@@ -204,6 +204,7 @@ contract Integration is Test {
         assertEq(pdata.health, 16);
 
         // TODO test victory
+        // TODO test event emitted
 
         vm.stopPrank();
     }

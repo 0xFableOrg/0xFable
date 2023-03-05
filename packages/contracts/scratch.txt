@@ -66,6 +66,59 @@ for (uint256 i = 0; i < decks.length; i++) {
             pdata.deckEnd = uint8(offset);
         }
 
+
+####################################################################################################
+# TRUSTED CEREMONY
+
+# perform the porwer of tau ceremony
+power_of_tau() {
+	if [ ! -d "$TRASH" ]; then
+		log "computing power-of-tau..."
+		mkdir -p "$TRASH"
+		# create the ceremony
+		$SNARKJS powersoftau new bn128 20 "$TRASH"/pot12_0000.ptau -v
+		# first contribution
+		$SNARKJS powersoftau contribute "$TRASH"/pot12_0000.ptau "$TRASH"/pot12_0001.ptau --name="First contribution" -v -e
+		# second contribution
+		$SNARKJS powersoftau contribute "$TRASH"/pot12_0001.ptau "$TRASH"/pot12_0002.ptau --name="Second contribution" -v -e=random
+		# third contribution (external)
+		$SNARKJS powersoftau export challenge "$TRASH"/pot12_0002.ptau "$TRASH"/challenge_0003
+		$SNARKJS powersoftau challenge contribute bn128 "$TRASH"/challenge_0003 "$TRASH"/response_0003 -e=random
+		$SNARKJS powersoftau import response "$TRASH"/pot12_0002.ptau "$TRASH"/response_0003 "$TRASH"/pot12_0003.ptau -n="Third contribution"
+		# verify
+		$SNARKJS powersoftau verify "$TRASH"/pot12_0003.ptau
+		# apply a random beacon
+		$SNARKJS powersoftau beacon "$TRASH"/pot12_0003.ptau "$TRASH"/pot12_beacon.ptau 0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f 10 -n="Final Beacon"
+		# prepare phase 2
+		$SNARKJS powersoftau prepare phase2 "$TRASH"/pot12_beacon.ptau "$TRASH"/pot12_final.ptau -v
+		# verify
+		$SNARKJS powersoftau verify "$TRASH"/pot12_final.ptau
+
+#
+#		    time snarkjs groth16 setup circuit.r1cs "$PTAU" circuit_0000.zkey
+#
+#        ENTROPY1=$(head -c 1024 /dev/urandom | LC_CTYPE=C tr -dc 'a-zA-Z0-9' | head -c 128)
+#        ENTROPY2=$(head -c 1024 /dev/urandom | LC_CTYPE=C tr -dc 'a-zA-Z0-9' | head -c 128)
+#        ENTROPY3=$(head -c 1024 /dev/urandom | LC_CTYPE=C tr -dc 'a-zA-Z0-9' | head -c 128)
+#
+#        time snarkjs zkey contribute circuit_0000.zkey circuit_0001.zkey --name="1st Contribution" -v -e="$ENTROPY1"
+#        time snarkjs zkey contribute circuit_0001.zkey circuit_0002.zkey --name="2nd Contribution" -v -e="$ENTROPY2"
+#        time snarkjs zkey contribute circuit_0002.zkey circuit_0003.zkey --name="3rd Contribution" -v -e="$ENTROPY3"
+#        time snarkjs zkey verify circuit.r1cs "$PTAU" circuit_0003.zkey
+#        time snarkjs zkey beacon circuit_0003.zkey circuit_final.zkey 0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f 10 -n="Final Beacon phase2"
+#        time snarkjs zkey verify circuit.r1cs "$PTAU" circuit_final.zkey
+#        time snarkjs zkey export verificationkey circuit_final.zkey verification_key.json
+#        #time snarkjs zkey export json circuit_final.zkey circuit_final.zkey.json
+#
+#        time snarkjs zkey export solidityverifier circuit_final.zkey verifier.sol
+
+	else
+		log "power-of-tau found, skipping computation..."
+  fi
+}
+
+###################################################################################################
+
         for (uint256 i = 0; i < players.length; ++i)
             emit GameCreated(gameID, players[i]);
     }

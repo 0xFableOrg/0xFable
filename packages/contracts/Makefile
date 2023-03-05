@@ -35,12 +35,12 @@ clean:
 # Solhint will run prettier (prettier plugin configured).
 # It also reports more details about prettier violation than prettier itself.
 lint-check:
-	pnpm exec solhint --config ./.solhint.json "src/**/*.sol"
+	pnpx solhint --config ./.solhint.json "src/**/*.sol"
 .PHONY: lint-check
 
 lint:
-	pnpm exec prettier --check "src/**/*.sol" --write
-	pnpm exec solhint --config ./.solhint.json "src/**/*.sol" --fix
+	pnpx prettier --check "src/**/*.sol" --write
+	pnpx solhint --config ./.solhint.json "src/**/*.sol" --fix
 .PHONY: lint
 
 # The 1337 chain id matches chain.localhost in RainbowKit & "Localhost 8545" in MetaMask.
