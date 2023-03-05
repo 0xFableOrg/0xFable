@@ -84,7 +84,9 @@ contract Integration is Test {
 
     function testGame() public {
         uint256 gameID = 0;
-        game.createGame(2, game.allowAnyPlayerAndDeck);
+        // TODO
+        //game.createGame(2, game.allowAnyPlayerAndDeck);
+        game.createGame(2);
         inventory.getDeck(player1, 0);
         vm.prank(player1);
         game.joinGame(gameID, 0, bytes(""), HAND_ROOT, DECK_ROOT, PROOF);

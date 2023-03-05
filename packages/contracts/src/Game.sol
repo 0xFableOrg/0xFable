@@ -255,7 +255,7 @@ contract Game {
 
     constructor(Inventory inventory_) {
         inventory = inventory_;
-        cardsCollection = inventory.invCardsCollection();
+        cardsCollection = inventory.originalCardsCollection();
     }
 
     // =============================================================================================
@@ -280,8 +280,9 @@ contract Game {
     // `allowAnyPlayerInDeck` function in this contract. Joining the game must happen on a later
     // block than starting the game.
     function createGame(
-        uint8 numberOfPlayers,
-        function (uint256, address, uint8, bytes memory) external returns (bool) joinCheck
+        uint8 numberOfPlayers
+        // TODO this is very hard to encode in wagmi/ethers
+        // , function (uint256, address, uint8, bytes memory) external returns (bool) joinCheck
         ) external returns (uint256 gameID) {
 
         unchecked { // for gas efficiency lol
@@ -296,10 +297,15 @@ contract Game {
         gdata.playersLeftToJoin = numberOfPlayers;
         gdata.lastBlockNum = block.number;
         gdata.currentStep = GameStep.PLAY;
-        gdata.joinCheck = joinCheck;
+
+        // TODO
+        // gdata.joinCheck = joinCheck;
+        gdata.joinCheck = this.allowAnyPlayerAndDeck;
+
         // `gdata.players` is filled as players join.
         // `gdata.currentPlayer` is initialized when the game is started. This needs to happen in
         // another block so that the blockhash of this block can be used as randomness.
+
 
         emit GameCreated(gameID, msg.sender);
     }

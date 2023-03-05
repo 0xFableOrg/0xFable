@@ -51,3 +51,7 @@ so you will need to switch to "Localhost" yourself within the wallet.
 
 - `make setup` - initialize libraries and npm packages
 - `make update-deps` - update node dependencies
+
+## TODO
+
+- .env.example > .env in webapp

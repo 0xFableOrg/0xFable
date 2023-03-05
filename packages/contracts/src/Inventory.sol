@@ -77,7 +77,9 @@ contract Inventory {
     mapping(address => bool) inGame;
 
     // The NFT collection that contains all admissible cards for use with this inventory contract.
-    CardsCollection public invCardsCollection;
+    // This can't be called `cardsCollection` because it would cause a naming conflict with
+    // the InventoryCardsCollection contract when generating hooks with wagmi.
+    CardsCollection public originalCardsCollection;
 
     // The NFT collecton that contains soulbound tokens matching cards transferred to the inventory
     // by a player.
@@ -95,8 +97,8 @@ contract Inventory {
 
     // deploySalt is the CREATE2 salt used to deplay the InventoryCardsCollection.
     constructor(bytes32 deploySalt, CardsCollection cardsCollection_) {
-        invCardsCollection = cardsCollection_;
-        // inventoryCardsCollection = new InventoryCardsCollection{salt: deploySalt}(cardsCollection);
+        originalCardsCollection = cardsCollection_;
+        inventoryCardsCollection = new InventoryCardsCollection{salt: deploySalt}(cardsCollection_);
     }
 
     // =============================================================================================
@@ -113,7 +115,7 @@ contract Inventory {
     // Transfers a card of the sender to the inventory, mints a soulbound inventory card to the
     // sender in return.
     function addCard(uint256 cardID) external {
-        invCardsCollection.transferFrom(msg.sender, address(this), cardID);
+        originalCardsCollection.transferFrom(msg.sender, address(this), cardID);
         inventoryCardsCollection.mint(msg.sender, cardID);
         emit CardAdded(msg.sender, cardID);
     }
@@ -123,7 +125,7 @@ contract Inventory {
     // Burns the sender's inventory card and transfers the card back to him.
     function removeCard(uint256 cardID) external {
         inventoryCardsCollection.burn(cardID);
-        invCardsCollection.transferFrom(address(this), msg.sender, cardID);
+        originalCardsCollection.transferFrom(address(this), msg.sender, cardID);
         emit CardRemoved(msg.sender, cardID);
     }
 
