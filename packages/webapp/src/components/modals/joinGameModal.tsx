@@ -3,15 +3,13 @@ import { useWaitForTransaction } from "wagmi";
 import { BigNumber } from "ethers";
 import { constants } from "ethers/lib";
 import useStore from "../../store";
-import Link from "next/link";
-import {useEffect, useState} from "react";
+import {useState} from "react";
 import {useRouter} from "next/router";
 
 const deployment = require('../../../../contracts/out/deployment.json');
 
 export const JoinGameModal = () => {
   const [inputGameID, setInputGameID] = useState(null);
-  const gameID = useStore((state) => state.gameID);
   const setGameID = useStore((state) => state.setGameID);
   const router = useRouter();
 
