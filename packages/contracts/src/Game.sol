@@ -3,6 +3,8 @@ pragma solidity ^0.8.0;
 
 import "./Inventory.sol";
 import "./CardsCollection.sol";
+import "./DrawVerifier.sol";
+import "./PlayVerifier.sol";
 
 import "forge-std/console.sol";
 
@@ -186,6 +188,10 @@ contract Game {
     // The NFT collection that contains all admissible cards for use  in this game.
     CardsCollection public cardsCollection;
 
+    // Draw card and play card verifiers.
+    DrawVerifier public drawVerifier;
+    PlayVerifier public playVerifier;
+
     // =============================================================================================
     // MODIFIERS
 
@@ -259,6 +265,11 @@ contract Game {
     constructor(Inventory inventory_) {
         inventory = inventory_;
         cardsCollection = inventory.originalCardsCollection();
+    }
+
+    function initVerifiers() external {
+        drawVerifier = DrawVerifier(verifier);
+        playVerifier = PlayVerifier(verifier);
     }
 
     // =============================================================================================
@@ -473,6 +484,14 @@ contract Game {
     function checkDrawProof(PlayerData storage pdata, bytes32 handRoot, bytes32 deckRoot,
             uint256 randomness, bytes calldata proof) internal {
         // TODO(PROOF)
+        uint256[] memory pubSignals = new uint256[](5);
+        pubSignals[0] = uint256(pdata.deckRoot);
+        pubSignals[1] = uint256(deckRoot);
+        pubSignals[2] = uint256(pdata.handRoot);
+        pubSignals[3] = uint256(handRoot);
+        pubSignals[4] = randomness;
+
+        drawVerifier.verifyProof(proof, pubSignals);
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -505,7 +524,12 @@ contract Game {
     // updated version of `pdata.handRoot`, without card, removed using fast array removal.
     function checkPlayProof(PlayerData storage pdata, bytes32 handRoot, uint256 card,
             uint256 randomness, bytes calldata proof) internal {
-        // TODO(PROOF)
+            uint256[] memory pubSignals = new uint256[](3);
+            pubSignals[0] = uint256(pdata.handRoot);
+            pubSignals[1] = uint256(handRoot);
+            pubSignals[2] = card;
+
+            playVerifier.verifyProof(proof, pubSignals);
     }
 
     // ---------------------------------------------------------------------------------------------
