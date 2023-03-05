@@ -192,9 +192,6 @@ contract Game {
     DrawVerifier public drawVerifier;
     PlayVerifier public playVerifier;
 
-    // Bypass the proofs, useful for local testing.
-    bool public bypassProofs;
-
     // =============================================================================================
     // MODIFIERS
 
@@ -265,15 +262,11 @@ contract Game {
 
     // =============================================================================================
 
-    constructor(Inventory inventory_, bool bypassProofs_) {
+    constructor(Inventory inventory_, DrawVerifier drawVerifier_, PlayVerifier playVerifier_) {
         inventory = inventory_;
         cardsCollection = inventory.originalCardsCollection();
-        bypassProofs = bypassProofs_;
-    }
-
-    function initVerifiers() external {
-        drawVerifier = new DrawVerifier();
-        playVerifier = new PlayVerifier();
+        drawVerifier = drawVerifier_;
+        playVerifier = playVerifier_;
     }
 
     // =============================================================================================
@@ -486,7 +479,7 @@ contract Game {
     function checkDrawProof(PlayerData storage pdata, bytes32 handRoot, bytes32 deckRoot,
             uint256 randomness, bytes calldata proof) view internal {
 
-        if (bypassProofs) return;
+        if (address(drawVerifier) == address(0)) return;
 
         uint256[] memory pubSignals = new uint256[](5);
         pubSignals[0] = uint256(pdata.deckRoot);
@@ -529,7 +522,7 @@ contract Game {
     function checkPlayProof(PlayerData storage pdata, bytes32 handRoot, uint256 card,
             bytes calldata proof) view internal {
 
-        if (bypassProofs) return;
+        if (address(playVerifier) == address(0)) return;
 
         uint256[] memory pubSignals = new uint256[](3);
         pubSignals[0] = uint256(pdata.handRoot);
