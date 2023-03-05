@@ -255,7 +255,7 @@ contract Game {
 
     constructor(Inventory inventory_) {
         inventory = inventory_;
-        cardsCollection = inventory.cardsCollection();
+        cardsCollection = inventory.invCardsCollection();
     }
 
     // =============================================================================================
