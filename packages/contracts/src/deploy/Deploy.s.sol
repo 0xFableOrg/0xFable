@@ -5,9 +5,11 @@ import "../CardsCollection.sol";
 import "../Inventory.sol";
 import "../InventoryCardsCollection.sol";
 import "../Game.sol";
+import "../DeckAirdrop.sol";
 
 import "forge-std/Script.sol";
 import "multicall/Multicall3.sol";
+
 
 contract DeployLocal is Script {
     bytes32 private constant salt = bytes32(uint256(4269));
@@ -19,11 +21,16 @@ contract DeployLocal is Script {
         Inventory inventory = new Inventory(salt, cardsCollection);
         InventoryCardsCollection inventoryCardsCollection = inventory.inventoryCardsCollection();
         Game game = new Game(inventory);
+        DeckAirdrop airdrop = new DeckAirdrop(inventory);
+
+        cardsCollection.transferOwnership(address(airdrop));
+        airdrop.mint();
 
         console2.log("CardsCollection address", address(cardsCollection));
         console2.log("Inventory address", address(inventory));
         console2.log("InventoryCardsCollection address", address(inventoryCardsCollection));
         console2.log("Game address", address(game));
+        console2.log("DeckAirdrop address", address(airdrop));
 
         Multicall3 multicall = new Multicall3();
         console2.log("Multicall3 address", address(multicall));
@@ -38,6 +45,8 @@ contract DeployPublic is Script {
     function run() external {
         vm.startBroadcast();
 
+        // TODO CREATE2 messed up Ownable, by setting owner to CREATE2 deployer
+
         // Using CREATE2 (specifying salt) makes deployment address predictable no matter the chain,
         // if the bytecode does not change. (Note that Foundry omits the matadata hash by default:
         // https://github.com/foundry-rs/foundry/pull/1180)
@@ -49,11 +58,13 @@ contract DeployPublic is Script {
         Inventory inventory = new Inventory{salt: salt}(salt, cardsCollection);
         InventoryCardsCollection inventoryCardsCollection = inventory.inventoryCardsCollection();
         Game game = new Game{salt: salt}(inventory);
+        DeckAirdrop airdrop = new DeckAirdrop{salt: salt}(inventory);
 
         console2.log("CardsCollection address", address(cardsCollection));
         console2.log("Inventory address", address(inventory));
         console2.log("InventoryCardsCollection address", address(inventoryCardsCollection));
         console2.log("Game address", address(game));
+        console2.log("DeckAirdropF address", address(airdrop));
 
         console2.log("Multicall3 address", 0xcA11bde05977b3631167028862bE2a173976CA11);
 

@@ -32,7 +32,7 @@ export const JoinGameModal = () => {
     enabled: inputGameID != undefined
   });
 
-  const { data, write, status } = useGameJoinGame(config);
+  const { data, write } = useGameJoinGame(config);
 
   useWaitForTransaction({
     hash: data?.hash,
@@ -40,7 +40,6 @@ export const JoinGameModal = () => {
       const event = gameContract.interface.parseLog(data.logs[0]);
       setGameID(event.args.gameID)
       router.push("/play")
-      console.log("Transaction successs");
     }
   });
 
@@ -69,7 +68,6 @@ export const JoinGameModal = () => {
             placeholder="Game ID"
             min={0}
             onChange={(e) => {
-              console.log("changed!: " + e.target.value)
               setInputGameID(isPositiveInteger(e.target.value) ? e.target.value : null)
             }}
             className="input-bordered input-warning input mr-2 w-full max-w-xs"

@@ -12,7 +12,8 @@ export default defineConfig({
         "CardsCollection.sol/**/*.json",
         "Game.sol/**/*.json",
         "Inventory.sol/**/*.json",
-        "InventoryCardsCollection.sol/**/*.json"
+        "InventoryCardsCollection.sol/**/*.json",
+        "DeckAirdrop.sol/**/*.json"
       ]
     }),
   ],
