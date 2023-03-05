@@ -119,6 +119,11 @@ power_of_tau() {
 
 ###################################################################################################
 
+{inputGameID && write && (<Link className="btn" href={"/play"} onClick={write}>
+              Join Game
+            </Link>
+          )}
+
         for (uint256 i = 0; i < players.length; ++i)
             emit GameCreated(gameID, players[i]);
     }

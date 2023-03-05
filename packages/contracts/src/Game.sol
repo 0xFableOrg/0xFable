@@ -89,6 +89,9 @@ contract Game {
     // A game was created by the given creator.
     event GameCreated(uint256 gameID, address indexed creator);
 
+    // A player joined the game.
+    event PlayerJoined(uint256 indexed gameID, address player);
+
     // The game started (all players specified at the game creation joined).
     event GameStarted(uint256 indexed gameID);
 
@@ -390,43 +393,46 @@ contract Game {
     function joinGame(uint256 gameID, uint8 deckID, bytes calldata data, bytes32 handRoot, bytes32 deckRoot,
             bytes calldata proof) external {
 
-        GameData storage gdata = gameData[gameID];
-        PlayerData storage pdata = gdata.playerData[msg.sender];
-        if (pdata.handRoot != 0)
-            revert AlreadyJoined();
-
-        if (gdata.playersLeftToJoin == 0)
-            revert GameAlreadyStarted();
-        if (!gdata.joinCheck(gameID, msg.sender, deckID, data))
-            revert NotAllowedToJoin();
-        gdata.players.push(msg.sender);
-
-        // Add the player's cards to `gdata.cards`.
-        uint256[] storage cards = gdata.cards;
-        pdata.deckStart = uint8(cards.length);
-        inventory.checkDeck(msg.sender, deckID);
-        uint256[] memory deck = inventory.getDeck(msg.sender, deckID);
-
-        for (uint256 i = 0; i < deck.length; i++)
-            cards.push(deck[i]);
-        pdata.deckEnd = uint8(cards.length);
-
-        pdata.health = STARTING_HEALTH;
-        pdata.handRoot = handRoot;
-        pdata.deckRoot = deckRoot;
-
-        uint256 randomness = uint256(blockhash(gdata.lastBlockNum));
-        checkInitialHandProof(pdata, gdata.cards, randomness, proof);
-
-        if (--gdata.playersLeftToJoin == 0) {
-            // Start the game!
-            gdata.currentPlayer = uint8(randomness % gdata.players.length);
-            gdata.currentStep = GameStep.PLAY; // first player doesn't draw
-            gdata.lastBlockNum = block.number;
-            emit GameStarted(gameID);
-
-            // TODO(LATER) let the game creator reorder the players, and choose the first player
-        }
+        emit PlayerJoined(gameID, msg.sender);
+//
+//        GameData storage gdata = gameData[gameID];
+//        PlayerData storage pdata = gdata.playerData[msg.sender];
+//        if (pdata.handRoot != 0)
+//            revert AlreadyJoined();
+//
+//        if (gdata.playersLeftToJoin == 0)
+//            revert GameAlreadyStarted();
+//        if (!gdata.joinCheck(gameID, msg.sender, deckID, data))
+//            revert NotAllowedToJoin();
+//        gdata.players.push(msg.sender);
+//
+//        // Add the player's cards to `gdata.cards`.
+//        uint256[] storage cards = gdata.cards;
+//        pdata.deckStart = uint8(cards.length);
+//        inventory.checkDeck(msg.sender, deckID);
+//        uint256[] memory deck = inventory.getDeck(msg.sender, deckID);
+//
+//        for (uint256 i = 0; i < deck.length; i++)
+//            cards.push(deck[i]);
+//        pdata.deckEnd = uint8(cards.length);
+//
+//        pdata.health = STARTING_HEALTH;
+//        pdata.handRoot = handRoot;
+//        pdata.deckRoot = deckRoot;
+//
+//        uint256 randomness = uint256(blockhash(gdata.lastBlockNum));
+//        checkInitialHandProof(pdata, gdata.cards, randomness, proof);
+//        emit PlayerJoined(gameID, msg.sender);
+//
+//        if (--gdata.playersLeftToJoin == 0) {
+//            // Start the game!
+//            gdata.currentPlayer = uint8(randomness % gdata.players.length);
+//            gdata.currentStep = GameStep.PLAY; // first player doesn't draw
+//            gdata.lastBlockNum = block.number;
+//            emit GameStarted(gameID);
+//
+//            // TODO(LATER) let the game creator reorder the players, and choose the first player
+//        }
     }
 
     // ---------------------------------------------------------------------------------------------

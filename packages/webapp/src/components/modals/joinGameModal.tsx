@@ -1,17 +1,29 @@
-import { useGameJoinGame, usePrepareGameJoinGame } from "../../generated";
+import {useGame, useGameJoinGame, usePrepareGameJoinGame} from "../../generated";
 import { useWaitForTransaction } from "wagmi";
-import { useState } from "react";
-import { BigNumber, ethers } from "ethers";
+import { BigNumber } from "ethers";
 import { constants } from "ethers/lib";
+import useStore from "../../store";
+import Link from "next/link";
+import {useEffect, useState} from "react";
+import {useRouter} from "next/router";
+
+const deployment = require('../../../../contracts/out/deployment.json');
 
 export const JoinGameModal = () => {
-  const [gameId, setGameId] = useState<null | ethers.BigNumberish>(null);
+  const [inputGameID, setInputGameID] = useState(null);
+  const gameID = useStore((state) => state.gameID);
+  const setGameID = useStore((state) => state.setGameID);
+  const router = useRouter();
 
-  const { config, error } = usePrepareGameJoinGame({
-    address: process.env.NEXT_PUBLIC_INVENTORY_GAME_CONTRACT as `0x${string}`,
-    args: gameId
+  const gameContract = useGame({
+    address: deployment.Game
+  });
+
+  const { config } = usePrepareGameJoinGame({
+    address: deployment.Game as `0x${string}`,
+    args: inputGameID
       ? [
-          BigNumber.from(gameId),
+          BigNumber.from(inputGameID),
           0,
           constants.HashZero,
           constants.HashZero,
@@ -19,28 +31,19 @@ export const JoinGameModal = () => {
           constants.HashZero,
         ]
       : undefined,
-    enabled: false,
+    enabled: inputGameID != undefined
   });
 
-  const { data, write } = useGameJoinGame({
-    ...config,
-    onMutate: () => {
-      console.log("Transaction sent");
-    },
-    onSuccess: (data) => {
-      console.log("Transaction sent");
-    },
-  });
+  const { data, write, status } = useGameJoinGame(config);
 
-  const {
-    isLoading,
-    error: txError,
-    isSuccess,
-  } = useWaitForTransaction({
+  useWaitForTransaction({
     hash: data?.hash,
-    onSuccess: () => {
-      console.log("Transaction success");
-    },
+    onSuccess(data) {
+      const event = gameContract.interface.parseLog(data.logs[0]);
+      setGameID(event.args.gameID)
+      router.push("/play")
+      console.log("Transaction successs");
+    }
   });
 
   //check if string is a postive integer
@@ -67,18 +70,19 @@ export const JoinGameModal = () => {
             type="number"
             placeholder="Game ID"
             min={0}
-            onChange={(e) =>
-              setGameId(
-                isPositiveInteger(e.target.value) ? e.target.value : null
-              )
-            }
+            onChange={(e) => {
+              console.log("changed!: " + e.target.value)
+              setInputGameID(isPositiveInteger(e.target.value) ? e.target.value : null)
+            }}
             className="input-bordered input-warning input mr-2 w-full max-w-xs"
           />
 
           <button
             className="btn"
-            disabled={isLoading || !gameId}
-            onClick={() => write?.()}
+            disabled={!inputGameID || !write}
+            onClick={() => {
+              write?.()
+            }}
           >
             Join Game
           </button>

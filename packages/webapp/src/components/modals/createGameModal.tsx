@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { useAccount, useWaitForTransaction } from "wagmi";
+import { useWaitForTransaction } from "wagmi";
 import {
   usePrepareGameCreateGame,
   useGameCreateGame,
@@ -7,45 +7,39 @@ import {
 } from "../../generated";
 import useStore from "../../store";
 
+const deployment = require('../../../../contracts/out/deployment.json');
+
 export const CreateGameModal = () => {
-  const gameId = useStore((state) => state.gameId);
+  const gameID = useStore((state) => state.gameID);
+  const setGameID = useStore((state) => state.setGameID);
 
   const gameContract = useGame({
-    address: process.env.NEXT_PUBLIC_GAME_CONTRACT,
+    address: deployment.Game
   });
 
-  const fragment = gameContract.interface.getFunction("allowAnyPlayerAndDeck");
-  const sigHash = gameContract.interface.getSighash(fragment);
+  // NOTE(norswap): This is how to compute the encoding of the joincheck callback, however, ethers
+  //   will block us from using it, and will not provide built-in things for encoding it.
 
-  const hash = (
-    process.env.NEXT_PUBLIC_GAME_CONTRACT + sigHash.slice(2)
-  ).padEnd(66, "0");
+  // const fragment = gameContract.interface.getFunction("allowAnyPlayerAndDeck");
+  // const sigHash = gameContract.interface.getSighash(fragment);
+  //
+  // const hash = (
+  //   process.env.NEXT_PUBLIC_GAME_CONTRACT + sigHash.slice(2)
+  // ).padEnd(66, "0");
 
-  const { config, error } = usePrepareGameCreateGame({
-    address: process.env.NEXT_PUBLIC_GAME_CONTRACT as `0x${string}`,
-    args: [2],
-    enabled: false,
+  const { config } = usePrepareGameCreateGame({
+    address: deployment.Game as `0x${string}`,
+    args: [2]
   });
 
-  const { data, write } = useGameCreateGame({
-    ...config,
-    onMutate: () => {
-      console.log("Transaction sent");
-    },
-    onSuccess: (data) => {
-      console.log("Transaction sent");
-    },
-  });
+  const { data, write } = useGameCreateGame(config);
 
-  const {
-    isLoading,
-    error: txError,
-    isSuccess,
-  } = useWaitForTransaction({
+  useWaitForTransaction({
     hash: data?.hash,
-    onSuccess: () => {
-      console.log("Transaction success");
-    },
+    onSuccess(data) {
+      const event = gameContract.interface.parseLog(data.logs[0]);
+      setGameID(event.args.gameID)
+    }
   });
 
   return (
@@ -63,7 +57,7 @@ export const CreateGameModal = () => {
       <label htmlFor="create" className="modal cursor-pointer">
         <label className="modal-box relative" htmlFor="">
           <h3 className="text-xl font-bold normal-case">Create Game</h3>
-          {!gameId && (
+          {!gameID && (
             <>
               <p className="py-4">
                 Once a game is created, you can invite your friends to join with
@@ -71,22 +65,24 @@ export const CreateGameModal = () => {
               </p>
               <button
                 className="btn"
-                // disabled={!write || isLoading}
-                onClick={() => write?.()}
+                disabled={!write}
+                onClick={() => {
+                  write?.()
+                }}
               >
                 Create Game
               </button>
             </>
           )}
-          {gameId && (
+          {gameID && (
             <>
               <p className="py-4 font-mono">
                 Share the following code to invite players to battle:
               </p>
               <p className="mb-5 rounded-xl border border-white/50 bg-black py-4 text-center font-mono">
-                {gameId.toString()}
+                {gameID.toString()}
               </p>
-              <Link className="btn" href={"/play"} onClick={() => write?.()}>
+              <Link className="btn" href={"/play"}>
                 Let&apos;s Play!
               </Link>
             </>

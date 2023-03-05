@@ -6,13 +6,13 @@ import {
 } from "./generated";
 
 type Store = {
-  gameId: ethers.BigNumberish | null;
-  setGameId: (gameId: ethers.BigNumberish) => void;
+  gameID: ethers.BigNumberish | null;
+  setGameID: (gameId: ethers.BigNumberish) => void;
 };
 
 const useStore = create<Store>()((set) => ({
-  gameId: null,
-  setGameId: (gameId) => set({ gameId }),
+  gameID: null,
+  setGameID: (gameID) => set({ gameID }),
 }));
 
 export default useStore;
