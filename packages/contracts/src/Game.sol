@@ -192,6 +192,9 @@ contract Game {
     DrawVerifier public drawVerifier;
     PlayVerifier public playVerifier;
 
+    // Bypass the proofs, useful for local testing.
+    bool public bypassProofs;
+
     // =============================================================================================
     // MODIFIERS
 
@@ -262,9 +265,10 @@ contract Game {
 
     // =============================================================================================
 
-    constructor(Inventory inventory_) {
+    constructor(Inventory inventory_, bool bypassProofs_) {
         inventory = inventory_;
         cardsCollection = inventory.originalCardsCollection();
+        bypassProofs = bypassProofs_;
     }
 
     function initVerifiers() external {
@@ -404,46 +408,44 @@ contract Game {
     function joinGame(uint256 gameID, uint8 deckID, bytes calldata data, bytes32 handRoot, bytes32 deckRoot,
             bytes calldata proof) external {
 
-//        emit PlayerJoined(gameID, msg.sender);
-//
-//        GameData storage gdata = gameData[gameID];
-//        PlayerData storage pdata = gdata.playerData[msg.sender];
-//        if (pdata.handRoot != 0)
-//            revert AlreadyJoined();
-//
-//        if (gdata.playersLeftToJoin == 0)
-//            revert GameAlreadyStarted();
-//        if (!gdata.joinCheck(gameID, msg.sender, deckID, data))
-//            revert NotAllowedToJoin();
-//        gdata.players.push(msg.sender);
-//
-//        // Add the player's cards to `gdata.cards`.
-//        uint256[] storage cards = gdata.cards;
-//        pdata.deckStart = uint8(cards.length);
-//        inventory.checkDeck(msg.sender, deckID);
-//        uint256[] memory deck = inventory.getDeck(msg.sender, deckID);
-//
-//        for (uint256 i = 0; i < deck.length; i++)
-//            cards.push(deck[i]);
-//        pdata.deckEnd = uint8(cards.length);
-//
-//        pdata.health = STARTING_HEALTH;
-//        pdata.handRoot = handRoot;
-//        pdata.deckRoot = deckRoot;
-//
-//        uint256 randomness = uint256(blockhash(gdata.lastBlockNum));
-//        checkInitialHandProof(pdata, gdata.cards, randomness, proof);
-//        emit PlayerJoined(gameID, msg.sender);
-//
-//        if (--gdata.playersLeftToJoin == 0) {
-//            // Start the game!
-//            gdata.currentPlayer = uint8(randomness % gdata.players.length);
-//            gdata.currentStep = GameStep.PLAY; // first player doesn't draw
-//            gdata.lastBlockNum = block.number;
-//            emit GameStarted(gameID);
-//
-//            // TODO(LATER) let the game creator reorder the players, and choose the first player
-//        }
+        GameData storage gdata = gameData[gameID];
+        PlayerData storage pdata = gdata.playerData[msg.sender];
+        if (pdata.handRoot != 0)
+            revert AlreadyJoined();
+
+        if (gdata.playersLeftToJoin == 0)
+            revert GameAlreadyStarted();
+        if (!gdata.joinCheck(gameID, msg.sender, deckID, data))
+            revert NotAllowedToJoin();
+        gdata.players.push(msg.sender);
+
+        // Add the player's cards to `gdata.cards`.
+        uint256[] storage cards = gdata.cards;
+        pdata.deckStart = uint8(cards.length);
+        inventory.checkDeck(msg.sender, deckID);
+        uint256[] memory deck = inventory.getDeck(msg.sender, deckID);
+
+        for (uint256 i = 0; i < deck.length; i++)
+            cards.push(deck[i]);
+        pdata.deckEnd = uint8(cards.length);
+
+        pdata.health = STARTING_HEALTH;
+        pdata.handRoot = handRoot;
+        pdata.deckRoot = deckRoot;
+
+        uint256 randomness = uint256(blockhash(gdata.lastBlockNum));
+        checkInitialHandProof(pdata, gdata.cards, randomness, proof);
+        emit PlayerJoined(gameID, msg.sender);
+
+        if (--gdata.playersLeftToJoin == 0) {
+            // Start the game!
+            gdata.currentPlayer = uint8(randomness % gdata.players.length);
+            gdata.currentStep = GameStep.PLAY; // first player doesn't draw
+            gdata.lastBlockNum = block.number;
+            emit GameStarted(gameID);
+
+            // TODO(LATER) let the game creator reorder the players, and choose the first player
+        }
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -483,7 +485,9 @@ contract Game {
     // removed card with last card, and truncate the array by one).
     function checkDrawProof(PlayerData storage pdata, bytes32 handRoot, bytes32 deckRoot,
             uint256 randomness, bytes calldata proof) view internal {
-        // TODO(PROOF)
+
+        if (bypassProofs) return;
+
         uint256[] memory pubSignals = new uint256[](5);
         pubSignals[0] = uint256(pdata.deckRoot);
         pubSignals[1] = uint256(deckRoot);
@@ -524,6 +528,9 @@ contract Game {
     // updated version of `pdata.handRoot`, without card, removed using fast array removal.
     function checkPlayProof(PlayerData storage pdata, bytes32 handRoot, uint256 card,
             bytes calldata proof) view internal {
+
+        if (bypassProofs) return;
+
         uint256[] memory pubSignals = new uint256[](3);
         pubSignals[0] = uint256(pdata.handRoot);
         pubSignals[1] = uint256(handRoot);

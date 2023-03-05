@@ -71,7 +71,7 @@ contract Integration is Test {
         cardsCollection = new CardsCollection();
         inventory = new Inventory(salt, cardsCollection);
         inventoryCardsCollection = inventory.inventoryCardsCollection();
-        game = new Game(inventory);
+        game = new Game(inventory, true);
 
         createDeck(0,  player1);
         createDeck(24, player2);

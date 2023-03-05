@@ -20,7 +20,7 @@ contract DeployLocal is Script {
         CardsCollection cardsCollection = new CardsCollection();
         Inventory inventory = new Inventory(salt, cardsCollection);
         InventoryCardsCollection inventoryCardsCollection = inventory.inventoryCardsCollection();
-        Game game = new Game(inventory);
+        Game game = new Game(inventory, true);
         DeckAirdrop airdrop = new DeckAirdrop(inventory);
 
         cardsCollection.transferOwnership(address(airdrop));
@@ -57,7 +57,7 @@ contract DeployPublic is Script {
         CardsCollection cardsCollection = new CardsCollection{salt: salt}();
         Inventory inventory = new Inventory{salt: salt}(salt, cardsCollection);
         InventoryCardsCollection inventoryCardsCollection = inventory.inventoryCardsCollection();
-        Game game = new Game{salt: salt}(inventory);
+        Game game = new Game{salt: salt}(inventory, true);
         DeckAirdrop airdrop = new DeckAirdrop{salt: salt}(inventory);
 
         console2.log("CardsCollection address", address(cardsCollection));
