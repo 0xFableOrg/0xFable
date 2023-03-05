@@ -1,10 +1,13 @@
 import { type NextPage } from "next";
 import Head from "next/head";
+import useStore from "../store";
 import { Card } from "../components/card";
 import Hand from "../components/hand";
 import { Navbar } from "../components/navbar";
 
 const Play: NextPage = () => {
+  const playerHand = useStore((state) => state.playerHand);
+
   return (
     <>
       <Head>
@@ -17,7 +20,7 @@ const Play: NextPage = () => {
         <Navbar />
 
         <Hand
-          cards={[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]}
+          cards={playerHand}
           className="mt-500 absolute z-[100] translate-y-1/2 transition-all duration-500 ease-in-out hover:translate-y-0"
         />
         <div className="grid-col-1 relative mx-6 mb-6 grid grow grid-rows-[6]">

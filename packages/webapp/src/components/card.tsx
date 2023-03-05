@@ -90,15 +90,15 @@ const cards = [
 ];
 
 export const Card = ({ id, className }: { id: number; className?: string }) => {
-  const selectedCard = useStore((state) => state.selectedCard);
-  const setSelectedCard = useStore((state) => state.setSelectedCard);
+  const addtoPlayerBoard = useStore((state) => state.addtoPlayerBoard);
+  const removefromPlayerHand = useStore((state) => state.removefromPlayerHand);
 
   return (
     <div
-      className={` ${className} z-[50] flex h-[33rem] max-w-[24rem] scale-[65%] cursor-pointer flex-col items-center justify-evenly rounded-lg border-4  bg-gray-900 p-5 text-center shadow-2xl 
-      ${selectedCard === id ? "border-red-500" : "border-slate-500"}}`}
+      className={` ${className} shadow-2xl} z-[50] flex h-[33rem] max-w-[24rem] scale-[65%] cursor-pointer flex-col items-center justify-evenly rounded-lg  border-4 bg-gray-900 p-5 text-center`}
       onClick={() => {
-        setSelectedCard(id);
+        addtoPlayerBoard(id);
+        removefromPlayerHand(id);
       }}
     >
       <h1 className="font- font-serif text-3xl font-bold text-slate-200">

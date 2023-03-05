@@ -1,4 +1,5 @@
 // import useScrollBox from "@/hooks/useScrollBox";
+import { ethers } from "ethers";
 import Image from "next/image";
 import { useRouter } from "next/router";
 import { useEffect, useRef } from "react";
@@ -9,7 +10,7 @@ const Hand = ({
   cards,
   className,
 }: {
-  cards: number[];
+  cards: ethers.BigNumberish[];
   className?: string;
 }) => {
   let hand: any = [];
