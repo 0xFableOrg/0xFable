@@ -1,8 +1,17 @@
+import { useWeb3Modal } from "@web3modal/react";
 import { type NextPage } from "next";
 import Head from "next/head";
-import Link from "next/link";
+import { useAccount } from "wagmi";
+import { CreateGameModal } from "../components/modals/createGameModal";
+import { JoinGameModal } from "../components/modals/joinGameModal";
+import { MintGameModal } from "../components/modals/mintDeckModal";
+import { useIsMounted } from "../hooks/useIsMounted";
 
 const Home: NextPage = () => {
+  const isMounted = useIsMounted();
+  const { address } = useAccount();
+  const { open } = useWeb3Modal();
+
   return (
     <>
       <Head>
@@ -15,28 +24,38 @@ const Home: NextPage = () => {
           <h1 className="font-serif text-5xl font-extrabold tracking-tight text-white sm:text-[5rem]">
             <span className="font-mono font-light text-red-400">0x</span>FABLE
           </h1>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-8">
-            <Link
-              className="flex max-w-xs flex-col gap-4 rounded-xl bg-white/10 p-4 text-white hover:bg-white/20"
-              href="/play"
-              target="_blank"
-            >
-              <h3 className="text-2xl font-bold">Play →</h3>
-              {/* <div className="text-lg">
-                Just the basics - Everything you need to know to set up your
-                database and authentication.
-              </div> */}
-            </Link>
-            <Link
-              className="flex max-w-xs flex-col gap-4 rounded-xl bg-white/10 p-4 text-white hover:bg-white/20"
-              href="/learn"
-              target="_blank"
-            >
-              <h3 className="text-2xl font-bold">Learn →</h3>
-              {/* <div className="text-lg">Learn how to play 0xFable.</div> */}
-            </Link>
-          </div>
-          {/* <Web3Button />; */}
+
+          {address && isMounted && (
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 md:gap-8">
+              <CreateGameModal />
+              {/* <JoinGameModal /> */}
+              <MintGameModal />
+            </div>
+          )}
+
+          {!address && isMounted && (
+            <div className="">
+              <button
+                className="btn-lg btn border-2 border-yellow-500 normal-case hover:scale-105 hover:border-yellow-400"
+                onClick={() => {
+                  open();
+                }}
+              >
+                Connect Wallet
+              </button>
+            </div>
+          )}
+
+          {address && isMounted && (
+            <div className="">
+              <button
+                className="btn-glass btn normal-case"
+                onClick={() => open()}
+              >
+                Hello Adventurer, {address}
+              </button>
+            </div>
+          )}
         </div>
       </main>
     </>

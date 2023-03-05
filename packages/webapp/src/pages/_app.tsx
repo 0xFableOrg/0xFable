@@ -6,11 +6,11 @@ import {
 } from "@web3modal/ethereum";
 import { Web3Modal } from "@web3modal/react";
 import { configureChains, createClient, WagmiConfig } from "wagmi";
-import { arbitrum, mainnet, polygon } from "wagmi/chains";
+import { localhost } from "wagmi/chains";
 
 import "../styles/globals.css";
 
-const chains = [arbitrum, mainnet, polygon];
+const chains = [localhost];
 
 // Wagmi client
 const { provider } = configureChains(chains, [
@@ -22,8 +22,8 @@ const wagmiClient = createClient({
   autoConnect: true,
   connectors: modalConnectors({
     projectId: process.env.NEXT_PUBLIC_WALLET_CONNECT_ID,
-    version: "2", // or "2"
-    appName: "web3Modal",
+    version: "1", // or "2"
+    appName: "0xFable",
     chains,
   }),
   provider,
