@@ -124,6 +124,60 @@ power_of_tau() {
             </Link>
           )}
 
+
+  const gameID = useStore((state) => state.gameID);
+  const ID = BigNumber.from(gameID);
+  const game: [any, any] = [deployment.Game, gameABI];
+  const zero = constants.HashZero;
+  const { address } = useAccount();
+  const gameContract = useGame({ address: deployment.Game });
+
+  const { data, refetch } = useRead(...game, "staticGameData", [ID]);
+
+  const currentStep = useState(data?.currentStep);
+  const currentPlayer: any = useState(data?.currentPlayer);
+
+  /*
+  useGameEvent({
+    address: deployment.Game,
+    eventName: "CardDrawn",
+    listener(x) {
+      console.log(x);
+      refetch();
+    },
+  });
+
+  // CardDrawn
+  // CardPlayed
+  // PlayerAttacked
+  // PlayerDefended
+  // PlayerPassed
+
+  const currentStep = useState(data?.currentStep);
+  const currentPlayer: any = useState(data?.currentPlayer);
+
+  console.log("--- current ---")
+  console.log(currentStep);
+  console.log(currentPlayer);
+
+  function isStep(expected): boolean {
+    return data && expected.includes(currentStep) && currentPlayer == address;
+  }
+
+  const [drawn, draw] = useTransact(...game, "drawCard", [ID, zero, zero, zero],
+    (receipt) => {
+      console.log("drawn");
+    },
+    isStep(['draw']));
+
+  const [passed, pass] = useTransact(...game, "pass", [ID],
+    (receipt) => {
+      console.log("passed");
+    },
+    isStep(['attack', 'play']));
+
+   */
+
         for (uint256 i = 0; i < players.length; ++i)
             emit GameCreated(gameID, players[i]);
     }
