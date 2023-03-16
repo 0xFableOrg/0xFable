@@ -16,10 +16,10 @@ Test that everything is working properly:
 - `(cd packages/contracts && make test)`
 
 Make sure to check [`packages/contracts/README.md`][contracts] and
-[`packages/react/README.md`][react].
+[`packages/webapp/README.md`][webapp].
 
 [contracts]: packages/contracts/README.md
-[react]: packages/react/README.md
+[webapp]: packages/webapp/README.md
 
 To deploy and try out the app locally:
 
@@ -28,15 +28,11 @@ To deploy and try out the app locally:
 (cd packages/contracts && make anvil)
 
 # shell 1
-(cd packages/react && make serve)
-
-# shell 2 (optional)
-(cd packages/react && make watch)
+(cd packages/webapp && make dev)
 
 # main shell
-(cd packages/contracts && make build)
+(cd packages/contracts && make build) # not necessary if you did make build at top level
 (cd packages/contracts && make deploy-local)
-(cd packages/react && make build) # optional, if not watching
 ```
 
 The app is now running on http://localhost:8080/

@@ -37,6 +37,6 @@ generate-typechain:
 
 build:
 	cd packages/contracts && make build
-	cd packages/webapp && pnpm wagmi generate && pnpm build
+	cd packages/webapp && make build
 .PHONY: build
 
