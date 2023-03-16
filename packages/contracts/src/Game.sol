@@ -173,6 +173,18 @@ contract Game {
         uint256[] cards;
     }
 
+    // A subset of `GameData` members, excluding non-readable members (mapping, function), and
+    // the cards array that never changes. Use `getCards()` to read them instead.
+    struct StaticGameData {
+        address gameCreator;
+        address[] players;
+        uint256 lastBlockNum;
+        uint8 playersLeftToJoin;
+        uint8 currentPlayer;
+        GameStep currentStep;
+        address attackingPlayer;
+    }
+
     // =============================================================================================
     // FIELDS
 
@@ -180,7 +192,14 @@ contract Game {
     uint256 nextID;
 
     // Maps game IDs to game data.
-    mapping(uint256 => GameData) gameData;
+    mapping(uint256 => GameData) public gameData;
+
+    struct Farts {
+        uint256 x;
+        uint256 y;
+    }
+
+    mapping(uint256 => Farts) public gameFarts;
 
     // The inventory containing the cards that will be used in this game.
     Inventory public inventory;
@@ -270,11 +289,28 @@ contract Game {
     }
 
     // =============================================================================================
+    // FUNCTIONS
+
+    // Returns a subset of `GameData` members, excluding non-readable members (mapping, function),
+    // and the cards array that never changes. Use `getCards()` to read them instead.
+    function staticGameData(uint256 gameID) external view returns(StaticGameData memory) {
+        GameData storage gdata = gameData[gameID];
+        return StaticGameData({
+            gameCreator: gdata.gameCreator,
+            players: gdata.players,
+            lastBlockNum: gdata.lastBlockNum,
+            playersLeftToJoin: gdata.playersLeftToJoin,
+            currentPlayer: gdata.currentPlayer,
+            currentStep: gdata.currentStep,
+            attackingPlayer: gdata.attackingPlayer
+        });
+    }
+
+    // ---------------------------------------------------------------------------------------------
 
     function playerData(uint256 gameID, address player) external view returns(PlayerData memory) {
         return gameData[gameID].playerData[player];
     }
-
 
     // ---------------------------------------------------------------------------------------------
 
@@ -317,10 +353,8 @@ contract Game {
         // `gdata.currentPlayer` is initialized when the game is started. This needs to happen in
         // another block so that the blockhash of this block can be used as randomness.
 
-
         emit GameCreated(gameID, msg.sender);
     }
-
 
     // ---------------------------------------------------------------------------------------------
 
