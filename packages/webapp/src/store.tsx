@@ -1,8 +1,7 @@
-import { ethers } from "ethers";
+import {BigNumber, ethers} from "ethers";
 import { create } from "zustand";
 
 type Store = {
-  gameID: ethers.BigNumberish | null;
   gameID: ethers.BigNumberish | null;
   selectedCard: ethers.BigNumberish | null;
   playerHand: ethers.BigNumberish[] | null;
@@ -32,7 +31,7 @@ const useStore = create<Store>()((set) => ({
     set((state) => ({ playerHand: [...state.playerHand, card] })),
   removefromPlayerHand: (index) =>
     set((state) => ({
-      playerHand: state.playerHand.splice(index, 1),
+      playerHand: state.playerHand.splice(BigNumber.from(index).toNumber(), 1),
     })),
 }));
 
