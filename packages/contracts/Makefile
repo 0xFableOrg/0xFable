@@ -59,21 +59,5 @@ deploy-local:
 		out/deployment.txt \
 		out/abis.json \
 		> out/deployment.json
+	@cd ../webapp && pnpm wagmi generate
 .PHONY: deploy-local
-
-# Just like deploy-local, but prints the commands to diagnose if something goes wrong.
-deploy-debug:
-	#forge script src/deploy/Deploy.s.sol:DeployLocal \
-#		--fork-url http://localhost:8545 \
-#		--private-key $(PRIVATE_KEY0)
-	forge script src/deploy/Deploy.s.sol:DeployLocal \
-		--fork-url http://localhost:8545 \
-		--private-key $(PRIVATE_KEY0) \
-		--broadcast \
-		| grep "address " > out/deployment.txt
-	cat out/deployment.txt
-	node scripts/extract_contract_addresses_abis.js \
-		out/deployment.txt \
-		out/abis.json \
-		> out/deployment.json
-.PHONY: deploy-debug
