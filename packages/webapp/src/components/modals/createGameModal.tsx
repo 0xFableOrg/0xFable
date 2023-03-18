@@ -7,7 +7,7 @@ import {
 } from "../../generated";
 import useStore from "../../store";
 
-const deployment = require('../../../../contracts/out/deployment.json');
+const deployment = require('contracts/out/deployment.json');
 
 export const CreateGameModal = () => {
   const gameID = useStore((state) => state.gameID);

@@ -13,7 +13,7 @@ import {useAccount, useWaitForTransaction} from "wagmi";
 import {useTransact, useRead, useEvents} from "../transact";
 import {useEffect, useState} from "react";
 
-const deployment = require('../../../contracts/out/deployment.json');
+const deployment = require('contracts/out/deployment.json');
 
 const events = [
   'CardDrawn',

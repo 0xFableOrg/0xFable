@@ -9,7 +9,7 @@ import {
 import {useWaitForTransaction} from "wagmi";
 import {useState} from "react";
 
-const deployment = require('../../../../contracts/out/deployment.json');
+const deployment = require('contracts/out/deployment.json');
 
 export const MintGameModal = () => {
 

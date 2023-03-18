@@ -10,7 +10,7 @@ import useStore from "../../store";
 import { useState } from "react";
 import { useRouter } from "next/router";
 
-const deployment = require("../../../../contracts/out/deployment.json");
+const deployment = require("contracts/out/deployment.json");
 
 export const JoinGameModal = () => {
   const [inputGameID, setInputGameID] = useState(null);
