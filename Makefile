@@ -52,8 +52,3 @@ reset-modules:
 	pnpm install --frozen-lockfile
 .PHONY: reset-modules
 
-generate-typechain:
-	cd packages/webapp && pnpm typechain
-.PHONY: generate-typechain
-
-
