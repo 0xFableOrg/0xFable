@@ -24,15 +24,18 @@ Make sure to check [`packages/contracts/README.md`][contracts] and
 To deploy and try out the app locally:
 
 ```shell
-# shell 0
+# background shell 1
 (cd packages/contracts && make anvil)
 
-# shell 1
-(cd packages/webapp && make dev)
-
 # main shell
-(cd packages/contracts && make build) # not necessary if you did make build at top level
-(cd packages/contracts && make deploy-local)
+cd packages/contracts
+cp .env.example .env # deployer key = first preloaded anvil account
+make build # not necessary if you did make build at top level
+make deploy-local
+cd -
+
+# background shell 2
+(cd packages/webapp && make dev)
 ```
 
 The app is now running on http://localhost:8080/

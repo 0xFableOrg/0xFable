@@ -26,6 +26,14 @@ reset-modules:
 	pnpm install --frozen-lockfile
 .PHONY: reset-modules
 
+# sometimes, you need a fresh start
+nuke-update:
+	rm -rf node_modules packages/*/node_modules
+	rm pnpm-lock.yaml
+	pnpm prune
+	pnpm install
+.PHONY: nuke-update
+
 # only for maintainers
 update-deps-latest:
 	pnpm update -r --latest
