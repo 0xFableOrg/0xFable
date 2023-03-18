@@ -5,9 +5,9 @@ import {
   usePrepareContractWrite,
   useWaitForTransaction
 } from "wagmi";
-import {useState} from "react";
+import { useState } from "react";
 
-export function useTransact(contract, abi, functionName, args, onSuccess = (_) => {}, enabled = true): [boolean, any] {
+export function useTransact(contract, abi, functionName, args, onSuccess = (_) => {}, enabled = true) {
 
   const [completed, setCompleted] = useState(false);
 
@@ -29,10 +29,10 @@ export function useTransact(contract, abi, functionName, args, onSuccess = (_) =
     }
   });
 
-  return [completed, write]
+  return { completed, write }
 }
 
-export function useRead(contract, abi, functionName, args, onSuccess = (_) => {}, enabled = true): any {
+export function useRead(contract, abi, functionName, args, onSuccess = (_) => {}, enabled = true) {
   const { data, refetch } = useContractRead({
     address: contract,
     abi: abi,

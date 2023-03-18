@@ -9,8 +9,7 @@ import { constants } from "ethers/lib";
 import useStore from "../../store";
 import { useState } from "react";
 import { useRouter } from "next/router";
-
-const deployment = require("contracts/out/deployment.json");
+import { deployment } from "deployment";
 
 export const JoinGameModal = () => {
   const [inputGameID, setInputGameID] = useState(null);
@@ -22,7 +21,7 @@ export const JoinGameModal = () => {
   });
 
   const { config } = usePrepareGameJoinGame({
-    address: deployment.Game as `0x${string}`,
+    address: deployment.Game,
     args: inputGameID
       ? [
           BigNumber.from(inputGameID),

@@ -1,3 +1,4 @@
+import { deployment } from "deployment";
 import Link from "next/link";
 import { useWaitForTransaction } from "wagmi";
 import {
@@ -6,8 +7,6 @@ import {
   useGame,
 } from "../../generated";
 import useStore from "../../store";
-
-const deployment = require('contracts/out/deployment.json');
 
 export const CreateGameModal = () => {
   const gameID = useStore((state) => state.gameID);
@@ -28,7 +27,7 @@ export const CreateGameModal = () => {
   // ).padEnd(66, "0");
 
   const { config } = usePrepareGameCreateGame({
-    address: deployment.Game as `0x${string}`,
+    address: deployment.Game,
     args: [2]
   });
 
