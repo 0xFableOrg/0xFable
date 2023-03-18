@@ -46,17 +46,17 @@ clean:
 
 # Display info & stats about circuit $C
 info:
-	pnpx snarkjs r1cs info out/$(C).r1cs
+	pnpm snarkjs r1cs info out/$(C).r1cs
 .PHONY: info
 
 # Lists constraints for circuit $C
 constraints:
-	pnpx snarkjs r1cs print out/$(C).r1cs "out/$(C).sym"
+	pnpm snarkjs r1cs print out/$(C).r1cs "out/$(C).sym"
 .PHONY: constraints
 
 # Generates a readable version of the constraints - for debugging purposes only
 out/%.r1cs.json: out/%.r1cs
-	pnpx snarkjs r1cs export json $< $@
+	pnpm snarkjs r1cs export json $< $@
 
 ####################################################################################################
 # COMPILATION / OFFLINE (input-independent)
@@ -79,19 +79,19 @@ out/%.r1cs out/%.wasm out/%.sym: src/%.circom
 # Generates the proving key
 out/%.zkey: out/%.r1cs trusted_setup/$(SETUP_FILE)
 	@echo "## Generating $@"
-	pnpx snarkjs plonk setup $< trusted_setup/$(SETUP_FILE) $@
+	pnpm snarkjs plonk setup $< trusted_setup/$(SETUP_FILE) $@
 
 # Generates the verifying key
 out/%.vkey.json: out/%.zkey
 	@echo "## Generating $@"
-	pnpx snarkjs zkey export verificationkey $< $@
+	pnpm snarkjs zkey export verificationkey $< $@
 
 # Generate the verification contract logic
 out/Verify%.sol: out/%.zkey out/%.public.json out/%.proof.json
 	@echo "## Generating $@"
-	pnpx snarkjs zkey export solidityverifier $< $@
+	pnpm snarkjs zkey export solidityverifier $< $@
 	echo "Solidity call data for testing:"
-	pnpx snarkjs zkey export soliditycalldata out/$*.public.json out/$*.proof.json
+	pnpm snarkjs zkey export soliditycalldata out/$*.public.json out/$*.proof.json
 
 ####################################################################################################
 # INPUT-DEPENDANT (for verification / debugging)
@@ -108,7 +108,7 @@ out/%.wtns: out/%.r1cs
 # Generate proof & public signal files
 out/%.proof.json out/%.public.json: out/%.zkey out/%.wtns out/%.vkey.json
 	@echo "## Generating $* proof"
-	pnpx snarkjs plonk prove out/$*.zkey out/$*.wtns out/$*.proof.json out/$*.public.json
-	pnpx snarkjs plonk verify out/$*.vkey.json out/$*.public.json out/$*.proof.json
+	pnpm snarkjs plonk prove out/$*.zkey out/$*.wtns out/$*.proof.json out/$*.public.json
+	pnpm snarkjs plonk verify out/$*.vkey.json out/$*.public.json out/$*.proof.json
 
 ####################################################################################################

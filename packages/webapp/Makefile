@@ -1,9 +1,14 @@
 build:
 	pnpm wagmi generate
-	pnpm build
+	pnpm next build
 .PHONY: build
 
-# Serve webapp in dev environment
+# Serve webapp in production environment (after building)
+serve:
+	pnpm next start
+.PHONY: serve
+
+# Serve webapp in dev environment (building not required)
 dev:
-	pnpm dev
+	pnpm next dev
 .PHONY: dev
