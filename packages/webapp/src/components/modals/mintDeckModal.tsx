@@ -8,8 +8,7 @@ import {
 } from "../../generated";
 import {useWaitForTransaction} from "wagmi";
 import {useState} from "react";
-
-const deployment = require('contracts/out/deployment.json');
+import { deployment } from "deployment";
 
 export const MintGameModal = () => {
 
@@ -17,7 +16,7 @@ export const MintGameModal = () => {
   const [airDelegated, setAirDelegated] = useState(false);
 
   const { config: approvalConfig } = usePrepareCardsCollectionSetApprovalForAll({
-    address: deployment.CardsCollection as `0x${string}`,
+    address: deployment.CardsCollection,
     args: [deployment.Inventory, true]
   });
 
@@ -31,7 +30,7 @@ export const MintGameModal = () => {
   });
 
   const { config: delegationConfig } = usePrepareInventorySetDelegation({
-    address: deployment.Inventory as `0x${string}`,
+    address: deployment.Inventory,
     args: [deployment.DeckAirdrop, true],
     enabled: invDelegated
   });
