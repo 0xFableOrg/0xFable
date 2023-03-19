@@ -1,6 +1,6 @@
 pragma circom 2.0.0;
 
-include "./merkle.circom";
+include "./lib/merkle.circom";
 
 template Draw(levels) {
     signal input deckRoot;
