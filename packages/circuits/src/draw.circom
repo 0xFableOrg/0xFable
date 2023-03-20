@@ -1,6 +1,6 @@
 pragma circom 2.0.0;
 
-include "./lib/merkle.circom";
+include "./merkle.circom";
 
 template Draw(levels) {
     signal input deckRoot;
@@ -37,5 +37,3 @@ template Draw(levels) {
     checkAppendToTail.tailHashPath <== handTailCardHashPath;
     checkAppendToTail.appendHashPath <== handDrawnCardHashPath;
 }
-
-component main {public [deckRoot, newDeckRoot, handRoot, newHandRoot]} = Draw(6);
