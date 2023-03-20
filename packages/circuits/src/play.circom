@@ -22,5 +22,3 @@ template Play(levels) {
     checkRemoveLeaf.tailIndex <== tailCardIndex;
     checkRemoveLeaf.tailHashPath <== tailCardHashPath;
 }
-
-component main {public [handRoot, newHandRoot, playedCardLeaf]} = Play(6);
