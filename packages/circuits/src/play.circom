@@ -1,6 +1,6 @@
 pragma circom 2.0.0;
 
-include "./lib/merkle.circom";
+include "./merkle.circom";
 
 template Play(levels) {
     signal input handRoot;

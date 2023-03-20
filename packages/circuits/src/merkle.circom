@@ -1,9 +1,9 @@
 pragma circom 2.0.0;
 
-include "../../node_modules/circomlib/circuits/mimcsponge.circom";
-include "../../node_modules/circomlib/circuits/poseidon.circom";
-include "../../node_modules/circomlib/circuits/bitify.circom";
-include "../../node_modules/circomlib/circuits/comparators.circom";
+include "../node_modules/circomlib/circuits/mimcsponge.circom";
+include "../node_modules/circomlib/circuits/poseidon.circom";
+include "../node_modules/circomlib/circuits/bitify.circom";
+include "../node_modules/circomlib/circuits/comparators.circom";
 
 
 // Computes Poseidon([left, right])
@@ -13,7 +13,7 @@ template HashLeftRight() {
     signal output hash;
 
     // TODO: use more rounds
-    component hasher = MiMCSponge(2, 4, 1);
+    component hasher = MiMCSponge(2, 220, 1);
     hasher.ins[0] <== left;
     hasher.ins[1] <== right;
     hasher.k <== 0;

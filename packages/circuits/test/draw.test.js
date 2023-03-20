@@ -3,7 +3,7 @@ const ff = require('ffjavascript');
 const { callGenWitness } = require('circom-helper');
 
 describe("Draw Cards Test", () => {
-    const circuit = 'draw';
+    const circuit = 'draw.test';
     let mimcsponge;
     let deckLeaf1, deckLeaf2, deckLeaf3, deckLeaf4, deckHash1, deckHash2, deckRoot;
     let handLeaf1, handLeaf2, handLeaf3, handLeaf4, handHash1, handHash2, handRoot;
@@ -23,11 +23,11 @@ describe("Draw Cards Test", () => {
         deckRoot = mimcsponge.multiHash([deckHash1, deckHash2]);
 
         // a two levels merkle tree for the cards hand
-        /// @dev: empty leaf is 0
+        /// @dev: empty leaf is 255
         handLeaf1 = BigInt(5);
         handLeaf2 = BigInt(6);
         handLeaf3 = BigInt(7);
-        handLeaf4 = BigInt(0);
+        handLeaf4 = BigInt(255);
         // second level hashes
         handHash1 = mimcsponge.multiHash([handLeaf1, handLeaf2]);
         handHash2 = mimcsponge.multiHash([handLeaf3, handLeaf4]);
@@ -37,7 +37,7 @@ describe("Draw Cards Test", () => {
 
     it("Should correctly draw a card", async () => {
         // assume user draws card number 4
-        const newDeckHash2 = mimcsponge.multiHash([deckLeaf3, BigInt(0)]);
+        const newDeckHash2 = mimcsponge.multiHash([deckLeaf3, BigInt(255)]);
         const newDeckRoot = mimcsponge.multiHash([deckHash1, newDeckHash2]);
         const newHandHash2 = mimcsponge.multiHash([handLeaf3, BigInt(4)]);
         const newHandRoot = mimcsponge.multiHash([handHash1, newHandHash2]);
@@ -51,12 +51,12 @@ describe("Draw Cards Test", () => {
             drawnCardLeaf: BigInt(4),
             deckDrawnCardIndex: BigInt(3),
             deckDrawnCardHashPath: [deckLeaf3, mimcsponge.F.toObject(deckHash1)],
-            deckTailCardLeaf: BigInt(3),
-            deckTailCardIndex: BigInt(2),
-            deckTailCardHashPath: [deckLeaf4, mimcsponge.F.toObject(deckHash2)],
+            deckTailCardLeaf: BigInt(4),
+            deckTailCardIndex: BigInt(3),
+            deckTailCardHashPath: [deckLeaf3, mimcsponge.F.toObject(deckHash1)],
             handTailCardLeaf: BigInt(7),
             handTailCardIndex: BigInt(2),
-            handTailCardHashPath: [handLeaf4, mimcsponge.F.toObject(handHash2)],
+            handTailCardHashPath: [handLeaf4, mimcsponge.F.toObject(handHash1)],
             handDrawnCardHashPath: [handLeaf3, mimcsponge.F.toObject(handHash1)]
         });
 

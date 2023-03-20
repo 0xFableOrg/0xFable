@@ -2,6 +2,6 @@
     "circom": "../../../../.cargo/bin/circom",
     "snarkjs": "./node_modules/snarkjs/build/cli.cjs",
     "circuitDirs": [
-        "./src"
+        "./test/circuits"
     ]
 }
