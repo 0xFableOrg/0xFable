@@ -10,7 +10,15 @@
 
 ## Running tests
 
-To run the tests, make sure that in `circom.config.json`, the field `circom` is pointed to the right path
+This only works on Linux currently.
 
-1. Open a terminal and `npm run circom-helper`.
-2. In another terminal, `npm run test`. 
+```
+# only the first time
+make install-test-deps 
+
+# in a shell (will remain active)
+make test-server
+
+# in another shell
+make test
+```
