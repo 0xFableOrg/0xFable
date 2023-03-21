@@ -192,3 +192,26 @@ template ConstructRoot(levels) {
 
     root <== hashers[levels - 1].hash;
 }
+
+template CheckMerkleRoot(levels) {
+    signal input root;
+    signal input leaves[2**levels];
+
+    // merkle tree flattened into an array
+    var flattenedTree[2**(levels+1)];
+    // fit the leaves into hashers
+    for (var i = 0; i < 2**levels; i++) {
+        flattenedTree[2**levels+i] = leaves[i];
+    }
+
+    component hashers[(2**levels)];
+    for (var i = 2**levels -1; i > 0; i--) {
+        hashers[i] = HashLeftRight();
+        hashers[i].left <== flattenedTree[2*i];
+        hashers[i].right <== flattenedTree[2*i + 1];
+        flattenedTree[i] = hashers[i].hash;
+    }
+
+    // check root
+    root === flattenedTree[1];
+}
