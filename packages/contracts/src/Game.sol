@@ -154,7 +154,10 @@ contract Game {
         uint8 deckEnd;
         bytes32 handRoot;
         bytes32 deckRoot;
+        // Bitfield of cards in the player's battlefield, for each bit: 1 if the card at the same
+        // index as the bit in `GameData.cards` is on the battlefield, 0 otherwise.
         uint256 battlefield;
+        // Bitfield of cards in the player's graveyard (same thing as `battlefield`).
         uint256 graveyard;
         uint8[] attacking;
     }
@@ -170,6 +173,8 @@ contract Game {
         uint8 currentPlayer;
         GameStep currentStep;
         address attackingPlayer;
+        // Array of playable cards in this game (NFT IDs) — concatenation of players' initial decks
+        // used in this game.
         uint256[] cards;
     }
 
@@ -314,6 +319,13 @@ contract Game {
 
     // ---------------------------------------------------------------------------------------------
 
+    // Returns the current randomness for the game — used to draw cards.
+    function getRandomness(uint256 gameID) external view returns(bytes32) {
+        return blockhash(gameData[gameID].lastBlockNum);
+    }
+
+    // ---------------------------------------------------------------------------------------------
+
     // To be used as callback for `createGame`, allow any player to join with any deck.
     function allowAnyPlayerAndDeck(uint256 /*gameID*/, address /*player*/, uint8 /*deckID*/, bytes memory /*data*/)
             external pure returns(bool) {
@@ -342,6 +354,7 @@ contract Game {
         GameData storage gdata = gameData[gameID];
         gdata.gameCreator = msg.sender;
         gdata.playersLeftToJoin = numberOfPlayers;
+        // TODO: Interesting edge case: currently multiple players cannot join in the same block.
         gdata.lastBlockNum = block.number;
         gdata.currentStep = GameStep.PLAY;
 
@@ -432,6 +445,8 @@ contract Game {
 
     // Joins a game that you a player is included in but hasn't joined yet. Calling this function
     // means you agree with the deck listing that was reported by the `createGame` function.
+    //
+    // The data field is ignored for now (we allow any player to join any game).
     function joinGame(uint256 gameID, uint8 deckID, bytes calldata data, bytes32 handRoot, bytes32 deckRoot,
             bytes calldata proof) external {
 
@@ -545,7 +560,7 @@ contract Game {
 
     // ---------------------------------------------------------------------------------------------
 
-    function pass(uint256 gameID) step(gameID, GameStep.PASS) external {
+    function pass(uint256 gameID) external step(gameID, GameStep.PASS) {
         // empty: everything happens in the step function
     }
 
@@ -693,3 +708,4 @@ contract Game {
 
     // ---------------------------------------------------------------------------------------------
 }
+
