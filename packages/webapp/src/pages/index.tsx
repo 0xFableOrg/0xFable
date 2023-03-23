@@ -5,8 +5,8 @@ import { useAccount } from "wagmi"
 import { CreateGameModal } from "../components/modals/createGameModal"
 import { JoinGameModal } from "../components/modals/joinGameModal"
 import { MintGameModal } from "../components/modals/mintDeckModal"
-import dynamic from "next/dynamic"
 import Link from "next/link"
+import dynamic from "next/dynamic"
 
 const Home: NextPage = () => {
   const { address } = useAccount();
@@ -49,16 +49,8 @@ const Home: NextPage = () => {
             </div>
           )}
 
-          {address && (
-            <div className="">
-              <button
-                className="btn-glass btn normal-case"
-                onClick={async () => await open()}
-              >
-                Hello Adventurer, {address}
-              </button>
-            </div>
-          )}
+          {/* TODO: Theme the button */}
+          {address && <Web3Button /> }
         </div>
       </main>
     </>
