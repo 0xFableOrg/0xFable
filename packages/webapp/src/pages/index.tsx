@@ -1,4 +1,4 @@
-import { useWeb3Modal } from "@web3modal/react"
+import { useWeb3Modal, Web3Button } from "@web3modal/react"
 import { type NextPage } from "next"
 import Head from "next/head"
 import { useAccount } from "wagmi"
@@ -9,8 +9,8 @@ import Link from "next/link"
 import dynamic from "next/dynamic"
 
 const Home: NextPage = () => {
-  const { address } = useAccount();
-  const { open } = useWeb3Modal();
+  const { address } = useAccount()
+  const { open } = useWeb3Modal()
 
   return (
     <>
@@ -54,8 +54,8 @@ const Home: NextPage = () => {
         </div>
       </main>
     </>
-  );
-};
+  )
+}
 
 export default dynamic(() => Promise.resolve(Home), {
   ssr: false,

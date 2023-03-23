@@ -1,19 +1,19 @@
-import type { AppType } from "next/app";
+import type { AppType } from "next/app"
 import {
   EthereumClient,
   w3mConnectors,
   w3mProvider
-} from "@web3modal/ethereum";
-import { Web3Modal } from "@web3modal/react";
-import { configureChains, createClient, WagmiConfig } from "wagmi";
-import { localhost } from "wagmi/chains";
+} from "@web3modal/ethereum"
+import { Web3Modal } from "@web3modal/react"
+import { configureChains, createClient, WagmiConfig } from "wagmi"
+import { localhost } from "wagmi/chains"
 
-import "../styles/globals.css";
+import "../styles/globals.css"
 
 // From the WalletConnect cloud
 const projectId='8934622f70e11b51de893ea309871a4c'
 
-const chains = [localhost];
+const chains = [localhost]
 
 const { provider } = configureChains(chains, [w3mProvider({ projectId })])
 
@@ -37,7 +37,7 @@ const MyApp: AppType = ({ Component, pageProps }) => {
         ethereumClient={ethereumClient}
       />
     </>
-  );
-};
+  )
+}
 
-export default MyApp;
+export default MyApp
