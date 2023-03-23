@@ -55,6 +55,7 @@ importers:
       eslint: ^8.36.0
       eslint-config-next: ^13.2.4
       ethers: ^5.7.2
+      jotai: ^2.0.3
       lodash: ^4.17.21
       next: ^13.2.4
       postcss: ^8.4.21
@@ -71,6 +72,7 @@ importers:
       '@web3modal/ethereum': 2.2.2_k7oochb6hvkigdjxb5epommrwu
       '@web3modal/react': 2.2.2_biqbaboplfbrettd7655fr4n2y
       ethers: 5.7.2
+      jotai: 2.0.3_react@18.2.0
       lodash: 4.17.21
       next: 13.2.4_hrdbe576m4w26u2yfpqpvbxyky
       react: 18.2.0
@@ -6027,6 +6029,18 @@ packages:
       - supports-color
       - ts-node
     dev: true
+
+  /jotai/2.0.3_react@18.2.0:
+    resolution: {integrity: sha512-MMjhSPAL3RoeZD9WbObufRT2quThEAEknHHridf2ma8Ml7ZVQmUiHk0ssdbR3F0h3kcwhYqSGJ59OjhPge7RRg==}
+    engines: {node: '>=12.20.0'}
+    peerDependencies:
+      react: '>=17.0.0'
+    peerDependenciesMeta:
+      react:
+        optional: true
+    dependencies:
+      react: 18.2.0
+    dev: false
 
   /js-sdsl/4.4.0:
     resolution: {integrity: sha512-FfVSdx6pJ41Oa+CF7RDaFmTnCaFhua+SNYQX74riGOpl96x+2jQCqEfQ2bnXu/5DPCqlRuiqyvTJM0Qjz26IVg==}

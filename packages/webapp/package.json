@@ -9,6 +9,7 @@
     "@web3modal/ethereum": "^2.2.2",
     "@web3modal/react": "^2.2.2",
     "ethers": "^5.7.2",
+    "jotai": "^2.0.3",
     "lodash": "^4.17.21",
     "next": "^13.2.4",
     "react": "18.2.0",
