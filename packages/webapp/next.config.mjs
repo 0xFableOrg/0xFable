@@ -7,7 +7,7 @@
 !process.env.SKIP_ENV_VALIDATION && (await import("./src/env.mjs"))
 
 /** @type {import("next").NextConfig} */
-const config = {
+export default {
   reactStrictMode: true,
 
   /**
@@ -28,7 +28,5 @@ const config = {
   experimental: {
     // Currently broken because of Next: https://github.com/pmndrs/swc-jotai/issues/6
     // swcPlugins: [['@swc-jotai/react-refresh', {}]]
-  }
+  },
 }
-
-export default config
