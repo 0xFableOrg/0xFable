@@ -1,4 +1,5 @@
 import type { AppType } from "next/app"
+import Head from "next/head"
 import {
   EthereumClient,
   w3mConnectors,
@@ -28,6 +29,9 @@ const ethereumClient = new EthereumClient(wagmiClient, chains);
 const MyApp: AppType = ({ Component, pageProps }) => {
   return (
     <>
+      <Head>
+        <link rel="shortcut icon" href="/favicon.png" />
+      </Head>
       <WagmiConfig client={wagmiClient}>
         <Component {...pageProps} />
       </WagmiConfig>
