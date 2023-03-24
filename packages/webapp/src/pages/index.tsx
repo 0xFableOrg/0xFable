@@ -5,6 +5,7 @@ import { useAccount } from "wagmi";
 import { CreateGameModal } from "../components/modals/createGameModal";
 import { JoinGameModal } from "../components/modals/joinGameModal";
 import { MintGameModal } from "../components/modals/mintDeckModal";
+import { CollectionGameModal } from "../components/modals/collectionModal";
 import dynamic from "next/dynamic";
 
 const Home: NextPage = () => {
@@ -25,10 +26,11 @@ const Home: NextPage = () => {
           </h1>
 
           {address && (
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 md:gap-8">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-4 md:gap-8">
               <CreateGameModal />
               <JoinGameModal />
               <MintGameModal />
+              <CollectionGameModal />
             </div>
           )}
 
