@@ -39,6 +39,7 @@ importers:
 
   packages/webapp:
     specifiers:
+      '@swc-jotai/react-refresh': ^0.0.7
       '@types/eslint': ^8.21.3
       '@types/lodash': ^4.14.191
       '@types/node': ^18.15.5
@@ -81,6 +82,7 @@ importers:
       zod: 3.21.4
       zustand: 4.3.6_react@18.2.0
     devDependencies:
+      '@swc-jotai/react-refresh': 0.0.7
       '@types/eslint': 8.21.3
       '@types/lodash': 4.14.191
       '@types/node': 18.15.5
@@ -1603,6 +1605,10 @@ packages:
       '@stablelib/keyagreement': 1.0.1
       '@stablelib/random': 1.0.2
       '@stablelib/wipe': 1.0.1
+
+  /@swc-jotai/react-refresh/0.0.7:
+    resolution: {integrity: sha512-8/DKZzqsvG+zhmq8BxB6Kx5uu89GkfRSPlv//3SPoNgBJW25oPyCKLD5ADkuyaBLxTzpKKgpkKC1rjSbOWpRCg==}
+    dev: true
 
   /@swc/helpers/0.4.14:
     resolution: {integrity: sha512-4C7nX/dvpzB7za4Ql9K81xK3HPxCpHMgwTZVyf+9JQ6VUbn9jjZVN7/Nkdz/Ugzs2CSjqnL/UPXroiVBVHUWUw==}

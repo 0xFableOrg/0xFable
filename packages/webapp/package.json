@@ -19,6 +19,7 @@
     "zustand": "^4.3.6"
   },
   "devDependencies": {
+    "@swc-jotai/react-refresh": "^0.0.7",
     "@types/eslint": "^8.21.3",
     "@types/lodash": "^4.14.191",
     "@types/node": "^18.15.5",
