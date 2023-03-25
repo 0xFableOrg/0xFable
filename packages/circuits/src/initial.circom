@@ -5,19 +5,28 @@ include "../node_modules/circomlib/circuits/comparators.circom";
 
 template CheckReplaceArray(n) {
     signal input index;
-    signal input value;
+    signal input newValue;
     signal input array[n];
     signal output newArray[n];
+    signal output replacedValue;
 
     component checkIndex[n];
-    component muxers[n];
+    signal items[n];
     for (var i = 0; i < n; i++) {
         checkIndex[i] = IsEqual();
         checkIndex[i].in[0] <== i;
         checkIndex[i].in[1] <== index;
-        newArray[i] <== (value - array[i]) * checkIndex[i].out + array[i];
-        // newArray[i] <== (checkIndex[i].out * value) + ((1 - checkIndex[i].out) * array[i]);
+        newArray[i] <== (newValue - array[i]) * checkIndex[i].out + array[i];
+        // newArray[i] <== (checkIndex[i].out * newValue) + ((1 - checkIndex[i].out) * array[i]);
+        items[i] <== checkIndex[i].out * array[i];
     }
+
+    // get the replaced value
+    var temp = 0;
+    for (var i = 0; i < n; i++) {
+        temp += items[i];
+    }
+    replacedValue <== temp;
 }
 
 template Initial(levels, cardCount) {
@@ -49,24 +58,35 @@ template Initial(levels, cardCount) {
         // replace the drawn card with tail card
         updateDeckArray[i] = CheckReplaceArray(2**levels);
         updateDeckArray[i].index <== drawnCardIndices[i/2];
-        updateDeckArray[i].value <== tailCard;
+        updateDeckArray[i].newValue <== tailCard;
         updateDeckArray[i].array <== i == 0 ? deckLeaves : updateDeckArray[i-1].newArray;
 
         // replace tail card with null
         updateDeckArray[i+1] = CheckReplaceArray(2**levels);
         updateDeckArray[i+1].index <== tailCardIndex;
-        updateDeckArray[i+1].value <== 255;
+        updateDeckArray[i+1].newValue <== 255;
         updateDeckArray[i+1].array <== updateDeckArray[i].newArray;
 
         // update tail card and index
         tailCardIndex--;
         tailCard = updateDeckArray[i+1].newArray[tailCardIndex];
+
+        // update hand
+        updateHandArray[i/2] = CheckReplaceArray(2**levels);
+        updateHandArray[i/2].index <== i/2;
+        updateHandArray[i/2].newValue <== updateDeckArray[i].replacedValue;
+        updateHandArray[i/2].array <== i == 0 ? handLeaves : updateHandArray[i/2-1].newArray;
     }
 
     // check updated deck
     component checkNewDeck = CheckMerkleRoot(levels);
     checkNewDeck.root <== newDeckRoot;
     checkNewDeck.leaves <== updateDeckArray[2*cardCount-1].newArray;
+
+    // check updated hand
+    component checkNewHand = CheckMerkleRoot(levels);
+    checkNewHand.root <== newHandRoot;
+    checkNewHand.leaves <== updateHandArray[cardCount-1].newArray;
 }
 
 component main {public [deckRoot, newDeckRoot, handRoot, drawnCardIndices]} = Initial(4, 2);
