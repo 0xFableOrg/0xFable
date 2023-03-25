@@ -88,5 +88,3 @@ template Initial(levels, cardCount) {
     checkNewHand.root <== newHandRoot;
     checkNewHand.leaves <== updateHandArray[cardCount-1].newArray;
 }
-
-component main {public [deckRoot, newDeckRoot, handRoot, drawnCardIndices]} = Initial(4, 2);
