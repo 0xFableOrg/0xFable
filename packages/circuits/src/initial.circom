@@ -25,37 +25,48 @@ template Initial(levels, cardCount) {
     signal input newDeckRoot;
     signal input deckLeaves[2**levels];
     signal input handRoot;
+    signal input newHandRoot;
     signal input drawnCardIndices[cardCount];
 
     component checkInitialDeck = CheckMerkleRoot(levels);
     checkInitialDeck.root <== deckRoot;
     checkInitialDeck.leaves <== deckLeaves;
 
-    component updateArray[2*cardCount];
+    // check initial hand is all null
+    var handLeaves[2**levels];
+    for (var i = 0; i < 2**levels; i++) {
+        handLeaves[i] = 255;
+    }
+    component checkInitialHand = CheckMerkleRoot(levels);
+    checkInitialHand.root <== handRoot;
+    checkInitialHand.leaves <== handLeaves;
+
+    component updateDeckArray[2*cardCount];
+    component updateHandArray[cardCount];
     var tailCardIndex = 2**levels - 1;
     var tailCard = deckLeaves[tailCardIndex];
     for (var i = 0; i < 2*cardCount; i+=2) {
         // replace the drawn card with tail card
-        updateArray[i] = CheckReplaceArray(2**levels);
-        updateArray[i].index <== drawnCardIndices[i/2];
-        updateArray[i].value <== tailCard;
-        updateArray[i].array <== i == 0 ? deckLeaves : updateArray[i-1].newArray;
+        updateDeckArray[i] = CheckReplaceArray(2**levels);
+        updateDeckArray[i].index <== drawnCardIndices[i/2];
+        updateDeckArray[i].value <== tailCard;
+        updateDeckArray[i].array <== i == 0 ? deckLeaves : updateDeckArray[i-1].newArray;
 
         // replace tail card with null
-        updateArray[i+1] = CheckReplaceArray(2**levels);
-        updateArray[i+1].index <== tailCardIndex;
-        updateArray[i+1].value <== 255;
-        updateArray[i+1].array <== updateArray[i].newArray;
+        updateDeckArray[i+1] = CheckReplaceArray(2**levels);
+        updateDeckArray[i+1].index <== tailCardIndex;
+        updateDeckArray[i+1].value <== 255;
+        updateDeckArray[i+1].array <== updateDeckArray[i].newArray;
 
         // update tail card and index
         tailCardIndex--;
-        tailCard = updateArray[i+1].newArray[tailCardIndex];
+        tailCard = updateDeckArray[i+1].newArray[tailCardIndex];
     }
 
     // check updated deck
     component checkNewDeck = CheckMerkleRoot(levels);
     checkNewDeck.root <== newDeckRoot;
-    checkNewDeck.leaves <== updateArray[2*cardCount-1].newArray;
+    checkNewDeck.leaves <== updateDeckArray[2*cardCount-1].newArray;
 }
 
 component main {public [deckRoot, newDeckRoot, handRoot, drawnCardIndices]} = Initial(4, 2);
