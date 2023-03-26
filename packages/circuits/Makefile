@@ -24,6 +24,28 @@ C ?= Cards
 # - <circuit>.proof.json = the zk proof for <circuit> and the corresponding .public.json file
 
 ####################################################################################################
+# TESTING SETUP
+
+UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S),Darwin)
+	# NOTE: This does NOT work.
+	# It does not know `uint` and I haven't managed to inject a typedef / macro definition for it.
+	# Probably fixing the issue upstream or forking circom-helper is the right fix (assuming it's
+	# the only issue).
+	JSON_INCLUDE=$(shell brew --prefix nlohmann-json)/include
+	GMP_INCLUDE=$(shell brew --prefix gmp)/include
+	export CPLUS_INCLUDE_PATH += :$(JSON_INCLUDE):$(GMP_INCLUDE)
+	TEST_INSTALL_COMMAND:=brew install gcc gmp nlohmann-json nasm && xcode-select --install
+	export CPPFLAGS += -include build/uint.hpp
+else
+	TEST_INSTALL_COMMAND:=sudo apt-get install libgmp-dev nlohmann-json3-dev nasm g++
+endif
+
+install-test-deps:
+	$(TEST_INSTALL_COMMAND)
+.PHONY: install-test-deps
+
+####################################################################################################
 # LIFECYCLE
 
 # Make sure intermediate files are not deleted at the end.
@@ -35,6 +57,16 @@ build: out/VerifyCards.sol
 
 proof: out/Cards.proof.json
 .PHONY: proof
+
+test-server:
+	node circom.config.js > out/circom.config.json
+	pnpm circom-helper -c out/circom.config.json -b ./build/test -p 9001
+.PHONY: test-server
+
+make test:
+	echo "Running tests (requires running make test-server beforehand)"
+	pnpm jest
+.PHONY: test
 
 # Remove outputs
 clean:

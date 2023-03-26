@@ -5,10 +5,9 @@ import { useAccount } from "wagmi";
 import { CreateGameModal } from "../components/modals/createGameModal";
 import { JoinGameModal } from "../components/modals/joinGameModal";
 import { MintGameModal } from "../components/modals/mintDeckModal";
-import { useIsMounted } from "../hooks/useIsMounted";
+import dynamic from "next/dynamic";
 
 const Home: NextPage = () => {
-  const isMounted = useIsMounted();
   const { address } = useAccount();
   const { open } = useWeb3Modal();
 
@@ -25,7 +24,7 @@ const Home: NextPage = () => {
             <span className="font-mono font-light text-red-400">0x</span>FABLE
           </h1>
 
-          {address && isMounted && (
+          {address && (
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 md:gap-8">
               <CreateGameModal />
               <JoinGameModal />
@@ -33,7 +32,7 @@ const Home: NextPage = () => {
             </div>
           )}
 
-          {!address && isMounted && (
+          {!address && (
             <div className="">
               <button
                 className="btn-lg btn border-2 border-yellow-500 normal-case hover:scale-105 hover:border-yellow-400"
@@ -46,7 +45,7 @@ const Home: NextPage = () => {
             </div>
           )}
 
-          {address && isMounted && (
+          {address && (
             <div className="">
               <button
                 className="btn-glass btn normal-case"
@@ -62,4 +61,6 @@ const Home: NextPage = () => {
   );
 };
 
-export default Home;
+export default dynamic(() => Promise.resolve(Home), {
+  ssr: false,
+})

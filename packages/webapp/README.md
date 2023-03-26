@@ -26,3 +26,8 @@ You can check out the [create-t3-app GitHub repository](https://github.com/t3-os
 ## How do I deploy this?
 
 Follow our deployment guides for [Vercel](https://create.t3.gg/en/deployment/vercel), [Netlify](https://create.t3.gg/en/deployment/netlify) and [Docker](https://create.t3.gg/en/deployment/docker) for more information.
+
+## Dependencies
+
+- `tailwindcss` — for styling, with peer dependencies `autoprefixer` and `postcss`
+- `daisyui` — component library for tailwindcss
