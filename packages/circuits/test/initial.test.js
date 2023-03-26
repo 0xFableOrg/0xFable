@@ -48,6 +48,7 @@ describe("Initial Hand Test", () => {
             deckRoot: mimcsponge.F.toObject(deckRoot), 
             newDeckRoot: mimcsponge.F.toObject(newDeckRoot), 
             deckLeaves: deckLeaves,
+            initialDeckTailCardIndex: BigInt(15),
             handRoot: mimcsponge.F.toObject(handRoot), 
             newHandRoot: mimcsponge.F.toObject(newHandRoot),
             drawnCardIndices: drawnCardIndices
