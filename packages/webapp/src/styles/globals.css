@@ -5,3 +5,29 @@
 body {
   @apply overflow-y-hidden;
 }
+.card-footer {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding: 10px;
+  position: relative;
+}
+.attack,
+.defense {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 35px;
+  width: 35px;
+  border-radius: 50%;
+  background-color: #dadd08;
+  color: #10180d;
+  font-weight: bold;
+  font-size: 18px;
+  position: absolute;
+  bottom: -20px;
+}
+.defense{
+  background-color: #99291a;
+  right: 10px;
+}
