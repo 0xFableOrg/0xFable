@@ -6,7 +6,7 @@ describe("Initial Hand Test", () => {
     const circuit = 'initial.test';
     let mimcsponge;
     let deckLeaves = [], handLeaves = [];
-    let deckRoot, handRoot;
+    let deckRoot;
     let newDeckRoot, newHandRoot;
 
     beforeAll(async () => {
@@ -18,7 +18,6 @@ describe("Initial Hand Test", () => {
             handLeaves.push(BigInt(255));
         }
         deckRoot = getMerkleRoot(deckLeaves, mimcsponge);
-        handRoot = getMerkleRoot(handLeaves, mimcsponge);
     });
 
     // set longer timeout for test
@@ -49,7 +48,6 @@ describe("Initial Hand Test", () => {
             newDeckRoot: mimcsponge.F.toObject(newDeckRoot), 
             deckLeaves: deckLeaves,
             initialDeckTailCardIndex: BigInt(15),
-            handRoot: mimcsponge.F.toObject(handRoot), 
             newHandRoot: mimcsponge.F.toObject(newHandRoot),
             drawnCardIndices: drawnCardIndices
         });
