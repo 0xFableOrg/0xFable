@@ -65,8 +65,6 @@ const Play: NextPage = () => {
     <>
       <Head>
         <title>0xFable: My Collection</title>
-        <meta name="description" content="Manage your card collection" />
-        <link rel="icon" href="/favicon.ico" />
       </Head>
 
       <main className="flex h-screen flex-col">
