@@ -30,6 +30,7 @@ const MyApp: AppType = ({ Component, pageProps }) => {
   return (
     <>
       <Head>
+        <title>0xFable</title>
         <link rel="shortcut icon" href="/favicon.png" />
       </Head>
       <WagmiConfig client={wagmiClient}>
