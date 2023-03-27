@@ -13,7 +13,7 @@ describe("Initial Hand Test", () => {
         mimcsponge = await circomlib.buildMimcSponge();
 
         // initialize deck leaves and hand leaves
-        for (let i = 0; i < 16; i++) {
+        for (let i = 0; i < 64; i++) {
             deckLeaves.push(BigInt(i));
             handLeaves.push(BigInt(255));
         }
@@ -21,25 +21,27 @@ describe("Initial Hand Test", () => {
     });
 
     // set longer timeout for test
-    jest.setTimeout(15000);
+    jest.setTimeout(30000);
     it("Should correctly construct a merkle tree root", async () => {
-        // assume user draws 2 cards
-        const drawnCardIndices = [BigInt(2), BigInt(5)];
+        // assume user draws 7 cards
+        const drawnCardIndices = [BigInt(2), BigInt(4), BigInt(6), BigInt(8), BigInt(10), BigInt(12), BigInt(14)];
+        const initialDeckTailCardIndex = BigInt(63); // 63 is the last card in the deck
 
         let newDeckLeaves = [...deckLeaves];
-        // update deck leaves for 1st drawn card
-        newDeckLeaves[2] = BigInt(15);
-        newDeckLeaves[15] = BigInt(255);
-        // update deck leaves for 2nd drawn card
-        newDeckLeaves[5] = BigInt(14);
-        newDeckLeaves[14] = BigInt(255);
+        // update deck leaves
+        let currentTailCard = initialDeckTailCardIndex; 
+        for (const index of drawnCardIndices) {
+            newDeckLeaves[index] = currentTailCard;
+            newDeckLeaves[currentTailCard] = BigInt(255);
+            currentTailCard--;
+        }
         newDeckRoot = getMerkleRoot(newDeckLeaves, mimcsponge);
 
         let newHandLeaves = [...handLeaves];
-        // update hand leaves for 1st drawn card
-        newHandLeaves[0] = BigInt(2);
-        // update hand leaves for 2nd drawn card
-        newHandLeaves[1] = BigInt(5);
+        // update hand leaves
+        for (let i = 0; i < drawnCardIndices.length; i++) {
+            newHandLeaves[i] = drawnCardIndices[i];
+        }
         newHandRoot = getMerkleRoot(newHandLeaves, mimcsponge);
 
         // construct the circuit inputs
@@ -47,7 +49,7 @@ describe("Initial Hand Test", () => {
             deckRoot: mimcsponge.F.toObject(deckRoot), 
             newDeckRoot: mimcsponge.F.toObject(newDeckRoot), 
             deckLeaves: deckLeaves,
-            initialDeckTailCardIndex: BigInt(15),
+            initialDeckTailCardIndex: initialDeckTailCardIndex,
             newHandRoot: mimcsponge.F.toObject(newHandRoot),
             drawnCardIndices: drawnCardIndices
         });

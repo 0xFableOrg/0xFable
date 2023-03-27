@@ -22,6 +22,8 @@ describe("Merkle Tree Test", () => {
         deckRoot = mimcsponge.multiHash([deckHash1, deckHash2]);
     });
 
+    // set longer timeout for test
+    jest.setTimeout(10000);
     it("Should correctly construct a merkle tree root", async () => {
         // construct the circuit inputs
         const circuitInputs = ff.utils.stringifyBigInts({
