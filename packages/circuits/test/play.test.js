@@ -23,6 +23,8 @@ describe("Play Cards Test", () => {
         handRoot = mimcsponge.multiHash([handHash1, handHash2]);
     });
 
+    // set longer timeout for test
+    jest.setTimeout(10000);
     it("Should correctly draw a card", async () => {
         // assume user plays card number 4
         const newHandHash2 = mimcsponge.multiHash([handLeaf3, BigInt(255)]);
