@@ -17,7 +17,6 @@ template CheckReplaceArray(n) {
         checkIndex[i].in[0] <== i;
         checkIndex[i].in[1] <== index;
         newArray[i] <== (newValue - array[i]) * checkIndex[i].out + array[i];
-        // newArray[i] <== (checkIndex[i].out * newValue) + ((1 - checkIndex[i].out) * array[i]);
         items[i] <== checkIndex[i].out * array[i];
     }
 
@@ -34,7 +33,6 @@ template Initial(levels, cardCount) {
     signal input newDeckRoot;
     signal input deckLeaves[2**levels];
     signal input initialDeckTailCardIndex;
-    signal input handRoot;
     signal input newHandRoot;
     signal input drawnCardIndices[cardCount];
 
@@ -42,14 +40,11 @@ template Initial(levels, cardCount) {
     checkInitialDeck.root <== deckRoot;
     checkInitialDeck.leaves <== deckLeaves;
 
-    // check initial hand is all null
+    // set initial hand
     var handLeaves[2**levels];
     for (var i = 0; i < 2**levels; i++) {
         handLeaves[i] = 255;
     }
-    component checkInitialHand = CheckMerkleRoot(levels);
-    checkInitialHand.root <== handRoot;
-    checkInitialHand.leaves <== handLeaves;
 
     component updateDeckArray[2*cardCount];
     component updateHandArray[cardCount];
