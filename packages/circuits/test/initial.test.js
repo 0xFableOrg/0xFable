@@ -21,11 +21,20 @@ describe("Initial Hand Test", () => {
     });
 
     // set longer timeout for test
-    jest.setTimeout(30000);
+    jest.setTimeout(10000);
     it("Should correctly construct a merkle tree root", async () => {
         // assume user draws 7 cards
         const maxDeckSize = 64;
-        const drawnIndices = new Set([2, 4, 6, 8, 10, 12, 14]);
+        let drawnIndices = [2,4,6,8,10,12,14];
+
+        // update hand leaves
+        let newHandLeaves = [...handLeaves];
+        for (let i = 0; i < drawnIndices.length; i++) {
+            newHandLeaves[i] = deckLeaves[drawnIndices[i]];
+        }
+        newHandRoot = getMerkleRoot(newHandLeaves, mimcsponge);
+
+        drawnIndices = new Set(drawnIndices);
         let drawnCardIndices = Array(64).fill(0);
         for (const index of drawnIndices) {
             drawnCardIndices[index] = 1;
@@ -45,8 +54,8 @@ describe("Initial Hand Test", () => {
             }
         }
 
-        let newDeckLeaves = [...deckLeaves];
         // update deck leaves
+        let newDeckLeaves = [...deckLeaves];
         for (const index of drawnIndices) {
             newDeckLeaves[index] = BigInt(255);
         }
@@ -55,15 +64,7 @@ describe("Initial Hand Test", () => {
             ...newDeckLeaves.filter((num) => num != 255), // keep all non-255 numbers
             ...newDeckLeaves.filter((num) => num == 255), // move all 255 numbers to the end
         ];
-        console.log("new deck leaves: ", newDeckLeaves);
         newDeckRoot = getMerkleRoot(newDeckLeaves, mimcsponge);
-
-        // let newHandLeaves = [...handLeaves];
-        // // update hand leaves
-        // for (let i = 0; i < drawnCardIndices.length; i++) {
-        //     newHandLeaves[i] = drawnCardIndices[i];
-        // }
-        // newHandRoot = getMerkleRoot(newHandLeaves, mimcsponge);
 
         // construct the circuit inputs
         const circuitInputs = ff.utils.stringifyBigInts({
@@ -71,6 +72,8 @@ describe("Initial Hand Test", () => {
             newDeckRoot: mimcsponge.F.toObject(newDeckRoot), 
             deckLeaves: deckLeaves,
             newDeckLeaves: newDeckLeaves,
+            newHandRoot: mimcsponge.F.toObject(newHandRoot),
+            newHandLeaves: newHandLeaves,
             deckPredicate: deckPredicate,
             drawnCardIndices: drawnCardIndices
         });
