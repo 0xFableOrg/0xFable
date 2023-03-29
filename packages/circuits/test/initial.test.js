@@ -24,33 +24,54 @@ describe("Initial Hand Test", () => {
     jest.setTimeout(30000);
     it("Should correctly construct a merkle tree root", async () => {
         // assume user draws 7 cards
-        const drawnCardIndices = [BigInt(2), BigInt(4), BigInt(6), BigInt(8), BigInt(10), BigInt(12), BigInt(14)];
-        const initialDeckTailCardIndex = BigInt(63); // 63 is the last card in the deck
+        const maxDeckSize = 64;
+        const drawnIndices = new Set([2, 4, 6, 8, 10, 12, 14]);
+        let drawnCardIndices = Array(64).fill(0);
+        for (const index of drawnIndices) {
+            drawnCardIndices[index] = 1;
+        }
+        let deckPredicate = []
+        let deckCount = 0;
+        let handCount = 0;
+        for (let i = 0; i < 64; i++) {
+            if (drawnIndices.has(i)) {
+                // card is drawn
+                deckPredicate.push(maxDeckSize ** handCount);
+                handCount++;
+            } else {
+                // card is not drawn
+                deckPredicate.push(maxDeckSize ** deckCount);
+                deckCount++;
+            }
+        }
 
         let newDeckLeaves = [...deckLeaves];
         // update deck leaves
-        let currentTailCard = initialDeckTailCardIndex; 
-        for (const index of drawnCardIndices) {
-            newDeckLeaves[index] = currentTailCard;
-            newDeckLeaves[currentTailCard] = BigInt(255);
-            currentTailCard--;
+        for (const index of drawnIndices) {
+            newDeckLeaves[index] = BigInt(255);
         }
+        // reorder deck leaves
+        newDeckLeaves = [
+            ...newDeckLeaves.filter((num) => num != 255), // keep all non-255 numbers
+            ...newDeckLeaves.filter((num) => num == 255), // move all 255 numbers to the end
+        ];
+        console.log("new deck leaves: ", newDeckLeaves);
         newDeckRoot = getMerkleRoot(newDeckLeaves, mimcsponge);
 
-        let newHandLeaves = [...handLeaves];
-        // update hand leaves
-        for (let i = 0; i < drawnCardIndices.length; i++) {
-            newHandLeaves[i] = drawnCardIndices[i];
-        }
-        newHandRoot = getMerkleRoot(newHandLeaves, mimcsponge);
+        // let newHandLeaves = [...handLeaves];
+        // // update hand leaves
+        // for (let i = 0; i < drawnCardIndices.length; i++) {
+        //     newHandLeaves[i] = drawnCardIndices[i];
+        // }
+        // newHandRoot = getMerkleRoot(newHandLeaves, mimcsponge);
 
         // construct the circuit inputs
         const circuitInputs = ff.utils.stringifyBigInts({
             deckRoot: mimcsponge.F.toObject(deckRoot), 
             newDeckRoot: mimcsponge.F.toObject(newDeckRoot), 
             deckLeaves: deckLeaves,
-            initialDeckTailCardIndex: initialDeckTailCardIndex,
-            newHandRoot: mimcsponge.F.toObject(newHandRoot),
+            newDeckLeaves: newDeckLeaves,
+            deckPredicate: deckPredicate,
             drawnCardIndices: drawnCardIndices
         });
 
