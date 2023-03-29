@@ -9,7 +9,7 @@ template Initial(levels, cardCount) {
     signal input newDeckLeaves[2**levels];
     signal input newHandRoot;
     signal input newHandLeaves[2**levels];
-    signal input deckPredicate[2**levels]; // (maxDeckSize ** sum of prefix bits)
+    signal input deckPredicate[2**levels];
     signal input drawnCardIndices[2**levels];
 
     var maxDeckSize = 2**levels;
@@ -17,12 +17,6 @@ template Initial(levels, cardCount) {
     component checkInitialDeck = CheckMerkleRoot(levels);
     checkInitialDeck.root <== deckRoot;
     checkInitialDeck.leaves <== deckLeaves;
-
-    // set initial hand
-    var handLeaves[2**levels];
-    for (var i = 0; i < 2**levels; i++) {
-        handLeaves[i] = 255;
-    }
 
     var indicesSum = 0;
     var deckSum = 0;
@@ -43,8 +37,8 @@ template Initial(levels, cardCount) {
     // check that number of drawn cards is correct
     cardCount === indicesSum;
 
+    // check that the cards in the new deck is correct
     var newDeckSum = 0;
-    // check that the cards in th new deck is correct
     for (var i = 0; i < 2**levels - cardCount; i++) {
         newDeckSum += newDeckLeaves[i] * (maxDeckSize**i);
     }
@@ -54,8 +48,8 @@ template Initial(levels, cardCount) {
         newDeckLeaves[i] === 255;
     }
 
-    var newHandSum = 0;
     // check that the cards in the hand is correct
+    var newHandSum = 0;
     for (var i = 0; i < cardCount; i++) {
         newHandSum += newHandLeaves[i] * (maxDeckSize**i);
     }
