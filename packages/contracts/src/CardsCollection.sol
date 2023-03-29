@@ -15,6 +15,11 @@ struct Stats {
     uint8 defense;
 }
 
+struct Card {
+    Lore lore;
+    Stats stats;
+}
+
 contract CardsCollection is ERC721, Ownable {
 
     constructor() ERC721("Cards", "CARD") Ownable() {}
@@ -37,5 +42,10 @@ contract CardsCollection is ERC721, Ownable {
 
     function stats(uint256 card) external view returns(Stats memory) {
         return stats_[card];
+    }
+
+    // TODO - remove this function?
+    function get_lore(uint256 card) external view returns(Lore memory) {
+        return lore[card];
     }
 }

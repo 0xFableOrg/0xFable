@@ -87,7 +87,7 @@ contract Inventory {
     // the InventoryCardsCollection contract when generating hooks with wagmi.
     CardsCollection public originalCardsCollection;
 
-    // The NFT collecton that contains soulbound tokens matching cards transferred to the inventory
+    // The NFT collection that contains soulbound tokens matching cards transferred to the inventory
     // by a player.
     InventoryCardsCollection public inventoryCardsCollection;
 
@@ -247,4 +247,16 @@ contract Inventory {
     }
 
     // ---------------------------------------------------------------------------------------------
+    
+
+    // Return the list of cards in the collection of the given player.
+    function getCollection(address player) external view returns(Card[] memory collectionCards) {
+        uint256[] memory collectionTokensId = inventoryCardsCollection.getOwnedTokens(player);
+        collectionCards = new Card[](collectionTokensId.length);
+        for (uint256 i = 0; i < collectionTokensId.length; ++i) {
+            collectionCards[i].lore = originalCardsCollection.get_lore(collectionTokensId[i]);
+            collectionCards[i].stats = originalCardsCollection.stats(collectionTokensId[i]);
+        }
+        return collectionCards;
+    }
 }
