@@ -1,12 +1,12 @@
-import { useWeb3Modal } from "@web3modal/react";
-import { type NextPage } from "next";
-import Head from "next/head";
-import { useAccount } from "wagmi";
-import { CreateGameModal } from "../components/modals/createGameModal";
-import { JoinGameModal } from "../components/modals/joinGameModal";
-import { MintGameModal } from "../components/modals/mintDeckModal";
-import { CollectionGameModal } from "../components/modals/collectionModal";
-import dynamic from "next/dynamic";
+import { useWeb3Modal } from "@web3modal/react"
+import { type NextPage } from "next"
+import Head from "next/head"
+import { useAccount } from "wagmi"
+import { CreateGameModal } from "../components/modals/createGameModal"
+import { JoinGameModal } from "../components/modals/joinGameModal"
+import { MintGameModal } from "../components/modals/mintDeckModal"
+import dynamic from "next/dynamic"
+import Link from "next/link"
 
 const Home: NextPage = () => {
   const { address } = useAccount();
@@ -30,7 +30,9 @@ const Home: NextPage = () => {
               <CreateGameModal />
               <JoinGameModal />
               <MintGameModal />
-              <CollectionGameModal />
+              <Link className="hover:border-3 btn-lg btn border-2 border-green-900 text-2xl normal-case hover:scale-105 hover:border-green-800" href={"/collection"}>
+                Collection →
+              </Link>
             </div>
           )}
 

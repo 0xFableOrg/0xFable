@@ -1,10 +1,14 @@
-import { type NextPage } from "next";
-import Head from "next/head";
-import { Navbar } from "../components/navbar";
-import React, { useState, useEffect } from 'react';
-import { useInventoryGetCollection } from "../generated";
+import React, { useState, useMemo, useEffect } from 'react'
 import { useAccount } from 'wagmi'
-import { deployment } from "src/deployment";
+import { type NextPage } from 'next'
+import debounce from 'lodash/debounce'
+import Head from "next/head"
+
+import { MintGameModal } from "../components/modals/mintDeckModal"
+import { Navbar } from "src/components/navbar"
+import { useInventoryGetCollection } from "src/generated"
+import { deployment } from "src/deployment"
+
 // Eventually, you have to get all the effects used in the collection's cards
 const effects = [{label: 'Charge', active: false}, {label: 'Flight', active: false}, {label: 'Courage', active: false}, {label: 'Undying', active: false}, {label: 'Frenzy', active: false}, {label: 'Enlightened', active: false}];
 const types = [{label: 'Creature', active: false}, {label: 'Magic', active: false}, {label: 'Weapon', active: false}];
@@ -17,22 +21,17 @@ const Play: NextPage = () => {
   const [searchInput, setSearchInput] = useState('');
   const [activeEffects, setActiveEffects] = useState(effects);
   const [activeTypes, setActiveTypes] = useState(types);
-  const [cardsAvailable, setCardsAvailable] = useState(false);
 
   const cardsData = useInventoryGetCollection({
     address: deployment.Inventory,
-    args: [address] // TODO change this to the address of the user
+    args: [address]
   });
-  var cards = cardsData.data;
-  
-  useEffect(() => setCardsAvailable((typeof cards==='undefined' || cards.length===0)?false:true), [])
-  
+  const cards = cardsData.data;
+  const cardsAvailable = !!cards && cards.length > 0;
+
+    
   const handleClick = (card) => {
     setSelectedCard(card);
-  };
-
-  const handleClickDiscover = () => {
-    setCardsAvailable((typeof cards==='undefined' || cards.length===0)?false:true);
   };
 
   const handleEffectClick = (index) => {
@@ -45,7 +44,7 @@ const Play: NextPage = () => {
     console.log(cards);
     console.log(typeof cards === 'undefined');
     console.log(cardsAvailable);
-    console.log((typeof cards==='undefined')?false:true);
+    console.log(!!cards && cards.length > 0);
     const newTypes = [...activeTypes];
     newTypes[index].active = !newTypes[index].active;
     setActiveTypes(newTypes);
@@ -55,7 +54,20 @@ const Play: NextPage = () => {
     setSearchInput(event.target.value);
   }
 
+  const debounceHandler = useMemo(
+    () => debounce(handleInputChange, 300)
+  , []);
+
+  const filterCards = (card) => {
+    const cardEffects = card[1].effects || []; // assume empty array if 'effects' doesn't exist
+    const cardTypes = card[1].types || []; // assume empty array if 'types' doesn't exist
+    return activeEffects.every(effect => effect.active ? cardEffects.includes(effect.label) : true) &&
+          activeTypes.every(type => type.active ? cardTypes.includes(type.label) : true) &&
+          card[0].name.toLowerCase().includes(searchInput.toLowerCase());
+  };
+
   // TODO: search takes too much places over the card details (maybe make the details pop over the search?)
+  // TODO: use useIsMounted()
 
   return (
     <>
@@ -65,96 +77,86 @@ const Play: NextPage = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <main className="flex min-h-screen flex-col">
+      <main className="flex h-screen flex-col">
         <Navbar />
-        <div className="grid-col-2 mx-6 mb-6 grid grow grid-cols-12 gap-4">
+        <div className="mx-6 mb-6 grid grow grid-cols-12 gap-4 min-h-0">
           
-          <div className="col-span-3 grow rounded-xl border overflow-y-auto h-screen">
+          <div className="flex col-span-3 rounded-xl border overflow-y-auto">
+            <div className="overflow-y-auto">
 
-          {/* Search*/}
-          <h2 className="text-2xl font-bold text-white" style={{margin: '5px'}}>Search</h2>
-          <div>
-            <input type="text" value={searchInput} onChange={handleInputChange} className="px-4 py-2 border rounded-md text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" style={{margin: "5px"}} placeholder="Search by name" />
-          </div>
-
-          {/*Effects*/}
-          <h3 className="text-xl font-bold text-white" style={{margin: '5px'}}>Effects</h3>
-          <div className="flex flex-wrap gap-2">
-            {activeEffects.map((effect, index) => (
-              <button
-                key={index}
-                onClick={() => handleEffectClick(index)}
-                className={`text-white font-bold py-2 px-2 rounded ${effect.active ? 'bg-purple-900' : 'bg-gray-500'}`}
-                style={{margin: "5px"}}>
-                {effect.label}
-              </button>
-            ))}
-          </div>
-            
-          {/*Types*/}
-          <h3 className="text-xl font-bold text-white" style={{margin: '5px'}}>Types</h3>
-          <div className="flex flex-wrap gap-2">
-            {activeTypes.map((type, index) => (
-              <button
-                key={index}
-                onClick={() => handleTypeClick(index)}
-                className={`text-white font-bold py-2 px-2 rounded ${type.active ? 'bg-green-900' : 'bg-gray-500'}`}
-                style={{margin: "5px"}}>
-                {type.label}
-              </button>
-            ))}
-          </div>
-
-          {/* the selected card displayed on the left*/}
+            {/* Search*/}
+            <h2 className="text-2xl font-bold text-white m-1.5">Search</h2>
             <div>
-              <h2 className="text-3xl font-bold text-white" style={{margin: '5px'}}>Card details</h2>
-              <div key={selectedCard.name} className="m-4 bg-slate-900/50 rounded-lg p-4 border-4 border-slate-900">
-                <img src="/card_art/0" alt={selectedCard.name} className="w-64 h-64" style={{margin: "auto"}} /> {/*TODO handle the image*/}
-                <div className="text-center">{selectedCard.name}</div>
-              </div>
-              <div className="text-center" style={{margin: "10px"}}>{selectedCard.flavor}</div>
-              <div className="h-20"></div> {/*to add padding at the bottom*/}
+              <input 
+                type="text"
+                onChange={debounceHandler}
+                className="px-4 py-2 border rounded-md text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent m-1.5"
+                placeholder="Search by name" />
             </div>
 
+            {/*Effects*/}
+            <h3 className="text-xl font-bold text-white m-1.5">Effects</h3>
+            <div className="flex flex-wrap gap-2">
+              {activeEffects.map((effect, index) => (
+                <button
+                  key={index}
+                  onClick={() => handleEffectClick(index)}
+                  className={`text-white font-bold py-2 px-2 rounded m-1.5 ${effect.active ? 'bg-purple-900' : 'bg-gray-500'}`}>
+                  {effect.label}
+                </button>
+              ))}
+            </div>
+              
+            {/*Types*/}
+            <h3 className="text-xl font-bold text-white m-1">Types</h3>
+            <div className="flex flex-wrap gap-2">
+              {activeTypes.map((type, index) => (
+                <button
+                  key={index}
+                  onClick={() => handleTypeClick(index)}
+                  className={`text-white font-bold py-2 px-2 rounded m-1 ${type.active ? 'bg-green-900' : 'bg-gray-500'}`}>
+                  {type.label}
+                </button>
+              ))}
+            </div>
+
+            {/* the selected card displayed on the left*/}
+              <div>
+                <h2 className="text-3xl font-bold text-white m-1.5">Card details</h2>
+                <div key={selectedCard.name} className="m-4 bg-slate-900/50 rounded-lg p-4 border-4 border-slate-900">
+                  <img src="/card_art/0" alt={selectedCard.name} className="w-64 h-64 m-auto"/> {/*TODO handle the image*/}
+                  <div className="text-center">{selectedCard.name}</div>
+                </div>
+                <div className="text-center m-2">{selectedCard.flavor + "test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test "}</div>
+                <div className="h-20"></div> {/*to add padding at the bottom*/}
+              </div>
+          </div>
         </div>
 
           {/* the actual card collection displayed on the right*/}
-          <div className="col-span-9 h-full rounded-xl border overflow-auto h-screen">
+          <div className="col-span-9 flex rounded-xl border overflow-y-auto">
             { !cardsAvailable &&
-              <div className="flex flex-col justify-center items-center h-screen overscroll-auto">
-                {/*Can't remove the scrollba*/}
-                
-                <button
-                onClick={() => handleClickDiscover()}
-                className={`text-white font-bold py-5 px-5 rounded bg-gray-500`}
-                style={{margin: "20px"}}>
-                <h2 className="text-3xl font-bold text-white">
-                  Please click here after you minted your deck to see your card collection ...
-                </h2>
-              </button>
+              <div className="flex flex-row w-full justify-center items-center">
+                <MintGameModal />
               </div>
             }
-            { cardsAvailable && typeof cards !== 'undefined' &&
-              <div className="grid grid-cols-4 gap-4">
-              {cards.filter(card => card[0].name.toLowerCase().includes(searchInput.toLowerCase()))
-              .filter(card => {
-                        const cardEffects = card[1].effects || []; // assume empty array if 'effects' doesn't exist
-                        const cardTypes = card[1].types || []; // assume empty array if 'types' doesn't exist
-                        return activeEffects.every(effect => effect.active ? cardEffects.includes(effect.label) : true) &&
-                              activeTypes.every(type => type.active ? cardTypes.includes(type.label) : true);
-                      })
+            { cardsAvailable && !!cards &&
+              <div className="grid grid-cols-4 gap-4 overflow-y-auto pb-4">
+              {cards.filter(card => filterCards(card))
               .map((card) => (
-                <div className="m-4 bg-slate-900/50 hover:bg-slate-800 rounded-lg p-4 border-4 border-slate-900" style={{height: '95%'}} onClick={() => handleClick(card[0])}>
+                <div className="m-4 bg-slate-900/50 hover:bg-slate-800 rounded-lg p-4 border-4 border-slate-900" style={{height: '95%'}}onClick={() => handleClick(card[0])}>
                 <img src="/card_art/0" alt={card[0].name} className="w-64 h-64" /> {/*TODO handle the image*/}
                 <div className="text-center">{card[0].name}</div>
-                <div className="card-footer">
-                  <div className="attack">{card[1].attack}</div>
-                  <div className="defense">{card[1].defense}</div>
+                  <div className="flex items-end justify-between p-2 relative">
+                    <div className="flex items-center justify-center h-8 w-8 rounded-full bg-yellow-400 text-gray-900 font-bold text-lg absolute bottom-[-20px]">
+                      {card[1].attack}
+                    </div>
+                    <div className="flex items-center justify-center h-8 w-8 rounded-full bg-red-600 text-gray-900 font-bold text-lg absolute bottom-[-20px] right-3">
+                      {card[1].defense}
+                    </div>
+                  </div>
                 </div>
-              </div>
-              
               ))}
-              <div className="h-20"> </div> {/*to add padding at the bottom*/}
             </div>
             }
           </div>
