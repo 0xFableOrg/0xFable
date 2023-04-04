@@ -45,7 +45,7 @@ contract CardsCollection is ERC721, Ownable {
     }
 
     // TODO - remove this function?
-    function get_lore(uint256 card) external view returns(Lore memory) {
+    function getLore (uint256 card) external view returns(Lore memory) {
         return lore[card];
     }
 }

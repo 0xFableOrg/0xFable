@@ -254,7 +254,7 @@ contract Inventory {
         uint256[] memory collectionTokensId = inventoryCardsCollection.getOwnedTokens(player);
         collectionCards = new Card[](collectionTokensId.length);
         for (uint256 i = 0; i < collectionTokensId.length; ++i) {
-            collectionCards[i].lore = originalCardsCollection.get_lore(collectionTokensId[i]);
+            collectionCards[i].lore = originalCardsCollection.getLore(collectionTokensId[i]);
             collectionCards[i].stats = originalCardsCollection.stats(collectionTokensId[i]);
         }
         return collectionCards;
