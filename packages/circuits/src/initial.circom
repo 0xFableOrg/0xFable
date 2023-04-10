@@ -43,7 +43,7 @@ template Initial(levels, cardCount) {
         newDeckSum += newDeckLeaves[i] * (maxDeckSize**i);
     }
     deckSum === newDeckSum;
-    // check that the remaining deck is null
+    // check that the remaining of the deck is null
     for (var i = 2**levels - cardCount; i < 2**levels; i++) {
         newDeckLeaves[i] === 255;
     }
