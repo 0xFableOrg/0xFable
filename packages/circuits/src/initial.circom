@@ -48,7 +48,7 @@ template Initial(levels, cardCount) {
         newDeckLeaves[i] === 255;
     }
 
-    // check that the cards in the hand is correct
+    // check that the cards in the hand are those that were drawn
     var newHandSum = 0;
     for (var i = 0; i < cardCount; i++) {
         newHandSum += newHandLeaves[i] * (maxDeckSize**i);
