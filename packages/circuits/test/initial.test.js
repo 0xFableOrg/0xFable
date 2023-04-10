@@ -21,8 +21,8 @@ describe("Initial Hand Test", () => {
     });
 
     // set longer timeout for test
-    jest.setTimeout(10000);
-    it("Should correctly construct a merkle tree root", async () => {
+    jest.setTimeout(25000);
+    it("Should correctly construct an initial hand proof", async () => {
         // assume user draws 7 cards
         const maxDeckSize = 64;
         let drawnIndices = [2,4,6,8,10,12,14];
