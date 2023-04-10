@@ -25,10 +25,10 @@ template Initial(levels, cardCount) {
 
     signal input deckRoot;
     signal input newDeckRoot;
-    signal input deckLeaves[2**levels];
-    signal input newDeckLeaves[2**levels];
+    signal input deckLeaves[2**levels]; // private signal
+    signal input newDeckLeaves[2**levels]; // private signal
     signal input newHandRoot;
-    signal input newHandLeaves[2**levels];
+    signal input newHandLeaves[2**levels]; // private signal
     signal input deckPredicate[2**levels];
     signal input drawnCardIndices[2**levels];
 
