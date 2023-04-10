@@ -37,7 +37,7 @@ template Initial(levels, cardCount) {
     // check that number of drawn cards is correct
     cardCount === indicesSum;
 
-    // check that the cards in the new deck is correct
+    // check that the new deck contains the same cards as the old deck, minus those that were drawn
     var newDeckSum = 0;
     for (var i = 0; i < 2**levels - cardCount; i++) {
         newDeckSum += newDeckLeaves[i] * (maxDeckSize**i);
