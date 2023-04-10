@@ -2,7 +2,27 @@ pragma circom 2.0.0;
 
 include "./merkle.circom";
 
+/**** DOCUMENTATION ****
+
+`levels` is the base-2 log of the max size of the deck (6 for a deck of max 64 cards)
+`cardCount` is the amount of cards to draw
+`deckRoot` is the root of the initial deck listing
+`deckLeaves` are the cards in the initial deck listing (padded with 255 to reach a size of 2**levels)
+`newDeckRoot` is the root of the deck after drawing the cards and unconstrained shuffling by the player
+`newDeckLeaves` are the cards in the new deck (cf. newDeckRoot), padded with 255 to reach a size of 2**levels
+`drawnCardIndices` is an array contain containing 1 if the corresponding index is to be drawn, zero otherwise.
+`drawnPredicate[i]` contains
+    if drawnCardIndices[i] == 0 : (2**levels) ** positionInHand
+    if drawnCardIndices[i] == 1 : (2**levels) ** positionInNewDeck
+    (positions start at 0)
+
+This circuit maintains privacy because the users shuffles his deck after drawing the cards and does not reveal this new ordering.
+
+*/
+
 template Initial(levels, cardCount) {
+    /// @dev levels do not include the top level root
+
     signal input deckRoot;
     signal input newDeckRoot;
     signal input deckLeaves[2**levels];

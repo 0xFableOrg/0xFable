@@ -3,6 +3,8 @@ pragma circom 2.0.0;
 include "./merkle.circom";
 
 template Play(levels) {
+    /// @dev levels do not include the top level root
+    
     signal input handRoot;
     signal input newHandRoot;
     signal input playedCardLeaf;
