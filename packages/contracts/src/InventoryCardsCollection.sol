@@ -60,8 +60,7 @@ contract InventoryCardsCollection is ERC721, ERC721Enumerable {
         uint256[] memory collectionTokensId = getOwnedTokens(player);
         collectionCards = new Card[](collectionTokensId.length);
         for (uint256 i = 0; i < collectionTokensId.length; ++i) {
-            collectionCards[i].lore = cardsCollection.getLore(collectionTokensId[i]);
-            collectionCards[i].stats = cardsCollection.stats(collectionTokensId[i]);
+            collectionCards[i] = cardsCollection.getCard(collectionTokensId[i]);
         }
         return collectionCards;
     }
