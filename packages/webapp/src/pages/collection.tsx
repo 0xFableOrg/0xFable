@@ -6,7 +6,7 @@ import Head from "next/head"
 
 import { MintGameModal } from "../components/modals/mintDeckModal"
 import { Navbar } from "src/components/navbar"
-import { useInventoryGetCollection } from "src/generated"
+import { useInventoryCardsCollectionGetCollection } from "src/generated"
 import { deployment } from "src/deployment"
 
 // Eventually, you have to get all the effects used in the collection's cards
@@ -22,12 +22,11 @@ const Play: NextPage = () => {
   const [activeEffects, setActiveEffects] = useState(effects);
   const [activeTypes, setActiveTypes] = useState(types);
 
-  const cardsData = useInventoryGetCollection({
-    address: deployment.Inventory,
+  const cardsData = useInventoryCardsCollectionGetCollection({
+    address: deployment.InventoryCardsCollection,
     args: [address]
   });
-  const cards = cardsData.data;
-  const cardsAvailable = !!cards && cards.length > 0;
+  const cards = cardsData.data || [];
 
     
   const handleClick = (card) => {
@@ -41,10 +40,6 @@ const Play: NextPage = () => {
   };
 
   const handleTypeClick = (index) => {
-    console.log(cards);
-    console.log(typeof cards === 'undefined');
-    console.log(cardsAvailable);
-    console.log(!!cards && cards.length > 0);
     const newTypes = [...activeTypes];
     newTypes[index].active = !newTypes[index].active;
     setActiveTypes(newTypes);
@@ -58,16 +53,13 @@ const Play: NextPage = () => {
     () => debounce(handleInputChange, 300)
   , []);
 
-  const filterCards = (card) => {
+  const filteredCards = cards.filter(card => {
     const cardEffects = card[1].effects || []; // assume empty array if 'effects' doesn't exist
     const cardTypes = card[1].types || []; // assume empty array if 'types' doesn't exist
     return activeEffects.every(effect => effect.active ? cardEffects.includes(effect.label) : true) &&
           activeTypes.every(type => type.active ? cardTypes.includes(type.label) : true) &&
           card[0].name.toLowerCase().includes(searchInput.toLowerCase());
-  };
-
-  // TODO: search takes too much places over the card details (maybe make the details pop over the search?)
-  // TODO: use useIsMounted()
+  });
 
   return (
     <>
@@ -127,7 +119,7 @@ const Play: NextPage = () => {
                   <img src="/card_art/0" alt={selectedCard.name} className="w-64 h-64 m-auto"/> {/*TODO handle the image*/}
                   <div className="text-center">{selectedCard.name}</div>
                 </div>
-                <div className="text-center m-2">{selectedCard.flavor + "test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test "}</div>
+                <div className="text-center m-2">{selectedCard.flavor}</div>
                 <div className="h-20"></div> {/*to add padding at the bottom*/}
               </div>
           </div>
@@ -135,23 +127,22 @@ const Play: NextPage = () => {
 
           {/* the actual card collection displayed on the right*/}
           <div className="col-span-9 flex rounded-xl border overflow-y-auto">
-            { !cardsAvailable &&
+            { !(cards.length > 0) &&
               <div className="flex flex-row w-full justify-center items-center">
                 <MintGameModal />
               </div>
             }
-            { cardsAvailable && !!cards &&
+            { cards.length > 0 &&
               <div className="grid grid-cols-4 gap-4 overflow-y-auto pb-4">
-              {cards.filter(card => filterCards(card))
-              .map((card) => (
-                <div className="m-4 bg-slate-900/50 hover:bg-slate-800 rounded-lg p-4 border-4 border-slate-900" style={{height: '95%'}}onClick={() => handleClick(card[0])}>
+              {filteredCards.map((card) => (
+                <div className="m-4 bg-slate-900/50 hover:bg-slate-800 rounded-lg p-4 border-4 border-slate-900" style={{height: 'fit-content'}} onClick={() => handleClick(card[0])}>
                 <img src="/card_art/0" alt={card[0].name} className="w-64 h-64" /> {/*TODO handle the image*/}
                 <div className="text-center">{card[0].name}</div>
                   <div className="flex items-end justify-between p-2 relative">
-                    <div className="flex items-center justify-center h-8 w-8 rounded-full bg-yellow-400 text-gray-900 font-bold text-lg absolute bottom-[-20px]">
+                    <div className="flex items-center justify-center h-8 w-8 rounded-full bg-yellow-400 text-gray-900 font-bold text-lg absolute bottom-[-16px]">
                       {card[1].attack}
                     </div>
-                    <div className="flex items-center justify-center h-8 w-8 rounded-full bg-red-600 text-gray-900 font-bold text-lg absolute bottom-[-20px] right-3">
+                    <div className="flex items-center justify-center h-8 w-8 rounded-full bg-red-600 text-gray-900 font-bold text-lg absolute bottom-[-16px] right-3">
                       {card[1].defense}
                     </div>
                   </div>
