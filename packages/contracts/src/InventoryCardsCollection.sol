@@ -47,11 +47,22 @@ contract InventoryCardsCollection is ERC721, ERC721Enumerable {
             revert TokenIsSoulbound();
     }
 
-    function getOwnedTokens(address owner) external view returns(uint256[] memory) {
+    function getOwnedTokens(address owner) private view returns(uint256[] memory) {
         uint256 tokenCount = balanceOf(owner);
         uint256[] memory tokens = new uint256[](tokenCount);
         for (uint256 i = 0; i < tokenCount; i++)
             tokens[i] = tokenOfOwnerByIndex(owner, i);
         return tokens;
+    }
+
+    // Return the list of cards in the collection of the given player.
+    function getCollection(address player) external view returns(Card[] memory collectionCards) {
+        uint256[] memory collectionTokensId = getOwnedTokens(player);
+        collectionCards = new Card[](collectionTokensId.length);
+        for (uint256 i = 0; i < collectionTokensId.length; ++i) {
+            collectionCards[i].lore = cardsCollection.getLore(collectionTokensId[i]);
+            collectionCards[i].stats = cardsCollection.stats(collectionTokensId[i]);
+        }
+        return collectionCards;
     }
 }

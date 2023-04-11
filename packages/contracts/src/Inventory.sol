@@ -245,18 +245,4 @@ contract Inventory {
             exists(player, deckID) returns(uint256[] memory deckCards) {
         return decks[player][deckID].cards;
     }
-
-    // ---------------------------------------------------------------------------------------------
-    
-
-    // Return the list of cards in the collection of the given player.
-    function getCollection(address player) external view returns(Card[] memory collectionCards) {
-        uint256[] memory collectionTokensId = inventoryCardsCollection.getOwnedTokens(player);
-        collectionCards = new Card[](collectionTokensId.length);
-        for (uint256 i = 0; i < collectionTokensId.length; ++i) {
-            collectionCards[i].lore = originalCardsCollection.getLore(collectionTokensId[i]);
-            collectionCards[i].stats = originalCardsCollection.stats(collectionTokensId[i]);
-        }
-        return collectionCards;
-    }
 }
