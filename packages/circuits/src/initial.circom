@@ -42,6 +42,7 @@ template Initial(levels, cardCount) {
     var deckSum = 0;
     var handSum = 0;
     component mux[2**levels];
+    signal tempDeckPredicateSum[2**levels]; // we need to use intermediate signals to prevent non quadratic error
     for (var i = 0; i < 2**levels; i++) {
         // check that indices can only take 0 or 1
         drawnCardIndices[i] * (1 - drawnCardIndices[i]) === 0;
@@ -53,14 +54,19 @@ template Initial(levels, cardCount) {
         mux[i].s <== drawnCardIndices[i];
         deckSum += mux[i].out[0];
         handSum += mux[i].out[1];
+
+        // sum the deck predicate
+        tempDeckPredicateSum[i] <== i==0 ? deckPredicate[i] : tempDeckPredicateSum[i-1] + deckPredicate[i];
     }
     // check that number of drawn cards is correct
     cardCount === indicesSum;
 
     // check that the new deck contains the same cards as the old deck, minus those that were drawn
+    var deckPredicateSum = 0;
     var newDeckSum = 0;
     for (var i = 0; i < 2**levels - cardCount; i++) {
         newDeckSum += newDeckLeaves[i] * (maxDeckSize**i);
+        deckPredicateSum += (maxDeckSize**i);
     }
     deckSum === newDeckSum;
     // check that the remaining of the deck is null
@@ -72,12 +78,16 @@ template Initial(levels, cardCount) {
     var newHandSum = 0;
     for (var i = 0; i < cardCount; i++) {
         newHandSum += newHandLeaves[i] * (maxDeckSize**i);
+        deckPredicateSum += (maxDeckSize**i);
     }
     handSum === newHandSum;
     // check that the remaining hand is null
     for (var i = cardCount; i < 2**levels; i++) {
         newHandLeaves[i] === 255;
     }
+
+    // constraint the deck predicate sum
+    deckPredicateSum === tempDeckPredicateSum[2**levels - 1];
 
     component checkNewDeck = CheckMerkleRoot(levels);
     checkNewDeck.root <== newDeckRoot;
