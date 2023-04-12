@@ -3,8 +3,8 @@ const ff = require('ffjavascript');
 const { callGenWitness } = require('circom-helper');
 
 describe("Initial Hand Test", () => {
-    const circuit = 'initial.test';
     let mimcsponge;
+    let initialDeck = [];
     let deckLeaves = [], handLeaves = [];
     let deckRoot;
     let newDeckRoot, newHandRoot;
@@ -14,14 +14,55 @@ describe("Initial Hand Test", () => {
 
         // initialize deck leaves and hand leaves
         for (let i = 0; i < 64; i++) {
-            deckLeaves.push(BigInt(i));
+            initialDeck.push(BigInt(i));
             handLeaves.push(BigInt(255));
         }
-        deckRoot = getMerkleRoot(deckLeaves, mimcsponge);
+        deckRoot = getMerkleRoot(initialDeck, mimcsponge);
     });
 
     // set longer timeout for test
     jest.setTimeout(25000);
+
+    it("Should be able to shuffle a deck", async () => {
+        // assume user draws 7 cards
+        const maxDeckSize = 64;
+
+        let deckPredicate = []
+        deckLeaves = [...initialDeck];
+        for (let i = 0; i < maxDeckSize; i++) {
+            deckPredicate.push(maxDeckSize ** i);
+        }
+
+        // arbitrary shuffle
+        // swap index 2 and 7
+        deckLeaves[2] = initialDeck[7];
+        deckLeaves[7] = initialDeck[2];
+        let temp = deckPredicate[2];
+        deckPredicate[2] = deckPredicate[7];
+        deckPredicate[7] = temp;
+        
+        // swap index 4 and 14
+        deckLeaves[4] = initialDeck[14];
+        deckLeaves[14] = initialDeck[4];
+        temp = deckPredicate[4];
+        deckPredicate[4] = deckPredicate[14];
+        deckPredicate[14] = temp;
+
+        deckRoot = getMerkleRoot(deckLeaves, mimcsponge);
+
+        // construct the circuit inputs
+        const circuit = 'shuffle.test';
+        const circuitInputs = ff.utils.stringifyBigInts({
+            deckRoot: mimcsponge.F.toObject(deckRoot),
+            initialDeck: initialDeck,
+            finalDeck: deckLeaves,
+            deckPredicate: deckPredicate
+        });
+
+        // Generate the witness
+        expect(await callGenWitness(circuit, circuitInputs)).toBeDefined();
+    }) 
+
     it("Should correctly construct an initial hand proof", async () => {
         // assume user draws 7 cards
         const maxDeckSize = 64;
@@ -67,6 +108,7 @@ describe("Initial Hand Test", () => {
         newDeckRoot = getMerkleRoot(newDeckLeaves, mimcsponge);
 
         // construct the circuit inputs
+        const circuit = 'initial.test';
         const circuitInputs = ff.utils.stringifyBigInts({
             deckRoot: mimcsponge.F.toObject(deckRoot), 
             newDeckRoot: mimcsponge.F.toObject(newDeckRoot), 
