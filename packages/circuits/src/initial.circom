@@ -78,4 +78,12 @@ template Initial(levels, cardCount) {
     for (var i = cardCount; i < 2**levels; i++) {
         newHandLeaves[i] === 255;
     }
+
+    component checkNewDeck = CheckMerkleRoot(levels);
+    checkNewDeck.root <== newDeckRoot;
+    checkNewDeck.leaves <== newDeckLeaves;
+
+    component checkNewHand = CheckMerkleRoot(levels);
+    checkNewHand.root <== newHandRoot;
+    checkNewHand.leaves <== newHandLeaves;
 }
