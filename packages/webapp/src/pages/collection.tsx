@@ -1,65 +1,69 @@
-import React, { useState, useMemo, useEffect } from 'react'
+import React, { useState, useMemo } from 'react'
 import { useAccount } from 'wagmi'
 import { type NextPage } from 'next'
-import debounce from 'lodash/debounce'
 import Head from "next/head"
+import debounce from 'lodash/debounce'
 
-import { MintGameModal } from "../components/modals/mintDeckModal"
+import { MintGameModal } from "src/components/modals/mintDeckModal"
 import { Navbar } from "src/components/navbar"
 import { useInventoryCardsCollectionGetCollection } from "src/generated"
 import { deployment } from "src/deployment"
+import { useIsMounted } from "src/hooks/useIsMounted"
 
-// Eventually, you have to get all the effects used in the collection's cards
-const effects = [{label: 'Charge', active: false}, {label: 'Flight', active: false}, {label: 'Courage', active: false}, {label: 'Undying', active: false}, {label: 'Frenzy', active: false}, {label: 'Enlightened', active: false}];
-const types = [{label: 'Creature', active: false}, {label: 'Magic', active: false}, {label: 'Weapon', active: false}];
+// NOTE(norswap & geniusgarlic): Just an example, when the game actually has effects & types,
+//   fetch those from the chain instead of hardcoding them here.
+
+const effects = ['Charge', 'Flight', 'Courage', 'Undying', 'Frenzy', 'Enlightened']
+const initialEffectMap = Object.assign({}, ...effects.map(name => ({[name]: false})))
+
+const types = ['Creature', 'Magic', 'Weapon']
+const initialTypeMap = Object.assign({}, ...types.map(name => ({[name]: false})))
 
 const Play: NextPage = () => {
 
-  const { address } = useAccount();
+  const isMounted = useIsMounted()
+  const { address } = useAccount()
+  const [selectedCard, setSelectedCard] = useState({
+    name: 'Select a card',
+    flavor: 'Select a card to see its details'})
+  const [searchInput, setSearchInput] = useState('')
+  const [effectMap, setEffectMap] = useState(initialEffectMap)
+  const [typeMap, setTypeMap] = useState(initialTypeMap)
 
-  const [selectedCard, setSelectedCard] = useState({name: 'Select a card', flavor: 'Select a card to see its details'});
-  const [searchInput, setSearchInput] = useState('');
-  const [activeEffects, setActiveEffects] = useState(effects);
-  const [activeTypes, setActiveTypes] = useState(types);
+  const activeEffects = Object.keys(effectMap).filter(key => effectMap[key])
+  const activeTypes = Object.keys(typeMap).filter(key => typeMap[key])
 
-  const cardsData = useInventoryCardsCollectionGetCollection({
+  // TODO(norswap): better typing for this
+  const { data: unfilteredCards} = useInventoryCardsCollectionGetCollection({
     address: deployment.InventoryCardsCollection,
     args: [address]
-  });
-  const cards = cardsData.data || [];
+  })
 
-    
-  const handleClick = (card) => {
-    setSelectedCard(card);
-  };
+  const cards = (unfilteredCards || []).filter(card => {
+    // TODO(norswap): it would look like this if the card had effects & types
+    // const cardEffects = card.stats.effects || []
+    // const cardTypes = card.stats.types || []
+    const cardEffects = []
+    const cardTypes = []
+    return activeEffects.every(effect => cardEffects.includes(effect))
+      && activeTypes.every(type => cardTypes.includes(type))
+      && card.lore.name.toLowerCase().includes(searchInput.toLowerCase())
+  })
 
-  const handleEffectClick = (index) => {
-    const newEffects = [...activeEffects];
-    newEffects[index].active = !newEffects[index].active;
-    setActiveEffects(newEffects);
-  };
-
-  const handleTypeClick = (index) => {
-    const newTypes = [...activeTypes];
-    newTypes[index].active = !newTypes[index].active;
-    setActiveTypes(newTypes);
-  };
-
-  const handleInputChange = (event) => {
+  const handleInputChangeBouncy = (event) => {
     setSearchInput(event.target.value);
   }
+  const handleInputChange = useMemo(() => debounce(handleInputChangeBouncy, 300), [])
 
-  const debounceHandler = useMemo(
-    () => debounce(handleInputChange, 300)
-  , []);
+  const handleEffectClick = (effectIndex) => {
+    const effect = effects[effectIndex]
+    setEffectMap({...effectMap, [effect]: !effectMap[effect]})
+  }
 
-  const filteredCards = cards.filter(card => {
-    const cardEffects = card[1].effects || []; // assume empty array if 'effects' doesn't exist
-    const cardTypes = card[1].types || []; // assume empty array if 'types' doesn't exist
-    return activeEffects.every(effect => effect.active ? cardEffects.includes(effect.label) : true) &&
-          activeTypes.every(type => type.active ? cardTypes.includes(type.label) : true) &&
-          card[0].name.toLowerCase().includes(searchInput.toLowerCase());
-  });
+  const handleTypeClick = (typeIndex) => {
+    const type = types[typeIndex]
+    setTypeMap({...typeMap, [type]: !typeMap[type]})
+  }
 
   return (
     <>
@@ -70,7 +74,8 @@ const Play: NextPage = () => {
       <main className="flex h-screen flex-col">
         <Navbar />
         <div className="mx-6 mb-6 grid grow grid-cols-12 gap-4 min-h-0">
-          
+
+          {/* Left Panel */}
           <div className="flex col-span-3 rounded-xl border overflow-y-auto">
             <div className="overflow-y-auto">
 
@@ -79,7 +84,7 @@ const Play: NextPage = () => {
             <div>
               <input 
                 type="text"
-                onChange={debounceHandler}
+                onChange={handleInputChange}
                 className="px-4 py-2 border rounded-md text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent m-1.5"
                 placeholder="Search by name" />
             </div>
@@ -87,55 +92,69 @@ const Play: NextPage = () => {
             {/*Effects*/}
             <h3 className="text-xl font-bold text-white m-1.5">Effects</h3>
             <div className="flex flex-wrap gap-2">
-              {activeEffects.map((effect, index) => (
-                <button
-                  key={index}
-                  onClick={() => handleEffectClick(index)}
-                  className={`text-white font-bold py-2 px-2 rounded m-1.5 ${effect.active ? 'bg-purple-900' : 'bg-gray-500'}`}>
-                  {effect.label}
-                </button>
-              ))}
+              {effects.map((effect, index) => {
+                const bgColor = effectMap[effect] ? 'bg-purple-900' : 'bg-gray-500'
+                return (
+                  <button
+                    key={index}
+                    onClick={() => handleEffectClick(index)}
+                    className={`text-white font-bold py-2 px-2 rounded m-1.5 ${bgColor}`}>
+                    {effect}
+                  </button>)
+              })}
             </div>
               
             {/*Types*/}
             <h3 className="text-xl font-bold text-white m-1">Types</h3>
             <div className="flex flex-wrap gap-2">
-              {activeTypes.map((type, index) => (
-                <button
-                  key={index}
-                  onClick={() => handleTypeClick(index)}
-                  className={`text-white font-bold py-2 px-2 rounded m-1 ${type.active ? 'bg-green-900' : 'bg-gray-500'}`}>
-                  {type.label}
-                </button>
-              ))}
+              {types.map((type, index) => {
+                const bgColor = typeMap[type] ? 'bg-purple-900' : 'bg-gray-500'
+                return (
+                  <button
+                    key={index}
+                    onClick={() => handleTypeClick(index)}
+                    className={`text-white font-bold py-2 px-2 rounded m-1 ${bgColor}`}>
+                    {type}
+                  </button>)
+              })}
             </div>
 
-            {/* the selected card displayed on the left*/}
-              <div>
-                <h2 className="text-3xl font-bold text-white m-1.5">Card details</h2>
-                <div key={selectedCard.name} className="m-4 bg-slate-900/50 rounded-lg p-4 border-4 border-slate-900">
-                  <img src="/card_art/0" alt={selectedCard.name} className="w-64 h-64 m-auto"/> {/*TODO handle the image*/}
-                  <div className="text-center">{selectedCard.name}</div>
-                </div>
-                <div className="text-center m-2">{selectedCard.flavor}</div>
-                <div className="h-20"></div> {/*to add padding at the bottom*/}
+            {/* Selected Card Display */}
+            <div>
+              <h2 className="text-3xl font-bold text-white m-1.5">Card details</h2>
+              <div key={selectedCard.name}
+                   className="m-4 bg-slate-900/50 rounded-lg p-4 border-4 border-slate-900">
+                {/*TODO handle the image*/}
+                <img src="/card_art/0" alt={selectedCard.name} className="w-64 h-64 m-auto"/>
+                <div className="text-center">{selectedCard.name}</div>
               </div>
+              <div className="text-center m-2">{selectedCard.flavor}</div>
+              {/* NOTE(norswap): This adds padding to the bottom. Surprisingly, there really isn't
+                  a better way to do this using CSS. */}
+              {/* TODO: really? what did we do in right panel? */}
+              <div className="h-20"></div>
+            </div>
           </div>
         </div>
 
-          {/* the actual card collection displayed on the right*/}
+          {/* Card Collection Display */}
           <div className="col-span-9 flex rounded-xl border overflow-y-auto">
-            { !(cards.length > 0) &&
+            { isMounted && cards.length == 0 &&
               <div className="flex flex-row w-full justify-center items-center">
                 <MintGameModal />
-              </div>
-            }
-            { cards.length > 0 &&
+              </div>}
+
+            { isMounted && cards.length > 0 &&
               <div className="grid grid-cols-4 gap-4 overflow-y-auto pb-4">
-              {filteredCards.map((card) => (
-                <div className="m-4 bg-slate-900/50 hover:bg-slate-800 rounded-lg p-4 border-4 border-slate-900" style={{height: 'fit-content'}} onClick={() => handleClick(card[0])}>
-                <img src="/card_art/0" alt={card[0].name} className="w-64 h-64" /> {/*TODO handle the image*/}
-                <div className="text-center">{card[0].name}</div>
+              {cards.map(card => (
+                <div className="m-4 bg-slate-900/50 hover:bg-slate-800 rounded-lg p-4 border-4 border-slate-900"
+                     // TODO make this work
+                     key={card.stats.id}
+                     style={{height: 'fit-content'}}
+                     onClick={() => setSelectedCard(card[0])}>
+                  {/*TODO handle the image*/}
+                  <img src="/card_art/0" alt={card[0].name} className="w-64 h-64" />
+                  <div className="text-center">{card[0].name}</div>
                   <div className="flex items-end justify-between p-2 relative">
                     <div className="flex items-center justify-center h-8 w-8 rounded-full bg-yellow-400 text-gray-900 font-bold text-lg absolute bottom-[-16px]">
                       {card[1].attack}
@@ -146,13 +165,12 @@ const Play: NextPage = () => {
                   </div>
                 </div>
               ))}
-            </div>
-            }
+            </div>}
           </div>
         </div>
       </main>
     </>
-  );
-};
+  )
+}
 
-export default Play;
+export default Play
