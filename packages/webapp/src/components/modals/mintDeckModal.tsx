@@ -18,7 +18,7 @@ export const MintDeckModal = () => {
   const { config: approvalConfig } = usePrepareCardsCollectionSetApprovalForAll({
     address: deployment.CardsCollection,
     args: [deployment.Inventory, true]
-  });
+  })
 
   const { data, write: invDelegate } = useCardsCollectionSetApprovalForAll(approvalConfig);
 
@@ -27,36 +27,36 @@ export const MintDeckModal = () => {
     onSuccess(data) {
       setInvDelegated(true);
     }
-  });
+  })
 
   const { config: delegationConfig } = usePrepareInventorySetDelegation({
     address: deployment.Inventory,
     args: [deployment.DeckAirdrop, true],
     enabled: invDelegated
-  });
+  })
 
-  const { data: data2, write: airDelegate } = useInventorySetDelegation(delegationConfig);
+  const { data: data2, write: airDelegate } = useInventorySetDelegation(delegationConfig)
 
   useWaitForTransaction({
     hash: data2?.hash,
     onSuccess(data) {
       setAirDelegated(true);
     }
-  });
+  })
 
   const { config: airdropConfig } = usePrepareDeckAirdropClaimAirdrop({
     address: deployment.DeckAirdrop,
     enabled: airDelegated
-  });
+  })
 
-  const { data: data3, write: claim } = useDeckAirdropClaimAirdrop(airdropConfig);
+  const { data: data3, write: claim } = useDeckAirdropClaimAirdrop(airdropConfig)
 
   useWaitForTransaction({
     hash: data3?.hash,
     onSuccess(data) {
       (document.getElementById('my-modal-4') as any).checked = false;
     }
-  });
+  })
 
   // TODO(LATER): check if we already have the approvals
 
@@ -90,5 +90,5 @@ export const MintDeckModal = () => {
         </label>
       </label>
     </>
-  );
-};
+  )
+}

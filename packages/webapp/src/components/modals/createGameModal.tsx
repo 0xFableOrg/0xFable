@@ -34,7 +34,7 @@ export const CreateGameModal = () => {
   // const sigHash = gameContract.interface.getSighash(fragment);
   //
   // const hash = (
-  //   process.env.NEXT_PUBLIC_GAME_CONTRACT + sigHash.slice(2)
+  //   deployment.game + sigHash.slice(2)
   // ).padEnd(66, "0")
 
   // TODO: meaningfully handle errors

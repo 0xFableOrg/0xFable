@@ -48,6 +48,11 @@ anvil:
 	anvil --chain-id 1337
 .PHONY: anvil
 
+# Dumps function, event and error selectors to out/selectors.txt
+selectors:
+	forge upload-selectors --all > out/selectors.txt
+.PHONY: selectors
+
 deploy-local:
 	@forge script src/deploy/Deploy.s.sol:DeployLocal \
 		--fork-url http://localhost:8545 \
