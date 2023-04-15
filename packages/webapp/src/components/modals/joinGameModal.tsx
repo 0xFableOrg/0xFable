@@ -12,6 +12,7 @@ import { useRouter } from "next/router"
 import { deployment } from "deployment"
 import { useAtom } from "jotai"
 import debounce from 'lodash/debounce'
+import {useGameWrite} from "src/hooks/game";
 
 export const JoinGameModal = () => {
   const [ inputGameID, setInputGameID ] = useState(null)
@@ -22,6 +23,29 @@ export const JoinGameModal = () => {
   // NOTE(norswap): Right now, the hook can cause error when you type a number that is not a valid
   //   game ID. This is fine. Alternatively, we could validate the input game ID and enable the hook
   //   only when the ID is valid.
+
+  // const { write: join } = useGameWrite({
+  //   functionName: "joinGame",
+  //   args: inputGameID
+  //     ? [
+  //       BigNumber.from(inputGameID),
+  //       0,
+  //       constants.HashZero,
+  //       constants.HashZero,
+  //       constants.HashZero,
+  //       constants.HashZero,
+  //     ]
+  //     : undefined,
+  //   onSuccess(data) {
+  //     const event = gameContract.interface.parseLog(data.logs[0])
+  //     setGameID(event.args.gameID)
+  //     void router.push("/play")
+  //   },
+  //   onError(err) {
+  //     console.log("join_err: " + err)
+  //   },
+  //   enabled: inputGameID !== undefined
+  // })
 
   const { config } = usePrepareGameJoinGame({
     address: deployment.Game,
@@ -38,7 +62,7 @@ export const JoinGameModal = () => {
     enabled: inputGameID != undefined,
   })
 
-  const { data, write } = useGameJoinGame(config)
+  const { data, write: join } = useGameJoinGame(config)
 
   useWaitForTransaction({
     hash: data?.hash,
@@ -87,9 +111,9 @@ export const JoinGameModal = () => {
           />
           <button
             className="btn"
-            disabled={!inputGameID || !write}
+            disabled={!inputGameID || !join}
             onClick={() => {
-              write?.();
+              join?.();
             }}
           >
             Join Game

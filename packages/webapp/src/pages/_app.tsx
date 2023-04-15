@@ -33,12 +33,13 @@ const MyApp: AppType = ({ Component, pageProps }) => {
         <title>0xFable</title>
         <link rel="shortcut icon" href="/favicon.png" />
       </Head>
+
       <WagmiConfig client={wagmiClient}>
         <Component {...pageProps} />
       </WagmiConfig>
 
       <Web3Modal
-        projectId={process.env.NEXT_PUBLIC_WALLET_CONNECT_ID}
+        projectId={projectId}
         ethereumClient={ethereumClient}
       />
     </>

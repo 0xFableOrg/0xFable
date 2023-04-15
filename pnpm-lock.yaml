@@ -73,13 +73,7 @@ importers:
         version: 18.2.0(react@18.2.0)
       wagmi:
         specifier: ^0.12.6
-        version: 0.12.6(@babel/core@7.21.3)(@types/node@18.15.5)(ethers@5.7.2)(react-dom@18.2.0)(react@18.2.0)(typescript@4.9.5)(zod@3.21.4)
-      zod:
-        specifier: ^3.21.4
-        version: 3.21.4
-      zustand:
-        specifier: ^4.3.6
-        version: 4.3.6(react@18.2.0)
+        version: 0.12.6(@babel/core@7.21.3)(@types/node@18.15.5)(ethers@5.7.2)(react-dom@18.2.0)(react@18.2.0)(typescript@4.9.5)
     devDependencies:
       '@swc-jotai/react-refresh':
         specifier: ^0.0.7
@@ -1997,7 +1991,7 @@ packages:
         optional: true
     dependencies:
       '@wagmi/chains': 0.2.14(typescript@4.9.5)
-      '@wagmi/core': 0.10.6(@babel/core@7.21.3)(@types/node@18.15.5)(ethers@5.7.2)(react@18.2.0)(typescript@4.9.5)(zod@3.21.4)
+      '@wagmi/core': 0.10.6(@babel/core@7.21.3)(@types/node@18.15.5)(ethers@5.7.2)(react@18.2.0)(typescript@4.9.5)
       abitype: 0.3.0(typescript@4.9.5)(zod@3.21.4)
       abort-controller: 3.0.0
       bundle-require: 3.1.2(esbuild@0.15.13)
@@ -2020,14 +2014,14 @@ packages:
       prettier: 2.8.6
       typescript: 4.9.5
       viem: 0.1.21(typescript@4.9.5)(zod@3.21.4)
-      wagmi: 0.12.6(@babel/core@7.21.3)(@types/node@18.15.5)(ethers@5.7.2)(react-dom@18.2.0)(react@18.2.0)(typescript@4.9.5)(zod@3.21.4)
+      wagmi: 0.12.6(@babel/core@7.21.3)(@types/node@18.15.5)(ethers@5.7.2)(react-dom@18.2.0)(react@18.2.0)(typescript@4.9.5)
       zod: 3.21.4
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
     dev: true
 
-  /@wagmi/connectors@0.3.8(@babel/core@7.21.3)(@types/node@18.15.5)(@wagmi/core@0.10.6)(ethers@5.7.2)(react@18.2.0)(typescript@4.9.5)(zod@3.21.4):
+  /@wagmi/connectors@0.3.8(@babel/core@7.21.3)(@types/node@18.15.5)(@wagmi/core@0.10.6)(ethers@5.7.2)(react@18.2.0)(typescript@4.9.5):
     resolution: {integrity: sha512-SLukavwDqFiMO+GmAdxdEXKnAbNcBcOUtVu6QjhOPzmcETA59f2QWleUPDBZx62SE40HAiA/Z53exAiWUqIelA==}
     peerDependencies:
       '@wagmi/core': '>=0.9.x'
@@ -2043,7 +2037,7 @@ packages:
       '@ledgerhq/connect-kit-loader': 1.0.2
       '@safe-global/safe-apps-provider': 0.15.2
       '@safe-global/safe-apps-sdk': 7.10.1
-      '@wagmi/core': 0.10.6(@babel/core@7.21.3)(@types/node@18.15.5)(ethers@5.7.2)(react@18.2.0)(typescript@4.9.5)(zod@3.21.4)
+      '@wagmi/core': 0.10.6(@babel/core@7.21.3)(@types/node@18.15.5)(ethers@5.7.2)(react@18.2.0)(typescript@4.9.5)
       '@walletconnect/ethereum-provider': 2.5.1(@types/node@18.15.5)(@web3modal/standalone@2.2.2)(typescript@4.9.5)
       '@walletconnect/legacy-provider': 2.0.0
       '@web3modal/standalone': 2.2.2(react@18.2.0)
@@ -2066,7 +2060,7 @@ packages:
       - utf-8-validate
       - zod
 
-  /@wagmi/core@0.10.6(@babel/core@7.21.3)(@types/node@18.15.5)(ethers@5.7.2)(react@18.2.0)(typescript@4.9.5)(zod@3.21.4):
+  /@wagmi/core@0.10.6(@babel/core@7.21.3)(@types/node@18.15.5)(ethers@5.7.2)(react@18.2.0)(typescript@4.9.5):
     resolution: {integrity: sha512-dtQo3pARUKPsU3+K60ojkYVPpGX12T+dgfbNwYLASpXhwwk5hElhP7YBm/9tMYk4ZIup+yQetTAmoa8/+JW2ng==}
     peerDependencies:
       ethers: '>=5.5.1 <6'
@@ -2076,7 +2070,7 @@ packages:
         optional: true
     dependencies:
       '@wagmi/chains': 0.2.14(typescript@4.9.5)
-      '@wagmi/connectors': 0.3.8(@babel/core@7.21.3)(@types/node@18.15.5)(@wagmi/core@0.10.6)(ethers@5.7.2)(react@18.2.0)(typescript@4.9.5)(zod@3.21.4)
+      '@wagmi/connectors': 0.3.8(@babel/core@7.21.3)(@types/node@18.15.5)(@wagmi/core@0.10.6)(ethers@5.7.2)(react@18.2.0)(typescript@4.9.5)
       abitype: 0.3.0(typescript@4.9.5)(zod@3.21.4)
       ethers: 5.7.2
       eventemitter3: 4.0.7
@@ -2472,7 +2466,7 @@ packages:
       '@wagmi/core': '>=0.10'
       ethers: '>=5.7'
     dependencies:
-      '@wagmi/core': 0.10.6(@babel/core@7.21.3)(@types/node@18.15.5)(ethers@5.7.2)(react@18.2.0)(typescript@4.9.5)(zod@3.21.4)
+      '@wagmi/core': 0.10.6(@babel/core@7.21.3)(@types/node@18.15.5)(ethers@5.7.2)(react@18.2.0)(typescript@4.9.5)
       ethers: 5.7.2
     dev: false
 
@@ -8328,7 +8322,7 @@ packages:
       - zod
     dev: true
 
-  /wagmi@0.12.6(@babel/core@7.21.3)(@types/node@18.15.5)(ethers@5.7.2)(react-dom@18.2.0)(react@18.2.0)(typescript@4.9.5)(zod@3.21.4):
+  /wagmi@0.12.6(@babel/core@7.21.3)(@types/node@18.15.5)(ethers@5.7.2)(react-dom@18.2.0)(react@18.2.0)(typescript@4.9.5):
     resolution: {integrity: sha512-IxU+m/AWPpCvFzXuT93hWNcB1n28HFF7V7fziAgidGKdnha/R4juNk2nuzvEx4+8WLepTEWwbZyT9XMKJYMJ7w==}
     peerDependencies:
       ethers: '>=5.5.1 <6'
@@ -8341,7 +8335,7 @@ packages:
       '@tanstack/query-sync-storage-persister': 4.27.1
       '@tanstack/react-query': 4.28.0(react-dom@18.2.0)(react@18.2.0)
       '@tanstack/react-query-persist-client': 4.28.0(@tanstack/react-query@4.28.0)
-      '@wagmi/core': 0.10.6(@babel/core@7.21.3)(@types/node@18.15.5)(ethers@5.7.2)(react@18.2.0)(typescript@4.9.5)(zod@3.21.4)
+      '@wagmi/core': 0.10.6(@babel/core@7.21.3)(@types/node@18.15.5)(ethers@5.7.2)(react@18.2.0)(typescript@4.9.5)
       abitype: 0.3.0(typescript@4.9.5)(zod@3.21.4)
       ethers: 5.7.2
       react: 18.2.0
