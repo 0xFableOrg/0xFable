@@ -53,7 +53,8 @@ selectors:
 	forge upload-selectors --all > out/selectors.txt
 .PHONY: selectors
 
-deploy-local:
+# TODO: handle different deployment targets (possibly via envs?)
+deploy: build
 	@forge script src/deploy/Deploy.s.sol:DeployLocal \
 		--fork-url http://localhost:8545 \
 		--private-key $(PRIVATE_KEY0) \
@@ -65,4 +66,4 @@ deploy-local:
 		out/abis.json \
 		> out/deployment.json
 	@cd ../webapp && pnpm wagmi generate
-.PHONY: deploy-local
+.PHONY: deploy

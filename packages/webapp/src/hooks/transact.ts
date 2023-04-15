@@ -50,8 +50,6 @@ export function useWrite(params: UseWriteParams): UseWriteResult {
     onError
   })
 
-  // TODO what happens when we spread config but it's disabled?
-
   // Uses the configuration to get a write function which will send the transaction. After `write`
   // is called, the `data` will be populated with a transaction hash (the hash is known before the
   // transaction lands on chain).

@@ -3,8 +3,9 @@ import * as store from "src/store"
 import Link from "next/link"
 import { useAtom } from "jotai"
 import { useGame } from "src/generated"
-import { useGameWrite } from "src/hooks/game"
-import {useEffect, useRef} from "react"
+import { useGameWrite } from "src/hooks/fableTransact"
+import { useEffect } from "react"
+import { useCheckboxModal } from "src/hooks/useCheckboxModal"
 
 // The following directive helps with React fast refresh, forcing it to remount the component when
 // the file is edited. Without it, the behaviour is truly deranged: after creating then cancelling
@@ -19,13 +20,7 @@ export const CreateGameModal = () => {
   const [ gameID, setGameID ] = useAtom(store.gameID)
   const gameContract = useGame({ address: deployment.Game })
 
-  const checkboxRef = useRef<HTMLInputElement>(null)
-  function displayModal(display: boolean) {
-    checkboxRef.current.checked = display
-  }
-  function isModalDisplayed() {
-    return checkboxRef.current?.checked
-  }
+  const { checkboxRef, isModalDisplayed, displayModal } = useCheckboxModal()
 
   // NOTE(norswap): This is how to compute the encoding of the joincheck callback, however, ethers
   //   will block us from using it, and will not provide built-in things for encoding it.
@@ -51,7 +46,7 @@ export const CreateGameModal = () => {
     onError(err) {
       console.log("start_err: " + err)
     },
-    enabled: gameID == null && isModalDisplayed()
+    enabled: gameID == null && isModalDisplayed
   })
 
   const { write: cancel } = useGameWrite({

@@ -1,64 +1,54 @@
-import {
-  useCardsCollectionSetApprovalForAll,
-  useDeckAirdropClaimAirdrop,
-  useInventorySetDelegation,
-  usePrepareCardsCollectionSetApprovalForAll,
-  usePrepareDeckAirdropClaimAirdrop,
-  usePrepareInventorySetDelegation
-} from "src/generated"
-import {useWaitForTransaction} from "wagmi"
-import {useState} from "react"
+import { useState } from "react"
 import { deployment } from "deployment"
+import { useCheckboxModal } from "src/hooks/useCheckboxModal"
+import {
+  useCardsCollectionWrite,
+  useDeckAirdropWrite,
+  useInventoryWrite
+} from "src/hooks/fableTransact"
 
 export const MintDeckModal = () => {
+  const [invDelegated, setInvDelegated] = useState(false)
+  const [airDelegated, setAirDelegated] = useState(false)
+  const { checkboxRef, isModalDisplayed, displayModal } = useCheckboxModal()
 
-  const [invDelegated, setInvDelegated] = useState(false);
-  const [airDelegated, setAirDelegated] = useState(false);
-
-  const { config: approvalConfig } = usePrepareCardsCollectionSetApprovalForAll({
-    address: deployment.CardsCollection,
-    args: [deployment.Inventory, true]
-  })
-
-  const { data, write: invDelegate } = useCardsCollectionSetApprovalForAll(approvalConfig);
-
-  useWaitForTransaction({
-    hash: data?.hash,
-    onSuccess(data) {
-      setInvDelegated(true);
+  const { write: approve } = useCardsCollectionWrite({
+    functionName: "setApprovalForAll",
+    args: [deployment.Inventory, true],
+    enabled: isModalDisplayed,
+    onSuccess() {
+      setInvDelegated(true)
+    },
+    onError(err) {
+      console.log("approve_err: " + err)
     }
   })
 
-  const { config: delegationConfig } = usePrepareInventorySetDelegation({
-    address: deployment.Inventory,
+  const { write: delegate } = useInventoryWrite({
+    functionName: "setDelegation",
     args: [deployment.DeckAirdrop, true],
-    enabled: invDelegated
-  })
-
-  const { data: data2, write: airDelegate } = useInventorySetDelegation(delegationConfig)
-
-  useWaitForTransaction({
-    hash: data2?.hash,
-    onSuccess(data) {
-      setAirDelegated(true);
+    enabled: isModalDisplayed && invDelegated,
+    onSuccess() {
+      setAirDelegated(true)
+    },
+    onError(err) {
+      console.log("delegate_err: " + err)
     }
   })
 
-  const { config: airdropConfig } = usePrepareDeckAirdropClaimAirdrop({
-    address: deployment.DeckAirdrop,
-    enabled: airDelegated
-  })
-
-  const { data: data3, write: claim } = useDeckAirdropClaimAirdrop(airdropConfig)
-
-  useWaitForTransaction({
-    hash: data3?.hash,
-    onSuccess(data) {
-      (document.getElementById('my-modal-4') as any).checked = false;
+  const { write: claim } = useDeckAirdropWrite({
+    functionName: "claimAirdrop",
+    enabled: isModalDisplayed && airDelegated,
+    onSuccess() {
+      displayModal(false)
+    },
+    onError(err) {
+      console.log("claim_err: " + err)
     }
   })
 
   // TODO(LATER): check if we already have the approvals
+  // TODO(LATER): pop a modal to indicate that the mint is successful
 
   return (
     <>
@@ -71,17 +61,17 @@ export const MintDeckModal = () => {
       </label>
 
       {/* Put this part before </body> tag */}
-      <input type="checkbox" id="my-modal-4" className="modal-toggle" />
+      <input type="checkbox" id="my-modal-4" ref={checkboxRef} className="modal-toggle" />
       <label htmlFor="my-modal-4" className="modal cursor-pointer">
-        <label className="modal-box relative" htmlFor="">
+        <label className="modal-box relative">
           <h3 className="text-lg font-bold">Minting Deck...</h3>
           <p className="py-4">
             Mint a deck of cards to play the game with your friends.
           </p>
-          <button className="btn" onClick={invDelegate} disabled={invDelegated || !invDelegate}>
+          <button className="btn" onClick={approve} disabled={invDelegated || !approve}>
             Delegate to Inventory
           </button>
-          <button className="btn" onClick={airDelegate} disabled={airDelegated || !invDelegated || !airDelegate}>
+          <button className="btn" onClick={delegate} disabled={airDelegated || !invDelegated || !delegate}>
             Delegate to Airdropper
           </button>
           <button className="btn" onClick={claim} disabled={!airDelegated || !claim}>
