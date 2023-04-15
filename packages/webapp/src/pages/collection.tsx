@@ -4,7 +4,7 @@ import { type NextPage } from 'next'
 import Head from "next/head"
 import debounce from 'lodash/debounce'
 
-import { MintGameModal } from "src/components/modals/mintDeckModal"
+import { MintDeckModal } from "src/components/modals/mintDeckModal"
 import { Navbar } from "src/components/navbar"
 import { useInventoryCardsCollectionGetCollection } from "src/generated"
 import { deployment } from "src/deployment"
@@ -137,7 +137,7 @@ const Play: NextPage = () => {
           <div className="col-span-9 flex rounded-xl border overflow-y-auto">
             { isMounted && cards.length == 0 &&
               <div className="flex flex-row w-full justify-center items-center">
-                <MintGameModal />
+                <MintDeckModal />
               </div>}
 
             { isMounted && cards.length > 0 &&
