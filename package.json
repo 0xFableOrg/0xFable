@@ -3,5 +3,8 @@
   "author": "cards-team",
   "license": "BSD-3-Clause-Clear",
   "version": "1.0.0",
-  "private": true
+  "private": true,
+  "devDependencies": {
+    "run-pty": "^4.0.3"
+  }
 }

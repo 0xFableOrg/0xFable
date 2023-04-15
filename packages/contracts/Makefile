@@ -4,6 +4,10 @@
 
 # See README.md for documentation.
 
+setup:
+	[ ! -f .env ] && cp .env.example .env
+.PHONY: setup
+
 build:
 	forge build
 .PHONY: build
