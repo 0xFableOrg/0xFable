@@ -7,70 +7,46 @@ import { useWaitForTransaction } from "wagmi"
 import { BigNumber } from "ethers"
 import { constants } from "ethers/lib"
 import * as store from "src/store"
-import {useMemo, useState} from "react"
+import {useMemo, useRef, useState} from "react"
 import { useRouter } from "next/router"
 import { deployment } from "deployment"
 import { useAtom } from "jotai"
 import debounce from 'lodash/debounce'
-import {useGameWrite} from "src/hooks/game";
+import { useGameWrite } from "src/hooks/fableTransact"
+import { useCheckboxModal } from "src/hooks/useCheckboxModal"
 
 export const JoinGameModal = () => {
   const [ inputGameID, setInputGameID ] = useState(null)
-  const [ _, setGameID ] = useAtom(store.gameID)
+  const [ , setGameID ] = useAtom(store.gameID)
   const router = useRouter()
   const gameContract = useGame({ address: deployment.Game })
+  const { checkboxRef, isModalDisplayed } = useCheckboxModal()
 
   // NOTE(norswap): Right now, the hook can cause error when you type a number that is not a valid
   //   game ID. This is fine. Alternatively, we could validate the input game ID and enable the hook
   //   only when the ID is valid.
 
-  // const { write: join } = useGameWrite({
-  //   functionName: "joinGame",
-  //   args: inputGameID
-  //     ? [
-  //       BigNumber.from(inputGameID),
-  //       0,
-  //       constants.HashZero,
-  //       constants.HashZero,
-  //       constants.HashZero,
-  //       constants.HashZero,
-  //     ]
-  //     : undefined,
-  //   onSuccess(data) {
-  //     const event = gameContract.interface.parseLog(data.logs[0])
-  //     setGameID(event.args.gameID)
-  //     void router.push("/play")
-  //   },
-  //   onError(err) {
-  //     console.log("join_err: " + err)
-  //   },
-  //   enabled: inputGameID !== undefined
-  // })
-
-  const { config } = usePrepareGameJoinGame({
-    address: deployment.Game,
+  const { write: join } = useGameWrite({
+    functionName: "joinGame",
     args: inputGameID
       ? [
-          BigNumber.from(inputGameID),
-          0,
-          constants.HashZero,
-          constants.HashZero,
-          constants.HashZero,
-          constants.HashZero,
-        ]
+        BigNumber.from(inputGameID),
+        0,
+        constants.HashZero,
+        constants.HashZero,
+        constants.HashZero,
+        constants.HashZero,
+      ]
       : undefined,
-    enabled: inputGameID != undefined,
-  })
-
-  const { data, write: join } = useGameJoinGame(config)
-
-  useWaitForTransaction({
-    hash: data?.hash,
     onSuccess(data) {
       const event = gameContract.interface.parseLog(data.logs[0])
       setGameID(event.args.gameID)
-      router.push("/play")
-    }
+      void router.push("/play")
+    },
+    onError(err) {
+      console.log("join_err: " + err)
+    },
+    enabled: inputGameID !== null && isModalDisplayed
   })
 
   // Check if string is a postive integer.
@@ -97,7 +73,7 @@ export const JoinGameModal = () => {
       </label>
 
       {/* Modal Code */}
-      <input type="checkbox" id="join" className="modal-toggle" />
+      <input type="checkbox" id="join" ref={checkboxRef} className="modal-toggle" />
       <label htmlFor="join" className="modal cursor-pointer">
         <label className="modal-box relative">
           <h3 className="text-lg font-bold">Joining Game...</h3>

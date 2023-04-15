@@ -24,7 +24,11 @@ const wagmiClient = createClient({
   provider,
 })
 
-const ethereumClient = new EthereumClient(wagmiClient, chains);
+const ethereumClient = new EthereumClient(wagmiClient, chains)
+
+// NOTE(norswap): I am suspecting Web3Modal causes the following error/warnings:
+// - "Unsuccessful attempt at preloading some images" (for sure)
+// - "SingleFile is hooking the IntersectionObserver API to detect and load deferred images."
 
 const MyApp: AppType = ({ Component, pageProps }) => {
   return (
