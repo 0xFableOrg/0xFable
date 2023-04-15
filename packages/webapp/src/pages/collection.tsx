@@ -9,6 +9,7 @@ import { Navbar } from "src/components/navbar"
 import { useInventoryCardsCollectionGetCollection } from "src/generated"
 import { deployment } from "src/deployment"
 import { useIsMounted } from "src/hooks/useIsMounted"
+import { Card } from "src/types"
 
 // NOTE(norswap & geniusgarlic): Just an example, when the game actually has effects & types,
 //   fetch those from the chain instead of hardcoding them here.
@@ -23,23 +24,23 @@ const Play: NextPage = () => {
 
   const isMounted = useIsMounted()
   const { address } = useAccount()
-  const [selectedCard, setSelectedCard] = useState({
-    name: 'Select a card',
-    flavor: 'Select a card to see its details'})
+  const [selectedCard, setSelectedCard] = useState<Card>(null)
   const [searchInput, setSearchInput] = useState('')
   const [effectMap, setEffectMap] = useState(initialEffectMap)
   const [typeMap, setTypeMap] = useState(initialTypeMap)
 
+  const cardName = selectedCard?.lore.name || "Select a card"
+  const cardFlavor = selectedCard?.lore.flavor || "Select a card to see its details"
+
   const activeEffects = Object.keys(effectMap).filter(key => effectMap[key])
   const activeTypes = Object.keys(typeMap).filter(key => typeMap[key])
 
-  // TODO(norswap): better typing for this
-  const { data: unfilteredCards} = useInventoryCardsCollectionGetCollection({
+  const { data: unfilteredCards } = useInventoryCardsCollectionGetCollection({
     address: deployment.InventoryCardsCollection,
     args: [address]
-  })
+  }) as { data: Card[] }
 
-  const cards = (unfilteredCards || []).filter(card => {
+  const cards: Card[] = (unfilteredCards || []).filter(card => {
     // TODO(norswap): it would look like this if the card had effects & types
     // const cardEffects = card.stats.effects || []
     // const cardTypes = card.stats.types || []
@@ -120,19 +121,14 @@ const Play: NextPage = () => {
             </div>
 
             {/* Selected Card Display */}
-            <div>
+            <div className="pb-5">
               <h2 className="text-3xl font-bold text-white m-1.5">Card details</h2>
-              <div key={selectedCard.name}
-                   className="m-4 bg-slate-900/50 rounded-lg p-4 border-4 border-slate-900">
+              <div className="m-4 bg-slate-900/50 rounded-lg p-4 border-4 border-slate-900">
                 {/*TODO handle the image*/}
-                <img src="/card_art/0" alt={selectedCard.name} className="w-64 h-64 m-auto"/>
-                <div className="text-center">{selectedCard.name}</div>
+                <img src="/card_art/0" alt={selectedCard?.lore.name || ""} className="w-64 h-64 m-auto"/>
+                <div className="text-center">{cardName}</div>
               </div>
-              <div className="text-center m-2">{selectedCard.flavor}</div>
-              {/* NOTE(norswap): This adds padding to the bottom. Surprisingly, there really isn't
-                  a better way to do this using CSS. */}
-              {/* TODO: really? what did we do in right panel? */}
-              <div className="h-20"></div>
+              <div className="text-center m-2">{cardFlavor}</div>
             </div>
           </div>
         </div>
@@ -150,16 +146,16 @@ const Play: NextPage = () => {
                 <div className="m-4 bg-slate-900/50 hover:bg-slate-800 rounded-lg p-4 border-4 border-slate-900"
                      key={`${card.id}`}
                      style={{height: 'fit-content'}}
-                     onClick={() => setSelectedCard(card[0])}>
+                     onClick={() => setSelectedCard(card)}>
                   {/*TODO handle the image*/}
-                  <img src="/card_art/0" alt={card[0].name} className="w-64 h-64" />
-                  <div className="text-center">{card[0].name}</div>
+                  <img src="/card_art/0" alt={card.lore.name} className="w-64 h-64" />
+                  <div className="text-center">{card.lore.name}</div>
                   <div className="flex items-end justify-between p-2 relative">
                     <div className="flex items-center justify-center h-8 w-8 rounded-full bg-yellow-400 text-gray-900 font-bold text-lg absolute bottom-[-16px]">
-                      {card[1].attack}
+                      {`${card.stats.attack}`}
                     </div>
                     <div className="flex items-center justify-center h-8 w-8 rounded-full bg-red-600 text-gray-900 font-bold text-lg absolute bottom-[-16px] right-3">
-                      {card[1].defense}
+                      {`${card.stats.defense}`}
                     </div>
                   </div>
                 </div>

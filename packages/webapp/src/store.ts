@@ -1,38 +1,33 @@
-import {BigNumber, ethers} from "ethers";
-import { create } from "zustand";
+import { BigNumberish } from "ethers"
+import { atom } from "jotai"
 
-type Store = {
-  gameID: ethers.BigNumberish | null;
-  selectedCard: ethers.BigNumberish | null;
-  playerHand: ethers.BigNumberish[] | null;
-  playerBoard: ethers.BigNumberish[] | null;
-  enemyBoard: ethers.BigNumberish[] | null;
-  setGameID: (gameID: ethers.BigNumberish) => void;
-  setSelectedCard: (selectedCard: ethers.BigNumberish) => void;
-  addtoPlayerBoard: (card: ethers.BigNumberish) => void;
-  addtoEnemyBoard: (card: ethers.BigNumberish) => void;
-  addtoPlayerHand: (card: ethers.BigNumberish) => void;
-  removefromPlayerHand: (index: ethers.BigNumberish) => void;
-};
+export const gameID          = atom<BigNumberish>(null as BigNumberish)
+export const selectedCard    = atom<BigNumberish>(null as BigNumberish)
+export const playerHand      = atom<BigNumberish[]>([])
+export const playerBoard     = atom<BigNumberish[]>([])
+export const playerGraveyard = atom<BigNumberish[]>([])
+export const enemyBoard      = atom<BigNumberish[]>([])
+export const enemyGraveyard  = atom<BigNumberish[]>([])
 
-const useStore = create<Store>()((set) => ({
-  gameID: null,
-  selectedCard: null,
-  playerBoard: [],
-  playerHand: [1, 2, 3, 4, 5, 6, 7, 8, 9],
-  enemyBoard: [],
-  setGameID: (gameID) => set({ gameID }),
-  setSelectedCard: (selectedCard) => set({ selectedCard }),
-  addtoPlayerBoard: (card) =>
-    set((state) => ({ playerBoard: [...state.playerBoard, card] })),
-  addtoEnemyBoard: (card) =>
-    set((state) => ({ enemyBoard: [...state.enemyBoard, card] })),
-  addtoPlayerHand: (card) =>
-    set((state) => ({ playerHand: [...state.playerHand, card] })),
-  removefromPlayerHand: (index) =>
-    set((state) => ({
-      playerHand: state.playerHand.splice(BigNumber.from(index).toNumber(), 1),
-    })),
-}));
+export const addToHand = atom(null, (get, set, card: BigNumberish) => {
+  set(playerHand, [...get(playerHand), card])
+})
 
-export default useStore;
+export const addToBoard = atom(null, (get, set, card: BigNumberish) => {
+  set(playerHand, get(playerHand).filter((c) => c !== card))
+  set(playerBoard, [...get(playerBoard), card])
+})
+
+export const addToEnemyBoard = atom(null, (get, set, card: BigNumberish) => {
+  set(enemyBoard, [...get(enemyBoard), card])
+})
+
+export const destroyOwnCard = atom(null, (get, set, card: BigNumberish) => {
+  set(playerBoard, get(playerBoard).filter((c) => c !== card))
+  set(playerGraveyard, [...get(playerGraveyard), card])
+})
+
+export const destroyEnemyCard = atom(null, (get, set, card: BigNumberish) => {
+  set(enemyBoard, get(enemyBoard).filter((c) => c !== card))
+  set(enemyGraveyard, [...get(enemyGraveyard), card])
+})

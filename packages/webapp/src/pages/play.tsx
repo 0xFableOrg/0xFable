@@ -1,18 +1,16 @@
-import { type NextPage } from "next";
-import Head from "next/head";
-import useStore from "../store";
-import { Card } from "../components/card";
-import Hand from "../components/hand";
-import { Navbar } from "../components/navbar";
-import {
-  gameABI, useGame, useGameEvent, useGameRead
-} from "../generated";
-import {constants} from "ethers/lib";
-import {BigNumber} from "ethers";
-import {Address, useAccount, useWaitForTransaction} from "wagmi";
-import {useTransact, useRead, useEvents} from "../transact";
-import {useEffect, useState} from "react";
-import { deployment } from "deployment";
+import { type NextPage } from "next"
+import * as store from "src/store"
+import { Card } from "../components/card"
+import Hand from "../components/hand"
+import { Navbar } from "../components/navbar"
+import { gameABI, useGame, useGameEvent, useGameRead } from "src/generated"
+import { constants } from "ethers/lib"
+import { BigNumber } from "ethers"
+import {Address, useAccount, useWaitForTransaction } from "wagmi"
+import { useTransact, useRead, useEvents } from "../transact"
+import { useEffect, useState } from "react"
+import { deployment } from "deployment"
+import { useAtom } from "jotai"
 
 const events = [
   'CardDrawn',
@@ -62,19 +60,19 @@ function listener(name, ...args) {
 
 const Play: NextPage = () => {
 
-  const gameID = useStore((state) => state.gameID);
-  const ID = gameID ? BigNumber.from(gameID) : null;
-  const game: [Address, any] = [deployment.Game, gameABI];
-  const zero = constants.HashZero;
-  const { address } = useAccount();
-  const gameContract = useGame({ address: deployment.Game });
+  const [ gameID, ] = useAtom(store.gameID)
+  const ID = gameID ? BigNumber.from(gameID) : null
+  const game: [Address, any] = [deployment.Game, gameABI]
+  const zero = constants.HashZero
+  const { address } = useAccount()
+  const gameContract = useGame({ address: deployment.Game })
 
-  const { data, refetch } = useRead(...game, "staticGameData", [ID]);
+  const { data, refetch } = useRead(...game, "staticGameData", [ID])
 
-  const currentStep = useState(data?.currentStep);
-  const currentPlayer = useState(data?.currentPlayer);
+  const currentStep = useState(data?.currentStep)
+  const currentPlayer = useState(data?.currentPlayer)
 
-  const playerHand = useStore((state) => state.playerHand);
+  const [ playerHand, ] = useAtom(store.playerHand)
 
 
   // useEvents(...game, [""])
