@@ -1,8 +1,9 @@
-import React, { useState, useMemo } from 'react'
-import { useAccount } from 'wagmi'
-import { type NextPage } from 'next'
+import React, { useState, useMemo } from "react"
+import { useAccount } from "wagmi"
+import { type NextPage } from "next"
+import Image from "next/image"
 import Head from "next/head"
-import debounce from 'lodash/debounce'
+import debounce from "lodash/debounce"
 
 import { MintDeckModal } from "src/components/modals/mintDeckModal"
 import { Navbar } from "src/components/navbar"
@@ -125,7 +126,7 @@ const Play: NextPage = () => {
               <h2 className="text-3xl font-bold text-white m-1.5">Card details</h2>
               <div className="m-4 bg-slate-900/50 rounded-lg p-4 border-4 border-slate-900">
                 {/*TODO handle the image*/}
-                <img src="/card_art/0" alt={selectedCard?.lore.name || ""} className="w-64 h-64 m-auto"/>
+                <Image src="/card_art/0" alt={selectedCard?.lore.name || ""} className="w-64 h-64 m-auto" />
                 <div className="text-center">{cardName}</div>
               </div>
               <div className="text-center m-2">{cardFlavor}</div>
@@ -148,7 +149,7 @@ const Play: NextPage = () => {
                      style={{height: 'fit-content'}}
                      onClick={() => setSelectedCard(card)}>
                   {/*TODO handle the image*/}
-                  <img src="/card_art/0" alt={card.lore.name} className="w-64 h-64" />
+                  <Image src="/card_art/0" alt={card.lore.name} className="w-64 h-64" />
                   <div className="text-center">{card.lore.name}</div>
                   <div className="flex items-end justify-between p-2 relative">
                     <div className="flex items-center justify-center h-8 w-8 rounded-full bg-yellow-400 text-gray-900 font-bold text-lg absolute bottom-[-16px]">

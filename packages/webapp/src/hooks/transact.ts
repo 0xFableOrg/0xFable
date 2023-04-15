@@ -95,6 +95,7 @@ export function useRead(contract, abi, functionName, args, onSuccess = (_) => {}
 
 export function useEvents(address, abi, eventNames, listener) {
   for (const eventName of eventNames) {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
     useContractEvent({ address, abi, eventName,
       listener(...args) {
         listener(eventName, ...args)

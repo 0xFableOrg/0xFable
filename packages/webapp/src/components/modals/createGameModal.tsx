@@ -45,7 +45,7 @@ export const CreateGameModal = () => {
       setGameID(event.args.gameID)
     },
     onError(err) {
-      console.log("start_err: " + err)
+      console.log(`start_err: ${err}`)
     }
   })
 
@@ -58,7 +58,7 @@ export const CreateGameModal = () => {
       displayModal(false)
     },
     onError(err) {
-      console.log("cancel_err: " + err)
+      console.log(`cancel_err: ${err}`)
     }
   })
 
@@ -66,7 +66,7 @@ export const CreateGameModal = () => {
   // It will also be useful when we store the gameID in local storage and support hard reloads.
   useEffect(() => {
     if (gameID != null) displayModal(true)
-  }, [])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   return <>
     {/* Button Code */}
