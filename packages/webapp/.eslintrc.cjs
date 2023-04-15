@@ -8,17 +8,6 @@ const config = {
   plugins: ['@typescript-eslint'],
   root: true,
   ignorePatterns: ["node_modules", "src/generated.ts", "src/components/hand.tsx", "src/pages/play.tsx", "src/hooks/useScrollBox.ts"],
-  // overrides: [
-  //   {
-  //     extends: [
-  //       "plugin:@typescript-eslint/recommended-requiring-type-checking",
-  //     ],
-  //     files: ["*.ts", "*.tsx"],
-  //     parserOptions: {
-  //       project: "tsconfig.json",
-  //     },
-  //   },
-  // ],
   rules: {
     "@typescript-eslint/no-unsafe-argument": "off",
     "@typescript-eslint/restrict-template-expressions": "off",
