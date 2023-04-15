@@ -25,10 +25,10 @@ const Play: NextPage = () => {
 
   const isMounted = useIsMounted()
   const { address } = useAccount()
-  const [selectedCard, setSelectedCard] = useState<Card>(null)
-  const [searchInput, setSearchInput] = useState('')
-  const [effectMap, setEffectMap] = useState(initialEffectMap)
-  const [typeMap, setTypeMap] = useState(initialTypeMap)
+  const [ selectedCard, setSelectedCard ] = useState<Card>(null)
+  const [ searchInput, setSearchInput ] = useState('')
+  const [ effectMap, setEffectMap ] = useState(initialEffectMap)
+  const [ typeMap, setTypeMap ] = useState(initialTypeMap)
 
   const cardName = selectedCard?.lore.name || "Select a card"
   const cardFlavor = selectedCard?.lore.flavor || "Select a card to see its details"
@@ -36,10 +36,10 @@ const Play: NextPage = () => {
   const activeEffects = Object.keys(effectMap).filter(key => effectMap[key])
   const activeTypes = Object.keys(typeMap).filter(key => typeMap[key])
 
-  const { data: unfilteredCards } = useInventoryCardsCollectionGetCollection({
+  const { data: unfilteredCards, refetch } = useInventoryCardsCollectionGetCollection({
     address: deployment.InventoryCardsCollection,
     args: [address]
-  }) as { data: Card[] }
+  }) as { data: Card[], refetch }
 
   const cards: Card[] = (unfilteredCards || []).filter(card => {
     // TODO(norswap): it would look like this if the card had effects & types
@@ -138,7 +138,7 @@ const Play: NextPage = () => {
           <div className="col-span-9 flex rounded-xl border overflow-y-auto">
             { isMounted && cards.length == 0 &&
               <div className="flex flex-row w-full justify-center items-center">
-                <MintDeckModal />
+                <MintDeckModal callback={refetch} />
               </div>}
 
             { isMounted && cards.length > 0 &&

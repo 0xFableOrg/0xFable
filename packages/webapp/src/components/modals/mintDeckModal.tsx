@@ -9,10 +9,13 @@ import {
 } from "src/hooks/fableTransact"
 import { useCheckboxModal } from "src/hooks/useCheckboxModal"
 
-export const MintDeckModal = () => {
+export const MintDeckModal = ({ callback }) => {
   const [invDelegated, setInvDelegated] = useState(false)
   const [airDelegated, setAirDelegated] = useState(false)
   const { checkboxRef, isModalDisplayed, displayModal } = useCheckboxModal()
+
+  console.log("invDelegated: " + invDelegated)
+
 
   const { write: approve } = useCardsCollectionWrite({
     functionName: "setApprovalForAll",
@@ -25,6 +28,8 @@ export const MintDeckModal = () => {
       console.log("approve_err: " + err)
     }
   })
+
+  console.log("approve: " + approve)
 
   const { write: delegate } = useInventoryWrite({
     functionName: "setDelegation",
@@ -43,6 +48,7 @@ export const MintDeckModal = () => {
     enabled: isModalDisplayed && airDelegated,
     onSuccess() {
       displayModal(false)
+      callback?.()
     },
     onError(err) {
       console.log("claim_err: " + err)
@@ -50,7 +56,7 @@ export const MintDeckModal = () => {
   })
 
   // TODO(LATER): check if we already have the approvals
-  // TODO(LATER): pop a modal to indicate that the mint is successful
+  // TODO(LATER): pop a modal to indicate that the mint is successful? do something while getting collection
 
   return (
     <>
