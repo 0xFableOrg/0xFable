@@ -1,9 +1,19 @@
-# List of powersOfTau files here: https://github.com/iden3/snarkjs/blob/master/README.md
+####################################################################################################
+# VARIABLES
+
+# List of powersOfTau trusted setup files here: https://github.com/iden3/snarkjs/blob/master/README.md
 SETUP_FILE=powersOfTau28_hez_final_18.ptau
 SNARKJS="./node_modules/.bin/snarkjs"
 
 # For a few commands that return info about circuits.
 C ?= Cards
+
+####################################################################################################
+# REFERENCE
+
+# For further information on the SnarkJS operations happening in this file, see:
+# - https://zkiap.com/snarkjs
+# - https://github.com/iden3/snarkjs#readme
 
 # Makefile Cheat Sheet:
 # $@ = target
