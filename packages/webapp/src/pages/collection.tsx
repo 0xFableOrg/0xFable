@@ -148,8 +148,7 @@ const Play: NextPage = () => {
               <div className="grid grid-cols-4 gap-4 overflow-y-auto pb-4">
               {cards.map(card => (
                 <div className="m-4 bg-slate-900/50 hover:bg-slate-800 rounded-lg p-4 border-4 border-slate-900"
-                     // TODO make this work
-                     key={card.stats.id}
+                     key={`${card.id}`}
                      style={{height: 'fit-content'}}
                      onClick={() => setSelectedCard(card[0])}>
                   {/*TODO handle the image*/}

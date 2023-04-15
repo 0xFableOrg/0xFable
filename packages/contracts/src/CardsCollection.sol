@@ -16,6 +16,7 @@ struct Stats {
 }
 
 struct Card {
+    uint256 id;
     Lore lore;
     Stats stats;
 }
@@ -50,6 +51,6 @@ contract CardsCollection is ERC721, Ownable {
     }
 
     function getCard(uint256 card) external view returns(Card memory) {
-        return Card(lore[card], stats_[card]);
+        return Card(card, lore[card], stats_[card]);
     }
 }
