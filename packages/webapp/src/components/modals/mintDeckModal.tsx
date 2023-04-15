@@ -10,7 +10,7 @@ import {useWaitForTransaction} from "wagmi"
 import {useState} from "react"
 import { deployment } from "deployment"
 
-export const MintGameModal = () => {
+export const MintDeckModal = () => {
 
   const [invDelegated, setInvDelegated] = useState(false);
   const [airDelegated, setAirDelegated] = useState(false);

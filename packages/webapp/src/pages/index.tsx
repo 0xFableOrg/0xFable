@@ -3,7 +3,7 @@ import Link from "next/link"
 import { useAccount, useNetwork } from "wagmi"
 import { CreateGameModal } from "src/components/modals/createGameModal"
 import { JoinGameModal } from "src/components/modals/joinGameModal"
-import { MintGameModal } from "src/components/modals/mintDeckModal"
+import { MintDeckModal } from "src/components/modals/mintDeckModal"
 import { useIsMounted } from "src/hooks/useIsMounted"
 
 const LOCALHOST = 1337
@@ -45,7 +45,7 @@ const Home = () => {
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-4 md:gap-8">
             <CreateGameModal />
              <JoinGameModal />
-             <MintGameModal />
+             <MintDeckModal />
              <Link className="hover:border-3 btn-lg btn border-2 border-green-900 text-2xl normal-case hover:scale-105 hover:border-green-800" href={"/collection"}>
               Collection →
              </Link>

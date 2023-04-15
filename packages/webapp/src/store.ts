@@ -2,7 +2,6 @@ import { BigNumberish } from "ethers"
 import { atom } from "jotai"
 
 export const gameID          = atom<BigNumberish>(null as BigNumberish)
-export const selectedCard    = atom<BigNumberish>(null as BigNumberish)
 export const playerHand      = atom<BigNumberish[]>([])
 export const playerBoard     = atom<BigNumberish[]>([])
 export const playerGraveyard = atom<BigNumberish[]>([])
