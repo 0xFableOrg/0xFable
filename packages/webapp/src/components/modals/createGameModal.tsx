@@ -82,7 +82,7 @@ export const CreateGameModal = () => {
       Create Game →
     </label>
 
-    {/* Create Game Modal Code */}
+    {/* Modal Code */}
     <input type="checkbox" id="create" ref={checkboxRef} className="modal-toggle" />
 
     {!gameID && <>
