@@ -1,5 +1,9 @@
 // @ts-check
 
+import path from "path"
+import { fileURLToPath } from "url"
+import { dirname } from "path"
+
 /** @type {import("next").NextConfig} */
 export default {
   reactStrictMode: true,
@@ -23,4 +27,21 @@ export default {
     // Currently broken because of Next: https://github.com/pmndrs/swc-jotai/issues/6
     // swcPlugins: [['@swc-jotai/react-refresh', {}]]
   },
+  webpack(config, { dev, isServer }) {
+    // why did you render
+    if (dev && !isServer) {
+      const originalEntry = config.entry
+      config.entry = async () => {
+        const __filename = fileURLToPath(import.meta.url)
+        const __dirname = dirname(__filename)
+        const wdrPath = path.resolve(__dirname, './scripts/whyDidYouRender.js')
+        const entries = await originalEntry()
+        if (entries['main.js'] && !entries['main.js'].includes(wdrPath)) {
+          entries['main.js'].unshift(wdrPath)
+        }
+        return entries
+      }
+    }
+    return config
+  }
 }

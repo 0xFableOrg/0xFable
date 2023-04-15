@@ -1,6 +1,8 @@
 import debounce from "lodash/debounce"
 import { type NextPage } from "next"
 import Head from "next/head"
+// This causes the "Ignoring unsupported entryTypes: largest-contentful-paint.", presumably
+// because Firefox does not support some associated features.
 import Image from "next/image"
 import { useState, useMemo } from "react"
 import { useAccount } from "wagmi"
@@ -21,7 +23,7 @@ const initialEffectMap = Object.assign({}, ...effects.map(name => ({[name]: fals
 const types = ['Creature', 'Magic', 'Weapon']
 const initialTypeMap = Object.assign({}, ...types.map(name => ({[name]: false})))
 
-const Play: NextPage = () => {
+const Collection: NextPage = () => {
 
   const isMounted = useIsMounted()
   const { address } = useAccount()
@@ -169,4 +171,4 @@ const Play: NextPage = () => {
   )
 }
 
-export default Play
+export default Collection
