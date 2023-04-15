@@ -1,5 +1,5 @@
-import { Web3Button } from "@web3modal/react";
-import Link from "next/link";
+import Link from "next/link"
+import { Web3Button } from "@web3modal/react"
 
 export const Navbar = () => {
   return (
@@ -15,12 +15,9 @@ export const Navbar = () => {
       </div>
       <div className="flex-none">
         <ul className="menu menu-horizontal px-1">
-          {/* <li>
-            <a>MY COLLECTION</a>
-          </li> */}
           <li>
-            <Link href="/" className="font-bold ">
-              MENU
+            <Link href="/collection" className="font-bold ">
+              COLLECTION
             </Link>
           </li>
           <li>
@@ -29,5 +26,5 @@ export const Navbar = () => {
         </ul>
       </div>
     </div>
-  );
-};
+  )
+}

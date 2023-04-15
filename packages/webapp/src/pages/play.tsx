@@ -1,16 +1,16 @@
-import { type NextPage } from "next"
-import * as store from "src/store"
-import { Card } from "../components/card"
-import Hand from "../components/hand"
-import { Navbar } from "../components/navbar"
-import { gameABI, useGame, useGameEvent, useGameRead } from "src/generated"
-import { constants } from "ethers/lib"
 import { BigNumber } from "ethers"
-import {Address, useAccount, useWaitForTransaction } from "wagmi"
-import { useTransact, useRead, useEvents } from "../transact"
-import { useEffect, useState } from "react"
-import { deployment } from "deployment"
+import { constants } from "ethers/lib"
 import { useAtom } from "jotai"
+import { type NextPage } from "next"
+import { useState } from "react"
+import { Address, useAccount } from "wagmi"
+
+import Hand from "src/components/hand"
+import { Navbar } from "src/components/navbar"
+import { deployment } from "src/deployment"
+import { gameABI, useGame } from "src/generated"
+import { useRead } from "src/hooks/transact"
+import * as store from "src/store"
 
 const events = [
   'CardDrawn',

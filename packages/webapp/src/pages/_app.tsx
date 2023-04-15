@@ -1,13 +1,9 @@
 import type { AppType } from "next/app"
 import Head from "next/head"
-import {
-  EthereumClient,
-  w3mConnectors,
-  w3mProvider
-} from "@web3modal/ethereum"
-import { Web3Modal } from "@web3modal/react"
 import { configureChains, createClient, WagmiConfig } from "wagmi"
 import { localhost } from "wagmi/chains"
+import { EthereumClient, w3mConnectors, w3mProvider} from "@web3modal/ethereum"
+import { Web3Modal } from "@web3modal/react"
 
 import "../styles/globals.css"
 
