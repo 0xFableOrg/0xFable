@@ -2,18 +2,19 @@ import {
   useGame,
   useGameJoinGame,
   usePrepareGameJoinGame,
-} from "../../generated";
-import { useWaitForTransaction } from "wagmi";
-import { BigNumber } from "ethers";
-import { constants } from "ethers/lib";
-import useStore from "../../store";
-import { useState } from "react";
-import { useRouter } from "next/router";
-import { deployment } from "deployment";
+} from "src/generated"
+import { useWaitForTransaction } from "wagmi"
+import { BigNumber } from "ethers"
+import { constants } from "ethers/lib"
+import * as store from "src/store"
+import { useState } from "react"
+import { useRouter } from "next/router"
+import { deployment } from "deployment"
+import { useAtom } from "jotai"
 
 export const JoinGameModal = () => {
   const [inputGameID, setInputGameID] = useState(null);
-  const setGameID = useStore((state) => state.setGameID);
+  const [ _, setGameID ] = useAtom(store.gameID)
   const router = useRouter();
 
   const gameContract = useGame({

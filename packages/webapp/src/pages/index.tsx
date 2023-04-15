@@ -1,5 +1,4 @@
 import { useWeb3Modal, Web3Button, Web3NetworkSwitch } from "@web3modal/react"
-import Head from "next/head"
 import Link from "next/link"
 import { useAccount, useNetwork } from "wagmi"
 import { CreateGameModal } from "src/components/modals/createGameModal"

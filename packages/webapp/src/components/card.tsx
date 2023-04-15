@@ -1,5 +1,6 @@
-import Image from "next/image";
-import useStore from "../store";
+import Image from "next/image"
+import * as store from "src/store"
+import { useAtom } from "jotai"
 
 //quick fix for hackathon
 const cards = [
@@ -90,16 +91,12 @@ const cards = [
 ];
 
 export const Card = ({ id, className }: { id: number; className?: string }) => {
-  const addtoPlayerBoard = useStore((state) => state.addtoPlayerBoard);
-  const removefromPlayerHand = useStore((state) => state.removefromPlayerHand);
+  const [ , addToBoard ] = useAtom(store.addToBoard)
 
   return (
     <div
       className={` ${className} shadow-2xl} z-[50] flex h-[33rem] max-w-[24rem] scale-[65%] cursor-pointer flex-col items-center justify-evenly rounded-lg  border-4 bg-gray-900 p-5 text-center`}
-      onClick={() => {
-        addtoPlayerBoard(id);
-        removefromPlayerHand(id);
-      }}
+      onClick={() => addToBoard(id) }
     >
       <h1 className="font- font-serif text-3xl font-bold text-slate-200">
         {cards[id].name}

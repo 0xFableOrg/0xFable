@@ -5,10 +5,10 @@ import {
   usePrepareCardsCollectionSetApprovalForAll,
   usePrepareDeckAirdropClaimAirdrop,
   usePrepareInventorySetDelegation
-} from "../../generated";
-import {useWaitForTransaction} from "wagmi";
-import {useState} from "react";
-import { deployment } from "deployment";
+} from "src/generated"
+import {useWaitForTransaction} from "wagmi"
+import {useState} from "react"
+import { deployment } from "deployment"
 
 export const MintGameModal = () => {
 
