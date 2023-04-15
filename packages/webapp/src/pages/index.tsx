@@ -5,18 +5,18 @@ import { useWeb3Modal, Web3Button, Web3NetworkSwitch } from "@web3modal/react"
 import { CreateGameModal } from "src/components/modals/createGameModal"
 import { JoinGameModal } from "src/components/modals/joinGameModal"
 import { MintDeckModal } from "src/components/modals/mintDeckModal"
-import { useIsMounted } from "src/hooks/useIsMounted"
+import { useIsHydration } from "src/hooks/useIsHydration"
 
 const LOCALHOST = 1337
 
 const Home = () => {
-  const isMounted = useIsMounted()
+  const isHydration = useIsHydration()
   const { address } = useAccount()
   const { open } = useWeb3Modal()
   const { chain } = useNetwork()
 
   // These three states are mutually exclusive. One of them is always true.
-  const notConnected = !isMounted || !address
+  const notConnected = !isHydration || !address
   const isWrongNetwork = !notConnected && chain?.id !== LOCALHOST
   const isRightNetwork = !notConnected && chain?.id === LOCALHOST
 

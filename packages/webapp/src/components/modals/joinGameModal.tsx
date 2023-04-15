@@ -16,7 +16,7 @@ export const JoinGameModal = () => {
   const [ , setGameID ] = useAtom(store.gameID)
   const router = useRouter()
   const gameContract = useGame({ address: deployment.Game })
-  const { checkboxRef, isModalDisplayed } = useCheckboxModal()
+  const { checkboxRef, checkboxCallback, isModalDisplayed } = useCheckboxModal()
 
   // NOTE(norswap): Right now, the hook can cause error when you type a number that is not a valid
   //   game ID. This is fine. Alternatively, we could validate the input game ID and enable the hook
@@ -27,11 +27,11 @@ export const JoinGameModal = () => {
     args: inputGameID
       ? [
         BigNumber.from(inputGameID),
-        0,
-        constants.HashZero,
-        constants.HashZero,
-        constants.HashZero,
-        constants.HashZero,
+        0, // deckID
+        constants.HashZero, // data for callback
+        constants.HashZero, // hand root
+        constants.HashZero, // deck root
+        constants.HashZero, // proof
       ]
       : undefined,
     enabled: inputGameID !== null && isModalDisplayed,
@@ -70,7 +70,7 @@ export const JoinGameModal = () => {
       </label>
 
       {/* Modal Code */}
-      <input type="checkbox" id="join" ref={checkboxRef} className="modal-toggle" />
+      <input type="checkbox" id="join" ref={checkboxRef} onChange={checkboxCallback} className="modal-toggle" />
       <label htmlFor="join" className="modal cursor-pointer">
         <label className="modal-box relative">
           <h3 className="text-lg font-bold">Joining Game...</h3>

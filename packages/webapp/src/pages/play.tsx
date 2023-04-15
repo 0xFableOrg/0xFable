@@ -1,16 +1,16 @@
-import { BigNumber } from "ethers"
 import { constants } from "ethers/lib"
 import { useAtom } from "jotai"
 import { type NextPage } from "next"
-import { useState } from "react"
+import {useEffect, useRef, useState} from "react"
 import { Address, useAccount } from "wagmi"
 
 import Hand from "src/components/hand"
 import { Navbar } from "src/components/navbar"
 import { deployment } from "src/deployment"
 import { gameABI, useGame } from "src/generated"
-import { useRead } from "src/hooks/transact"
 import * as store from "src/store"
+import {useGameEvents, useGameRead} from "src/hooks/fableTransact";
+import {StaticGameData} from "src/types";
 
 const events = [
   'CardDrawn',
@@ -18,6 +18,7 @@ const events = [
   'PlayerAttacked',
   'PlayerDefended',
   'PlayerPassed',
+  'PlayerJoined'
 ]
 
 /*
@@ -37,37 +38,78 @@ const events = [
     event PlayerPassed(uint256 indexed gameID, uint8 player);
  */
 
-function listener(name, ...args) {
-  switch (name) {
-    case 'CardDrawn': {
-      const [gameID, player] = args;
-      break;
-    } case 'CardPlayed': {
-      const [gameID, player, card] = args;
-      break;
-    } case 'PlayerAttacked': {
-      const [gameID, attacking, defending] = args;
-      break;
-    } case 'PlayerDefended': {
-      const [gameID, attacking, defending] = args;
-      break;
-    } case 'PlayerPassed': {
-      const [gameID, player] = args;
-      break;
-    }
-  }
-}
-
 const Play: NextPage = () => {
 
-  const [ gameID, ] = useAtom(store.gameID)
-  const ID = gameID ? BigNumber.from(gameID) : null
+  const [ gameID ] = useAtom(store.gameID)
+  // const ID = gameID ? BigNumber.from(gameID) : null
+  const [ ID ] = useState(0) // TODO debug purposes
   const game: [Address, any] = [deployment.Game, gameABI]
   const zero = constants.HashZero
   const { address } = useAccount()
   const gameContract = useGame({ address: deployment.Game })
 
-  const { data, refetch } = useRead(...game, "staticGameData", [ID])
+  useGameEvents(events, (name, ...args) => {
+    console.log(`event fired ${name}(${args})`)
+    switch (name) {
+      case 'CardDrawn': {
+        const [gameID, player] = args;
+        break;
+      } case 'CardPlayed': {
+        const [gameID, player, card] = args;
+        break;
+      } case 'PlayerAttacked': {
+        const [gameID, attacking, defending] = args;
+        break;
+      } case 'PlayerDefended': {
+        const [gameID, attacking, defending] = args;
+        break;
+      } case 'PlayerPassed': {
+        const [gameID, player] = args;
+        break;
+      } case 'PlayerJoined': {
+        const [gameID, player] = args;
+        // Refetch game data to get up to date player list.
+        if (player != address && playersLeftToJoin.current > 0)
+          refetch()
+        break;
+      }
+    }
+  })
+
+  const { data, refetch } = useGameRead<StaticGameData>({
+    functionName: "staticGameData",
+    args: [ID]
+  })
+
+  const playersLeftToJoin = useRef(data?.playersLeftToJoin ?? 2)
+
+  useEffect(() => {
+    if (playersLeftToJoin.current == 0) return
+    const timeoutID = setTimeout(() => {
+      console.log("timer firing: " + playersLeftToJoin.current)
+      if (playersLeftToJoin.current > 0) {
+        console.log("refetching via timer")
+        // One second has passed and there are players that still need to join.
+        // Refetch to make sure we didn't make miss the PlayerJoined event (could happen if it fired
+        // the event subscription was set up).
+        refetch()
+      }
+    }, 1000)
+    return () => {
+      clearTimeout(timeoutID)
+    }
+  }, [])
+
+  // TODO debug initial rendering
+
+  // TODO: learn how to pop an info modal
+  // TODO: learn how to pop a spinner modal + pop one while waiting for player to join
+
+
+  console.log(data)
+
+
+
 
   const currentStep = useState(data?.currentStep)
   const currentPlayer = useState(data?.currentPlayer)
@@ -86,12 +128,6 @@ const Play: NextPage = () => {
       refetch();
     },
   });
-
-  // CardDrawn
-  // CardPlayed
-  // PlayerAttacked
-  // PlayerDefended
-  // PlayerPassed
 
   const currentStep = useState(data?.currentStep);
   const currentPlayer: any = useState(data?.currentPlayer);
@@ -138,7 +174,8 @@ const Play: NextPage = () => {
             </div> */}
           </div>
 
-          <button onClick={draw}
+          <button onClick={refetch}
+          // <button onClick={draw}
             className=" btn-warning btn-lg btn absolute right-48 bottom-1/2 z-50 translate-y-1/2 rounded-lg border-[.1rem] border-base-300 font-mono hover:scale-105">
             DRAW
           </button>

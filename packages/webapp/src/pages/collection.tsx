@@ -11,7 +11,7 @@ import { MintDeckModal } from "src/components/modals/mintDeckModal"
 import { Navbar } from "src/components/navbar"
 import { deployment } from "src/deployment"
 import { useInventoryCardsCollectionGetCollection } from "src/generated"
-import { useIsMounted } from "src/hooks/useIsMounted"
+import { useIsHydration } from "src/hooks/useIsHydration"
 import { Card } from "src/types"
 
 // NOTE(norswap & geniusgarlic): Just an example, when the game actually has effects & types,
@@ -25,7 +25,7 @@ const initialTypeMap = Object.assign({}, ...types.map(name => ({[name]: false}))
 
 const Collection: NextPage = () => {
 
-  const isMounted = useIsMounted()
+  const isHydration = useIsHydration()
   const { address } = useAccount()
   const [ selectedCard, setSelectedCard ] = useState<Card>(null)
   const [ searchInput, setSearchInput ] = useState('')
@@ -138,12 +138,12 @@ const Collection: NextPage = () => {
 
           {/* Card Collection Display */}
           <div className="col-span-9 flex rounded-xl border overflow-y-auto">
-            { isMounted && cards.length == 0 &&
+            { isHydration && cards.length == 0 &&
               <div className="flex flex-row w-full justify-center items-center">
                 <MintDeckModal callback={refetch} />
               </div>}
 
-            { isMounted && cards.length > 0 &&
+            { isHydration && cards.length > 0 &&
               <div className="grid grid-cols-4 gap-4 overflow-y-auto pb-4">
               {cards.map(card => (
                 <div className="m-4 bg-slate-900/50 hover:bg-slate-800 rounded-lg p-4 border-4 border-slate-900"

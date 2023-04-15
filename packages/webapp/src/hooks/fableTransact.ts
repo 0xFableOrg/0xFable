@@ -2,10 +2,9 @@ import { providers } from "ethers"
 
 import { deployment } from "src/deployment"
 import { cardsCollectionABI, deckAirdropABI, gameABI, inventoryABI } from "src/generated"
-import { useWrite, UseWriteResult } from "src/hooks/transact"
+import { useEvents, useRead, UseReadResult, useWrite, UseWriteResult } from "src/hooks/transact"
 
 // =================================================================================================
-
 // use<Contract>Write: just `useWrite` with the contract address and ABI already set.
 
 export type UseContractSpecificWriteParams = {
@@ -54,6 +53,29 @@ export function useDeckAirdropWrite(params: UseContractSpecificWriteParams): Use
   } catch (e) {
     return { write: null }
   }
+}
+
+// =================================================================================================
+// use<Contract>Read: just `useRead` with the contract address and ABI already set.
+
+export type UseContractSpecificReadParams = {
+  functionName: string,
+  args?: any[],
+  // TODO type is wrong
+  onSuccess?: (data: providers.TransactionReceipt) => void,
+  onError?: (err: Error) => void,
+  enabled?: boolean
+}
+
+export function useGameRead<T>(params: UseContractSpecificReadParams): UseReadResult<T> {
+  return useRead({ ...params, contract: deployment.Game, abi: gameABI })
+}
+
+// =================================================================================================
+// use<Contract>Events: just `useEvents` with the contract address and ABI already set.
+
+export function useGameEvents(eventNames, listener) {
+  return useEvents(deployment.Game, gameABI, eventNames, listener)
 }
 
 // =================================================================================================
