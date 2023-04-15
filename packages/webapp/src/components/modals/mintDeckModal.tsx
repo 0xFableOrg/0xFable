@@ -14,9 +14,6 @@ export const MintDeckModal = ({ callback }) => {
   const [airDelegated, setAirDelegated] = useState(false)
   const { checkboxRef, isModalDisplayed, displayModal } = useCheckboxModal()
 
-  console.log("invDelegated: " + invDelegated)
-
-
   const { write: approve } = useCardsCollectionWrite({
     functionName: "setApprovalForAll",
     args: [deployment.Inventory, true],
@@ -28,8 +25,6 @@ export const MintDeckModal = ({ callback }) => {
       console.log("approve_err: " + err)
     }
   })
-
-  console.log("approve: " + approve)
 
   const { write: delegate } = useInventoryWrite({
     functionName: "setDelegation",
