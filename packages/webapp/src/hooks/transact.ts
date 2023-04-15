@@ -78,20 +78,52 @@ export function useWrite(params: UseWriteParams): UseWriteResult {
 }
 
 // =================================================================================================
+// useRead
 
-export function useRead(contract, abi, functionName, args, onSuccess = (_) => {}, enabled = true) {
+export type UseReadParams = {
+  contract: `0x${string}`,
+  abi: any,
+  functionName: string,
+  args?: any[],
+  onSuccess?: (data: providers.TransactionReceipt) => void,
+  onError?: (err: Error) => void,
+  enabled?: boolean
+}
+
+export type UseReadResult<T> = {
+  data: T,
+  refetch?: () => void
+}
+
+export function useRead<T>(params: UseReadParams): UseReadResult<T> {
+  const { contract, abi, functionName, args } = params
+  let { onSuccess, onError, enabled } = params
+  if (enabled == undefined) enabled = true
+  if (!onSuccess) onSuccess = _ => {}
+  if (!onError) onError = error => {
+    console.log(`Error in useRead (${functionName}):`)
+    console.log(error)
+  }
+
   const { data, refetch } = useContractRead({
     address: contract,
-    abi: abi,
-    functionName: functionName,
-    args: args,
-    onSuccess: onSuccess,
-    cacheTime: Infinity,
-    staleTime: Infinity,
-    enabled: enabled
-  });
-  return {data, refetch}
+    abi,
+    functionName,
+    args: args || [],
+    enabled,
+    onError,
+    // cacheTime: Infinity,
+    // staleTime: Infinity
+  }) as any // trust me bro
+
+  return { data, refetch }
 }
+
+// =================================================================================================
+// useEvents
+
+// NOTE(norswap): There doesn't seem to be any way to unsubscribe from events /facepalm
+//   It's not that hard, wagmi has the function, but doesn't bother returning it.
 
 export function useEvents(address, abi, eventNames, listener) {
   for (const eventName of eventNames) {
@@ -100,6 +132,8 @@ export function useEvents(address, abi, eventNames, listener) {
       listener(...args) {
         listener(eventName, ...args)
       }
-    });
+    })
   }
 }
+
+// =================================================================================================

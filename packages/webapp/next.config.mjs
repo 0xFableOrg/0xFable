@@ -28,6 +28,7 @@ export default {
     // swcPlugins: [['@swc-jotai/react-refresh', {}]]
   },
   webpack(config, { dev, isServer }) {
+
     // why did you render
     if (dev && !isServer) {
       const originalEntry = config.entry
@@ -42,6 +43,10 @@ export default {
         return entries
       }
     }
+    // This would be great, but is sadly disallowed by Next, because they hate freedom.
+    // https://nextjs.org/docs/messages/improper-devtool
+    // Having this would enable parsing hook names in the React DevTools.
+    // config.devtool = "cheap-module-source-map"
     return config
   }
 }
