@@ -1,5 +1,11 @@
 # 0xFable
 
+See also the README files of the various subpackages:
+
+- [contracts](packages/contracts/README.md)
+- [webapp](packages/webapp/README.md)
+- [circuits](packages/circuits/README.md)
+
 ## Installation
 
 Tooling required:
@@ -10,41 +16,48 @@ Tooling required:
 - Node.js & [PNPM](https://pnpm.io/) (`npm install -g pnpm`)
   - Tested with Node v16.16.0
 
-Run contract tests:
+Run contract tests for basic sanity testing: 
 
 - `(cd packages/contracts && make test)`
 
-Make sure to check [`packages/contracts/README.md`][contracts] and
-[`packages/webapp/README.md`][webapp].
+## IDEs
 
-[contracts]: packages/contracts/README.md
-[webapp]: packages/webapp/README.md
+If you're using Visual Studio Code, the contract remappings will only be picked up if you set the
+root of the project to the `contracts` package. Otherwise, you'll add to manually add the remappings
+(from `remappings.txt`) to the Solidity plugin configuration.
+
+## Running
 
 To deploy and try out the app locally:
 
 ```shell
-# background shell 1
-(cd packages/contracts && make anvil)
-
-# main shell
-cd packages/contracts
-cp .env.example .env # deployer key = first preloaded anvil account
-make build # not necessary if you did make build at top level
-make deploy-local
-cd -
-
-# background shell 2
-(cd packages/webapp && make dev)
+make dev
 ```
 
-The app is now running on http://localhost:3000/
+This will do the following from a single terminal (using run-pty):
 
-It needs to connect to the local chain, whose RPC URL is "http://localhost:8545" and chain ID 1337.
-This chain comes preconfigured in Metamask and other wallets, as "Localhost".
+- Run anvil (local EVM node) at localhost:8545 with chain ID 1337
+  (this chain comes preconfigured in Metamask and other wallets as "Localhost")
+- Run the NextJS dev command (web server + live reload)
+- Deploy the contracts to the local node
+- Build the zk circuits (this make take a while, especially the first time when you'll need to
+   download the 300MB trusted setup file)
+
+After that, you can visit the app at http://localhost:3000/ (if that port is already occupied,
+NextJS might affect another one).
+
+If your shell doesn't support run-pty, you can run the commands manually in different terminals:
+
+```shell
+make anvil
+make webdev
+make deploy
+make circuits
+```
 
 Note: at least for me, Metamask has a bug that doesn't let the app initiate chain switching when
-the target is "localhost" (other targets work fine). If the same thing happens to you, you'll need
-to switch to the localhost chain manually within the wallet.
+the target is "Localhost" (other targets work fine). If the same thing happens to you, you'll need
+to switch to the Localhost chain manually within the wallet.
 
 ## Commands
 

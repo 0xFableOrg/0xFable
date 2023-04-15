@@ -18,6 +18,7 @@ By default:
 ## Commands
 
 - `cd ../.. && make setup` - initialize libraries and npm packages
+- `make setup` - copies `.env.example` to `.env` if `.env` does not exist
 - `make build` - build your project
 - `make test` - run tests on temp local devnet
 - `make watch` - watch files and re-run tests on temp local devnet
@@ -27,5 +28,7 @@ By default:
 - `make lint-check` - check that files are properly linted
 - `make lint` - lint files
 - `make anvil` - run local Anvil devnet on port 1337
-- `make deploy-local` - deploy the contracts on the Anvil devnet, using `$PRIVATE_KEY0` as deployer private key
+- `make deploy` - deploy the contracts on the Anvil devnet, using `$PRIVATE_KEY0` as deployer private key
   - the contract addresses are output to `out/deployment.json`
+  - also updates the wagmi-generated bindings (in `packages/webapp/src/generated.ts`)
+- `make selectors` - dumps to selectors for functions, events and errors to `out/selectors.txt`

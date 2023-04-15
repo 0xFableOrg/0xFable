@@ -1,4 +1,5 @@
-SETUP_FILE=powersOfTau28_hez_final_14.ptau
+# List of powersOfTau files here: https://github.com/iden3/snarkjs/blob/master/README.md
+SETUP_FILE=powersOfTau28_hez_final_18.ptau
 SNARKJS="./node_modules/.bin/snarkjs"
 
 # For a few commands that return info about circuits.
@@ -13,6 +14,7 @@ C ?= Cards
 # Circuit Files Cheat Sheet:
 # Input-independent:
 # - <xxx>.ptau = universal trusted setup (powers of tau) file
+# - Verify<circuit>.sol = solidity contract to verify proofs for <circuit>
 # - <circuit>.r1cs = Rank 1 Constraint System constraints for <circuit>
 # - <circuit>.wasm = wasm code to generate the witness, for <circuit>
 # - <circuit>.sym = symbols file for debugging / printing annotated circuit, for <circuit>
@@ -22,6 +24,7 @@ C ?= Cards
 # - <circuit>.wtns = proof witnesss for <circuit>, and given public inputs
 # - <circuit>.public.json = values of the public inputs and outputs, for <circuit>
 # - <circuit>.proof.json = the zk proof for <circuit> and the corresponding .public.json file
+# - <circuit>.calldata.txt = solidity calldata for testing purposes
 
 ####################################################################################################
 # TESTING SETUP
@@ -49,14 +52,16 @@ install-test-deps:
 # LIFECYCLE
 
 # Make sure intermediate files are not deleted at the end.
-.PRECIOUS: %.r1cs %.wasm %.sym %.zkey %.vkey.json %.wtns
+.PRECIOUS: out/%.r1cs out/%.wasm out/%.sym out/%.zkey out/%.vkey.json out/%.wtns out/%.public.json \
+	out/%.proof.json trusted_setup/%.ptau
 
-# Build verifier contracts & all other outputsF
-build: out/VerifyCards.sol
+# Use dummy circuit to test that everything is working properly.
+build-test: out/VerifyCards.sol out/Cards.proof.json
+.PHONY: build-test
+
+# Build verifier contracts & all other outputs.
+build: out/VerifyDraw6.sol out/VerifyInitial67.sol out/VerifyPlay4.sol
 .PHONY: build
-
-proof: out/Cards.proof.json
-.PHONY: proof
 
 test-server:
 	node circom.config.js > out/circom.config.json
@@ -119,11 +124,14 @@ out/%.vkey.json: out/%.zkey
 	pnpm snarkjs zkey export verificationkey $< $@
 
 # Generate the verification contract logic
-out/Verify%.sol: out/%.zkey out/%.public.json out/%.proof.json
+out/Verify%.sol: out/%.zkey
 	@echo "## Generating $@"
 	pnpm snarkjs zkey export solidityverifier $< $@
+
+# Generate solidity calldata for testing purposes
+out/%.calldata.txt: out/%.public.json out/%.proof.json
 	echo "Solidity call data for testing:"
-	pnpm snarkjs zkey export soliditycalldata out/$*.public.json out/$*.proof.json
+	pnpm snarkjs zkey export soliditycalldata $^ > $@
 
 ####################################################################################################
 # INPUT-DEPENDANT (for verification / debugging)

@@ -39,27 +39,27 @@ export const CreateGameModal = () => {
   const { write: start } = useGameWrite({
     functionName: "createGame",
     args: [2], // we only handle two players
+    enabled: gameID == null && isModalDisplayed,
     onSuccess(data) {
       const event = gameContract.interface.parseLog(data.logs[0])
       setGameID(event.args.gameID)
     },
     onError(err) {
       console.log("start_err: " + err)
-    },
-    enabled: gameID == null && isModalDisplayed
+    }
   })
 
   const { write: cancel } = useGameWrite({
     functionName: "cancelGame",
     args: [gameID],
+    enabled: gameID != null,
     onSuccess() {
       setGameID(null)
       displayModal(false)
     },
     onError(err) {
       console.log("cancel_err: " + err)
-    },
-    enabled: gameID != null
+    }
   })
 
   // This helps with fast refreshes: if the gameID is already set, the modal should be displayed.

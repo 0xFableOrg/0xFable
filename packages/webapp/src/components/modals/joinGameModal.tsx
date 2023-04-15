@@ -38,6 +38,7 @@ export const JoinGameModal = () => {
         constants.HashZero,
       ]
       : undefined,
+    enabled: inputGameID !== null && isModalDisplayed,
     onSuccess(data) {
       const event = gameContract.interface.parseLog(data.logs[0])
       setGameID(event.args.gameID)
@@ -45,8 +46,7 @@ export const JoinGameModal = () => {
     },
     onError(err) {
       console.log("join_err: " + err)
-    },
-    enabled: inputGameID !== null && isModalDisplayed
+    }
   })
 
   // Check if string is a postive integer.

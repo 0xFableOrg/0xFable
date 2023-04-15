@@ -1,5 +1,7 @@
 pragma circom 2.0.0;
 
+// This is not used anywhere, it's just a dummy circuit that is useful to test build logic.
+
 template Multiplier(n) {
     signal input a;
     signal input b;
