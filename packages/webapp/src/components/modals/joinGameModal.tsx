@@ -1,14 +1,15 @@
-import { useGame } from "src/generated"
 import { BigNumber } from "ethers"
 import { constants } from "ethers/lib"
-import * as store from "src/store"
-import {useMemo, useState} from "react"
-import { useRouter } from "next/router"
-import { deployment } from "deployment"
 import { useAtom } from "jotai"
-import debounce from 'lodash/debounce'
+import debounce from "lodash/debounce"
+import { useRouter } from "next/router"
+import { useMemo, useState } from "react"
+
+import { deployment } from "src/deployment"
+import { useGame } from "src/generated"
 import { useGameWrite } from "src/hooks/fableTransact"
 import { useCheckboxModal } from "src/hooks/useCheckboxModal"
+import * as store from "src/store"
 
 export const JoinGameModal = () => {
   const [ inputGameID, setInputGameID ] = useState(null)

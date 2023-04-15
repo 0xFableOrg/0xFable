@@ -1,3 +1,4 @@
+import { providers } from "ethers"
 import {
   useContractEvent,
   useContractRead,
@@ -5,7 +6,6 @@ import {
   usePrepareContractWrite,
   useWaitForTransaction,
 } from "wagmi"
-import { providers } from "ethers"
 
 // =================================================================================================
 // useWrite

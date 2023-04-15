@@ -1,6 +1,7 @@
-import { useWeb3Modal, Web3Button, Web3NetworkSwitch } from "@web3modal/react"
 import Link from "next/link"
 import { useAccount, useNetwork } from "wagmi"
+import { useWeb3Modal, Web3Button, Web3NetworkSwitch } from "@web3modal/react"
+
 import { CreateGameModal } from "src/components/modals/createGameModal"
 import { JoinGameModal } from "src/components/modals/joinGameModal"
 import { MintDeckModal } from "src/components/modals/mintDeckModal"

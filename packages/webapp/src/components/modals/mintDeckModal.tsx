@@ -1,11 +1,13 @@
 import { useState } from "react"
-import { deployment } from "deployment"
-import { useCheckboxModal } from "src/hooks/useCheckboxModal"
+
+import { deployment } from "src/deployment"
+
 import {
   useCardsCollectionWrite,
   useDeckAirdropWrite,
   useInventoryWrite
 } from "src/hooks/fableTransact"
+import { useCheckboxModal } from "src/hooks/useCheckboxModal"
 
 export const MintDeckModal = () => {
   const [invDelegated, setInvDelegated] = useState(false)
