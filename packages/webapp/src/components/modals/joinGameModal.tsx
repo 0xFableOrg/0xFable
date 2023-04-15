@@ -1,13 +1,8 @@
-import {
-  useGame,
-  useGameJoinGame,
-  usePrepareGameJoinGame,
-} from "src/generated"
-import { useWaitForTransaction } from "wagmi"
+import { useGame } from "src/generated"
 import { BigNumber } from "ethers"
 import { constants } from "ethers/lib"
 import * as store from "src/store"
-import {useMemo, useRef, useState} from "react"
+import {useMemo, useState} from "react"
 import { useRouter } from "next/router"
 import { deployment } from "deployment"
 import { useAtom } from "jotai"
@@ -60,6 +55,7 @@ export const JoinGameModal = () => {
     if (isPositiveInteger(e.target.value))
       setInputGameID(e.target.value)
   }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const handleInputChange = useMemo(() => debounce(handleInputChangeBouncy, 300), [])
 
   return (

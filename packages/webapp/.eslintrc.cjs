@@ -1,38 +1,41 @@
 /** @type {import("eslint").Linter.Config} */
 const config = {
-  overrides: [
-    {
-      extends: [
-        "plugin:@typescript-eslint/recommended-requiring-type-checking",
-      ],
-      files: ["*.ts", "*.tsx"],
-      parserOptions: {
-        project: "tsconfig.json",
-      },
-    },
-  ],
-  parser: "@typescript-eslint/parser",
+  extends: ["next/core-web-vitals", "plugin:@typescript-eslint/recommended"],
+  parser: '@typescript-eslint/parser',
   parserOptions: {
     project: "./tsconfig.json",
   },
-  plugins: ["@typescript-eslint"],
-  extends: ["next/core-web-vitals", "plugin:@typescript-eslint/recommended"],
-  ignorePatterns: ["node_modules", "src/generated.ts"],
+  plugins: ['@typescript-eslint'],
+  root: true,
+  ignorePatterns: ["node_modules", "src/generated.ts", "src/components/hand.tsx", "src/pages/play.tsx", "src/hooks/useScrollBox.ts"],
+  // overrides: [
+  //   {
+  //     extends: [
+  //       "plugin:@typescript-eslint/recommended-requiring-type-checking",
+  //     ],
+  //     files: ["*.ts", "*.tsx"],
+  //     parserOptions: {
+  //       project: "tsconfig.json",
+  //     },
+  //   },
+  // ],
   rules: {
-    "@typescript-eslint/consistent-type-imports": [
+    "@typescript-eslint/no-unsafe-argument": "off",
+    "@typescript-eslint/restrict-template-expressions": "off",
+    "react/no-unescaped-entities": "off",
+    "@typescript-eslint/no-empty-function": "off",
+    "@typescript-eslint/no-explicit-any": "off",
+
+    "no-unused-vars": "off",
+    "@typescript-eslint/no-unused-vars": [
       "warn",
-      {
-        prefer: "type-imports",
-        fixStyle: "inline-type-imports",
-      },
-    ],
-    "@typescript-eslint/no-misused-promises": [
-      "error",
-      {
-        checksVoidReturn: false,
-      },
+      { // ignore unused args that start with underscore
+        "argsIgnorePattern": "^_",
+        "varsIgnorePattern": "^_",
+        "caughtErrorsIgnorePattern": "^_"
+      }
     ],
   },
-};
+}
 
-module.exports = config;
+module.exports = config

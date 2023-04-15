@@ -2,9 +2,6 @@
   "name": "@cards/webapp",
   "version": "0.1.0",
   "private": true,
-  "scripts": {
-    "lint": "next lint"
-  },
   "dependencies": {
     "@web3modal/ethereum": "^2.2.2",
     "@web3modal/react": "^2.2.2",

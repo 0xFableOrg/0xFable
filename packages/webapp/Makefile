@@ -12,3 +12,7 @@ serve:
 dev:
 	pnpm next dev
 .PHONY: dev
+
+lint:
+	pnpm next lint
+.PHONY: lint
