@@ -16,7 +16,15 @@ export type Card = {
   }
 }
 
-enum GameStep {
+export enum GameStatus {
+  UNKNOWN,
+  CREATED,
+  JOINED,
+  STARTED,
+  ENDED
+}
+
+export enum GameStep {
   DRAW,
   PLAY,
   ATTACK,

@@ -3,9 +3,12 @@
 import path from "path"
 import { fileURLToPath } from "url"
 import { dirname } from "path"
+import { createRequire } from "module"
+
+const require = createRequire(import.meta.url)
 
 /** @type {import("next").NextConfig} */
-export default {
+const nextConfig = {
   reactStrictMode: true,
 
   /**
@@ -24,8 +27,12 @@ export default {
     ignoreDuringBuilds: true,
   },
   experimental: {
-    // Currently broken because of Next: https://github.com/pmndrs/swc-jotai/issues/6
-    // swcPlugins: [['@swc-jotai/react-refresh', {}]]
+    // Currently broken in Next 13.3.0: https://github.com/pmndrs/swc-jotai/issues/6
+    // Unlike what is suggested, also broken when I downgrade to Next 13.2.3 and Next 13.1.6.
+    swcPlugins: [
+      // ['@swc-jotai/react-refresh', {}],
+      // ["@swc-jotai/debug-label", {}]
+    ]
   },
   webpack(config, { dev, isServer }) {
 
@@ -50,3 +57,10 @@ export default {
     return config
   }
 }
+
+// Thi hack makes it possible to use the Jotai devtools
+// Source: https://github.com/jotaijs/jotai-devtools/issues/47
+const withTranspileModules = require("next-transpile-modules")([
+  "jotai-devtools",
+])
+export default withTranspileModules(nextConfig)

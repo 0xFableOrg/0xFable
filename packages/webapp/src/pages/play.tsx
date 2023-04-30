@@ -1,16 +1,18 @@
 import { constants } from "ethers/lib"
 import { useAtom } from "jotai"
 import { type NextPage } from "next"
-import {useEffect, useRef, useState} from "react"
+import { useEffect, useRef, useState } from "react"
 import { Address, useAccount } from "wagmi"
 
 import Hand from "src/components/hand"
+import jotaiDebug from "src/components/jotaiDebug"
 import { Navbar } from "src/components/navbar"
 import { deployment } from "src/deployment"
 import { gameABI, useGame } from "src/generated"
+import { useIsHydrated } from "src/hooks/useIsHydrated"
 import * as store from "src/store"
-import {useGameEvents, useGameRead} from "src/hooks/fableTransact";
-import {StaticGameData} from "src/types";
+import { useGameEvents, useGameRead } from "src/hooks/fableTransact"
+import {StaticGameData} from "src/types"
 
 const events = [
   'CardDrawn',
@@ -18,7 +20,8 @@ const events = [
   'PlayerAttacked',
   'PlayerDefended',
   'PlayerPassed',
-  'PlayerJoined'
+  'PlayerJoined',
+  'GameStarted'
 ]
 
 /*
@@ -40,6 +43,7 @@ const events = [
 
 const Play: NextPage = () => {
 
+  const isHydrated = useIsHydrated()
   const [ gameID ] = useAtom(store.gameID)
   // const ID = gameID ? BigNumber.from(gameID) : null
   const [ ID ] = useState(0) // TODO debug purposes
@@ -47,34 +51,6 @@ const Play: NextPage = () => {
   const zero = constants.HashZero
   const { address } = useAccount()
   const gameContract = useGame({ address: deployment.Game })
-
-  useGameEvents(events, (name, ...args) => {
-    console.log(`event fired ${name}(${args})`)
-    switch (name) {
-      case 'CardDrawn': {
-        const [gameID, player] = args;
-        break;
-      } case 'CardPlayed': {
-        const [gameID, player, card] = args;
-        break;
-      } case 'PlayerAttacked': {
-        const [gameID, attacking, defending] = args;
-        break;
-      } case 'PlayerDefended': {
-        const [gameID, attacking, defending] = args;
-        break;
-      } case 'PlayerPassed': {
-        const [gameID, player] = args;
-        break;
-      } case 'PlayerJoined': {
-        const [gameID, player] = args;
-        // Refetch game data to get up to date player list.
-        if (player != address && playersLeftToJoin.current > 0)
-          refetch()
-        break;
-      }
-    }
-  })
 
   const { data, refetch } = useGameRead<StaticGameData>({
     functionName: "staticGameData",
@@ -106,7 +82,7 @@ const Play: NextPage = () => {
   // TODO: learn how to pop a spinner modal + pop one while waiting for player to join
 
 
-  console.log(data)
+  // console.log(data)
 
 
 
@@ -158,6 +134,7 @@ const Play: NextPage = () => {
 
   return (
     <>
+      {jotaiDebug(isHydrated)}
       <main className="flex min-h-screen flex-col">
         <Navbar />
 

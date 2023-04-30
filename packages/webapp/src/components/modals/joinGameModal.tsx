@@ -39,9 +39,6 @@ export const JoinGameModal = () => {
       const event = gameContract.interface.parseLog(data.logs[0])
       setGameID(event.args.gameID)
       void router.push("/play")
-    },
-    onError(err) {
-      console.log("join_err: " + err)
     }
   })
 

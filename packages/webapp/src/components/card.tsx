@@ -96,7 +96,7 @@ export const Card = ({ id, className }: { id: number; className?: string }) => {
   return (
     <div
       className={` ${className} shadow-2xl} z-[50] flex h-[33rem] max-w-[24rem] scale-[65%] cursor-pointer flex-col items-center justify-evenly rounded-lg  border-4 bg-gray-900 p-5 text-center`}
-      onClick={() => addToBoard(id) }
+      onClick={() => addToBoard(BigInt(id)) }
     >
       <h1 className="font- font-serif text-3xl font-bold text-slate-200">
         {cards[id].name}

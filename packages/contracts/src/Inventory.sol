@@ -240,9 +240,18 @@ contract Inventory {
 
     // ---------------------------------------------------------------------------------------------
 
-    // Return the list of cards in the given deck of the given player.
+    // Returns the list of cards in the given deck of the given player.
     function getDeck(address player, uint8 deckID) external view
             exists(player, deckID) returns(uint256[] memory deckCards) {
         return decks[player][deckID].cards;
     }
+
+    // ---------------------------------------------------------------------------------------------
+
+    // Returns the number of deck a player has created.
+    function getNumDecks(address player) external view returns (uint8) {
+        return uint8(decks[player].length);
+    }
+
+    // ---------------------------------------------------------------------------------------------
 }

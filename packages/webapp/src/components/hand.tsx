@@ -10,7 +10,7 @@ const Hand = ({
   cards,
   className,
 }: {
-  cards: ethers.BigNumberish[];
+  cards: BigInt[];
   className?: string;
 }) => {
   const hand: any = [];

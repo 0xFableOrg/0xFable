@@ -12,7 +12,7 @@ import { useCheckboxModal } from "src/hooks/useCheckboxModal"
 export const MintDeckModal = ({ callback }) => {
   const [invDelegated, setInvDelegated] = useState(false)
   const [airDelegated, setAirDelegated] = useState(false)
-  const { checkboxRef, isModalDisplayed, displayModal } = useCheckboxModal()
+  const { checkboxRef, checkboxCallback, isModalDisplayed, displayModal } = useCheckboxModal()
 
   const { write: approve } = useCardsCollectionWrite({
     functionName: "setApprovalForAll",
@@ -20,9 +20,6 @@ export const MintDeckModal = ({ callback }) => {
     enabled: isModalDisplayed,
     onSuccess() {
       setInvDelegated(true)
-    },
-    onError(err) {
-      console.log("approve_err: " + err)
     }
   })
 
@@ -32,9 +29,6 @@ export const MintDeckModal = ({ callback }) => {
     enabled: isModalDisplayed && invDelegated,
     onSuccess() {
       setAirDelegated(true)
-    },
-    onError(err) {
-      console.log("delegate_err: " + err)
     }
   })
 
@@ -44,9 +38,6 @@ export const MintDeckModal = ({ callback }) => {
     onSuccess() {
       displayModal(false)
       callback?.()
-    },
-    onError(err) {
-      console.log("claim_err: " + err)
     }
   })
 
@@ -64,7 +55,7 @@ export const MintDeckModal = ({ callback }) => {
       </label>
 
       {/* Put this part before </body> tag */}
-      <input type="checkbox" id="my-modal-4" ref={checkboxRef} className="modal-toggle" />
+      <input type="checkbox" id="my-modal-4" ref={checkboxRef} onChange={checkboxCallback} className="modal-toggle" />
       <label htmlFor="my-modal-4" className="modal cursor-pointer">
         <label className="modal-box relative">
           <h3 className="text-lg font-bold">Minting Deck...</h3>

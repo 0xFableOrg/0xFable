@@ -1,3 +1,4 @@
+import { useAtomsDebugValue, useAtomsDevtools } from "jotai-devtools"
 import debounce from "lodash/debounce"
 import { type NextPage } from "next"
 import Head from "next/head"
@@ -7,11 +8,12 @@ import Image from "next/image"
 import { useState, useMemo } from "react"
 import { useAccount } from "wagmi"
 
+import jotaiDebug from "src/components/jotaiDebug"
 import { MintDeckModal } from "src/components/modals/mintDeckModal"
 import { Navbar } from "src/components/navbar"
 import { deployment } from "src/deployment"
 import { useInventoryCardsCollectionGetCollection } from "src/generated"
-import { useIsHydration } from "src/hooks/useIsHydration"
+import { useIsHydrated } from "src/hooks/useIsHydrated"
 import { Card } from "src/types"
 
 // NOTE(norswap & geniusgarlic): Just an example, when the game actually has effects & types,
@@ -23,9 +25,9 @@ const initialEffectMap = Object.assign({}, ...effects.map(name => ({[name]: fals
 const types = ['Creature', 'Magic', 'Weapon']
 const initialTypeMap = Object.assign({}, ...types.map(name => ({[name]: false})))
 
-const Collection: NextPage = () => {
+const Collection = () => {
 
-  const isHydration = useIsHydration()
+  const isHydrated = useIsHydrated()
   const { address } = useAccount()
   const [ selectedCard, setSelectedCard ] = useState<Card>(null)
   const [ searchInput, setSearchInput ] = useState('')
@@ -75,6 +77,7 @@ const Collection: NextPage = () => {
         <title>0xFable: My Collection</title>
       </Head>
 
+      {jotaiDebug(isHydrated)}
       <main className="flex h-screen flex-col">
         <Navbar />
         <div className="mx-6 mb-6 grid grow grid-cols-12 gap-4 min-h-0">
@@ -138,12 +141,12 @@ const Collection: NextPage = () => {
 
           {/* Card Collection Display */}
           <div className="col-span-9 flex rounded-xl border overflow-y-auto">
-            { isHydration && cards.length == 0 &&
+            { isHydrated && cards.length == 0 &&
               <div className="flex flex-row w-full justify-center items-center">
                 <MintDeckModal callback={refetch} />
               </div>}
 
-            { isHydration && cards.length > 0 &&
+            { isHydrated && cards.length > 0 &&
               <div className="grid grid-cols-4 gap-4 overflow-y-auto pb-4">
               {cards.map(card => (
                 <div className="m-4 bg-slate-900/50 hover:bg-slate-800 rounded-lg p-4 border-4 border-slate-900"

@@ -1,3 +1,4 @@
+import { BigNumber } from "ethers"
 import type { AppType } from "next/app"
 import Head from "next/head"
 import { configureChains, createClient, WagmiConfig } from "wagmi"
@@ -27,6 +28,49 @@ const ethereumClient = new EthereumClient(wagmiClient, chains)
 // - "SingleFile is hooking the IntersectionObserver API to detect and load deferred images."
 
 const MyApp: AppType = ({ Component, pageProps }) => {
+
+  const oldError = console.error
+  console.error = (err) => {
+    const code = err?.code
+    // Suppress force-printed error that we can handle in error handlers.
+    if (code === "UNPREDICTABLE_GAS_LIMIT") {
+      window["suppressedErrors"] ||= []
+      window["suppressedErrors"].push(err)
+    } else {
+      oldError(err)
+    }
+  }
+
+  const oldWarn = console.warn
+  console.warn = (warning) => {
+    if (typeof warning === "string" &&
+         // I KNOW !!!
+      (  warning.startsWith("Lit is in dev mode.")
+         // WalletConnect U suck
+      || warning.startsWith("SingleFile is hooking the IntersectionObserver API to detect and load deferred images")
+      )) {
+      window["suppressedWarnings"] ||= []
+      window["suppressedWarnings"].push(warning)
+    } else {
+      oldWarn(warning)
+    }
+  }
+
+  const oldInfo = console.info
+  console.info = (info) => {
+    // WalletConnect U suck
+    if (typeof info === "string" && info.startsWith("Unsuccessful attempt at preloading some images")) {
+      window["suppressedInfos"] ||= []
+      window["suppressedInfos"].push(info)
+    } else {
+      oldInfo(info)
+    }
+  }
+
+  if (BigInt.prototype["toJSON"] == undefined) {
+    BigInt.prototype["toJSON"] = function() { return this.toString() }
+  }
+
   return (
     <>
       <Head>

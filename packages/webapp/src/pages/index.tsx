@@ -2,15 +2,18 @@ import Link from "next/link"
 import { useAccount, useNetwork } from "wagmi"
 import { useWeb3Modal, Web3Button, Web3NetworkSwitch } from "@web3modal/react"
 
+import jotaiDebug from "src/components/jotaiDebug"
 import { CreateGameModal } from "src/components/modals/createGameModal"
 import { JoinGameModal } from "src/components/modals/joinGameModal"
 import { MintDeckModal } from "src/components/modals/mintDeckModal"
-import { useIsHydration } from "src/hooks/useIsHydration"
+import { useIsHydrated } from "src/hooks/useIsHydrated"
 
 const LOCALHOST = 1337
 
+let counter = 0
+
 const Home = () => {
-  const isHydration = useIsHydration()
+  const isHydration = useIsHydrated()
   const { address } = useAccount()
   const { open } = useWeb3Modal()
   const { chain } = useNetwork()
@@ -21,6 +24,7 @@ const Home = () => {
   const isRightNetwork = !notConnected && chain?.id === LOCALHOST
 
   return <>
+    {jotaiDebug(isHydration)}
     <main className="flex flex-col min-h-screen items-center justify-center">
       <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16">
         <h1 className="font-serif text-5xl font-extrabold tracking-tight text-white sm:text-[5rem]">
