@@ -22,9 +22,12 @@ export function setup() {
 
 // -------------------------------------------------------------------------------------------------
 
+// Sadly, it's impossible to prevent Metamask errors, as these are caused by an addon and are
+// isolated from the window context.
+
 const filteredErrorCodes = [
-  // Metamask — we can handle this via error handlers
-  "UNPREDICTABLE_GAS_LIMIT"
+  // we can handle this via error handlers
+  "UNPREDICTABLE_GAS_LIMIT",
 ]
 
 const filteredErrorMessages = [] // none right now

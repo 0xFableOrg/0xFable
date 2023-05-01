@@ -8,12 +8,14 @@ import { CheckboxModal } from "src/components/modals/checkboxModal"
 import { deployment } from "src/deployment"
 import { useGame } from "src/generated"
 import { useGameWrite } from "src/hooks/fableTransact"
-import { CheckboxModalControl, useCheckboxModal } from "src/hooks/useCheckboxModal"
+import { type CheckboxModalContentProps, useCheckboxModal } from "src/hooks/useCheckboxModal"
 import * as store from "src/store"
 import { GameStatus } from "src/types"
 import { parseBigInt } from "src/utils/rpc-utils"
 
-const CreateGameModalContent = ({ modalControl }: { modalControl: CheckboxModalControl }) => {
+// =================================================================================================
+
+const CreateGameModalContent = ({ modalControl }: CheckboxModalContentProps) => {
 
   const [ gameID, setGameID ] = useAtom(store.gameID)
   const [ gameStatus ] = useAtom(store.gameStatus)
@@ -114,6 +116,8 @@ const CreateGameModalContent = ({ modalControl }: { modalControl: CheckboxModalC
     }
   })
 
+  // -----------------------------------------------------------------------------------------------
+
   return <>
       {!created && <>
         <h3 className="text-xl font-bold normal-case">Create Game</h3>
@@ -164,6 +168,8 @@ const CreateGameModalContent = ({ modalControl }: { modalControl: CheckboxModalC
     </>
 }
 
+// =================================================================================================
+
 export const CreateGameModal = () => {
   const [ gameID, ] = useAtom(store.gameID)
   const modalControl = useCheckboxModal()
@@ -173,6 +179,8 @@ export const CreateGameModal = () => {
   useEffect(() => {
     if (gameID !== null && !modalControl.isModalDisplayed) modalControl.displayModal(true)
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // -----------------------------------------------------------------------------------------------
 
   return <>
     <label
@@ -189,3 +197,5 @@ export const CreateGameModal = () => {
     </CheckboxModal>
   </>
 }
+
+// =================================================================================================

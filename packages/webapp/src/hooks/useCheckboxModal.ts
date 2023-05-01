@@ -40,6 +40,12 @@ export type CheckboxModalControl = {
 
 // -------------------------------------------------------------------------------------------------
 
+export type CheckboxModalContentProps = {
+  modalControl: CheckboxModalControl
+}
+
+// -------------------------------------------------------------------------------------------------
+
 /**
  * This hook sets up the logic for a modal controlled by a checkbox, which is a component
  * implemented by {@link CheckboxModal}.

@@ -106,9 +106,7 @@ export function gameEventListener(name: string, args: readonly any[]) {
       const [, player] = args;
       break;
     } case 'PlayerJoined': {
-      console.log("player joined")
       const [, player] = args;
-      console.assert(store.get(gameStatus_) === GameStatus.CREATED)
       // Refetch game data to get up to date player list.
       void refreshGameData()
       // In *theory*, this could be missed. In practice, it's unlikely as we subscribe
