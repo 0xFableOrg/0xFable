@@ -69,15 +69,14 @@ export function setGameID_(get: Getter, set: Setter, ID: BigInt) {
 // -------------------------------------------------------------------------------------------------
 
 /**
- * Returns the stored game data. If it is not yet available, this will trigger a refresh and
- * wait until the result is available to return.
+ * Returns the stored game data. If it is not yet available, this will return null and trigger an
+ * async refresh.
  */
-export async function getGameData_(get: Getter): Promise<StaticGameData> {
-  // TODO this needs suspense support - or better, simply don't await & handle updates in react!
+export function getGameData_(get: Getter): StaticGameData {
   const current = get(gameData_)
-  if (current != null) return current
-  await refreshGameData()
-  return get(gameData_)
+  if (current == null)
+    void refreshGameData()
+  return current
 }
 
 // -------------------------------------------------------------------------------------------------

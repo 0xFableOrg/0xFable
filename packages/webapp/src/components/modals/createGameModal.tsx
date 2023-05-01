@@ -48,10 +48,8 @@ export const CreateGameModal = () => {
   //   deployment.game + sigHash.slice(2)
   // ).padEnd(66, "0")
 
-  // TODO test end to end
-  // TODO do something if data missing? (spinner)
+  // TODO spinner for joining game & game creation
   // TODO: store the game ID in local storage ... + test all the flows
-  // TODO: suspene for game data?
 
   // TODO(later) weird cursor behaviour
   // TODO(later): meaningfully handle errors

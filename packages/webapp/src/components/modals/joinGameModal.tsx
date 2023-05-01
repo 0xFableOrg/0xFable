@@ -10,6 +10,8 @@ import { useGame } from "src/generated"
 import { useGameWrite } from "src/hooks/fableTransact"
 import { useCheckboxModal } from "src/hooks/useCheckboxModal"
 import * as store from "src/store"
+import { isStringPositiveInteger } from "src/utils/js-utils"
+import { parseBigInt } from "src/utils/rpc-utils"
 
 export const JoinGameModal = () => {
   const [ inputGameID, setInputGameID ] = useState(null)
@@ -37,20 +39,14 @@ export const JoinGameModal = () => {
     enabled: inputGameID !== null && isModalDisplayed,
     onSuccess(data) {
       const event = gameContract.interface.parseLog(data.logs[0])
-      setGameID(event.args.gameID)
+      setGameID(parseBigInt(event.args.gameID))
       void router.push("/play")
     }
   })
 
-  // Check if string is a postive integer.
-  function isPositiveInteger(str: string) {
-    const n = Math.floor(Number(str))
-    return n !== Infinity && String(n) === str && n >= 0
-  }
-
   function handleInputChangeBouncy(e) {
     e.stopPropagation()
-    if (isPositiveInteger(e.target.value))
+    if (isStringPositiveInteger(e.target.value))
       setInputGameID(e.target.value)
   }
   // eslint-disable-next-line react-hooks/exhaustive-deps

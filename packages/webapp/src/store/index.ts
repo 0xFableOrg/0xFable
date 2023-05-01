@@ -14,7 +14,7 @@
 
 import { atom } from "jotai"
 import { GameStatus, type Address, type StaticGameData } from "src/types"
-import { asyncWriteableAtom, readOnlyAtom, writeableAtom } from "src/utils/react-utils"
+import { readOnlyAtom, writeableAtom } from "src/utils/react-utils"
 import { gameID_, playerAddress_, gameStatus_ } from "src/store/private"
 import { getGameData_, setGameData_, setGameID_ } from "src/store/update"
 
@@ -28,7 +28,7 @@ export const playerAddress = readOnlyAtom<Address>(playerAddress_)
 export const gameID = writeableAtom<BigInt>((get) => get(gameID_), setGameID_)
 
 /** Static game data (excluding per-player information).  */
-export const gameData = asyncWriteableAtom<StaticGameData>(getGameData_, setGameData_)
+export const gameData = writeableAtom<StaticGameData>(getGameData_, setGameData_)
 
 /** Current game status (CREATED, JOINED, STARTED, etc) */
 export const gameStatus = readOnlyAtom<GameStatus>(gameStatus_)

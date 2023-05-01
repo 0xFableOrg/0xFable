@@ -15,4 +15,12 @@ export function toString(obj: any) {
   return str === "[object Object]" ? JSON.stringify(obj) : str
 }
 
+// -------------------------------------------------------------------------------------------------
+
+/** Check if the string represents a positive integer. */
+export function isStringPositiveInteger(str: string): boolean {
+  const n = Math.floor(Number(str))
+  return n !== Infinity && String(n) === str && n >= 0
+}
+
 // =================================================================================================
