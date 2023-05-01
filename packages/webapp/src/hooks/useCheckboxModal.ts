@@ -42,7 +42,7 @@ export type CheckboxModalControl = {
 
 export type CheckboxModalContentProps = {
   modalControl: CheckboxModalControl
-}
+} & Record<string, any>
 
 // -------------------------------------------------------------------------------------------------
 
