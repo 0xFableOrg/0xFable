@@ -13,17 +13,6 @@ import * as store from "src/store"
 import { GameStatus } from "src/types"
 import { parseBigInt } from "src/utils/rpc-utils"
 
-// TODO(norswap): check the following is still true after rearchitecturing
-
-// The following directive helps with React fast refresh, forcing it to remount the component when
-// the file is edited. Without it, the behaviour is truly deranged: after creating then cancelling
-// a game, fast refresh causes the `onSuccess` hook of the `createGame` write to be called again,
-// resulting in the old gameID being resurrected. This causes an error in the `cancelGame` write,
-// which is now active but whose simulation fails (because the game was already cancelled on the
-// blockchain).
-
-// @refresh reset
-
 const CreateGameModalContent = ({ modalControl }: { modalControl: CheckboxModalControl }) => {
 
   const [ gameID, setGameID ] = useAtom(store.gameID)
