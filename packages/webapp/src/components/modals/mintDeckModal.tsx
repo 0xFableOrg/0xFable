@@ -1,7 +1,7 @@
 import { useState } from "react"
 
 import { CheckboxModal } from "src/components/modals/checkboxModal"
-import { ModalTitle } from "src/components/modals/modalElements"
+import { ModalTitle, SpinnerWithMargin } from "src/components/modals/modalElements"
 import { deployment } from "src/deployment"
 import {
   useCardsCollectionWrite,
@@ -15,10 +15,12 @@ import { CheckboxModalContentProps, useCheckboxModal } from "src/hooks/useCheckb
 const MintDeckModalContent = ({ modalControl, callback }: CheckboxModalContentProps) => {
   const [invDelegated, setInvDelegated] = useState(false)
   const [airDelegated, setAirDelegated] = useState(false)
+  const [ loading, setLoading ] = useState<string>(null)
 
   const { write: approve } = useCardsCollectionWrite({
     functionName: "setApprovalForAll",
     args: [deployment.Inventory, true],
+    setLoading,
     onSuccess() {
       setInvDelegated(true)
     }
@@ -28,6 +30,7 @@ const MintDeckModalContent = ({ modalControl, callback }: CheckboxModalContentPr
     functionName: "setDelegation",
     args: [deployment.DeckAirdrop, true],
     enabled: invDelegated,
+    setLoading,
     onSuccess() {
       setAirDelegated(true)
     }
@@ -36,6 +39,7 @@ const MintDeckModalContent = ({ modalControl, callback }: CheckboxModalContentPr
   const { write: claim } = useDeckAirdropWrite({
     functionName: "claimAirdrop",
     enabled: airDelegated,
+    setLoading,
     onSuccess() {
       modalControl.displayModal(false)
       callback?.()
@@ -46,6 +50,11 @@ const MintDeckModalContent = ({ modalControl, callback }: CheckboxModalContentPr
   // TODO(LATER): pop a modal to indicate that the mint is successful? do something while getting collection
 
   // -----------------------------------------------------------------------------------------------
+
+  if (loading) return <>
+    <ModalTitle>{loading}</ModalTitle>
+    <SpinnerWithMargin />
+  </>
 
   return <>
     <ModalTitle>Minting Deck...</ModalTitle>

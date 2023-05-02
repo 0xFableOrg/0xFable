@@ -5,7 +5,7 @@ import debounce from "lodash/debounce"
 import { useRouter } from "next/router"
 import { useMemo, useState } from "react"
 import { CheckboxModal } from "src/components/modals/checkboxModal"
-import { ModalTitle } from "src/components/modals/modalElements"
+import { ModalTitle, SpinnerWithMargin } from "src/components/modals/modalElements"
 
 import { deployment } from "src/deployment"
 import { useGame } from "src/generated"
@@ -20,6 +20,7 @@ import { parseBigInt } from "src/utils/rpc-utils"
 const JoinGameModalContent = () => {
   const [ inputGameID, setInputGameID ] = useState(null)
   const [ , setGameID ] = useAtom(store.gameID)
+  const [ loading, setLoading ] = useState<string>(null)
   const router = useRouter()
   const gameContract = useGame({ address: deployment.Game })
 
@@ -40,6 +41,7 @@ const JoinGameModalContent = () => {
       ]
       : undefined,
     enabled: inputGameID !== null,
+    setLoading,
     onSuccess(data) {
       const event = gameContract.interface.parseLog(data.logs[0])
       setGameID(parseBigInt(event.args.gameID))
@@ -54,6 +56,13 @@ const JoinGameModalContent = () => {
   }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const handleInputChange = useMemo(() => debounce(handleInputChangeBouncy, 300), [])
+
+  // -----------------------------------------------------------------------------------------------
+
+  if (loading) return <>
+    <ModalTitle>{loading}</ModalTitle>
+    <SpinnerWithMargin />
+  </>
 
   return <>
     <ModalTitle>Joining Game...</ModalTitle>
