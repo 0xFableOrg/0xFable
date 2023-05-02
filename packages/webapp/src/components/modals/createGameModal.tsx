@@ -6,7 +6,6 @@ import { useEffect, useState } from "react"
 
 import { CheckboxModal } from "src/components/modals/checkboxModal"
 import { ModalTitle, SpinnerWithMargin } from "src/components/modals/modalElements"
-import { Spinner } from "src/components/spinner"
 import { deployment } from "src/deployment"
 import { useGame } from "src/generated"
 import { useGameWrite } from "src/hooks/fableTransact"
@@ -54,10 +53,6 @@ const CreateGameModalContent = ({ modalControl }: CheckboxModalContentProps) => 
   //   deployment.game + sigHash.slice(2)
   // ).padEnd(66, "0")
   // -----------------------------------------------------------------------------------------------
-
-  // TODO spinner for joining game & game creation
-  // TODO: store the game ID in local storage ... + test all the flows
-  // TODO(later): meaningfully handle errors
 
   const { write: create } = useGameWrite({
     functionName: "createGame",
@@ -124,8 +119,16 @@ const CreateGameModalContent = ({ modalControl }: CheckboxModalContentProps) => 
   // -----------------------------------------------------------------------------------------------
 
   if (loading) return <>
+    {/*<ModalTitle>{loading}</ModalTitle>*/}
+    {/*<SpinnerWithMargin />*/}
+    {/*<button className="btn center" disabled={!create} onClick={create}>btn</button>*/}
     <ModalTitle>{loading}</ModalTitle>
     <SpinnerWithMargin />
+    {/*<div className="flex justify-center">*/}
+    {/*  <button className="btn center" disabled={!create} onClick={create}>*/}
+    {/*    Create Game*/}
+    {/*  </button>*/}
+    {/*</div>*/}
   </>
 
   if (!created) return <>
@@ -157,7 +160,7 @@ const CreateGameModalContent = ({ modalControl }: CheckboxModalContentProps) => 
         <Link className="btn" href="/play">
           Return to Game
         </Link>}
-      <button className="btn" disabled={!cancel} onClick={() => cancel?.()}>
+      <button className="btn" disabled={!cancel} onClick={cancel}>
         Cancel Game
       </button>
     </div>

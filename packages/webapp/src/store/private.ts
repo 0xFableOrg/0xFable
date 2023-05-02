@@ -8,6 +8,7 @@
 // =================================================================================================
 
 import { atom } from "jotai"
+import { atomWithStorage } from "jotai/utils"
 
 import { Address, GameStatus, StaticGameData } from "src/types"
 import { gameData, gameID, gameStatus, playerAddress } from "src/store"
@@ -20,6 +21,7 @@ export const playerAddress_ = atom(null as Address)
 
 /** cf. {@link gameID} */
 export const gameID_ = atom(null as BigInt)
+// export const gameID_ = atomWithStorage("0xFable::gameID_", null as BigInt)
 
 /** cf. {@link gameData} */
 export const gameData_ = atom<StaticGameData>(null as StaticGameData)

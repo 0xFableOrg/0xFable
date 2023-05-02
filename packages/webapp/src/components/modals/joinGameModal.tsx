@@ -77,7 +77,7 @@ const JoinGameModalContent = () => {
     <button
       className="btn"
       disabled={!inputGameID || !join}
-      onClick={() => { join?.() }}>
+      onClick={join}>
       Join Game
     </button>
   </>

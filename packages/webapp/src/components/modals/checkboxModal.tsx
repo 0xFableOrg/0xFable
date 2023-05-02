@@ -19,10 +19,9 @@ export type CheckboxModalProps = {
  * useCheckboxModal}, whose result is passed down for the parent (to give the parent the opportunity
  * to control the modal), and can also be passed to the modal's children for the same reasons.
  *
- * Note that Chrome exhibit some weird behaviours in relation to this. In particular, using an
- * anonymous function as an event callback inside the modal's children can cause the checkbox to be
- * toggled (this doesn't happen when using a reference to a function, instead of creating the
- * anonymous function inline in the JSX).
+ * Event handlers in the children of the modal MUST use {@link Event.preventDefault} to prevent the
+ * element from toggling a surround-closeable modal when clicked. You can use {@link noPropagation}
+ * from the utils for this.
  *
  * @param id HTML ID for the checkbox, can be used to create a button that toggles the modal.
  * @param control The control object returned by {@link useCheckboxModal}.
@@ -72,12 +71,16 @@ export const CheckboxModal = ({
     {isModalDisplayed && surroundCloseable && <>
       {/* The outer label enables the htmlFor to toggle the checkbox on click.
           We set it to have a pointer (clicker) cursor to indicate this.
-          The inner label is the modal itself, having it be a label lets it not inherit the pointer
-          cursor somehow. */}
+          The inner label is the modal itself, it must a label to override the htmlFor of its
+          parent. */}
       <label htmlFor={id} className="modal cursor-pointer">
-        <label className="modal-box relative border-white border">
+        <label htmlFor="" className="modal-box relative border-white border cursor-auto">
           <label htmlFor={id} className="btn btn-sm btn-circle absolute right-2 top-2">✕</label>
-          {children}
+          {/* The onClick handler here is crucial to avoid click on buttons etc inside the modal
+              from toggling the modal. */}
+          <div onClick={(e) => e.preventDefault()}>
+            {children}
+          </div>
         </label>
       </label>
     </>}
