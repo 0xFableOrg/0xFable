@@ -3,6 +3,7 @@ import { providers } from "ethers"
 import { deployment } from "src/deployment"
 import { cardsCollectionABI, deckAirdropABI, gameABI, inventoryABI } from "src/generated"
 import { useEvents, useRead, UseReadResult, useWrite, UseWriteResult } from "src/hooks/transact"
+import { type Hash } from "src/types"
 
 // =================================================================================================
 // use<Contract>Write: just `useWrite` with the contract address and ABI already set.
@@ -10,8 +11,11 @@ import { useEvents, useRead, UseReadResult, useWrite, UseWriteResult } from "src
 export type UseContractSpecificWriteParams = {
   functionName: string,
   args?: any[],
+  onWrite?: () => void,
+  onSigned?: (data: { hash: Hash }) => void,
   onSuccess?: (data: providers.TransactionReceipt) => void,
   onError?: (err: Error) => void,
+  setLoading?: (string) => void,
   enabled?: boolean
 }
 
@@ -77,5 +81,9 @@ export function useGameRead<T>(params: UseContractSpecificReadParams): UseReadRe
 export function useGameEvents(eventNames, listener) {
   return useEvents(deployment.Game, gameABI, eventNames, listener)
 }
+
+// =================================================================================================
+
+
 
 // =================================================================================================

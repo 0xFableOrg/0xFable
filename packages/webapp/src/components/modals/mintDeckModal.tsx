@@ -1,6 +1,7 @@
 import { useState } from "react"
 
 import { CheckboxModal } from "src/components/modals/checkboxModal"
+import { ModalTitle } from "src/components/modals/modalElements"
 import { deployment } from "src/deployment"
 import {
   useCardsCollectionWrite,
@@ -47,7 +48,7 @@ const MintDeckModalContent = ({ modalControl, callback }: CheckboxModalContentPr
   // -----------------------------------------------------------------------------------------------
 
   return <>
-    <h3 className="text-lg font-bold">Minting Deck...</h3>
+    <ModalTitle>Minting Deck...</ModalTitle>
     <p className="py-4">
       Mint a deck of cards to play the game with your friends.
     </p>

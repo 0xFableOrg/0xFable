@@ -1,4 +1,5 @@
 import { providers } from "ethers"
+import { type Hash } from "src/types"
 import {
   useContractEvent,
   useContractRead,
@@ -11,12 +12,15 @@ import {
 // useWrite
 
 export type UseWriteParams = {
-  contract: `0x${string}`,
-  abi: any,
-  functionName: string,
-  args?: any[],
-  onSuccess?: (data: providers.TransactionReceipt) => void,
-  onError?: (err: Error) => void,
+  contract: `0x${string}`
+  abi: any
+  functionName: string
+  args?: any[]
+  onWrite?: () => void
+  onSuccess?: (data: providers.TransactionReceipt) => void
+  onSigned?: (data: { hash: Hash }) => void
+  onError?: (err: Error) => void
+  setLoading?: (string) => void
   enabled?: boolean
 }
 
@@ -26,13 +30,37 @@ export type UseWriteResult = {
 
 export function useWrite(params: UseWriteParams): UseWriteResult {
 
+  // TODO: we're doing significant work here, this should be memoized
+
   const { contract, abi, functionName, args } = params
-  let { onSuccess, onError, enabled } = params
+  let { onSigned, onWrite, onSuccess, onError, setLoading, enabled } = params
   if (enabled == undefined) enabled = true
-  if (!onSuccess) onSuccess = _ => {}
-  if (!onError) onError = error => {
-    console.log(`Error in useWrite (${functionName}):`)
-    console.log(error)
+
+  if (setLoading) {
+    onWrite = onWrite
+      ? () => { setLoading("Waiting for signature..."); params.onWrite() }
+      : () => setLoading("Waiting for signature...")
+    onSigned = onSigned
+      ? data => { setLoading("Waiting for on-chain inclusion..."); params.onSigned(data) }
+      : _ => setLoading("Waiting for on-chain inclusion...")
+    onSuccess = onSuccess
+      ? data => { setLoading(null); params.onSuccess(data) }
+      : _ => setLoading(null)
+    onError = onError
+      ? error => { setLoading(null); params.onError(error) }
+      : error => {
+        setLoading(null)
+        console.log(`Error in useWrite (${functionName}):`)
+        console.log(error)
+      }
+  } else {
+    if (!onWrite)   onWrite   = () => {}
+    if (!onSuccess) onSuccess = _  => {}
+    if (!onSigned)  onSigned  = _  => {}
+    if (!onError) onError = error => {
+      console.log(`Error in useWrite (${functionName}):`)
+      console.log(error)
+    }
   }
 
   // TODO(norswap): It could be good to include some generic error handling / preprocessing here.
@@ -51,9 +79,14 @@ export function useWrite(params: UseWriteParams): UseWriteResult {
   })
 
   // Uses the configuration to get a write function which will send the transaction. After `write`
-  // is called, the `data` will be populated with a transaction hash (the hash is known before the
-  // transaction lands on chain).
-  const { data, write } = useContractWrite({...config, onError})
+  // is called and the user signs the transaction in the wallet, the `data` will be populated with a
+  // transaction hash (the hash is known before the transaction lands on chain).
+  const { data, write } = useContractWrite({
+    ...config,
+    onMutate: onWrite,
+    onSuccess: onSigned,
+    onError
+  })
 
   // `data` reflects the last invocation of `write` with the same configuration.
   //

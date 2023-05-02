@@ -5,6 +5,7 @@ import debounce from "lodash/debounce"
 import { useRouter } from "next/router"
 import { useMemo, useState } from "react"
 import { CheckboxModal } from "src/components/modals/checkboxModal"
+import { ModalTitle } from "src/components/modals/modalElements"
 
 import { deployment } from "src/deployment"
 import { useGame } from "src/generated"
@@ -55,7 +56,7 @@ const JoinGameModalContent = () => {
   const handleInputChange = useMemo(() => debounce(handleInputChangeBouncy, 300), [])
 
   return <>
-    <h3 className="text-lg font-bold">Joining Game...</h3>
+    <ModalTitle>Joining Game...</ModalTitle>
     <p className="py-4">Enter the game ID you want to join.</p>
     <input
       type="number"

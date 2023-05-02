@@ -19,6 +19,11 @@ export type CheckboxModalProps = {
  * useCheckboxModal}, whose result is passed down for the parent (to give the parent the opportunity
  * to control the modal), and can also be passed to the modal's children for the same reasons.
  *
+ * Note that Chrome exhibit some weird behaviours in relation to this. In particular, using an
+ * anonymous function as an event callback inside the modal's children can cause the checkbox to be
+ * toggled (this doesn't happen when using a reference to a function, instead of creating the
+ * anonymous function inline in the JSX).
+ *
  * @param id HTML ID for the checkbox, can be used to create a button that toggles the modal.
  * @param control The control object returned by {@link useCheckboxModal}.
  */
@@ -70,11 +75,9 @@ export const CheckboxModal = ({
           The inner label is the modal itself, having it be a label lets it not inherit the pointer
           cursor somehow. */}
       <label htmlFor={id} className="modal cursor-pointer">
-        <label className="modal-box relative">
+        <label className="modal-box relative border-white border">
           <label htmlFor={id} className="btn btn-sm btn-circle absolute right-2 top-2">✕</label>
-          { // Pass displayModal as a prop to children
-            React.Children.map(children, child =>
-              React.cloneElement(child, { displayModal } as any))}
+          {children}
         </label>
       </label>
     </>}
@@ -82,12 +85,10 @@ export const CheckboxModal = ({
     {isModalDisplayed && !surroundCloseable && <>
       {/* Not sure why cursor-auto is required here (otherwise we get a pointer (clicker)). */}
       <div className="modal cursor-pointer cursor-auto">
-        <div className="modal-box relative">
+        <div className="modal-box relative border-white border">
           {closeable &&
             <label htmlFor={id} className="btn btn-sm btn-circle absolute right-2 top-2">✕</label>}
-          { // Pass displayModal as a prop to children
-            React.Children.map(children, child =>
-              React.cloneElement(child, { displayModal } as any))}
+          {children}
         </div>
       </div>
     </>}

@@ -2,9 +2,11 @@ import { constants } from "ethers"
 import { useAtom } from "jotai"
 import Link from "next/link"
 import { useRouter } from "next/router"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 
 import { CheckboxModal } from "src/components/modals/checkboxModal"
+import { ModalTitle, SpinnerWithMargin } from "src/components/modals/modalElements"
+import { Spinner } from "src/components/spinner"
 import { deployment } from "src/deployment"
 import { useGame } from "src/generated"
 import { useGameWrite } from "src/hooks/fableTransact"
@@ -19,6 +21,7 @@ const CreateGameModalContent = ({ modalControl }: CheckboxModalContentProps) => 
 
   const [ gameID, setGameID ] = useAtom(store.gameID)
   const [ gameStatus ] = useAtom(store.gameStatus)
+  const [ loading, setLoading ] = useState<string>(null)
   const gameContract = useGame({ address: deployment.Game })
   const router = useRouter()
 
@@ -60,10 +63,11 @@ const CreateGameModalContent = ({ modalControl }: CheckboxModalContentProps) => 
     functionName: "createGame",
     args: [2], // we only handle two players
     enabled: !created,
+    setLoading,
     onSuccess(data) {
       const event = gameContract.interface.parseLog(data.logs[0])
       setGameID(parseBigInt(event.args.gameID))
-    },
+    }
   })
 
   const { write: join } = useGameWrite({
@@ -79,8 +83,10 @@ const CreateGameModalContent = ({ modalControl }: CheckboxModalContentProps) => 
       ]
       : undefined,
     enabled: created && !started && !joined,
+    setLoading,
     onSuccess() {
       router.push("/play")
+      setLoading("Joining game...")
     },
     onError(err) {
       const errData = (err as any)?.error?.data?.data
@@ -97,12 +103,10 @@ const CreateGameModalContent = ({ modalControl }: CheckboxModalContentProps) => 
     functionName: "cancelGame",
     args: [gameID],
     enabled: created && !started,
+    setLoading,
     onSuccess() {
       setGameID(null)
       modalControl.displayModal(false)
-    },
-    onError(err) {
-      console.log(`cancel_err: ${err}`)
     }
   })
 
@@ -110,6 +114,7 @@ const CreateGameModalContent = ({ modalControl }: CheckboxModalContentProps) => 
     functionName: "concedeGame",
     args: [gameID],
     enabled: started,
+    setLoading,
     onSuccess() {
       setGameID(null)
       modalControl.displayModal(false)
@@ -118,54 +123,57 @@ const CreateGameModalContent = ({ modalControl }: CheckboxModalContentProps) => 
 
   // -----------------------------------------------------------------------------------------------
 
-  return <>
-      {!created && <>
-        <h3 className="text-xl font-bold normal-case">Create Game</h3>
-        <label htmlFor="create" className="btn btn-sm btn-circle absolute right-2 top-2">✕</label>
-        <p className="py-4">
-          Once a game is created, you can invite your friends to join with the game ID.
-        </p>
-        {/* TODO center */}
-        <button className="btn" disabled={!create} onClick={() => create?.() }>
-          Create Game
-        </button>
-      </>}
+  if (loading) return <>
+    <ModalTitle>{loading}</ModalTitle>
+    <SpinnerWithMargin />
+  </>
 
-      {created && !started && <>
-        <h3 className="text-xl font-bold normal-case">{joined ? "Game Joined" : "Game Created"}</h3>
-        <p className="py-4 font-mono">
-          Share the following code to invite players to battle:
-        </p>
-        <p className="mb-5 rounded-xl border border-white/50 bg-black py-4 text-center font-mono">
-          {`${gameID}`}
-        </p>
-        <div className="flex justify-center gap-4">
-          {!joined &&
-            <button className="btn" disabled={!join} onClick={join}>
-              Join Game
-            </button>}
-          {joined &&
-            <Link className="btn" href="/play">
-              Return to Game
-            </Link>}
-          <button className="btn" disabled={!cancel} onClick={() => cancel?.()}>
-            Cancel Game
-          </button>
-        </div>
-      </>}
+  if (!created) return <>
+    <ModalTitle>Create Game</ModalTitle>
+    <p className="py-4">
+      Once a game is created, you can invite your friends to join with the game ID.
+    </p>
+    <div className="flex justify-center">
+      <button className="btn center" disabled={!create} onClick={create}>
+        Create Game
+      </button>
+    </div>
+  </>
 
-      {started && <>
-        <h3 className="text-xl font-bold normal-case mb-4">Game in progress!</h3>
-        <div className="flex justify-center gap-4">
-          <Link className="btn" href="/play">
-            Return to Game
-          </Link>
-          <button className="btn" disabled={!concede} onClick={concede}>
-            Concede Game
-          </button>
-        </div>
-      </>}
-    </>
+  if (created && !started) return <>
+    <ModalTitle>{joined ? "Game Joined" : "Game Created"}</ModalTitle>
+    <p className="py-4 font-mono">
+      Share the following code to invite players to battle:
+    </p>
+    <p className="mb-5 rounded-xl border border-white/50 bg-black py-4 text-center font-mono">
+      {`${gameID}`}
+    </p>
+    <div className="flex justify-center gap-4">
+      {!joined &&
+        <button className="btn" disabled={!join} onClick={join}>
+          Join Game
+        </button>}
+      {joined &&
+        <Link className="btn" href="/play">
+          Return to Game
+        </Link>}
+      <button className="btn" disabled={!cancel} onClick={() => cancel?.()}>
+        Cancel Game
+      </button>
+    </div>
+  </>
+
+  if (started) return <>
+    <h3 className="text-xl font-bold normal-case mb-4">Game in progress!</h3>
+    <div className="flex justify-center gap-4">
+      <Link className="btn" href="/play">
+        Return to Game
+      </Link>
+      <button className="btn" disabled={!concede} onClick={concede}>
+        Concede Game
+      </button>
+    </div>
+  </>
 }
 
 // =================================================================================================
