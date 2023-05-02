@@ -75,7 +75,7 @@ const MintDeckModalContent = ({ modalControl, callback }: CheckboxModalContentPr
 
 // =================================================================================================
 
-export const MintDeckModal = () => {
+export const MintDeckModal = ({ callback = () => {} }) => {
   const modalControl = useCheckboxModal()
 
   return <>
@@ -89,7 +89,7 @@ export const MintDeckModal = () => {
       initialCloseable={true}
       initialSurroundCloseable={true}
       control={modalControl}>
-      <MintDeckModalContent modalControl={modalControl} />
+      <MintDeckModalContent modalControl={modalControl} callback={callback} />
     </CheckboxModal>
   </>
 }
