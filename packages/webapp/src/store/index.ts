@@ -13,10 +13,10 @@
 // =================================================================================================
 
 import { atom } from "jotai"
-import { GameStatus, type Address, type StaticGameData } from "src/types"
+import { type Address, type StaticGameData } from "src/types"
 import { readOnlyAtom, writeableAtom } from "src/utils/react-utils"
-import { gameID_, playerAddress_, gameStatus_ } from "src/store/private"
-import { getGameData_, setGameData_, setGameID_ } from "src/store/update"
+import { gameID_, playerAddress_ } from "src/store/private"
+import { getGameData_, getGameStatus_, setGameData_, setGameID_ } from "src/store/update"
 
 // =================================================================================================
 // GAME INFORMATION
@@ -24,14 +24,17 @@ import { getGameData_, setGameData_, setGameID_ } from "src/store/update"
 /** Player address — the connected wallet address (enforced in logic.ts) */
 export const playerAddress = readOnlyAtom<Address>(playerAddress_)
 
-/** ID of the game the player is currently participating in (creating, joined, or playing) */
+/**
+ * ID of the game the player is currently participating in (creating, joined, or playing).
+ * This is stored in local storage.
+ */
 export const gameID = writeableAtom<BigInt>((get) => get(gameID_), setGameID_)
 
 /** Static game data (excluding per-player information).  */
 export const gameData = writeableAtom<StaticGameData>(getGameData_, setGameData_)
 
 /** Current game status (CREATED, JOINED, STARTED, etc) */
-export const gameStatus = readOnlyAtom<GameStatus>(gameStatus_)
+export const gameStatus = atom(getGameStatus_)
 
 // =================================================================================================
 // DEBUG LABELS

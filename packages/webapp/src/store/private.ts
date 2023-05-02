@@ -20,14 +20,13 @@ import { gameData, gameID, gameStatus, playerAddress } from "src/store"
 export const playerAddress_ = atom(null as Address)
 
 /** cf. {@link gameID} */
-export const gameID_ = atom(null as BigInt)
-// export const gameID_ = atomWithStorage("0xFable::gameID_", null as BigInt)
+export const gameID_ = atomWithStorage("0xFable::gameID_", null as BigInt)
 
 /** cf. {@link gameData} */
-export const gameData_ = atom<StaticGameData>(null as StaticGameData)
+export const gameData_ = atom(null as StaticGameData)
 
 /** cf. {@link gameStatus} */
-export const gameStatus_ = atom<GameStatus>(GameStatus.UNKNOWN)
+export const gameStatus_ = atom(null as GameStatus)
 
 // =================================================================================================
 // DEBUG LABELS

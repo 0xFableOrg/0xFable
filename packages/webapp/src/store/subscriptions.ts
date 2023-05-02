@@ -61,7 +61,6 @@ export function subscribeToGame(ID: BigInt) {
     currentlySubscribedID = ID
     // setup initial subscription
     eventNames.forEach(eventName => {
-      console.log("subscribing to event: " + eventName)
       unsubFunctions.push(watchContractEvent({
         address: deployment.Game,
         abi: gameABI,
@@ -107,19 +106,14 @@ export function gameEventListener(name: string, args: readonly any[]) {
       break;
     } case 'PlayerJoined': {
       const [, player] = args;
-      // Refetch game data to get up to date player list.
+      // Refetch game data to get up to date player list and update the status.
       void refreshGameData()
-      // In *theory*, this could be missed. In practice, it's unlikely as we subscribe
-      // after creating the game, and the need to sign/submit an extra transaction to join.
-      // If we wanted to be ironclad, we'd implement some kind of timeout without event after which
-      // we'd refetch the game data, and inspect the player list to validate the status.
-      if (player == playerAddress)
-        store.set(gameStatus_, GameStatus.JOINED)
       break;
     }
     case 'GameStarted': {
-      console.assert(store.get(gameStatus_) === GameStatus.JOINED)
-      store.set(gameStatus_, GameStatus.STARTED)
+      // No need to refetch game data, game started is triggered by a player joining, which
+      // refreshes the game data.
+      // Also no need to set the game status, the game data refresh will do it.
       break;
     }
   }

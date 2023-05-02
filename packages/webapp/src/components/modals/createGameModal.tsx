@@ -1,11 +1,10 @@
-import { constants } from "ethers"
 import { useAtom } from "jotai"
 import Link from "next/link"
 import { useRouter } from "next/router"
 import { useEffect, useState } from "react"
 
 import { CheckboxModal } from "src/components/modals/checkboxModal"
-import { ModalTitle, SpinnerWithMargin } from "src/components/modals/modalElements"
+import { ModalMenuButton, ModalTitle, SpinnerWithMargin } from "src/components/modals/modalElements"
 import { deployment } from "src/deployment"
 import { useGame } from "src/generated"
 import { useGameWrite } from "src/hooks/fableTransact"
@@ -37,6 +36,7 @@ const CreateGameModalContent = ({ modalControl }: CheckboxModalContentProps) => 
   // The reason to decompose the status into boolean is it helps with sharing code in the layout
   // logic. Cancelling a game can also be done in CREATED or JOINED state.
 
+  // If the game is created, the modal can't be closed.
   useEffect(() => {
     // React forces us to use an effect, can't update a component state in another component.
     modalControl.setModalCloseable(!created)
@@ -65,16 +65,19 @@ const CreateGameModalContent = ({ modalControl }: CheckboxModalContentProps) => 
     }
   })
 
+  // Temporary, we do use 0x0 to signal the absence of a root, so we need to use a different value.
+  const HashOne = "0x0000000000000000000000000000000000000000000000000000000000000001"
+
   const { write: join } = useGameWrite({
     functionName: "joinGame",
     args: gameID
       ? [
         gameID,
         0, // deckID
-        constants.HashZero, // data for callback
-        constants.HashZero, // hand root
-        constants.HashZero, // deck root
-        constants.HashZero, // proof
+        HashOne, // data for callback
+        HashOne, // hand root
+        HashOne, // deck root
+        HashOne, // proof
       ]
       : undefined,
     enabled: created && !started && !joined,
@@ -119,16 +122,8 @@ const CreateGameModalContent = ({ modalControl }: CheckboxModalContentProps) => 
   // -----------------------------------------------------------------------------------------------
 
   if (loading) return <>
-    {/*<ModalTitle>{loading}</ModalTitle>*/}
-    {/*<SpinnerWithMargin />*/}
-    {/*<button className="btn center" disabled={!create} onClick={create}>btn</button>*/}
     <ModalTitle>{loading}</ModalTitle>
     <SpinnerWithMargin />
-    {/*<div className="flex justify-center">*/}
-    {/*  <button className="btn center" disabled={!create} onClick={create}>*/}
-    {/*    Create Game*/}
-    {/*  </button>*/}
-    {/*</div>*/}
   </>
 
   if (!created) return <>
@@ -184,26 +179,17 @@ const CreateGameModalContent = ({ modalControl }: CheckboxModalContentProps) => 
 export const CreateGameModal = () => {
   const [ gameID, ] = useAtom(store.gameID)
   const modalControl = useCheckboxModal()
+  const checkboxID = "create"
 
-  // This helps with fast refreshes: if the gameID is already set, the modal should be displayed.
-  // It will also be useful when we store the gameID in local storage and support hard reloads.
-  useEffect(() => {
-    if (gameID !== null && !modalControl.isModalDisplayed) modalControl.displayModal(true)
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  // If the gameID is set, the modal should be displayed.
+  if (gameID && !modalControl.isModalDisplayed)
+    modalControl.displayModal(true)
 
   // -----------------------------------------------------------------------------------------------
 
   return <>
-    <label
-      htmlFor="create"
-      className="hover:border-3 btn-lg btn border-2 border-green-900 text-2xl normal-case hover:scale-105 hover:border-green-800">
-      Create Game →
-    </label>
-    <CheckboxModal
-        id="create"
-        initialCloseable={true}
-        initialSurroundCloseable={true}
-        control={modalControl}>
+    <ModalMenuButton htmlFor={checkboxID}>Create Game →</ModalMenuButton>
+    <CheckboxModal id={checkboxID} control={modalControl}>
       <CreateGameModalContent modalControl={modalControl} />
     </CheckboxModal>
   </>

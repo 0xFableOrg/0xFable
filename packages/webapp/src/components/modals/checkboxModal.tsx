@@ -70,11 +70,11 @@ export const CheckboxModal = ({
 
     {isModalDisplayed && surroundCloseable && <>
       {/* The outer label enables the htmlFor to toggle the checkbox on click.
-          We set it to have a pointer (clicker) cursor to indicate this.
-          The inner label is the modal itself, it must a label to override the htmlFor of its
-          parent. */}
+          We set it to have a pointer (clicker) cursor to indicate this. */}
       <label htmlFor={id} className="modal cursor-pointer">
-        <label htmlFor="" className="modal-box relative border-white border cursor-auto">
+        <label
+            htmlFor="this-id-for-sure-does-no-exist" // override parent htmlFor
+            className="modal-box relative border-white border cursor-auto">
           <label htmlFor={id} className="btn btn-sm btn-circle absolute right-2 top-2">✕</label>
           {/* The onClick handler here is crucial to avoid click on buttons etc inside the modal
               from toggling the modal. */}

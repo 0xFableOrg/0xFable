@@ -82,6 +82,19 @@ export function getGameData_(get: Getter): StaticGameData {
 // -------------------------------------------------------------------------------------------------
 
 /**
+ * Returns the stored game status. If it is not yet available, this will return null and trigger an
+ * async refresh.
+ */
+export function getGameStatus_(get: Getter): GameStatus {
+  const current = get(gameStatus_)
+  if (current === null)
+    void refreshGameData()
+  return current
+}
+
+// -------------------------------------------------------------------------------------------------
+
+/**
  * Returns the stored game data. If it is not yet available, this will trigger a refresh and
  * wait until the result is available to return.
  */

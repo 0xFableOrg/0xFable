@@ -1,11 +1,10 @@
 import { BigNumber } from "ethers"
-import { constants } from "ethers/lib"
 import { useAtom } from "jotai"
 import debounce from "lodash/debounce"
 import { useRouter } from "next/router"
 import { useMemo, useState } from "react"
 import { CheckboxModal } from "src/components/modals/checkboxModal"
-import { ModalTitle, SpinnerWithMargin } from "src/components/modals/modalElements"
+import { ModalMenuButton, ModalTitle, SpinnerWithMargin } from "src/components/modals/modalElements"
 
 import { deployment } from "src/deployment"
 import { useGame } from "src/generated"
@@ -28,16 +27,19 @@ const JoinGameModalContent = () => {
   //   game ID. This is fine. Alternatively, we could validate the input game ID and enable the hook
   //   only when the ID is valid.
 
+  // Temporary, we do use 0x0 to signal the absence of a root, so we need to use a different value.
+  const HashOne = "0x0000000000000000000000000000000000000000000000000000000000000001"
+
   const { write: join } = useGameWrite({
     functionName: "joinGame",
     args: inputGameID
       ? [
         BigNumber.from(inputGameID),
         0, // deckID
-        constants.HashZero, // data for callback
-        constants.HashZero, // hand root
-        constants.HashZero, // deck root
-        constants.HashZero, // proof
+        HashOne, // data for callback
+        HashOne, // hand root
+        HashOne, // deck root
+        HashOne, // proof
       ]
       : undefined,
     enabled: inputGameID !== null,
@@ -46,6 +48,7 @@ const JoinGameModalContent = () => {
       const event = gameContract.interface.parseLog(data.logs[0])
       setGameID(parseBigInt(event.args.gameID))
       void router.push("/play")
+      setLoading("Joining game...")
     }
   })
 
@@ -87,18 +90,11 @@ const JoinGameModalContent = () => {
 
 export const JoinGameModal = () => {
   const modalControl = useCheckboxModal()
+  const checkboxID = "join"
 
   return <>
-    <label
-      htmlFor="join"
-      className="hover:border-3 btn-lg btn border-2 border-green-900 text-2xl normal-case hover:scale-105 hover:border-green-800">
-      Join →
-    </label>
-    <CheckboxModal
-      id="join"
-      initialCloseable={true}
-      initialSurroundCloseable={true}
-      control={modalControl}>
+    <ModalMenuButton htmlFor={checkboxID}>Join →</ModalMenuButton>
+    <CheckboxModal id={checkboxID} control={modalControl}>
       <JoinGameModalContent />
     </CheckboxModal>
   </>

@@ -14,4 +14,14 @@ export const SpinnerWithMargin = () => {
   </div>
 }
 
+// -------------------------------------------------------------------------------------------------
+
+export const ModalMenuButton = ({ children, htmlFor }) => {
+  return <label
+    htmlFor={htmlFor}
+    className="hover:border-3 btn-lg btn border-2 border-green-900 text-2xl normal-case hover:scale-105 hover:border-green-800">
+    {children}
+  </label>
+}
+
 // =================================================================================================
