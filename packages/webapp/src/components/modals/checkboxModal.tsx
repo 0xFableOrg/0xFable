@@ -87,7 +87,7 @@ export const CheckboxModal = ({
 
     {isModalDisplayed && !surroundCloseable && <>
       {/* Not sure why cursor-auto is required here (otherwise we get a pointer (clicker)). */}
-      <div className="modal cursor-pointer cursor-auto">
+      <div className="modal cursor-pointer cursor-default">
         <div className="modal-box relative border-white border">
           {closeable &&
             <label htmlFor={id} className="btn btn-sm btn-circle absolute right-2 top-2">✕</label>}
