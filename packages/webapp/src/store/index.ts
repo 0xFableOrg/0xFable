@@ -16,9 +16,9 @@ import { atom } from "jotai"
 import { atomWithStorage } from "jotai/utils"
 
 import { type Address, type StaticGameData } from "src/types"
-import { readOnlyAtom, writeableAtom } from "src/utils/react-utils"
+import { readOnlyAtom } from "src/utils/react-utils"
 import { playerAddress_ } from "src/store/private"
-import { getGameData_, getGameStatus_, setGameData_ } from "src/store/update"
+import { getGameData_, getGameStatus_ } from "src/store/update"
 
 export { setupStore, refreshGameData } from "src/store/update"
 
@@ -39,9 +39,8 @@ export const playerAddress = readOnlyAtom<Address>(playerAddress_)
 export const gameID = atomWithStorage(GAME_ID_STORAGE_KEY, null as BigInt)
 // atomWithStorage causes the creation of another anonymous atom
 
-// TODO setGameData should not be exposed publicly
 /** Static game data (excluding per-player information).  */
-export const gameData = writeableAtom<StaticGameData>(getGameData_, setGameData_)
+export const gameData = atom<StaticGameData>(getGameData_)
 
 /** Current game status (CREATED, JOINED, STARTED, etc) */
 export const gameStatus = atom(getGameStatus_)

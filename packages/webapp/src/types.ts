@@ -33,11 +33,12 @@ export enum GameStep {
 }
 
 export type StaticGameData = {
+  gameID: BigNumberish
   gameCreator: Address
-  players: Address[]
+  players: readonly Address[]
   lastBlockNum: BigNumberish
   playersLeftToJoin: BigNumberish
-  livePlayers: BigNumberish[]
+  livePlayers: readonly BigNumberish[]
   currentPlayer: BigNumberish
   currentStep: GameStep
   attackingPlayer: Address

@@ -179,9 +179,11 @@ contract Game {
         uint256[] cards;
     }
 
-    // A subset of `GameData` members, excluding non-readable members (mapping, function), and
-    // the cards array that never changes. Use `getCards()` to read them instead.
+    // A subset of `GameData` members, adding the game ID, and excluding non-readable members
+    // (mapping, function), and the cards array that never changes. Use `getCards()` to read them
+    // instead.
     struct StaticGameData {
+        uint256 gameID;
         address gameCreator;
         address[] players;
         uint256 lastBlockNum;
@@ -303,6 +305,7 @@ contract Game {
     function staticGameData(uint256 gameID) external view returns(StaticGameData memory) {
         GameData storage gdata = gameData[gameID];
         return StaticGameData({
+            gameID: gameID,
             gameCreator: gdata.gameCreator,
             players: gdata.players,
             lastBlockNum: gdata.lastBlockNum,

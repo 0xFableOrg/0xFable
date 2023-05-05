@@ -132,8 +132,17 @@ export function getGameStatus_(get: Getter): GameStatus {
  * Returns the stored game data. If it is not yet available, this will trigger a refresh and
  * wait until the result is available to return.
  */
-export function setGameData_(get: Getter, set: Setter, data: StaticGameData) {
-  set(gameData_, data)
+function setGameData_(data: StaticGameData) {
+  if (data === null) {
+    console.error("setGameData_ called with null data")
+    return
+  }
+
+  // Data is stale, ignore.
+  if (data && parseBigInt(data.gameID) !== store.get(gameID))
+    return
+
+  store.set(gameData_, data)
 
   // NOTE(norswap): We do not (yet?) handle replaying games.
   //   Replaying games need to be event-based in any case, so there needs to be an abstraction
@@ -144,24 +153,15 @@ export function setGameData_(get: Getter, set: Setter, data: StaticGameData) {
   //   This does not solve the problem that player hands are private, and only with their
   //   collaboration can we reconstruct a replay where their hands is visible.
 
-  // TODO manage relationship between game data and game ID
-
-  if (data == null) {
-    set(gameStatus_, GameStatus.UNKNOWN)
-    // NOTE(norswap) clear game state here, when we start using it
-    return
-  }
-
   if (data.playersLeftToJoin == 0) {
-    // TODO remove this guard when contracts are updated
-    if (data.livePlayers && data.livePlayers.length <= 1)
-      set(gameStatus_, GameStatus.ENDED)
+    if (data.livePlayers.length <= 1)
+      store.set(gameStatus_, GameStatus.ENDED)
     else
-      set(gameStatus_, GameStatus.STARTED)
-  } else if (data.players.includes(get(playerAddress_))) {
-    set(gameStatus_, GameStatus.JOINED)
+      store.set(gameStatus_, GameStatus.STARTED)
+  } else if (data.players.includes(store.get(playerAddress_))) {
+    store.set(gameStatus_, GameStatus.JOINED)
   } else {
-    set(gameStatus_, GameStatus.CREATED)
+    store.set(gameStatus_, GameStatus.CREATED)
   }
 
   // TODO parse data and ensure that the store is consistent with it
@@ -192,7 +192,7 @@ export async function refreshGameData() {
     args: [BigNumber.from(ID)]
   })
   console.log("fetched data: " + JSON.stringify(fetchedGameData))
-  store.set(gameData, fetchedGameData as StaticGameData)
+  setGameData_(fetchedGameData as StaticGameData)
   lastRefreshTimestamp = 0 // allow another refresh immediately
 }
 
