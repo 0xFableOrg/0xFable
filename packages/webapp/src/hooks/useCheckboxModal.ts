@@ -55,8 +55,10 @@ export type CheckboxModalContentProps = {
  * CheckboxModalControl.isModalDisplayed}) and setting the modal be to closeable or not, and if
  * closeable, whether it can be closed by clicking outside of it. The other fields are for internal
  * use by {@link CheckboxModal}.
+ *
+ * @param name Name of the modal, for debugging purposes.
  */
-export function useCheckboxModal(): CheckboxModalControl {
+export function useCheckboxModal(name: string = "<unknown>"): CheckboxModalControl {
 
   const [ isModalDisplayed, setModalDisplayed ] = useState(false)
   const checkboxRef = useRef<HTMLInputElement>()

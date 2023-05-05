@@ -86,12 +86,16 @@ export const CheckboxModal = ({
     </>}
 
     {isModalDisplayed && !surroundCloseable && <>
-      {/* Not sure why cursor-auto is required here (otherwise we get a pointer (clicker)). */}
+      {/* Cursor-default is required here otherwise the cursor behaviour is erratic — not sure why. */}
       <div className="modal cursor-pointer cursor-default">
         <div className="modal-box relative border-white border">
           {closeable &&
             <label htmlFor={id} className="btn btn-sm btn-circle absolute right-2 top-2">✕</label>}
-          {children}
+          {/* The onClick handler here is crucial to avoid click on buttons etc inside the modal
+              from toggling the modal. */}
+          <div onClick={(e) => e.preventDefault()}>
+            {children}
+          </div>
         </div>
       </div>
     </>}

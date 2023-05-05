@@ -1,5 +1,6 @@
 import type { AppType } from "next/app"
 import Head from "next/head"
+import jotaiDebug from "src/components/lib/jotaiDebug"
 import { configureChains, createClient, WagmiConfig } from "wagmi"
 import { localhost } from "wagmi/chains"
 import { EthereumClient, w3mConnectors, w3mProvider} from "@web3modal/ethereum"
@@ -43,6 +44,7 @@ const MyApp: AppType = ({ Component, pageProps }) => {
       </Head>
 
       <WagmiConfig client={wagmiClient}>
+        {jotaiDebug()}
         <Component {...pageProps} />
       </WagmiConfig>
 

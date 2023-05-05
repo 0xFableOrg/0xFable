@@ -37,6 +37,7 @@ export type StaticGameData = {
   players: Address[]
   lastBlockNum: BigNumberish
   playersLeftToJoin: BigNumberish
+  livePlayers: BigNumberish[]
   currentPlayer: BigNumberish
   currentStep: GameStep
   attackingPlayer: Address

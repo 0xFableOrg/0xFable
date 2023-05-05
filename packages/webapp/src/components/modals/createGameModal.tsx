@@ -1,14 +1,15 @@
 import { useAtom } from "jotai"
-import Link from "next/link"
 import { useRouter } from "next/router"
 import { useEffect, useState } from "react"
 
-import { CheckboxModal } from "src/components/modals/checkboxModal"
-import { ModalMenuButton, ModalTitle, SpinnerWithMargin } from "src/components/modals/modalElements"
+import { CheckboxModal } from "src/components/lib/checkboxModal"
+import { ModalMenuButton, ModalTitle, SpinnerWithMargin } from "src/components/lib/modalElements"
+import { InGameMenuModalContent } from "src/components/modals/inGameMenuModalContent"
 import { deployment } from "src/deployment"
 import { useGame } from "src/generated"
 import { useGameWrite } from "src/hooks/fableTransact"
 import { type CheckboxModalContentProps, useCheckboxModal } from "src/hooks/useCheckboxModal"
+import { useDebugValues } from "src/hooks/useDebug"
 import * as store from "src/store"
 import { GameStatus } from "src/types"
 import { parseBigInt } from "src/utils/rpc-utils"
@@ -18,7 +19,9 @@ import { parseBigInt } from "src/utils/rpc-utils"
 const CreateGameModalContent = ({ modalControl }: CheckboxModalContentProps) => {
 
   const [ gameID, setGameID ] = useAtom(store.gameID)
+  const [ gameData ] = useAtom(store.gameData)
   const [ gameStatus ] = useAtom(store.gameStatus)
+  const [ hasVisitedBoard ] = useAtom(store.hasVisitedBoard)
   const [ loading, setLoading ] = useState<string>(null)
   const gameContract = useGame({ address: deployment.Game })
   const router = useRouter()
@@ -36,11 +39,20 @@ const CreateGameModalContent = ({ modalControl }: CheckboxModalContentProps) => 
   // The reason to decompose the status into boolean is it helps with sharing code in the layout
   // logic. Cancelling a game can also be done in CREATED or JOINED state.
 
+  useDebugValues({ gameID, gameStatus, created, joined, started })
+
   // If the game is created, the modal can't be closed.
   useEffect(() => {
     // React forces us to use an effect, can't update a component state in another component.
     modalControl.setModalCloseable(!created)
   }, [modalControl.setModalCloseable, created])
+
+  // Load game board game once upon game start.
+  useEffect(() => {
+    if (!hasVisitedBoard && started)
+      router.push("/play")
+  }, [hasVisitedBoard, router, started])
+
 
   // -----------------------------------------------------------------------------------------------
   // NOTE(norswap): This is how to compute the encoding of the joincheck callback, however, ethers
@@ -83,8 +95,13 @@ const CreateGameModalContent = ({ modalControl }: CheckboxModalContentProps) => 
     enabled: created && !started && !joined,
     setLoading,
     onSuccess() {
-      router.push("/play")
-      setLoading("Joining game...")
+      // This should be called before we get the data refresh, so check for 1 instead of 0.
+      // Assuming two players, if we're the last to join, we just need to wait for (1) the data
+      // refresh and (2) loading of the play page. Not displaying a loading modal would just show
+      // the old screen, which is janky (feels like our join didnt work).
+      // The alternative is an optimistic update of the game status & data.
+      if (gameData.playersLeftToJoin <= 1)
+        setLoading("Loading game...")
     },
     onError(err) {
       const errData = (err as any)?.error?.data?.data
@@ -139,51 +156,44 @@ const CreateGameModalContent = ({ modalControl }: CheckboxModalContentProps) => 
   </>
 
   if (created && !started) return <>
-    <ModalTitle>{joined ? "Game Joined" : "Game Created"}</ModalTitle>
+    <ModalTitle>{joined ? "Waiting for other player..." : "Game Created"}</ModalTitle>
     <p className="py-4 font-mono">
       Share the following code to invite players to battle:
     </p>
     <p className="mb-5 rounded-xl border border-white/50 bg-black py-4 text-center font-mono">
       {`${gameID}`}
     </p>
-    <div className="flex justify-center gap-4">
-      {!joined &&
-        <button className="btn" disabled={!join} onClick={join}>
-          Join Game
-        </button>}
-      {joined &&
-        <Link className="btn" href="/play">
-          Return to Game
-        </Link>}
+    {!joined && <div className="flex justify-center gap-4">
+      <button className="btn" disabled={!join} onClick={join}>
+        Join Game
+      </button>
       <button className="btn" disabled={!cancel} onClick={cancel}>
         Cancel Game
       </button>
-    </div>
+    </div>}
+    {joined && <div className="flex flex-col justify-center gap-4 items-center">
+      <SpinnerWithMargin />
+      <button className="btn" disabled={!cancel} onClick={cancel}>
+        Cancel Game
+      </button>
+    </div>}
   </>
 
-  if (started) return <>
-    <h3 className="text-xl font-bold normal-case mb-4">Game in progress!</h3>
-    <div className="flex justify-center gap-4">
-      <Link className="btn" href="/play">
-        Return to Game
-      </Link>
-      <button className="btn" disabled={!concede} onClick={concede}>
-        Concede Game
-      </button>
-    </div>
-  </>
+  if (started) return <InGameMenuModalContent concede={concede} />
 }
 
 // =================================================================================================
 
 export const CreateGameModal = () => {
-  const [ gameID, ] = useAtom(store.gameID)
-  const modalControl = useCheckboxModal()
   const checkboxID = "create"
+  const modalControl = useCheckboxModal(checkboxID)
+  const [ isGameCreator ] = useAtom(store.isGameCreator)
 
-  // If the gameID is set, the modal should be displayed.
-  if (gameID && !modalControl.isModalDisplayed)
-    modalControl.displayModal(true)
+  // If we're on the home page and we're the game creator, this modal should be displayed.
+  useEffect(() => {
+    if (isGameCreator && !modalControl.isModalDisplayed)
+      modalControl.displayModal(true)
+  }, [isGameCreator, modalControl.isModalDisplayed])
 
   // -----------------------------------------------------------------------------------------------
 

@@ -7,10 +7,15 @@ const JotaiDebug = () => {
   // Note that the naming here relies on atoms having their `debugLabel` properties set.
   useAtomsDebugValue()
   // Enables tracking atom value changes in the Redux dev tool, as well as time travelling, etc
+  // The Redux dev tool needs to be open and a state change to happen for it to display anything.
   useAtomsDevtools("atomDevtools")
   return null
 }
 
-export default function jotaiDebug(isHydrated) {
-  return (isHydrated && process.env.NODE_ENV === "development") ? <JotaiDebug /> : null
+export default function jotaiDebug() {
+  // The first clause guards against server-side rendering.
+  if (typeof window !== "undefined" && process.env.NODE_ENV === "development")
+    return <JotaiDebug />
+  else
+    return null
 }

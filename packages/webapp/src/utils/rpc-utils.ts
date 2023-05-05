@@ -16,7 +16,7 @@ import { Address } from "src/types"
  * Parses an Ethers' BigNumberish (union type) into a BigInt.
  * Returns null if the value is null or if it cannot be parsed.
  */
-export function parseBigInt(value: BigNumberish): BigInt{
+export function parseBigInt(value: BigNumberish): bigint {
   if (value == null) return null
   try {
     return BigNumber.from(value).toBigInt()

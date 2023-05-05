@@ -169,6 +169,7 @@ contract Game {
         address[] players;
         uint256 lastBlockNum;
         uint8 playersLeftToJoin;
+        uint8[32] livePlayers;
         function (uint256, address, uint8, bytes memory) external returns (bool) joinCheck;
         uint8 currentPlayer;
         GameStep currentStep;
@@ -185,6 +186,7 @@ contract Game {
         address[] players;
         uint256 lastBlockNum;
         uint8 playersLeftToJoin;
+        uint8[32] livePlayers;
         uint8 currentPlayer;
         GameStep currentStep;
         address attackingPlayer;
@@ -305,6 +307,7 @@ contract Game {
             players: gdata.players,
             lastBlockNum: gdata.lastBlockNum,
             playersLeftToJoin: gdata.playersLeftToJoin,
+            livePlayers: gdata.livePlayers,
             currentPlayer: gdata.currentPlayer,
             currentStep: gdata.currentStep,
             attackingPlayer: gdata.attackingPlayer

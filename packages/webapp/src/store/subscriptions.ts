@@ -28,7 +28,10 @@ const eventNames = [
   'PlayerDefended',
   'PlayerPassed',
   'PlayerJoined',
-  'GameStarted'
+  'GameStarted',
+  'PlayerConceded',
+  'Champion',
+  'PlayerDefeated'
 ]
 
 // -------------------------------------------------------------------------------------------------
@@ -67,6 +70,7 @@ export function subscribeToGame(ID: BigInt) {
         eventName: eventName as any
       }, (...args) => gameEventListener(eventName, args)))
     })
+    console.log("subscribed to game events")
   }
   else {
     // Changing game we are subscribed to — no need to change the subscription,
@@ -90,31 +94,45 @@ export function gameEventListener(name: string, args: readonly any[]) {
 
   switch (name) {
     case 'CardDrawn': {
-      const [, player] = args;
-      break;
+      const [, player] = args
+      break
     } case 'CardPlayed': {
-      const [, player, card] = args;
-      break;
+      const [, player, card] = args
+      break
     } case 'PlayerAttacked': {
-      const [, attacking, defending] = args;
-      break;
+      const [, attacking, defending] = args
+      break
     } case 'PlayerDefended': {
-      const [, attacking, defending] = args;
-      break;
+      const [, attacking, defending] = args
+      break
     } case 'PlayerPassed': {
-      const [, player] = args;
-      break;
+      const [, player] = args
+      break
     } case 'PlayerJoined': {
-      const [, player] = args;
+      const [, player] = args
       // Refetch game data to get up to date player list and update the status.
       void refreshGameData()
-      break;
+      break
     }
     case 'GameStarted': {
       // No need to refetch game data, game started is triggered by a player joining, which
       // refreshes the game data.
       // Also no need to set the game status, the game data refresh will do it.
-      break;
+      break
+    }
+    case 'PlayerConceded': {
+      void refreshGameData()
+      break
+    }
+    case 'PlayerDefeated': {
+      void refreshGameData()
+      break
+    }
+    case 'Champion': {
+      // No need to refetch game data, a player winning is triggered by a player conceding or being
+      // defeating, which refreshes the game data.
+      // Also no need to set the game status, the game data refresh will do it.
+      break
     }
   }
 }

@@ -1,140 +1,45 @@
-import { constants } from "ethers/lib"
 import { useAtom } from "jotai"
 import { type NextPage } from "next"
-import { useEffect, useRef, useState } from "react"
-import { Address, useAccount } from "wagmi"
+import { useEffect, useState } from "react"
 
 import Hand from "src/components/hand"
-import jotaiDebug from "src/components/jotaiDebug"
+import { GameEndedModal } from "src/components/modals/gameEndedModal"
+import { LoadingModal } from "src/components/modals/loadingModal"
+import { ModalTitle } from "src/components/lib/modalElements"
 import { Navbar } from "src/components/navbar"
-import { deployment } from "src/deployment"
-import { gameABI, useGame } from "src/generated"
+import { useGameWrite } from "src/hooks/fableTransact"
 import { useIsHydrated } from "src/hooks/useIsHydrated"
 import * as store from "src/store"
-import { useGameEvents, useGameRead } from "src/hooks/fableTransact"
-import {StaticGameData} from "src/types"
-
-const events = [
-  'CardDrawn',
-  'CardPlayed',
-  'PlayerAttacked',
-  'PlayerDefended',
-  'PlayerPassed',
-  'PlayerJoined',
-  'GameStarted'
-]
-
-/*
-// A player drew a card.
-    event CardDrawn(uint256 indexed gameID, uint8 player);
-
-    // A player played a card.
-    event CardPlayed(uint256 indexed gameID, uint8 player, uint256 card);
-
-    // A player attacked another player.
-    event PlayerAttacked(uint256 indexed gameID, address attackingPlayer, address defendingPlayer);
-
-    // A player defended against another player.
-    event PlayerDefended(uint256 indexed gameID, address attackingPlayer, address defendingPlayer);
-
-    // A player ended his turn without attacking.
-    event PlayerPassed(uint256 indexed gameID, uint8 player);
- */
+import { GameStatus } from "src/types"
 
 const Play: NextPage = () => {
-
   const isHydrated = useIsHydrated()
   const [ gameID ] = useAtom(store.gameID)
-  // const ID = gameID ? BigNumber.from(gameID) : null
-  const [ ID ] = useState(0) // TODO debug purposes
-  const game: [Address, any] = [deployment.Game, gameABI]
-  const zero = constants.HashZero
-  const { address } = useAccount()
-  const gameContract = useGame({ address: deployment.Game })
+  const [ data ] = useAtom(store.gameData)
+  const [ gameStatus ] = useAtom(store.gameStatus)
+  const [ hasVisitedBoard, setHasVisitedBoard ] = useAtom(store.hasVisitedBoard)
+  useEffect(() => setHasVisitedBoard(true), [hasVisitedBoard])
+  const [ loading, setLoading ] = useState<string>(null)
 
-  const { data, refetch } = useGameRead<StaticGameData>({
-    functionName: "staticGameData",
-    args: [ID]
+  const [ playerHand ] = useAtom(store.playerHand)
+
+  const { write: concede } = useGameWrite({
+    functionName: "concedeGame",
+    args: [gameID],
+    setLoading
   })
 
-  const playersLeftToJoin = useRef(data?.playersLeftToJoin ?? 2)
+  // -----------------------------------------------------------------------------------------------
 
-  useEffect(() => {
-    if (playersLeftToJoin.current == 0) return
-    const timeoutID = setTimeout(() => {
-      console.log("timer firing: " + playersLeftToJoin.current)
-      if (playersLeftToJoin.current > 0) {
-        console.log("refetching via timer")
-        // One second has passed and there are players that still need to join.
-        // Refetch to make sure we didn't make miss the PlayerJoined event (could happen if it fired
-        // the event subscription was set up).
-        refetch()
-      }
-    }, 1000)
-    return () => {
-      clearTimeout(timeoutID)
-    }
-  }, [])
-
-  // TODO debug initial rendering
-
-  // TODO: learn how to pop an info modal
-  // TODO: learn how to pop a spinner modal + pop one while waiting for player to join
-
-
-  // console.log(data)
-
-
-
-
-  const currentStep = useState(data?.currentStep)
-  const currentPlayer = useState(data?.currentPlayer)
-
-  const [ playerHand, ] = useAtom(store.playerHand)
-
-
-  // useEvents(...game, [""])
-
-  /*
-  useGameEvent({
-    address: deployment.Game,
-    eventName: "CardDrawn",
-    listener(x) {
-      console.log(x);
-      refetch();
-    },
-  });
-
-  const currentStep = useState(data?.currentStep);
-  const currentPlayer: any = useState(data?.currentPlayer);
-
-  console.log("--- current ---")
-  console.log(currentStep);
-  console.log(currentPlayer);
-
-  function isStep(expected): boolean {
-    return data && expected.includes(currentStep) && currentPlayer == address;
-  }
-
-  const [drawn, draw] = useTransact(...game, "drawCard", [ID, zero, zero, zero],
-    (receipt) => {
-      console.log("drawn");
-    },
-    isStep(['draw']));
-
-  const [passed, pass] = useTransact(...game, "pass", [ID],
-    (receipt) => {
-      console.log("passed");
-    },
-    isStep(['attack', 'play']));
-
-   */
-
-  const draw = null, pass = null;
+  if (loading) return <>
+    <LoadingModal>
+      <ModalTitle>{loading}</ModalTitle>
+    </LoadingModal>
+  </>
 
   return (
     <>
-      {jotaiDebug(isHydrated)}
+      {gameStatus === GameStatus.ENDED && <GameEndedModal />}
       <main className="flex min-h-screen flex-col">
         <Navbar />
 
@@ -151,15 +56,20 @@ const Play: NextPage = () => {
             </div> */}
           </div>
 
-          <button onClick={refetch}
-          // <button onClick={draw}
-            className=" btn-warning btn-lg btn absolute right-48 bottom-1/2 z-50 translate-y-1/2 rounded-lg border-[.1rem] border-base-300 font-mono hover:scale-105">
+          <button
+            className=" btn-warning btn-lg btn absolute right-96 bottom-1/2 z-50 translate-y-1/2 rounded-lg border-[.1rem] border-base-300 font-mono hover:scale-105">
             DRAW
           </button>
 
-          <button onClick={pass}
-            className=" btn-warning btn-lg btn absolute right-4 bottom-1/2 z-50 translate-y-1/2 rounded-lg border-[.1rem] border-base-300 font-mono hover:scale-105">
+          <button
+            className=" btn-warning btn-lg btn absolute right-48 bottom-1/2 z-50 translate-y-1/2 rounded-lg border-[.1rem] border-base-300 font-mono hover:scale-105">
             END TURN
+          </button>
+
+          <button
+            className=" btn-warning btn-lg btn absolute right-4 bottom-1/2 z-50 translate-y-1/2 rounded-lg border-[.1rem] border-base-300 font-mono hover:scale-105"
+            disabled={!concede} onClick={concede}>
+            CONCEDE
           </button>
 
           <div className="relative row-span-6 rounded-xl rounded-t-none border border-t-0 bg-base-300 shadow-inner">
@@ -172,7 +82,7 @@ const Play: NextPage = () => {
         </div>
       </main>
     </>
-  );
-};
+  )
+}
 
 export default Play;

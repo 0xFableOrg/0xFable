@@ -34,7 +34,7 @@ export function useWrite(params: UseWriteParams): UseWriteResult {
 
   const { contract, abi, functionName, args } = params
   let { onSigned, onWrite, onSuccess, onError, setLoading, enabled } = params
-  if (enabled == undefined) enabled = true
+  if (enabled === undefined) enabled = true
 
   if (setLoading) {
     onWrite = onWrite

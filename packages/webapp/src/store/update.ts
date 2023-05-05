@@ -8,15 +8,16 @@
 
 import { BigNumber } from "ethers"
 import { getDefaultStore, type Getter, type Setter } from "jotai"
+import { setup } from "src/setup"
 import { getAccount, readContract, watchAccount } from "wagmi/actions"
 
 import { deployment } from "src/deployment"
 import { gameABI } from "src/generated"
-import { gameData } from "src/store"
-import { gameData_, gameID_, gameStatus_, playerAddress_ } from "src/store/private"
+import { gameData, gameID, hasVisitedBoard } from "src/store"
+import { gameData_, gameStatus_, playerAddress_, } from "src/store/private"
 import { subscribeToGame } from "src/store/subscriptions"
 import { GameStatus, StaticGameData } from "src/types"
-import { AccountResult } from "src/utils/rpc-utils"
+import { AccountResult, parseBigInt } from "src/utils/rpc-utils"
 
 // =================================================================================================
 // INITIALIZATION
@@ -24,10 +25,32 @@ import { AccountResult } from "src/utils/rpc-utils"
 // The frontend can only handle one game at a time, for which we use the default store.
 const store = getDefaultStore()
 
-// Whenever the connect wallet address changes, update the player address.
-watchAccount(updatePlayerAddress)
-// Make sure we don't miss the initial value, if already set.
-updatePlayerAddress(getAccount())
+// Only run setup once.
+let setupHasRun = false
+
+/**
+ * Called from {@link setup} to setup the store.
+ */
+export function setupStore() {
+  if (setupHasRun) return
+  setupHasRun = true
+
+  // Whenever the connect wallet address changes, update the player address.
+  watchAccount(updatePlayerAddress)
+
+  // Make sure we don't miss the initial value, if already set.
+  updatePlayerAddress(getAccount())
+
+  // The game ID can change from actions in this tab, but also in other tabs, or can be retrieved
+  // from the storage upon boot, so we need to listen to the storage.
+  store.sub(gameID, () => {
+    setDependencies(store.get(gameID))
+  })
+
+  // Make sure we don't miss the initial value, if already set.
+  if (store.get(gameID) !== null)
+    setDependencies(store.get(gameID))
+}
 
 // =================================================================================================
 // CONSISTENT UPDATES
@@ -48,20 +71,27 @@ function updatePlayerAddress(result: AccountResult) {
 
 // -------------------------------------------------------------------------------------------------
 
-/**
- * Called whenever the game ID is updated. Besides setting the ID, this always makes sure we're
- * subscribed to the game updates. Because it is possible to miss events in that way, also triggers
- * a manual refresh of the game data. Also clears the game data i
- */
-export function setGameID_(get: Getter, set: Setter, ID: BigInt) {
-  const lastID = get(gameID_)
-  if (ID === lastID) return
 
-  // NOTE(norswap): no race conditions — after setting the gameID, any refresh will use that ID
-  set(gameID_, ID)
-  set(gameData_, null as StaticGameData) // avoid using inconsistent data
-  set(gameStatus_, GameStatus.UNKNOWN) // avoid using inconsistent data
+/**
+ * Called whenever the game ID is updated. This clears the old game data (to avoid inconsistent
+ * states),  triggers a refresh of the game data, and makes sure we're subscribed to game updates.
+ */
+function setDependencies(ID: BigInt) {
+  console.log("setting dependencies for ", ID)
+  // No race conditions — after setting the gameID, any refresh will use that ID.
+
+  // This will only be called when the ID changes in Jotai, so the new ID will always be different
+  // from the old ID.
+
+  // TODO: need to add ID into static game data, and check consistency when in-flight refreshes land
+
+  // avoid using inconsistent data
+  store.set(gameData_, null as StaticGameData)
+  store.set(gameStatus_, GameStatus.UNKNOWN)
+  store.set(hasVisitedBoard, false)
+
   // NOTE(norswap) reset per-player state here, when we start using it
+
   subscribeToGame(ID) // will unusubscribe if ID is null
   if (ID !== null) void refreshGameData()
 }
@@ -74,7 +104,7 @@ export function setGameID_(get: Getter, set: Setter, ID: BigInt) {
  */
 export function getGameData_(get: Getter): StaticGameData {
   const current = get(gameData_)
-  if (current == null)
+  if (current === null && get(gameID) !== null)
     void refreshGameData()
   return current
 }
@@ -87,7 +117,7 @@ export function getGameData_(get: Getter): StaticGameData {
  */
 export function getGameStatus_(get: Getter): GameStatus {
   const current = get(gameStatus_)
-  if (current === null)
+  if (current === null && get(gameID) !== null)
     void refreshGameData()
   return current
 }
@@ -110,7 +140,6 @@ export function setGameData_(get: Getter, set: Setter, data: StaticGameData) {
   //   This does not solve the problem that player hands are private, and only with their
   //   collaboration can we reconstruct a replay where their hands is visible.
 
-  // TODO manage game ending gracefully
   // TODO manage relationship between game data and game ID
 
   if (data == null) {
@@ -120,7 +149,11 @@ export function setGameData_(get: Getter, set: Setter, data: StaticGameData) {
   }
 
   if (data.playersLeftToJoin == 0) {
-    set(gameStatus_, GameStatus.STARTED)
+    // TODO remove this guard when contracts are updated
+    if (data.livePlayers && data.livePlayers.length <= 1)
+      set(gameStatus_, GameStatus.ENDED)
+    else
+      set(gameStatus_, GameStatus.STARTED)
   } else if (data.players.includes(get(playerAddress_))) {
     set(gameStatus_, GameStatus.JOINED)
   } else {
@@ -132,11 +165,21 @@ export function setGameData_(get: Getter, set: Setter, data: StaticGameData) {
 
 // =================================================================================================
 
+let lastRefreshTimestamp = 0
+
 /**
  * Triggers a manual refresh of the game data, setting the {@link gameData} atom.
  */
 export async function refreshGameData() {
-  const ID = store.get(gameID_)
+  const ID = store.get(gameID)
+  if (ID === null) {
+    console.error("refreshGameData called with null ID")
+    return
+  }
+  const timestamp = Date.now()
+  if (timestamp - lastRefreshTimestamp < 2000) return // there is a recent-ish refresh in flight
+  lastRefreshTimestamp = timestamp
+
   if (ID == null) return
   const fetchedGameData = await readContract({
     address: deployment.Game,
@@ -146,6 +189,7 @@ export async function refreshGameData() {
   })
   console.log("fetched data: " + JSON.stringify(fetchedGameData))
   store.set(gameData, fetchedGameData as StaticGameData)
+  lastRefreshTimestamp = 0 // allow another refresh immediately
 }
 
 // =================================================================================================

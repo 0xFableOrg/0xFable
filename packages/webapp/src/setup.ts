@@ -5,6 +5,8 @@
  * @module setup
  */
 
+import { setupStore } from "src/store"
+
 // =================================================================================================
 
 export function setup() {
@@ -17,8 +19,9 @@ export function setup() {
   if (BigInt.prototype["toJSON"] == undefined) {
     BigInt.prototype["toJSON"] = function() { return this.toString() }
   }
-}
 
+  setupStore()
+}
 
 // -------------------------------------------------------------------------------------------------
 

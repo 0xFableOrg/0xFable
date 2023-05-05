@@ -13,10 +13,18 @@
 // =================================================================================================
 
 import { atom } from "jotai"
+import { atomWithStorage } from "jotai/utils"
+
 import { type Address, type StaticGameData } from "src/types"
 import { readOnlyAtom, writeableAtom } from "src/utils/react-utils"
-import { gameID_, playerAddress_ } from "src/store/private"
-import { getGameData_, getGameStatus_, setGameData_, setGameID_ } from "src/store/update"
+import { playerAddress_ } from "src/store/private"
+import { getGameData_, getGameStatus_, setGameData_ } from "src/store/update"
+
+export { setupStore, refreshGameData } from "src/store/update"
+
+// =================================================================================================
+
+export const GAME_ID_STORAGE_KEY = "0xFable::gameID"
 
 // =================================================================================================
 // GAME INFORMATION
@@ -28,21 +36,41 @@ export const playerAddress = readOnlyAtom<Address>(playerAddress_)
  * ID of the game the player is currently participating in (creating, joined, or playing).
  * This is stored in local storage.
  */
-export const gameID = writeableAtom<BigInt>((get) => get(gameID_), setGameID_)
+export const gameID = atomWithStorage(GAME_ID_STORAGE_KEY, null as BigInt)
+// atomWithStorage causes the creation of another anonymous atom
 
+// TODO setGameData should not be exposed publicly
 /** Static game data (excluding per-player information).  */
 export const gameData = writeableAtom<StaticGameData>(getGameData_, setGameData_)
 
 /** Current game status (CREATED, JOINED, STARTED, etc) */
 export const gameStatus = atom(getGameStatus_)
 
+/** Lets us load the game board once the game starts, but come back to the main menu later. */
+export const hasVisitedBoard = atom(false)
+
+/** True if we have created the current game. */
+export const isGameCreator = atom ((get) => {
+  const address = get(playerAddress)
+  return address != null && address === get(gameData)?.gameCreator
+})
+
+/** True if we have have joined BUT are not the creator of the current game. */
+export const isGameJoiner = atom((get) => {
+  const address = get(playerAddress)
+  return address != null && !get(isGameCreator) && get(gameData)?.players?.includes(address)
+})
+
 // =================================================================================================
 // DEBUG LABELS
 
-playerAddress.debugLabel  = 'playerAddress'
-gameID.debugLabel         = 'gameID'
-gameData.debugLabel       = 'gameData'
-gameStatus.debugLabel     = 'gameStatus'
+playerAddress.debugLabel   = "playerAddress"
+gameID.debugLabel          = "gameID"
+gameData.debugLabel        = "gameData"
+gameStatus.debugLabel      = "gameStatus"
+hasVisitedBoard.debugLabel = "hasVisitedBoard"
+isGameCreator.debugLabel   = "isGameCreator"
+isGameJoiner.debugLabel    = "isGameJoiner"
 
 // =================================================================================================
 // TODO UNUSED
@@ -61,27 +89,27 @@ playerGraveyard .debugLabel = 'playerGraveyard'
 enemyBoard      .debugLabel = 'enemyBoard'
 enemyGraveyard  .debugLabel = 'enemyGraveyard'
 
-export const addToHand = atom(null, (get, set, card: BigInt) => {
-  set(playerHand, [...get(playerHand), card])
-})
-
-export const addToBoard = atom(null, (get, set, card: BigInt) => {
-  set(playerHand, get(playerHand).filter((c) => c !== card))
-  set(playerBoard, [...get(playerBoard), card])
-})
-
-export const addToEnemyBoard = atom(null, (get, set, card: BigInt) => {
-  set(enemyBoard, [...get(enemyBoard), card])
-})
-
-export const destroyOwnCard = atom(null, (get, set, card: BigInt) => {
-  set(playerBoard, get(playerBoard).filter((c) => c !== card))
-  set(playerGraveyard, [...get(playerGraveyard), card])
-})
-
-export const destroyEnemyCard = atom(null, (get, set, card: BigInt) => {
-  set(enemyBoard, get(enemyBoard).filter((c) => c !== card))
-  set(enemyGraveyard, [...get(enemyGraveyard), card])
-})
+// export const addToHand = atom(null, (get, set, card: BigInt) => {
+//   set(playerHand, [...get(playerHand), card])
+// })
+//
+// export const addToBoard = atom(null, (get, set, card: BigInt) => {
+//   set(playerHand, get(playerHand).filter((c) => c !== card))
+//   set(playerBoard, [...get(playerBoard), card])
+// })
+//
+// export const addToEnemyBoard = atom(null, (get, set, card: BigInt) => {
+//   set(enemyBoard, [...get(enemyBoard), card])
+// })
+//
+// export const destroyOwnCard = atom(null, (get, set, card: BigInt) => {
+//   set(playerBoard, get(playerBoard).filter((c) => c !== card))
+//   set(playerGraveyard, [...get(playerGraveyard), card])
+// })
+//
+// export const destroyEnemyCard = atom(null, (get, set, card: BigInt) => {
+//   set(enemyBoard, get(enemyBoard).filter((c) => c !== card))
+//   set(enemyGraveyard, [...get(enemyGraveyard), card])
+// })
 
 // =================================================================================================

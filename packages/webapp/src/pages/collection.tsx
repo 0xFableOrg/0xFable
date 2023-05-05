@@ -8,7 +8,7 @@ import Image from "next/image"
 import { useState, useMemo } from "react"
 import { useAccount } from "wagmi"
 
-import jotaiDebug from "src/components/jotaiDebug"
+import jotaiDebug from "src/components/lib/jotaiDebug"
 import { MintDeckModal } from "src/components/modals/mintDeckModal"
 import { Navbar } from "src/components/navbar"
 import { deployment } from "src/deployment"

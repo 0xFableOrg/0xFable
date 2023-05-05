@@ -1,7 +1,7 @@
 import { useState } from "react"
 
-import { CheckboxModal } from "src/components/modals/checkboxModal"
-import { ModalMenuButton, ModalTitle, SpinnerWithMargin } from "src/components/modals/modalElements"
+import { CheckboxModal } from "src/components/lib/checkboxModal"
+import { ModalMenuButton, ModalTitle, SpinnerWithMargin } from "src/components/lib/modalElements"
 import { deployment } from "src/deployment"
 import {
   useCardsCollectionWrite,
@@ -76,8 +76,8 @@ const MintDeckModalContent = ({ modalControl, callback }: CheckboxModalContentPr
 // =================================================================================================
 
 export const MintDeckModal = ({ callback = () => {} }) => {
-  const modalControl = useCheckboxModal()
   const checkboxID = "mint"
+  const modalControl = useCheckboxModal(checkboxID)
 
   return <>
     <ModalMenuButton htmlFor={checkboxID}>Mint Deck →</ModalMenuButton>
