@@ -77,13 +77,17 @@ function updatePlayerAddress(result: AccountResult) {
  * states),  triggers a refresh of the game data, and makes sure we're subscribed to game updates.
  */
 function setDependencies(ID: BigInt) {
-  console.log("setting dependencies for ", ID)
+  // This can happen when loading from local storage. Parse & reset the ID.
+  if (typeof ID === "string") {
+    store.set(gameID, parseBigInt(ID))
+    return
+  }
+
   // No race conditions — after setting the gameID, any refresh will use that ID.
-
-  // This will only be called when the ID changes in Jotai, so the new ID will always be different
-  // from the old ID.
-
   // TODO: need to add ID into static game data, and check consistency when in-flight refreshes land
+
+  // This function  is only be called when the ID changes in Jotai, so the new ID will always be different
+  // from the old ID.
 
   // avoid using inconsistent data
   store.set(gameData_, null as StaticGameData)
