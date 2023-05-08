@@ -19,12 +19,17 @@ contract DeployLocal is Script {
 
         CardsCollection cardsCollection = new CardsCollection();
         Inventory inventory = new Inventory(salt, cardsCollection);
+        cardsCollection.setInventory(inventory);
         InventoryCardsCollection inventoryCardsCollection = inventory.inventoryCardsCollection();
         DrawVerifier drawVerifier = new DrawVerifier();
         PlayVerifier playVerifier = new PlayVerifier();
         Game game = new Game(inventory, drawVerifier, playVerifier);
         DeckAirdrop airdrop = new DeckAirdrop(inventory);
+        inventory.setAirdrop(airdrop);
 
+        // Temporarily transfer ownership to the airdrop contract, so it can mint cards.
+        // The mint() function will transfer ownership back to the deployer.
+        // This is temporary anyway — airdrop logic will be revamped.
         cardsCollection.transferOwnership(address(airdrop));
         airdrop.mint();
 
@@ -58,11 +63,19 @@ contract DeployPublic is Script {
 
         CardsCollection cardsCollection = new CardsCollection{salt: salt}();
         Inventory inventory = new Inventory{salt: salt}(salt, cardsCollection);
+        cardsCollection.setInventory(inventory);
         InventoryCardsCollection inventoryCardsCollection = inventory.inventoryCardsCollection();
         DrawVerifier drawVerifier = new DrawVerifier{salt: salt}();
         PlayVerifier playVerifier = new PlayVerifier{salt: salt}();
         Game game = new Game{salt: salt}(inventory, drawVerifier, playVerifier);
         DeckAirdrop airdrop = new DeckAirdrop{salt: salt}(inventory);
+        inventory.setAirdrop(airdrop);
+
+        // Temporarily transfer ownership to the airdrop contract, so it can mint cards.
+        // The mint() function will transfer ownership back to the deployer.
+        // This is temporary anyway — airdrop logic will be revamped.
+        cardsCollection.transferOwnership(address(airdrop));
+        airdrop.mint();
 
         console2.log("CardsCollection address", address(cardsCollection));
         console2.log("Inventory address", address(inventory));

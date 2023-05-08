@@ -1,10 +1,12 @@
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 pragma solidity ^0.8.0;
 
+import "./Inventory.sol";
+
 import "openzeppelin/token/ERC721/ERC721.sol";
 import "openzeppelin/access/Ownable.sol";
 
-struct Lore {
+    struct Lore {
     string name;
     string flavor;
     string URL;
@@ -23,10 +25,21 @@ struct Card {
 
 contract CardsCollection is ERC721, Ownable {
 
+    Inventory public inventory;
+
     constructor() ERC721("Cards", "CARD") Ownable() {}
 
     mapping(uint256 => Lore) public lore;
     mapping(uint256 => Stats) private stats_;
+
+    function setInventory(Inventory inventory_) external onlyOwner {
+        inventory = inventory_;
+    }
+
+    // Authorize the inventory contract to transfer cards.
+    function _isApprovedOrOwner(address spender, uint256 tokenId) internal view override returns (bool) {
+        return spender == address(inventory) || super._isApprovedOrOwner(spender, tokenId);
+    }
 
     function mint(
             address to,

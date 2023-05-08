@@ -4,8 +4,10 @@ pragma solidity ^0.8.0;
 import "./Inventory.sol";
 import "./CardsCollection.sol";
 
-// Data + logic to play a game.
-contract DeckAirdrop is IERC721Receiver {
+import "openzeppelin/token/ERC721/IERC721Receiver.sol";
+import "openzeppelin/access/Ownable.sol";
+
+contract DeckAirdrop is IERC721Receiver, Ownable {
 
     uint256 public deckSize;
     uint256 public airdropsLeft = 2;
@@ -13,12 +15,12 @@ contract DeckAirdrop is IERC721Receiver {
     Inventory inventory;
     CardsCollection cardsCollection;
 
-    constructor(Inventory inventory_) {
+    constructor(Inventory inventory_) Ownable() {
         inventory = inventory_;
         cardsCollection = inventory.originalCardsCollection();
     }
 
-    function mint() external {
+    function mint() external onlyOwner {
         if (deckSize > 0)
             revert("already minted");
 
@@ -77,7 +79,7 @@ contract DeckAirdrop is IERC721Receiver {
         cardsCollection.mint(target, i++, "Goblin Queen", "", "", 3, 2);
         cardsCollection.mint(target, i++, "Goblin Queen", "", "", 3, 2);
 
-        // super unsafe (can be frontrun), but this whole file is meant as a crutch for a demo
+        // Transfer ownership back to the deployer.
         cardsCollection.transferOwnership(msg.sender);
     }
 

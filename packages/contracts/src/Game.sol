@@ -9,6 +9,8 @@ import "./PlayVerifier.sol";
 import "forge-std/console.sol";
 
 // Data + logic to play a game.
+// NOTE: We try to lay the groundwork to support games with over 2 players, however they are not
+//   supported and will not work in the current state.
 contract Game {
 
     // =============================================================================================
@@ -118,6 +120,9 @@ contract Game {
     // The player conceded the game.
     event PlayerConceded(uint256 indexed gameID, address indexed player);
 
+    // The player lost by getting its health down to 0.
+    event PlayerLost(uint256 indexed gameID, address indexed player);
+
     // A creature was destroyed at the given index in the attacker/defender's battlefield.
     // The battlefield index matches the battlefield before the battle (defender defending),
     // which will not match the on-chain battlefield after the battle (because the destroyed
@@ -169,7 +174,7 @@ contract Game {
         address[] players;
         uint256 lastBlockNum;
         uint8 playersLeftToJoin;
-        uint8[32] livePlayers;
+        uint8[] livePlayers;
         function (uint256, address, uint8, bytes memory) external returns (bool) joinCheck;
         uint8 currentPlayer;
         GameStep currentStep;
@@ -188,7 +193,7 @@ contract Game {
         address[] players;
         uint256 lastBlockNum;
         uint8 playersLeftToJoin;
-        uint8[32] livePlayers;
+        uint8[] livePlayers;
         uint8 currentPlayer;
         GameStep currentStep;
         address attackingPlayer;
@@ -398,8 +403,9 @@ contract Game {
 
     // ---------------------------------------------------------------------------------------------
 
-    // Deletes all data related to the game.
-    function deleteGame(GameData storage gdata, uint256 gameID) internal {
+    // Deletes the game that we do not need anymore.
+    // TODO: think about we might want to keep or not
+    function deleteGame(GameData storage gdata, uint256 /*gameID*/) internal {
         // clear cards
         for (uint256 i = 0; i < gdata.cards.length; ++i)
             delete gdata.cards[i];
@@ -412,7 +418,10 @@ contract Game {
             delete gdata.playerData[gdata.players[i]];
             delete gdata.players[i];
         }
-        delete gameData[gameID];
+
+        // NOTE: Keeping the static game data makes it easier for the client to handle the end
+        // of the game gracefully, for now.
+        // delete gameData[gameID];
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -465,6 +474,7 @@ contract Game {
             revert GameAlreadyStarted();
         if (!gdata.joinCheck(gameID, msg.sender, deckID, data))
             revert NotAllowedToJoin();
+        gdata.livePlayers.push(uint8(gdata.players.length));
         gdata.players.push(msg.sender);
 
         // Add the player's cards to `gdata.cards`.
@@ -501,16 +511,14 @@ contract Game {
     // Function to be called after a player's health drops to 0, to check if only one player is
     // left, in which case an event is emitted and the game data is deleted.
     function maybeEndGame(GameData storage gdata, uint256 gameID) internal {
-        address winner = address(0);
-        for (uint256 i = 0; i < gdata.players.length; ++i) {
-            address player = gdata.players[i];
-            if (gdata.playerData[player].health > 0) {
-                if (winner != address(0)) return;
-                winner = player;
-            }
+        // TODO
+        //   In the future, consider the possibility of a draw if an effect were to reduce
+        //   the health of all remaining players to 0 at the same time.
+        if (gdata.livePlayers.length == 1) {
+            address winner = gdata.players[gdata.livePlayers[0]];
+            deleteGame(gdata, gameID);
+            emit Champion(gameID, winner);
         }
-        deleteGame(gdata, gameID);
-        emit Champion(gameID, winner);
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -519,9 +527,34 @@ contract Game {
     function concedeGame(uint256 gameID) public exists(gameID) {
         if (gameData[gameID].playerData[msg.sender].handRoot == 0)
             revert PlayerNotInGame();
-        GameData storage gdata = gameData[gameID];
-        gdata.playerData[msg.sender].health = 0;
+
+        playerLost(gameID, msg.sender);
         emit PlayerConceded(gameID, msg.sender);
+    }
+
+    // ---------------------------------------------------------------------------------------------
+
+    function playerLost(uint256 gameID, address player) internal {
+        GameData storage gdata = gameData[gameID];
+
+        // TODO: Move this out to a library, turn it to a uint8[32] bespoke data type that stores length in first slot?
+        //   This would enable to perform this in a single shift once the player is found.
+        // Remove the player from the livePlayers array.
+        // This is safe because we ascertained the player is in the game.
+        bool shifting = false;
+        uint8[] storage livePlayers = gdata.livePlayers;
+        for(uint256 i = 0; i < livePlayers.length - 1; i++){
+            if (gdata.players[livePlayers[i]] == player)
+                shifting = true;
+            if (shifting)
+                livePlayers[i] = livePlayers[i+1];
+        }
+        livePlayers.pop();
+
+        if (gdata.playerData[msg.sender].health == 0)
+            // If health is not zero, the player conceded, and a different event is emitted for that.
+            emit PlayerLost(gameID, player);
+
         maybeEndGame(gdata, gameID);
     }
 
@@ -633,6 +666,7 @@ contract Game {
         GameData storage gdata = gameData[gameID];
         PlayerData storage pdata = gdata.playerData[msg.sender];
 
+        // NOTE: This allows attacking dead player in (unsupported) games with > 2 players.
         if (gdata.currentPlayer == targetPlayer || targetPlayer > gdata.players.length)
             revert WrongAttackTarget();
 
@@ -675,7 +709,7 @@ contract Game {
                 uint8 damage = cardsCollection.stats(attackingCard).attack;
                 if (defender.health <= damage) {
                     defender.health = 0;
-                    maybeEndGame(gdata, gameID);
+                    playerLost(gameID, msg.sender);
                     break;
                 } else {
                     defender.health -= damage;

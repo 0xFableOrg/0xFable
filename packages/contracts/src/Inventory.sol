@@ -2,12 +2,13 @@
 pragma solidity ^0.8.0;
 
 import "./CardsCollection.sol";
+import "./DeckAirdrop.sol";
 import "./InventoryCardsCollection.sol";
 
 import "openzeppelin/access/Ownable.sol";
 import "forge-std/console.sol";
 
-contract Inventory {
+contract Inventory is Ownable {
 
     // =============================================================================================
     // ERRORS
@@ -91,7 +92,11 @@ contract Inventory {
     // by a player.
     InventoryCardsCollection public inventoryCardsCollection;
 
+    // Airdrop manager.
+    address public airdrop;
+
     // =============================================================================================
+    // MODIFIERS
 
     // Checks that the message sender has a deck with the given ID.
     modifier exists(address player, uint8 deckID) {
@@ -104,17 +109,24 @@ contract Inventory {
 
     // Checks that the player has delegated to the message sender.
     modifier delegated(address player) {
-        if (msg.sender != player && !delegations[keccak256(abi.encodePacked(msg.sender, player))])
+        if (msg.sender != player && msg.sender != airdrop && !delegations[keccak256(abi.encodePacked(msg.sender, player))])
             revert PlayerNotDelegatedToSender();
         _;
     }
 
     // =============================================================================================
+    // INITIALIZATION
 
     // deploySalt is the CREATE2 salt used to deplay the InventoryCardsCollection.
-    constructor(bytes32 deploySalt, CardsCollection cardsCollection_) {
+    constructor(bytes32 deploySalt, CardsCollection cardsCollection_) Ownable() {
         originalCardsCollection = cardsCollection_;
         inventoryCardsCollection = new InventoryCardsCollection{salt: deploySalt}(cardsCollection_);
+    }
+
+    // ---------------------------------------------------------------------------------------------
+
+    function setAirdrop(DeckAirdrop airdrop_) onlyOwner external {
+        airdrop = address(airdrop_);
     }
 
     // =============================================================================================
