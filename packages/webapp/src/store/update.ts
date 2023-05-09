@@ -8,16 +8,17 @@
 
 import { BigNumber } from "ethers"
 import { getDefaultStore, type Getter, type Setter } from "jotai"
+import { chain } from "src/constants"
 import { setup } from "src/setup"
-import { getAccount, readContract, watchAccount } from "wagmi/actions"
+import { getAccount, readContract, watchAccount, watchNetwork, getNetwork } from "wagmi/actions"
 
 import { deployment } from "src/deployment"
 import { gameABI } from "src/generated"
-import { gameData, gameID, hasVisitedBoard } from "src/store"
+import { gameData, gameID, hasVisitedBoard, isGameCreator, isGameJoiner } from "src/store"
 import { gameData_, gameStatus_, playerAddress_, } from "src/store/private"
 import { subscribeToGame } from "src/store/subscriptions"
 import { GameStatus, StaticGameData } from "src/types"
-import { AccountResult, parseBigInt } from "src/utils/rpc-utils"
+import { AccountResult, NetworkResult, parseBigInt } from "src/utils/rpc-utils"
 
 // =================================================================================================
 // INITIALIZATION
@@ -38,6 +39,9 @@ export function setupStore() {
   // Whenever the connect wallet address changes, update the player address.
   watchAccount(updatePlayerAddress)
 
+  // Make sure to clear game data if we switch to an unsupported network.
+  watchNetwork(updateNetwork)
+
   // Make sure we don't miss the initial value, if already set.
   updatePlayerAddress(getAccount())
 
@@ -57,44 +61,73 @@ export function setupStore() {
 
 /**
  * Called whenever the connected wallet address changes. Makes sure to clear the address if the
- * wallet is disconnected, and to trigger the necessary updates if it changed.
+ * wallet is disconnected, as well as the game data.
  */
 function updatePlayerAddress(result: AccountResult) {
-  const oldAddress = store.get(playerAddress_)
-  if (result.status === 'disconnected') {
-    if (oldAddress != null) store.set(playerAddress_, null)
-  }
-  else if (store.get(playerAddress_) !== result.address) {
-    store.set(playerAddress_, result.address)
+  // normalize undefined to null
+  const oldAddress = store.get(playerAddress_) || null
+  const newAddress = result.status === 'disconnected' ? null : (result.address || null)
+
+  if (oldAddress !== newAddress && isNetworkValid()) {
+    console.log(`player address changed from ${oldAddress} to ${newAddress}`)
+    store.set(playerAddress_, newAddress)
+
+    // TODO temporary hack: don't reset the game data on hard page refresh, because the player address will transition from null to the connected address
+    if (oldAddress !== null)
+      store.set(gameID, null) // resets all game data
   }
 }
 
 // -------------------------------------------------------------------------------------------------
 
+/** Returns true if the network we are connected to is the one we support ({@link chain}). */
+function isNetworkValid(network: NetworkResult = getNetwork()) {
+  return network.chain && network.chain.id === chain.id
+}
+
+// -------------------------------------------------------------------------------------------------
+
+/**
+ * Called whenever the network we are connected to changes. Makes sure to clear the game data if the
+ * network is unsupported.
+ */
+function updateNetwork(result: NetworkResult) {
+  console.log(`network changed to chain with ID ${result.chain?.id}`)
+  if (!isNetworkValid(result)) {
+    store.set(gameID, null) // resets all game data
+  }
+}
+
+// -------------------------------------------------------------------------------------------------
 
 /**
  * Called whenever the game ID is updated. This clears the old game data (to avoid inconsistent
- * states),  triggers a refresh of the game data, and makes sure we're subscribed to game updates.
+ * states), triggers a refresh of the game data, and makes sure we're subscribed to game updates.
+ *
+ * The game ID can be `null`, in which case there is no new subscription and no data refresh.
+ *
+ * This is called whenever the game ID changes (from actions in this tab or in other tabs), and
+ * possibly when the game ID is loaded from storage at boot time.
+ *
+ * It never causes race conditions or weird data states: this resets all associated states, and if
+ * a refresh lands with another ID, it will be ignored.
  */
 function setDependencies(ID: BigInt) {
   // This can happen when loading from local storage. Parse & reset the ID.
+  // TODO change how the game ID is stored/parsed from local storage?
   if (typeof ID === "string") {
     store.set(gameID, parseBigInt(ID))
     return
   }
 
-  // No race conditions — after setting the gameID, any refresh will use that ID.
-  // TODO: need to add ID into static game data, and check consistency when in-flight refreshes land
-
-  // This function  is only be called when the ID changes in Jotai, so the new ID will always be different
-  // from the old ID.
+  console.log(`transitioning to game ID ${ID}`)
 
   // avoid using inconsistent data
   store.set(gameData_, null as StaticGameData)
   store.set(gameStatus_, GameStatus.UNKNOWN)
   store.set(hasVisitedBoard, false)
 
-  // NOTE(norswap) reset per-player state here, when we start using it
+  // TODO reset per-player state here, when we start using it
 
   subscribeToGame(ID) // will unusubscribe if ID is null
   if (ID !== null) void refreshGameData()
@@ -138,9 +171,13 @@ function setGameData_(data: StaticGameData) {
     return
   }
 
-  // Data is stale, ignore.
-  if (data && parseBigInt(data.gameID) !== store.get(gameID))
+  const ID = parseBigInt(data.gameID)
+  const storeID = store.get(gameID)
+  // The game ID changed underneath this update, ignore it.
+  if (ID !== storeID) {
+    console.log(`Rejected stale data with game ID ${ID} (current game ID is ${storeID})`)
     return
+  }
 
   store.set(gameData_, data)
 
@@ -164,6 +201,11 @@ function setGameData_(data: StaticGameData) {
     store.set(gameStatus_, GameStatus.CREATED)
   }
 
+  if(!store.get(isGameCreator) && !store.get(isGameJoiner)) {
+    console.error(`Tracking a game (${store.get(gameID)}) we are not participating in, resetting to null.`)
+    store.set(gameID, null)
+  }
+
   // TODO parse data and ensure that the store is consistent with it
 }
 
@@ -173,6 +215,9 @@ let lastRefreshTimestamp = 0
 
 /**
  * Triggers a manual refresh of the game data, setting the {@link gameData} atom.
+ * If the game ID changes the while the refresh is in flight, the refresh is ignored.
+ *
+ * TODO: implement a sequence number so that we can ignore stale refreshes.
  */
 export async function refreshGameData() {
   const ID = store.get(gameID)
@@ -180,11 +225,11 @@ export async function refreshGameData() {
     console.error("refreshGameData called with null ID")
     return
   }
+
   const timestamp = Date.now()
   if (timestamp - lastRefreshTimestamp < 2000) return // there is a recent-ish refresh in flight
   lastRefreshTimestamp = timestamp
 
-  if (ID == null) return
   const fetchedGameData = await readContract({
     address: deployment.Game,
     abi: gameABI,
@@ -192,8 +237,12 @@ export async function refreshGameData() {
     args: [BigNumber.from(ID)]
   })
   console.log("fetched data: " + JSON.stringify(fetchedGameData))
+
+  // Allow another refresh immediately.
+  lastRefreshTimestamp = 0
+
+  // NOTE: This will check that the game data's game ID is consistent with the game ID in the store.
   setGameData_(fetchedGameData as StaticGameData)
-  lastRefreshTimestamp = 0 // allow another refresh immediately
 }
 
 // =================================================================================================

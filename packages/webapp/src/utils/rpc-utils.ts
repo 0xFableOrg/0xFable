@@ -9,6 +9,7 @@
 import { BigNumber, type BigNumberish } from "ethers"
 
 import { Address } from "src/types"
+import { Chain } from "wagmi"
 
 // =================================================================================================
 
@@ -33,6 +34,15 @@ export function parseBigInt(value: BigNumberish): bigint {
 export type AccountResult = {
   status: 'disconnected' | 'connecting' | 'connected' | 'reconnecting'
   address: Address
+}
+
+// -------------------------------------------------------------------------------------------------
+
+/**
+ * Simplification of GetNetworkResult (not exported, because of course) in wagmi.
+ */
+export type NetworkResult = {
+  chain?: Chain
 }
 
 // =================================================================================================

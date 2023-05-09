@@ -12,9 +12,7 @@ import { watchContractEvent } from "wagmi/actions"
 
 import { deployment } from "src/deployment"
 import { gameABI } from "src/generated"
-import { gameID, playerAddress } from "src/store"
-import { gameStatus_ } from "src/store/private"
-import { GameStatus } from "src/types"
+import { gameID } from "src/store"
 import { refreshGameData } from "src/store/update"
 
 // =================================================================================================
