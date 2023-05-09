@@ -20,26 +20,38 @@ const Play: NextPage = () => {
   const [ hasVisitedBoard, setHasVisitedBoard ] = useAtom(store.hasVisitedBoard)
   useEffect(() => setHasVisitedBoard(true), [hasVisitedBoard])
   const [ loading, setLoading ] = useState<string>(null)
+  const [ hideResults, setHideResults ] = useState(false)
+  const [ concedeCompleted, setConcedeCompleted ] = useState(false)
 
   const [ playerHand ] = useAtom(store.playerHand)
+
+  const ended = gameStatus === GameStatus.ENDED || concedeCompleted
 
   const { write: concede } = useGameWrite({
     functionName: "concedeGame",
     args: [gameID],
-    setLoading
+    enabled: gameID !== null,
+    setLoading,
+    // Optimistically update the UX, as we know the transaction succeeded and the data refresh
+    // will follow.
+    onSuccess: () => setConcedeCompleted(true)
   })
+
+  // TODO: if there is no game ID, should redirect away from this page
+  // TODO: the navbar connector should show bad chain if it's a bad chain
 
   // -----------------------------------------------------------------------------------------------
 
-  if (loading) return <>
-    <LoadingModal>
-      <ModalTitle>{loading}</ModalTitle>
-    </LoadingModal>
-  </>
-
   return (
     <>
-      {gameStatus === GameStatus.ENDED && <GameEndedModal />}
+      {loading &&
+        <LoadingModal>
+          <ModalTitle>{loading}</ModalTitle>
+        </LoadingModal>
+      }
+
+      {ended && !hideResults && <GameEndedModal closeCallback={() => setHideResults(true)} />}
+
       <main className="flex min-h-screen flex-col">
         <Navbar />
 
@@ -56,21 +68,33 @@ const Play: NextPage = () => {
             </div> */}
           </div>
 
-          <button
-            className=" btn-warning btn-lg btn absolute right-96 bottom-1/2 z-50 translate-y-1/2 rounded-lg border-[.1rem] border-base-300 font-mono hover:scale-105">
-            DRAW
-          </button>
+          {!ended && <>
+            <button
+              className="btn-warning btn-lg btn absolute right-96 bottom-1/2 z-50 translate-y-1/2 rounded-lg border-[.1rem] border-base-300 font-mono hover:scale-105">
+              DRAW
+            </button>
 
-          <button
-            className=" btn-warning btn-lg btn absolute right-48 bottom-1/2 z-50 translate-y-1/2 rounded-lg border-[.1rem] border-base-300 font-mono hover:scale-105">
-            END TURN
-          </button>
+            <button
+              className="btn-warning btn-lg btn absolute right-48 bottom-1/2 z-50 translate-y-1/2 rounded-lg border-[.1rem] border-base-300 font-mono hover:scale-105">
+              END TURN
+            </button>
 
-          <button
-            className=" btn-warning btn-lg btn absolute right-4 bottom-1/2 z-50 translate-y-1/2 rounded-lg border-[.1rem] border-base-300 font-mono hover:scale-105"
-            disabled={!concede} onClick={concede}>
-            CONCEDE
-          </button>
+            <button
+              className="btn-warning btn-lg btn absolute right-4 bottom-1/2 z-50 translate-y-1/2 rounded-lg border-[.1rem] border-base-300 font-mono hover:scale-105"
+              disabled={!concede} onClick={concede}>
+              CONCEDE
+            </button>
+          </>}
+
+          {/* TODO avoid the bump by grouping buttons in a container that is translated, then no need for the translation here and the important */}
+          {ended && <>
+            <button
+              className=" btn-warning btn-lg btn absolute right-4 bottom-1/2 z-50 !translate-y-1/2 rounded-lg border-[.1rem] border-base-300 font-mono hover:scale-105"
+              onClick={() => setHideResults(false)}>
+              SEE RESULTS & EXIT
+            </button>
+          </>}
+
 
           <div className="relative row-span-6 rounded-xl rounded-t-none border border-t-0 bg-base-300 shadow-inner">
             <p className="z-0 m-2 font-mono font-bold"> ⚔️ p1 address </p>

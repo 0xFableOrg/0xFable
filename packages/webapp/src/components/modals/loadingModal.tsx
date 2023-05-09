@@ -1,5 +1,4 @@
-import { useRouter } from "next/router"
-
+import { useEffect } from "react"
 import { CheckboxModal } from "src/components/lib/checkboxModal"
 import { SpinnerWithMargin } from "src/components/lib/modalElements"
 import { useCheckboxModal } from "src/hooks/useCheckboxModal"
@@ -12,9 +11,12 @@ import { useCheckboxModal } from "src/hooks/useCheckboxModal"
  * NOTE: The main benefit of this is avoiding the `useCheckboxModal` hook in the parent component.
  * I'm not sure it's worth the abstraction?
  */
-export const LoadingModal = ({ children }) => {
+export const LoadingModal = ({ initialDisplay = true, children }) => {
   const checkboxID = "game-end"
   const modalControl = useCheckboxModal(checkboxID)
+  // TODO this is ungodly
+  if (initialDisplay)
+    useEffect(() => { modalControl.displayModal(true) }, [])
 
   return <CheckboxModal id={checkboxID} control={modalControl}>
     {children}
