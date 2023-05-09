@@ -22,11 +22,12 @@ const CreateGameModalContent = ({ modalControl }: CheckboxModalContentProps) => 
   const [ gameStatus ] = useAtom(store.gameStatus)
   const [ hasVisitedBoard ] = useAtom(store.hasVisitedBoard)
   const [ loading, setLoading ] = useState<string>(null)
+  const [ joinCompleted, setJoinCompleted ] = useState(false)
   const gameContract = useGame({ address: deployment.Game })
   const router = useRouter()
 
   const created = gameStatus >= GameStatus.CREATED
-  const joined  = gameStatus >= GameStatus.JOINED
+  const joined  = gameStatus >= GameStatus.JOINED || joinCompleted
   const started = gameStatus >= GameStatus.STARTED
 
   // Relevant combinations:
@@ -99,6 +100,10 @@ const CreateGameModalContent = ({ modalControl }: CheckboxModalContentProps) => 
       // The alternative is an optimistic update of the game status & data.
       if (gameData.playersLeftToJoin <= 1)
         setLoading("Loading game...")
+      else
+        // Optimistically transition to the next modal state as we know the tx succeeded, and the
+        // game data refresh will follow.
+        setJoinCompleted(true)
     },
     onError(err) {
       const errData = (err as any)?.error?.data?.data
