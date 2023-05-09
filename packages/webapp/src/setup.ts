@@ -9,7 +9,13 @@ import { setupStore } from "src/store"
 
 // =================================================================================================
 
+// Only run setup once.
+let setupHasRun = false
+
 export function setup() {
+  if (setupHasRun) return
+  setupHasRun = true
+
   setupFilterErrorMessages()
   setupFilterWarningMessages()
   setupFilterInfoMessages()
@@ -55,7 +61,7 @@ const filteredInfoMessages = [
  * window.suppressedErrors}.
  */
 function setupFilterErrorMessages() {
-  const oldError = console.error
+  const oldError = console.error["oldError"] ?? console.error
   console.error = (err) => {
     const filteredMsg = typeof err === "string"
       && filteredErrorMessages.some((msg) => err.startsWith(msg))
@@ -68,6 +74,7 @@ function setupFilterErrorMessages() {
       oldError(err)
     }
   }
+  console.error["oldError"] = oldError
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -78,7 +85,7 @@ function setupFilterErrorMessages() {
  * window.suppressedWarnings}.
  */
 function setupFilterWarningMessages() {
-  const oldWarn = console.warn
+  const oldWarn = console.warn["oldWarn"] ?? console.warn
   console.warn = (warning) => {
     const filteredMsg = typeof warning === "string"
       && filteredWarningMessages.some((msg) => warning.startsWith(msg))
@@ -90,6 +97,7 @@ function setupFilterWarningMessages() {
       oldWarn(warning)
     }
   }
+  console.warn["oldWarn"] = oldWarn
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -100,7 +108,7 @@ function setupFilterWarningMessages() {
  * window.suppressedInfos}.
  */
 function setupFilterInfoMessages() {
-  const oldInfo = console.info
+  const oldInfo = console.info["oldInfo"] ?? console.info
   console.info = (info) => {
     const filteredMsg = typeof info === "string"
       && filteredInfoMessages.some((msg) => info.startsWith(msg))
@@ -112,6 +120,7 @@ function setupFilterInfoMessages() {
       oldInfo(info)
     }
   }
+  console.info["oldInfo"] = oldInfo
 }
 
 // =================================================================================================

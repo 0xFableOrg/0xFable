@@ -50,6 +50,9 @@ export function useWrite(params: UseWriteParams): UseWriteResult {
       ? error => { setLoading(null); params.onError(error) }
       : error => {
         setLoading(null)
+        // It would be nice to combine these two, however, interpolating `error` or event
+        // `error.stack` into the string doesn't give the nice builtin formatting + clickable links
+        // in browsers' consoles.
         console.log(`Error in useWrite (${functionName}):`)
         console.log(error)
       }
