@@ -9,7 +9,6 @@ import { deployment } from "src/deployment"
 import { useGame } from "src/generated"
 import { useGameWrite } from "src/hooks/fableTransact"
 import { type CheckboxModalContentProps, useCheckboxModal } from "src/hooks/useCheckboxModal"
-import { useDebugValues } from "src/hooks/useDebug"
 import * as store from "src/store"
 import { GameStatus } from "src/types"
 import { parseBigInt } from "src/utils/rpc-utils"
@@ -38,8 +37,6 @@ const CreateGameModalContent = ({ modalControl }: CheckboxModalContentProps) => 
 
   // The reason to decompose the status into boolean is it helps with sharing code in the layout
   // logic. Cancelling a game can also be done in CREATED or JOINED state.
-
-  useDebugValues({ gameID, gameStatus, created, joined, started })
 
   // If the game is created, the modal can't be closed.
   useEffect(() => {
@@ -82,7 +79,7 @@ const CreateGameModalContent = ({ modalControl }: CheckboxModalContentProps) => 
 
   const { write: join } = useGameWrite({
     functionName: "joinGame",
-    args: gameID
+    args: gameID !== null
       ? [
         gameID,
         0, // deckID
