@@ -413,7 +413,9 @@ contract Game {
             PlayerData storage pdata = gdata.playerData[gdata.players[i]];
             clear(pdata.attacking);
             delete gdata.playerData[gdata.players[i]];
-            delete gdata.players[i];
+
+            // NOTE: See note below.
+            // delete gdata.players[i];
         }
 
         // NOTE: Keeping the static game data makes it easier for the client to handle the end
