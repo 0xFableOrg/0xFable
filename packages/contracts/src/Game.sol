@@ -120,9 +120,6 @@ contract Game {
     // The player conceded the game.
     event PlayerConceded(uint256 indexed gameID, address indexed player);
 
-    // The player lost by getting its health down to 0.
-    event PlayerLost(uint256 indexed gameID, address indexed player);
-
     // A creature was destroyed at the given index in the attacker/defender's battlefield.
     // The battlefield index matches the battlefield before the battle (defender defending),
     // which will not match the on-chain battlefield after the battle (because the destroyed
@@ -528,13 +525,13 @@ contract Game {
         if (gameData[gameID].playerData[msg.sender].handRoot == 0)
             revert PlayerNotInGame();
 
-        playerLost(gameID, msg.sender);
+        playerDefeated(gameID, msg.sender);
         emit PlayerConceded(gameID, msg.sender);
     }
 
     // ---------------------------------------------------------------------------------------------
 
-    function playerLost(uint256 gameID, address player) internal {
+    function playerDefeated(uint256 gameID, address player) internal {
         GameData storage gdata = gameData[gameID];
 
         // TODO: Move this out to a library, turn it to a uint8[32] bespoke data type that stores length in first slot?
@@ -553,7 +550,7 @@ contract Game {
 
         if (gdata.playerData[msg.sender].health == 0)
             // If health is not zero, the player conceded, and a different event is emitted for that.
-            emit PlayerLost(gameID, player);
+            emit PlayerDefeated(gameID, player);
 
         maybeEndGame(gdata, gameID);
     }
@@ -709,7 +706,7 @@ contract Game {
                 uint8 damage = cardsCollection.stats(attackingCard).attack;
                 if (defender.health <= damage) {
                     defender.health = 0;
-                    playerLost(gameID, msg.sender);
+                    playerDefeated(gameID, msg.sender);
                     break;
                 } else {
                     defender.health -= damage;

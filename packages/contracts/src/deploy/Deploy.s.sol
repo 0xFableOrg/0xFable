@@ -43,6 +43,15 @@ contract DeployLocal is Script {
         console2.log("Multicall3 address", address(multicall));
 
         vm.stopBroadcast();
+
+        string memory mnemonic = "test test test test test test test test test test test junk";
+        (address ACCOUNT0,) = deriveRememberKey(mnemonic, 0);
+        (address ACCOUNT1,) = deriveRememberKey(mnemonic, 1);
+
+        vm.broadcast(ACCOUNT0);
+        airdrop.claimAirdrop();
+        vm.broadcast(ACCOUNT1);
+        airdrop.claimAirdrop();
     }
 }
 
