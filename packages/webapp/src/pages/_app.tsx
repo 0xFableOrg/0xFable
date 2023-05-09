@@ -2,21 +2,18 @@ import type { AppType } from "next/app"
 import Head from "next/head"
 import jotaiDebug from "src/components/lib/jotaiDebug"
 import { configureChains, createClient, WagmiConfig } from "wagmi"
-import { localhost } from "wagmi/chains"
 import { EthereumClient, w3mConnectors, w3mProvider} from "@web3modal/ethereum"
 import { Web3Modal } from "@web3modal/react"
 
 import { setup } from "src/setup"
+import { projectId, chain } from "src/constants"
 
 import "src/styles/globals.css"
 
 // =================================================================================================
 // SETUP BLOCKCHAIN INTEROP
 
-// From the WalletConnect cloud
-const projectId='8934622f70e11b51de893ea309871a4c'
-
-const chains = [localhost]
+const chains = [chain]
 
 const { provider } = configureChains(chains, [w3mProvider({ projectId })])
 

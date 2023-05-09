@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { chain } from "src/constants"
 import { useAccount, useNetwork } from "wagmi"
 import { useWeb3Modal, Web3Button, Web3NetworkSwitch } from "@web3modal/react"
 
@@ -7,18 +8,16 @@ import { JoinGameModal } from "src/components/modals/joinGameModal"
 import { MintDeckModal } from "src/components/modals/mintDeckModal"
 import { useIsHydrated } from "src/hooks/useIsHydrated"
 
-const LOCALHOST = 1337
-
 const Home = () => {
   const isHydrated = useIsHydrated()
   const { address } = useAccount()
   const { open } = useWeb3Modal()
-  const { chain } = useNetwork()
+  const { chain: usedChain } = useNetwork()
 
   // These three states are mutually exclusive. One of them is always true.
   const notConnected = !isHydrated || !address
-  const isWrongNetwork = !notConnected && chain?.id !== LOCALHOST
-  const isRightNetwork = !notConnected && chain?.id === LOCALHOST
+  const isWrongNetwork = !notConnected && usedChain?.id !== chain.id
+  const isRightNetwork = !notConnected && usedChain?.id === chain.id
 
   return <>
     <main className="flex flex-col min-h-screen items-center justify-center">
