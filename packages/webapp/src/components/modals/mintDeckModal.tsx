@@ -1,53 +1,26 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 
 import { CheckboxModal } from "src/components/lib/checkboxModal"
 import { ModalMenuButton, ModalTitle, SpinnerWithMargin } from "src/components/lib/modalElements"
-import { deployment } from "src/deployment"
-import {
-  useCardsCollectionWrite,
-  useDeckAirdropWrite,
-  useInventoryWrite
-} from "src/hooks/fableTransact"
+import { useDeckAirdropWrite } from "src/hooks/fableTransact"
 import { CheckboxModalContentProps, useCheckboxModal } from "src/hooks/useCheckboxModal"
 
 // =================================================================================================
 
 const MintDeckModalContent = ({ modalControl, callback }: CheckboxModalContentProps) => {
-  const [invDelegated, setInvDelegated] = useState(false)
-  const [airDelegated, setAirDelegated] = useState(false)
   const [ loading, setLoading ] = useState<string>(null)
-
-  const { write: approve } = useCardsCollectionWrite({
-    functionName: "setApprovalForAll",
-    args: [deployment.Inventory, true],
-    setLoading,
-    onSuccess() {
-      setInvDelegated(true)
-    }
-  })
-
-  const { write: delegate } = useInventoryWrite({
-    functionName: "setDelegation",
-    args: [deployment.DeckAirdrop, true],
-    enabled: invDelegated,
-    setLoading,
-    onSuccess() {
-      setAirDelegated(true)
-    }
-  })
+  const [ success, setSuccess ] = useState(false)
 
   const { write: claim } = useDeckAirdropWrite({
     functionName: "claimAirdrop",
-    enabled: airDelegated,
+    enabled: true,
     setLoading,
     onSuccess() {
       modalControl.displayModal(false)
       callback?.()
+      setSuccess(true)
     }
   })
-
-  // TODO(LATER): check if we already have the approvals
-  // TODO(LATER): pop a modal to indicate that the mint is successful? do something while getting collection
 
   // -----------------------------------------------------------------------------------------------
 
@@ -57,19 +30,23 @@ const MintDeckModalContent = ({ modalControl, callback }: CheckboxModalContentPr
   </>
 
   return <>
-    <ModalTitle>Minting Deck...</ModalTitle>
-    <p className="py-4">
-      Mint a deck of cards to play the game with your friends.
-    </p>
-    <button className="btn" onClick={approve} disabled={invDelegated || !approve}>
-      Delegate to Inventory
-    </button>
-    <button className="btn" onClick={delegate} disabled={airDelegated || !invDelegated || !delegate}>
-      Delegate to Airdropper
-    </button>
-    <button className="btn" onClick={claim} disabled={!airDelegated || !claim}>
-      Mint Deck
-    </button>
+    {!success && <>
+      <ModalTitle>Minting Deck...</ModalTitle>
+      <p className="py-4">
+        Mint a deck of cards to play the game with your friends.
+      </p>
+      <div className="flex justify-center">
+        <button className="btn flex content-center" onClick={claim} disabled={!claim}>
+          Mint Deck
+        </button>
+      </div>
+    </>}
+    {success && <>
+      <ModalTitle>Deck Minted Successfully</ModalTitle>
+      <p className="py-4">
+        Go enjoy the game!
+      </p>
+    </>}
   </>
 }
 
