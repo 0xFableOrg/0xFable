@@ -6,10 +6,11 @@
 
 // =================================================================================================
 
-import { BigNumber } from "ethers"
+import { BigNumber, BigNumberish } from "ethers"
 import { getDefaultStore, type Getter, type Setter } from "jotai"
 import { chain } from "src/constants"
 import { setup } from "src/setup"
+import { formatTimestamp } from "src/utils/js-utils"
 import { getAccount, readContract, watchAccount, watchNetwork, getNetwork } from "wagmi/actions"
 
 import { deployment } from "src/deployment"
@@ -17,7 +18,7 @@ import { gameABI } from "src/generated"
 import { gameData, gameID, hasVisitedBoard, isGameCreator, isGameJoiner } from "src/store"
 import { gameData_, gameStatus_, playerAddress_, } from "src/store/private"
 import { subscribeToGame } from "src/store/subscriptions"
-import { GameStatus, StaticGameData } from "src/types"
+import { Address, GameStatus, GameStep, StaticGameData } from "src/types"
 import { AccountResult, NetworkResult, parseBigInt } from "src/utils/rpc-utils"
 
 // =================================================================================================
@@ -211,7 +212,14 @@ function setGameData_(data: StaticGameData) {
 
 // =================================================================================================
 
-let lastRefreshTimestamp = 0
+// Used to throttle refreshes: at most one refresh can be requested in flight, unless two seconds
+// elapse. After a refresh lands, another one become spossible immediately.
+const refreshThrottle = 2000
+let lastRequestTimestamp = 0
+
+// Used to avoid "zombie" refreshes: old refreshes overwriting newer game data.
+let sequenceNumber = 1
+let lastCompletedNumber = 0
 
 /**
  * Triggers a manual refresh of the game data, setting the {@link gameData} atom.
@@ -226,23 +234,41 @@ export async function refreshGameData() {
     return
   }
 
+  const seqNum = sequenceNumber++
   const timestamp = Date.now()
-  if (timestamp - lastRefreshTimestamp < 2000) return // there is a recent-ish refresh in flight
-  lastRefreshTimestamp = timestamp
+  if (timestamp - lastRequestTimestamp < refreshThrottle)
+    return // there is a recent-ish refresh in flight
+  lastRequestTimestamp = timestamp
 
-  const fetchedGameData = await readContract({
+  const fetched = await readContract({
     address: deployment.Game,
     abi: gameABI,
     functionName: "staticGameData",
     args: [BigNumber.from(ID)]
   })
-  console.log("fetched data: " + JSON.stringify(fetchedGameData))
+
+  const gameData: StaticGameData = {
+    gameID: parseBigInt(fetched.gameID),
+    gameCreator: fetched.gameCreator,
+    players: fetched.players,
+    lastBlockNum: parseBigInt(fetched.lastBlockNum),
+    playersLeftToJoin: fetched.playersLeftToJoin,
+    livePlayers: fetched.livePlayers,
+    currentPlayer: fetched.currentPlayer,
+    currentStep: fetched.currentStep,
+    attackingPlayer: fetched.attackingPlayer
+  }
+
+  if (seqNum < lastCompletedNumber) return // ignore zombie refresh
+  lastCompletedNumber = seqNum
+
+  console.dir(`fetched data (at ${formatTimestamp(timestamp)}):\n`, gameData)
 
   // Allow another refresh immediately.
-  lastRefreshTimestamp = 0
+  lastRequestTimestamp = 0
 
-  // NOTE: This will check that the game data's game ID is consistent with the game ID in the store.
-  setGameData_(fetchedGameData as StaticGameData)
+  // This will check that the game data's game ID is consistent with the game ID in the store.
+  setGameData_(gameData)
 }
 
 // =================================================================================================
