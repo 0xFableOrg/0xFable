@@ -262,7 +262,9 @@ export async function refreshGameData() {
   if (seqNum < lastCompletedNumber) return // ignore zombie refresh
   lastCompletedNumber = seqNum
 
-  console.dir(`fetched data (at ${formatTimestamp(timestamp)}):\n`, gameData)
+  console.groupCollapsed(`fetched data (at ${formatTimestamp(timestamp)})`)
+  console.dir(gameData)
+  console.groupEnd()
 
   // Allow another refresh immediately.
   lastRequestTimestamp = 0

@@ -77,7 +77,7 @@ const Collection = () => {
         <title>0xFable: My Collection</title>
       </Head>
 
-      {jotaiDebug(isHydrated)}
+      {jotaiDebug()}
       <main className="flex h-screen flex-col">
         <Navbar />
         <div className="mx-6 mb-6 grid grow grid-cols-12 gap-4 min-h-0">

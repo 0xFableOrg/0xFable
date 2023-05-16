@@ -1,13 +1,18 @@
 import { useEffect, useState } from "react"
 
-// Returns true if the component has already been hydrated (it is not the firstrender), false
-// otherwise (first render). Automatically triggers a re-render after hydration.
+/**
+ * Returns true if the component has already been hydrated (it is not the first render), false
+ * otherwise (first render). Automatically triggers a re-render after hydration.
+ *
+ * You can also check if you're undergoing server-side rendering if the window property exists:
+ * `if (typeof window !== "undefined") // not server side-rendering`.
+ */
 export const useIsHydrated = () => {
-  const [isHydration, setIsHydration] = useState(false)
+  const [isHydrated, setIsHydrated] = useState(false)
 
   useEffect(() => {
-    setIsHydration(true);
+    setIsHydrated(true);
   }, [])
 
-  return isHydration
+  return isHydrated
 }

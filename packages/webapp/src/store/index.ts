@@ -12,7 +12,7 @@
 
 // =================================================================================================
 
-import { atom } from "jotai"
+import { atom, getDefaultStore } from "jotai"
 import { atomWithStorage } from "jotai/utils"
 
 import { type Address, type StaticGameData } from "src/types"
@@ -25,6 +25,13 @@ export { setupStore, refreshGameData } from "src/store/update"
 // =================================================================================================
 
 export const GAME_ID_STORAGE_KEY = "0xFable::gameID"
+
+// -------------------------------------------------------------------------------------------------
+
+/**
+ * Direct access to the Jotai store.
+ */
+export const store = getDefaultStore()
 
 // =================================================================================================
 // GAME INFORMATION

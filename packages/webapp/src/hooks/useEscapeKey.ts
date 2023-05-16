@@ -27,20 +27,20 @@ export function useEscapeKey(enabled = true, handleEscape: () => void) {
   useEffect(() => {
     // Nothing to do if not enabled. If the hook was previously enabled, the cleanup function will
     // be run, removing the hook.
-    if (enabled) {
-      // remove previous callback, install new one
-      if (callbacks.length > 0)
-        document.removeEventListener(KEY_EVENT_TYPE, callbacks.last)
-      callbacks.push(handleEscKey)
-      document.addEventListener(KEY_EVENT_TYPE, handleEscKey)
+    if (!enabled) return
 
-      return () => {
-        // remove callback & restore previous one
-        document.removeEventListener(KEY_EVENT_TYPE, handleEscKey)
-        callbacks.pop()
-        if (callbacks.length > 0)
-          document.addEventListener(KEY_EVENT_TYPE, callbacks.last)
-      }
+    // remove previous callback, install new one
+    if (callbacks.length > 0)
+      document.removeEventListener(KEY_EVENT_TYPE, callbacks.last)
+    callbacks.push(handleEscKey)
+    document.addEventListener(KEY_EVENT_TYPE, handleEscKey)
+
+    return () => {
+      // remove callback & restore previous one
+      document.removeEventListener(KEY_EVENT_TYPE, handleEscKey)
+      callbacks.pop()
+      if (callbacks.length > 0)
+        document.addEventListener(KEY_EVENT_TYPE, callbacks.last)
     }
   }, [handleEscKey, enabled])
 }

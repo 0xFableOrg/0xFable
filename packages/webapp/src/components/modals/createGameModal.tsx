@@ -2,20 +2,19 @@ import { useAtom } from "jotai"
 import { useRouter } from "next/router"
 import { useEffect, useState } from "react"
 
-import { CheckboxModal } from "src/components/lib/checkboxModal"
-import { ModalMenuButton, ModalTitle, SpinnerWithMargin } from "src/components/lib/modalElements"
+import { Modal, ModalController, useModalController } from "src/components/lib/modal"
+import { ModalTitle, SpinnerWithMargin } from "src/components/lib/modalElements"
 import { InGameMenuModalContent } from "src/components/modals/inGameMenuModalContent"
 import { deployment } from "src/deployment"
 import { useGame } from "src/generated"
 import { useGameWrite } from "src/hooks/fableTransact"
-import { type CheckboxModalContentProps, useCheckboxModal } from "src/hooks/useCheckboxModal"
 import * as store from "src/store"
 import { GameStatus } from "src/types"
 import { parseBigInt } from "src/utils/rpc-utils"
 
 // =================================================================================================
 
-const CreateGameModalContent = ({ modalControl }: CheckboxModalContentProps) => {
+const CreateGameModalContent = ({ ctrl }: { ctrl: ModalController }) => {
 
   const [ gameID, setGameID ] = useAtom(store.gameID)
   const [ gameData ] = useAtom(store.gameData)
@@ -39,16 +38,16 @@ const CreateGameModalContent = ({ modalControl }: CheckboxModalContentProps) => 
   // The reason to decompose the status into boolean is it helps with sharing code in the layout
   // logic. Cancelling a game can also be done in CREATED or JOINED state.
 
-  // If the game is created, the modal can't be closed.
+  // If the game is created, the modal can't be closed in the normal way, same if loading.
   useEffect(() => {
     // React forces us to use an effect, can't update a component state in another component.
-    modalControl.setModalCloseable(!created)
-  }, [modalControl.setModalCloseable, created])
+    ctrl.closeableAndSurroundCloseable = !created && loading === null
+  }, [created, loading])
 
-  // Load game board game once upon game start.
+  // Load game board game once the game start, unless we've visited it for this game already.
   useEffect(() => {
     if (!hasVisitedBoard && started)
-      router.push("/play")
+      void router.push("/play")
   }, [hasVisitedBoard, router, started])
 
 
@@ -123,7 +122,7 @@ const CreateGameModalContent = ({ modalControl }: CheckboxModalContentProps) => 
     setLoading,
     onSuccess() {
       setGameID(null)
-      modalControl.displayModal(false)
+      ctrl.close()
     }
   })
 
@@ -134,7 +133,7 @@ const CreateGameModalContent = ({ modalControl }: CheckboxModalContentProps) => 
     setLoading,
     onSuccess() {
       setGameID(null)
-      modalControl.displayModal(false)
+      ctrl.close()
     }
   })
 
@@ -143,6 +142,11 @@ const CreateGameModalContent = ({ modalControl }: CheckboxModalContentProps) => 
   if (loading) return <>
     <ModalTitle>{loading}</ModalTitle>
     <SpinnerWithMargin />
+    <div className="flex justify-center">
+      <button className="btn center" onClick={() => setLoading(null)}>
+        Cancel
+      </button>
+    </div>
   </>
 
   if (!created) return <>
@@ -187,23 +191,20 @@ const CreateGameModalContent = ({ modalControl }: CheckboxModalContentProps) => 
 // =================================================================================================
 
 export const CreateGameModal = () => {
-  const checkboxID = "create"
-  const modalControl = useCheckboxModal(checkboxID)
-  const [ isGameCreator ] = useAtom(store.isGameCreator)
-
-  // If we're on the home page and we're the game creator, this modal should be displayed.
-  useEffect(() => {
-    if (isGameCreator && !modalControl.isModalDisplayed)
-      modalControl.displayModal(true)
-  }, [isGameCreator, modalControl.isModalDisplayed])
+  const isGameCreator = store.store.get(store.isGameCreator)
+  const ctrl = useModalController({ loaded: isGameCreator })
 
   // -----------------------------------------------------------------------------------------------
 
   return <>
-    <ModalMenuButton htmlFor={checkboxID}>Create Game →</ModalMenuButton>
-    <CheckboxModal id={checkboxID} control={modalControl}>
-      <CreateGameModalContent modalControl={modalControl} />
-    </CheckboxModal>
+    <button
+      onClick={ctrl.display}
+      className="hover:border-3 btn-lg btn border-2 border-green-900 text-2xl normal-case hover:scale-105 hover:border-green-800">
+      Create Game →
+    </button>
+    <Modal ctrl={ctrl}>
+      <CreateGameModalContent ctrl={ctrl} />
+    </Modal>
   </>
 }
 
