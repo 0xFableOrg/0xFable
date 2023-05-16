@@ -4,13 +4,14 @@ import { useEffect, useState } from "react"
 
 import Hand from "src/components/hand"
 import { GameEndedModal } from "src/components/modals/gameEndedModal"
-import { LoadingModal } from "src/components/modals/loadingModal"
+import { LoadingModal } from "src/components/lib/loadingModal"
 import { ModalTitle } from "src/components/lib/modalElements"
 import { Navbar } from "src/components/navbar"
 import { useGameWrite } from "src/hooks/fableTransact"
 import { useIsHydrated } from "src/hooks/useIsHydrated"
 import * as store from "src/store"
 import { GameStatus } from "src/types"
+import { useModalController } from "src/components/lib/modal"
 
 const Play: NextPage = () => {
   const isHydrated = useIsHydrated()
@@ -37,6 +38,8 @@ const Play: NextPage = () => {
     onSuccess: () => setConcedeCompleted(true)
   })
 
+  const ctrl = useModalController({ displayed: true, closeable: false })
+
   // TODO: if there is no game ID, should redirect away from this page
   // TODO: the navbar connector should show bad chain if it's a bad chain
 
@@ -44,11 +47,7 @@ const Play: NextPage = () => {
 
   return (
     <>
-      {loading &&
-        <LoadingModal>
-          <ModalTitle>{loading}</ModalTitle>
-        </LoadingModal>
-      }
+      {loading && <LoadingModal ctrl={ctrl} loading={loading} setLoading={setLoading} />}
 
       {ended && !hideResults && <GameEndedModal closeCallback={() => setHideResults(true)} />}
 

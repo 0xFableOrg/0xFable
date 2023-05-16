@@ -1,4 +1,4 @@
-import React, { RefObject, useEffect, useState } from "react"
+import React, { ReactNode, RefObject, useEffect, useState } from "react"
 import { useEscapeKey } from "src/hooks/useEscapeKey"
 import { useIsMounted } from "src/hooks/useIsMounted"
 
@@ -42,7 +42,7 @@ import { useIsMounted } from "src/hooks/useIsMounted"
  * built-in modal look and, the passed down modal's children. It can also hide the modal depending
  * on the value of `displayed`.
  */
-export const Modal = ({ ctrl, children }: { ctrl: ModalController, children }) => {
+export const Modal = ({ ctrl, children }: { ctrl: ModalController, children: ReactNode }) => {
 
   const [ loaded, setLoaded ] = useState(ctrl.state.loaded)
   const isMounted = useIsMounted()
@@ -58,7 +58,7 @@ export const Modal = ({ ctrl, children }: { ctrl: ModalController, children }) =
 
 // -----------------------------------------------------------------------------------------------
 
-const ModalInner = ({ ctrl, children }: { ctrl: ModalController, children }) => {
+const ModalInner = ({ ctrl, children }: { ctrl: ModalController, children: ReactNode }) => {
 
   const [ state, setState ] = useState(ctrl.state)
   ctrl.setState = setState
@@ -132,23 +132,26 @@ export type ModalState = {
  */
 export class ModalController {
   private state_: ModalState
-  private setLoaded_: (boolean) => void
-  private setState_: (ModalState) => void
+  private setLoaded_: (_: boolean) => void
+  private setState_: (_: ModalState) => void
 
   /** Returns a copy of the modal state. */
   get state(): ModalState { return { ...this.state_ } }
+
+  /** Whether the modal is currently displayed. */
+  get displayed(): boolean { return this.state_.displayed }
 
   /**
    * Sets the function needed to udpate the the `loaded` state in the outer modal.
    * Only for use in the modal implementation!
    */
-  set setLoaded(setLoaded: (boolean) => void) { this.setLoaded_ = setLoaded }
+  set setLoaded(setLoaded: (_: boolean) => void) { this.setLoaded_ = setLoaded }
 
   /**
    * Sets the function needed to udpate the the `state` in the inner modal.
    * Only for use in the modal implementation!
    */
-  set setState(setState: (ModalState) => void) { this.setState_ = setState }
+  set setState(setState: (_: ModalState) => void) { this.setState_ = setState }
 
   /**
    * A reference indicating whether the modal is currently mounted (loaded).

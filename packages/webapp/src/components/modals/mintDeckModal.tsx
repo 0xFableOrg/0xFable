@@ -1,13 +1,26 @@
-import { useEffect, useState } from "react"
+import { useState } from "react"
 
-import { CheckboxModal } from "src/components/lib/checkboxModal"
 import { ModalMenuButton, ModalTitle, SpinnerWithMargin } from "src/components/lib/modalElements"
 import { useDeckAirdropWrite } from "src/hooks/fableTransact"
-import { CheckboxModalContentProps, useCheckboxModal } from "src/hooks/useCheckboxModal"
+import { Modal, ModalController, useModalController } from "src/components/lib/modal"
+import { LoadingModalContent } from "src/components/lib/loadingModal"
 
 // =================================================================================================
 
-const MintDeckModalContent = ({ modalControl, callback }: CheckboxModalContentProps) => {
+export const MintDeckModal = ({ callback = () => {} }) => {
+  const ctrl = useModalController({ loaded: false })
+
+  return <>
+    <ModalMenuButton display={ctrl.display} label="Mint Deck →" />
+    <Modal ctrl={ctrl}>
+      <MintDeckModalContent ctrl={ctrl} callback={callback} />
+    </Modal>
+  </>
+}
+
+// =================================================================================================
+
+const MintDeckModalContent = ({ ctrl, callback }: { ctrl: ModalController, callback: () => void}) => {
   const [ loading, setLoading ] = useState<string>(null)
   const [ success, setSuccess ] = useState(false)
 
@@ -16,7 +29,7 @@ const MintDeckModalContent = ({ modalControl, callback }: CheckboxModalContentPr
     enabled: true,
     setLoading,
     onSuccess() {
-      modalControl.displayModal(false)
+      ctrl.display()
       callback?.()
       setSuccess(true)
     }
@@ -24,10 +37,7 @@ const MintDeckModalContent = ({ modalControl, callback }: CheckboxModalContentPr
 
   // -----------------------------------------------------------------------------------------------
 
-  if (loading) return <>
-    <ModalTitle>{loading}</ModalTitle>
-    <SpinnerWithMargin />
-  </>
+  if (loading) return <LoadingModalContent loading={loading} setLoading={setLoading} />
 
   return <>
     {!success && <>
@@ -47,20 +57,6 @@ const MintDeckModalContent = ({ modalControl, callback }: CheckboxModalContentPr
         Go enjoy the game!
       </p>
     </>}
-  </>
-}
-
-// =================================================================================================
-
-export const MintDeckModal = ({ callback = () => {} }) => {
-  const checkboxID = "mint"
-  const modalControl = useCheckboxModal(checkboxID)
-
-  return <>
-    <ModalMenuButton htmlFor={checkboxID}>Mint Deck →</ModalMenuButton>
-    <CheckboxModal id="mint" control={modalControl}>
-      <MintDeckModalContent modalControl={modalControl} callback={callback} />
-    </CheckboxModal>
   </>
 }
 

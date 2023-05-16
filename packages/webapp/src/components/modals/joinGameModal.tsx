@@ -3,23 +3,47 @@ import { useAtom } from "jotai"
 import debounce from "lodash/debounce"
 import { useRouter } from "next/router"
 import { useEffect, useMemo, useState } from "react"
-import { CheckboxModal } from "src/components/lib/checkboxModal"
-import { ModalMenuButton, ModalTitle, SpinnerWithMargin } from "src/components/lib/modalElements"
+import {
+  ModalMenuButton,
+  ModalTitle,
+  SpinnerWithMargin
+} from "src/components/lib/modalElements"
 import { InGameMenuModalContent } from "src/components/modals/inGameMenuModalContent"
 
 import { deployment } from "src/deployment"
 import { useGame } from "src/generated"
 import { useGameWrite } from "src/hooks/fableTransact"
-import { CheckboxModalControl, useCheckboxModal } from "src/hooks/useCheckboxModal"
 import { useDebugValues } from "src/hooks/useDebug"
 import * as store from "src/store"
 import { GameStatus } from "src/types"
 import { isStringPositiveInteger } from "src/utils/js-utils"
 import { parseBigInt } from "src/utils/rpc-utils"
+import { Modal, ModalController, useModalController } from "src/components/lib/modal"
+import { LoadingModalContent } from "src/components/lib/loadingModal"
 
 // =================================================================================================
 
-const JoinGameModalContent = ({ control }: { control: CheckboxModalControl }) => {
+export const JoinGameModal = () => {
+  const [ isGameJoiner ] = useAtom(store.isGameJoiner)
+  const ctrl = useModalController({ loaded: isGameJoiner })
+
+  // If we're on the home page and we have joined a game we didn't create, this modal should be displayed.
+  useEffect(() => {
+    if (isGameJoiner && !ctrl.displayed)
+      ctrl.display()
+  }, [isGameJoiner, ctrl.displayed])
+
+  return <>
+    <ModalMenuButton display={ctrl.display} label="Join →"/>
+    <Modal ctrl={ctrl}>
+      <JoinGameModalContent ctrl={ctrl} />
+    </Modal>
+  </>
+}
+
+// =================================================================================================
+
+const JoinGameModalContent = ({ ctrl }: { ctrl: ModalController }) => {
   const [ inputGameID, setInputGameID ] = useState(null)
   const [ gameID, setGameID ] = useAtom(store.gameID)
   const [ gameStatus ] = useAtom(store.gameStatus)
@@ -34,9 +58,13 @@ const JoinGameModalContent = ({ control }: { control: CheckboxModalControl }) =>
   // Load game board game once upon game start.
   useEffect(() => {
     if (!hasVisitedBoard && started)
-      router.push("/play")
+      void router.push("/play")
   }, [hasVisitedBoard, router, started])
 
+  // The modal can't be closed in the normal way when in a loading state.
+  useEffect(() => {
+    ctrl.closeableAndSurroundCloseable = loading === null
+  }, [loading])
 
   // NOTE(norswap): Right now, the hook can cause error when you type a number that is not a valid
   //   game ID. This is fine. Alternatively, we could validate the input game ID and enable the hook
@@ -84,7 +112,7 @@ const JoinGameModalContent = ({ control }: { control: CheckboxModalControl }) =>
     setLoading,
     onSuccess() {
       setGameID(null)
-      control.displayModal(false)
+      ctrl.close()
     }
   })
 
@@ -98,10 +126,7 @@ const JoinGameModalContent = ({ control }: { control: CheckboxModalControl }) =>
 
   // -----------------------------------------------------------------------------------------------
 
-  if (loading) return <>
-    <ModalTitle>{loading}</ModalTitle>
-    <SpinnerWithMargin />
-  </>
+  if (loading) return <LoadingModalContent loading={loading} setLoading={setLoading} />
 
   if (started) return <InGameMenuModalContent concede={concede} />
 
@@ -121,27 +146,6 @@ const JoinGameModalContent = ({ control }: { control: CheckboxModalControl }) =>
       onClick={join}>
       Join Game
     </button>
-  </>
-}
-
-// =================================================================================================
-
-export const JoinGameModal = () => {
-  const checkboxID = "join"
-  const modalControl = useCheckboxModal(checkboxID)
-  const [ isGameJoiner ] = useAtom(store.isGameJoiner)
-
-  // If we're on the home page and we have joined a game we didn't create, this modal should be displayed.
-  useEffect(() => {
-    if (isGameJoiner && !modalControl.isModalDisplayed)
-      modalControl.displayModal(true)
-  }, [isGameJoiner, modalControl.isModalDisplayed])
-
-  return <>
-    <ModalMenuButton htmlFor={checkboxID}>Join →</ModalMenuButton>
-    <CheckboxModal id={checkboxID} control={modalControl}>
-      <JoinGameModalContent control={modalControl} />
-    </CheckboxModal>
   </>
 }
 

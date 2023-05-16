@@ -3,7 +3,7 @@ import { useRouter } from "next/router"
 import { useEffect, useState } from "react"
 
 import { Modal, ModalController, useModalController } from "src/components/lib/modal"
-import { ModalTitle, SpinnerWithMargin } from "src/components/lib/modalElements"
+import { ModalMenuButton, ModalTitle, SpinnerWithMargin } from "src/components/lib/modalElements"
 import { InGameMenuModalContent } from "src/components/modals/inGameMenuModalContent"
 import { deployment } from "src/deployment"
 import { useGame } from "src/generated"
@@ -11,6 +11,27 @@ import { useGameWrite } from "src/hooks/fableTransact"
 import * as store from "src/store"
 import { GameStatus } from "src/types"
 import { parseBigInt } from "src/utils/rpc-utils"
+import { LoadingModalContent } from "src/components/lib/loadingModal"
+
+// =================================================================================================
+
+export const CreateGameModal = () => {
+  const [ isGameCreator ] = useAtom(store.isGameCreator)
+  const ctrl = useModalController({ loaded: isGameCreator })
+
+  // If we're on the home page and we're the game creator, this modal should be displayed.
+  useEffect(() => {
+    if (isGameCreator && !ctrl.displayed)
+      ctrl.display()
+  }, [isGameCreator, ctrl.displayed])
+
+  return <>
+    <ModalMenuButton display={ctrl.display} label="Create Game →" />
+    <Modal ctrl={ctrl}>
+      <CreateGameModalContent ctrl={ctrl} />
+    </Modal>
+  </>
+}
 
 // =================================================================================================
 
@@ -139,15 +160,7 @@ const CreateGameModalContent = ({ ctrl }: { ctrl: ModalController }) => {
 
   // -----------------------------------------------------------------------------------------------
 
-  if (loading) return <>
-    <ModalTitle>{loading}</ModalTitle>
-    <SpinnerWithMargin />
-    <div className="flex justify-center">
-      <button className="btn center" onClick={() => setLoading(null)}>
-        Cancel
-      </button>
-    </div>
-  </>
+  if (loading) return <LoadingModalContent loading={loading} setLoading={setLoading} />
 
   if (!created) return <>
     <ModalTitle>Create Game</ModalTitle>
@@ -186,26 +199,6 @@ const CreateGameModalContent = ({ ctrl }: { ctrl: ModalController }) => {
   </>
 
   if (started) return <InGameMenuModalContent concede={concede} />
-}
-
-// =================================================================================================
-
-export const CreateGameModal = () => {
-  const isGameCreator = store.store.get(store.isGameCreator)
-  const ctrl = useModalController({ loaded: isGameCreator })
-
-  // -----------------------------------------------------------------------------------------------
-
-  return <>
-    <button
-      onClick={ctrl.display}
-      className="hover:border-3 btn-lg btn border-2 border-green-900 text-2xl normal-case hover:scale-105 hover:border-green-800">
-      Create Game →
-    </button>
-    <Modal ctrl={ctrl}>
-      <CreateGameModalContent ctrl={ctrl} />
-    </Modal>
-  </>
 }
 
 // =================================================================================================
