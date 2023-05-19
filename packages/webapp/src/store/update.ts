@@ -6,8 +6,7 @@
 
 // =================================================================================================
 
-import { BigNumber, BigNumberish } from "ethers"
-import { getDefaultStore, type Getter, type Setter } from "jotai"
+import { getDefaultStore, type Getter } from "jotai"
 import { chain } from "src/constants"
 import { setup } from "src/setup"
 import { formatTimestamp } from "src/utils/js-utils"
@@ -18,7 +17,7 @@ import { gameABI } from "src/generated"
 import { gameData, gameID, hasVisitedBoard, isGameCreator, isGameJoiner } from "src/store"
 import { gameData_, gameStatus_, playerAddress_, } from "src/store/private"
 import { subscribeToGame } from "src/store/subscriptions"
-import { Address, GameStatus, GameStep, StaticGameData } from "src/types"
+import { GameStatus, StaticGameData } from "src/types"
 import { AccountResult, NetworkResult, parseBigInt } from "src/utils/rpc-utils"
 
 // =================================================================================================
@@ -172,7 +171,7 @@ function setGameData_(data: StaticGameData) {
     return
   }
 
-  const ID = parseBigInt(data.gameID)
+  const ID = data.gameID
   const storeID = store.get(gameID)
   // The game ID changed underneath this update, ignore it.
   if (ID !== storeID) {
@@ -203,7 +202,7 @@ function setGameData_(data: StaticGameData) {
   }
 
   if(!store.get(isGameCreator) && !store.get(isGameJoiner)) {
-    console.error(`Tracking a game (${store.get(gameID)}) we are not participating in, resetting to null.`)
+    console.warn(`Tracking a game (${store.get(gameID)}) we are not participating in, resetting to null.`)
     store.set(gameID, null)
   }
 
@@ -244,14 +243,15 @@ export async function refreshGameData() {
     address: deployment.Game,
     abi: gameABI,
     functionName: "staticGameData",
-    args: [BigNumber.from(ID)]
+    args: [ID.valueOf()] // TODO can we store the primitive type directly?
   })
 
+  // TODO is this step still needed?
   const gameData: StaticGameData = {
-    gameID: parseBigInt(fetched.gameID),
+    gameID: fetched.gameID,
     gameCreator: fetched.gameCreator,
     players: fetched.players,
-    lastBlockNum: parseBigInt(fetched.lastBlockNum),
+    lastBlockNum: fetched.lastBlockNum,
     playersLeftToJoin: fetched.playersLeftToJoin,
     livePlayers: fetched.livePlayers,
     currentPlayer: fetched.currentPlayer,

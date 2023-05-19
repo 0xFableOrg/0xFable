@@ -7,13 +7,14 @@
 // =================================================================================================
 
 import { getDefaultStore } from "jotai"
-import { parseBigInt } from "src/utils/rpc-utils"
 import { watchContractEvent } from "wagmi/actions"
+import { Log } from "viem"
 
 import { deployment } from "src/deployment"
 import { gameABI } from "src/generated"
 import { gameID } from "src/store"
 import { refreshGameData } from "src/store/update"
+import { format } from "src/utils/js-utils"
 
 // =================================================================================================
 // SUBSCRIPTION MANAGEMENT
@@ -66,9 +67,9 @@ export function subscribeToGame(ID: BigInt) {
         address: deployment.Game,
         abi: gameABI,
         eventName: eventName as any
-      }, (...args) => gameEventListener(eventName, args)))
+      }, logs => gameEventListener(eventName, logs)))
     })
-    console.log("subscribed to game events")
+    console.log(`subscribed to game events for game ID ${ID}`)
   }
   else {
     // Changing game we are subscribed to — no need to change the subscription,
@@ -80,34 +81,47 @@ export function subscribeToGame(ID: BigInt) {
 // =================================================================================================
 // EVENT LISTENER
 
-export function gameEventListener(name: string, args: readonly any[]) {
-  console.log(`event fired ${name}(${args})`)
+export type GameEventArgs = { gameID: bigint } & any
+export type GameEventLog = { args: GameEventArgs } & Log
+
+export function gameEventListener(name: string, logs: readonly GameEventLog[]) {
+  if (logs.length > 1)
+    // I'm not sure this can occur, hence the print statement.
+    console.debug(`received ${logs.length} (> 1) ${name} events`)
+
+  for (const log of logs)
+    handleEvent(name, log.args)
+}
+
+// -------------------------------------------------------------------------------------------------
+
+function handleEvent(name: string, args: GameEventArgs) {
+  console.log(`event fired ${name}(${format(args)})`)
 
   const store = getDefaultStore()
   const ID = store.get(gameID)
-  const eventID = parseBigInt(args[0])
 
   // Event is not for the game we're tracking, ignore.
-  if (ID != eventID) return
+  if (ID != args.gameID) return
 
   switch (name) {
     case 'CardDrawn': {
-      const [, player] = args
+      const { player } = args
       break
     } case 'CardPlayed': {
-      const [, player, card] = args
+      const { player, card } = args
       break
     } case 'PlayerAttacked': {
-      const [, attacking, defending] = args
+      const { attacking, defending } = args
       break
     } case 'PlayerDefended': {
-      const [, attacking, defending] = args
+      const { attacking, defending } = args
       break
     } case 'PlayerPassed': {
-      const [, player] = args
+      const { player } = args
       break
     } case 'PlayerJoined': {
-      const [, player] = args
+      const { player } = args
       // Refetch game data to get up to date player list and update the status.
       void refreshGameData()
       break

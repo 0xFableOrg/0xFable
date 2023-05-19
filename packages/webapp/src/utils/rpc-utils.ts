@@ -6,8 +6,6 @@
 
 // =================================================================================================
 
-import { BigNumber, type BigNumberish } from "ethers"
-
 import { Address } from "src/types"
 import { Chain } from "wagmi"
 
@@ -17,10 +15,10 @@ import { Chain } from "wagmi"
  * Parses an Ethers' BigNumberish (union type) into a BigInt.
  * Returns null if the value is null or if it cannot be parsed.
  */
-export function parseBigInt(value: BigNumberish): bigint {
+export function parseBigInt(value: string|number|bigint): bigint {
   if (value == null) return null
   try {
-    return BigNumber.from(value).toBigInt()
+    return BigInt(value).valueOf()
   } catch (e) {
     return null
   }

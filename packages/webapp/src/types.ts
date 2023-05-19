@@ -1,18 +1,16 @@
-import type { BigNumberish } from "ethers"
-
 export type Address = `0x${string}`
 export type Hash = `0x${string}`
 
 export type Card = {
-  id: BigNumberish
+  id: bigint
   lore: {
     name: string,
     flavor: string,
     URL: string
   }
   stats: {
-    attack: BigNumberish
-    defense: BigNumberish
+    attack: bigint
+    defense: bigint
   }
 }
 

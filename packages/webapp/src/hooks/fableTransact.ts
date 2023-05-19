@@ -1,4 +1,4 @@
-import { providers } from "ethers"
+import { type TransactionReceipt } from "viem"
 
 import { deployment } from "src/deployment"
 import { cardsCollectionABI, deckAirdropABI, gameABI, inventoryABI } from "src/generated"
@@ -13,7 +13,7 @@ export type UseContractSpecificWriteParams = {
   args?: any[],
   onWrite?: () => void,
   onSigned?: (data: { hash: Hash }) => void,
-  onSuccess?: (data: providers.TransactionReceipt) => void,
+  onSuccess?: (data: TransactionReceipt) => void,
   onError?: (err: Error) => void,
   setLoading?: (string) => void,
   enabled?: boolean
@@ -66,7 +66,7 @@ export type UseContractSpecificReadParams = {
   functionName: string,
   args?: any[],
   // TODO type is wrong
-  onSuccess?: (data: providers.TransactionReceipt) => void,
+  onSuccess?: (data: TransactionReceipt) => void,
   onError?: (err: Error) => void,
   enabled?: boolean
 }

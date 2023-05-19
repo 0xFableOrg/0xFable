@@ -6,6 +6,7 @@
  */
 
 import { setupStore } from "src/store"
+import { serialize } from "wagmi"
 
 // =================================================================================================
 
@@ -20,16 +21,27 @@ export function setup() {
   setupFilterWarningMessages()
   setupFilterInfoMessages()
 
-  // Enable BigInts to be serialized as JSON.
-  // This is needed for debug tools to handle BigInt in React state.
-  if (BigInt.prototype["toJSON"] == undefined) {
-    BigInt.prototype["toJSON"] = function() { return this.toString() }
-  }
+  setupBigintSerialization()
 
   setupStore()
 }
 
-// -------------------------------------------------------------------------------------------------
+// =================================================================================================
+
+/**
+ * Replaces an object's function, for instance:
+ * `console.log = replaceFunction(console, "log", (old) => (...args) => old("LOGGING: ", ...args))`
+ */
+export function replaceFunction<T extends Function>
+    (obj: object, name: string, replacement: (old: T) => T): T {
+  const old = obj[name]["0xFable_oldFunction"] ?? obj[name]
+  const result = replacement(old)
+  result["0xFable_oldFunction"] = old
+  return result
+}
+
+// =================================================================================================
+// CONSOLE LOGGING
 
 // Sadly, it's impossible to prevent Metamask errors, as these are caused by an addon and are
 // isolated from the window context.
@@ -121,6 +133,48 @@ function setupFilterInfoMessages() {
     }
   }
   console.info["oldInfo"] = oldInfo
+}
+
+// =================================================================================================
+// JSON SERIALIZATION/DESERIALIZATION
+
+// Enable BigInts to be serialized to / deserialized from JSON.
+// This is needed for debug tools to handle BigInt in React state, and is just a lot more convenient
+// than adding explicit parsing everywhere in general.
+function setupBigintSerialization() {
+
+  // Same behaviour as wagmi serialize/deserialize, but hand-rolled because redefining
+  // stringify/parse in terms of the wagmi function creates infinite recursion.
+
+  // Serialization
+  const oldStringify = JSON.stringify["oldStringify"] ?? JSON.stringify
+  JSON.stringify = (value, replacer, space) => {
+    return oldStringify(value, (key, value) => {
+      if (typeof value === "bigint")
+        return `#bigint.${value}`
+      else if (typeof replacer === "function")
+        return replacer(key, value)
+      else
+        return value
+    }, space)
+  }
+  JSON.stringify["oldStringify"] = oldStringify
+
+  // Deserialization
+  const oldParse = JSON.parse["oldParse"] ?? JSON.parse
+  JSON.parse = (text, reviver) => {
+    return oldParse(text, (key, value) => {
+      // We only values of shape "#bigint.<data>"
+      if (typeof value === "string" && value.startsWith("#bigint."))
+            return BigInt(value.slice(8)).valueOf()
+      // Otherwise fallback to normal behavior
+      if (typeof reviver === "function")
+        return reviver(key, value)
+      else
+        return value
+    })
+  }
+  JSON.parse["oldParse"] = oldParse
 }
 
 // =================================================================================================

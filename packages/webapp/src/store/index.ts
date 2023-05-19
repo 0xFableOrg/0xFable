@@ -83,11 +83,11 @@ isGameJoiner.debugLabel    = "isGameJoiner"
 // =================================================================================================
 // Play Areas
 
-export const playerHand      = atom<BigInt[]>([])
-export const playerBoard     = atom<BigInt[]>([])
-export const playerGraveyard = atom<BigInt[]>([])
-export const enemyBoard      = atom<BigInt[]>([])
-export const enemyGraveyard  = atom<BigInt[]>([])
+export const playerHand      = atom<bigint[]>([])
+export const playerBoard     = atom<bigint[]>([])
+export const playerGraveyard = atom<bigint[]>([])
+export const enemyBoard      = atom<bigint[]>([])
+export const enemyGraveyard  = atom<bigint[]>([])
 
 playerHand      .debugLabel = 'playerHand'
 playerBoard     .debugLabel = 'playerBoard'

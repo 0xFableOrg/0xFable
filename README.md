@@ -12,9 +12,9 @@ Tooling required:
 
 - Make
 - [Foundry](https://github.com/foundry-rs/foundry)
-  - Last `foundryup`: 18 March 2023
+  - Last `foundryup`: 16 May 2023
 - Node.js & [PNPM](https://pnpm.io/) (`npm install -g pnpm`)
-  - Tested with Node v16.16.0
+  - Tested with Node v20.1.0
 
 Run contract tests for basic sanity testing: 
 

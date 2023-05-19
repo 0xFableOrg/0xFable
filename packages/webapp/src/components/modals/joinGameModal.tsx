@@ -1,17 +1,10 @@
-import { BigNumber } from "ethers"
 import { useAtom } from "jotai"
 import debounce from "lodash/debounce"
 import { useRouter } from "next/router"
 import { useEffect, useMemo, useState } from "react"
-import {
-  ModalMenuButton,
-  ModalTitle,
-  SpinnerWithMargin
-} from "src/components/lib/modalElements"
+import { ModalMenuButton, ModalTitle } from "src/components/lib/modalElements"
 import { InGameMenuModalContent } from "src/components/modals/inGameMenuModalContent"
 
-import { deployment } from "src/deployment"
-import { useGame } from "src/generated"
 import { useGameWrite } from "src/hooks/fableTransact"
 import { useDebugValues } from "src/hooks/useDebug"
 import * as store from "src/store"
@@ -20,6 +13,8 @@ import { isStringPositiveInteger } from "src/utils/js-utils"
 import { parseBigInt } from "src/utils/rpc-utils"
 import { Modal, ModalController, useModalController } from "src/components/lib/modal"
 import { LoadingModalContent } from "src/components/lib/loadingModal"
+import { decodeEventLog } from "viem"
+import { gameABI } from "src/generated"
 
 // =================================================================================================
 
@@ -49,7 +44,6 @@ const JoinGameModalContent = ({ ctrl }: { ctrl: ModalController }) => {
   const [ gameStatus ] = useAtom(store.gameStatus)
   const [ hasVisitedBoard ] = useAtom(store.hasVisitedBoard)
   const [ loading, setLoading ] = useState<string>(null)
-  const gameContract = useGame({ address: deployment.Game })
   const router = useRouter()
 
   const joined  = gameStatus >= GameStatus.JOINED
@@ -79,7 +73,7 @@ const JoinGameModalContent = ({ ctrl }: { ctrl: ModalController }) => {
     functionName: "joinGame",
     args: inputGameID
       ? [
-        BigNumber.from(inputGameID),
+        parseBigInt(inputGameID),
         0, // deckID
         HashOne, // data for callback
         HashOne, // hand root
@@ -90,8 +84,12 @@ const JoinGameModalContent = ({ ctrl }: { ctrl: ModalController }) => {
     enabled: inputGameID && !joined,
     setLoading,
     onSuccess(data) {
-      const event = gameContract.interface.parseLog(data.logs[0])
-      setGameID(parseBigInt(event.args.gameID))
+      const event = decodeEventLog({
+        abi: gameABI,
+        data: data.logs[0].data,
+        topics: data.logs[0]["topics"]
+      })
+      setGameID(event.args["gameID"])
       setLoading("Waiting for other player...")
     },
     onError(err) {

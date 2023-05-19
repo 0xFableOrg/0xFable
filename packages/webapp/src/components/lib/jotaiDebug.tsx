@@ -1,4 +1,4 @@
-import { useAtomsDebugValue, useAtomsDevtools } from "jotai-devtools/index"
+import { useAtomsDebugValue, useAtomsDevtools } from "jotai-devtools"
 
 const JotaiDebug = () => {
   // An atom that contains a list of all the names and values of all the atoms in the app.

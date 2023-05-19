@@ -1,16 +1,15 @@
 import { useAtom } from "jotai"
 import { useRouter } from "next/router"
 import { useEffect, useState } from "react"
+import { decodeEventLog } from "viem"
 
 import { Modal, ModalController, useModalController } from "src/components/lib/modal"
 import { ModalMenuButton, ModalTitle, SpinnerWithMargin } from "src/components/lib/modalElements"
 import { InGameMenuModalContent } from "src/components/modals/inGameMenuModalContent"
-import { deployment } from "src/deployment"
-import { useGame } from "src/generated"
+import { gameABI } from "src/generated"
 import { useGameWrite } from "src/hooks/fableTransact"
 import * as store from "src/store"
 import { GameStatus } from "src/types"
-import { parseBigInt } from "src/utils/rpc-utils"
 import { LoadingModalContent } from "src/components/lib/loadingModal"
 
 // =================================================================================================
@@ -43,7 +42,6 @@ const CreateGameModalContent = ({ ctrl }: { ctrl: ModalController }) => {
   const [ hasVisitedBoard ] = useAtom(store.hasVisitedBoard)
   const [ loading, setLoading ] = useState<string>(null)
   const [ joinCompleted, setJoinCompleted ] = useState(false)
-  const gameContract = useGame({ address: deployment.Game })
   const router = useRouter()
 
   const created = gameStatus >= GameStatus.CREATED
@@ -90,8 +88,12 @@ const CreateGameModalContent = ({ ctrl }: { ctrl: ModalController }) => {
     enabled: !created,
     setLoading,
     onSuccess(data) {
-      const event = gameContract.interface.parseLog(data.logs[0])
-      setGameID(parseBigInt(event.args.gameID))
+      const event = decodeEventLog({
+        abi: gameABI,
+        data: data.logs[0].data,
+        topics: data.logs[0]["topics"]
+      })
+      setGameID(event.args["gameID"])
     }
   })
 
@@ -113,7 +115,8 @@ const CreateGameModalContent = ({ ctrl }: { ctrl: ModalController }) => {
     enabled: created && !started && !joined,
     setLoading,
     onSuccess() {
-      // This should be called before we get the data refresh, so check for 1 instead of 0.
+      // This will capture the game data at the point where `join` was called, so we should check
+      // for 1 instead of 0.
       // Assuming two players, if we're the last to join, we just need to wait for (1) the data
       // refresh and (2) loading of the play page. Not displaying a loading modal would just show
       // the old screen, which is janky (feels like our join didnt work).
@@ -143,6 +146,7 @@ const CreateGameModalContent = ({ ctrl }: { ctrl: ModalController }) => {
     setLoading,
     onSuccess() {
       setGameID(null)
+      // setJoinCompleted(false)
       ctrl.close()
     }
   })

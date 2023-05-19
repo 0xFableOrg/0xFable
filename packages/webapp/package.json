@@ -4,29 +4,29 @@
   "private": true,
   "dependencies": {
     "@emotion/react": "^11.10.6",
-    "@web3modal/ethereum": "^2.3.0",
-    "@web3modal/react": "^2.3.0",
-    "ethers": "^5.7.2",
-    "jotai": "^2.0.4",
-    "jotai-devtools": "^0.4.0",
+    "@web3modal/ethereum": "^2.4.1",
+    "@web3modal/react": "^2.4.1",
+    "jotai": "^2.1.0",
+    "jotai-devtools": "^0.5.3",
     "lodash": "^4.17.21",
     "next": "^13.3.0",
     "next-transpile-modules": "^10.0.0",
     "react": "18.2.0",
     "react-dom": "18.2.0",
-    "wagmi": "^0.12.10"
+    "viem": "^0.3.30",
+    "wagmi": "^1.0.5"
   },
   "devDependencies": {
     "@swc-jotai/debug-label": "^0.0.9",
-    "@swc-jotai/react-refresh": "^0.0.7",
+    "@swc-jotai/react-refresh": "^0.0.8",
     "@types/eslint": "^8.37.0",
     "@types/lodash": "^4.14.194",
-    "@types/node": "^18.15.11",
+    "@types/node": "^20.1.7",
     "@types/react": "^18.0.35",
     "@types/react-dom": "^18.0.11",
-    "@typescript-eslint/eslint-plugin": "^5.58.0",
-    "@typescript-eslint/parser": "^5.58.0",
-    "@wagmi/cli": "^0.1.15",
+    "@typescript-eslint/eslint-plugin": "^5.59.6",
+    "@typescript-eslint/parser": "^5.59.6",
+    "@wagmi/cli": "^1.0.1",
     "@welldone-software/why-did-you-render": "^7.0.1",
     "autoprefixer": "^10.4.14",
     "daisyui": "^2.51.5",
@@ -34,6 +34,6 @@
     "eslint-config-next": "^13.3.0",
     "postcss": "^8.4.22",
     "tailwindcss": "^3.3.1",
-    "typescript": "^4.9.5"
+    "typescript": "^5.0.4"
   }
 }

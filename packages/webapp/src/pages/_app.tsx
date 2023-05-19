@@ -1,7 +1,7 @@
 import type { AppType } from "next/app"
 import Head from "next/head"
 import jotaiDebug from "src/components/lib/jotaiDebug"
-import { configureChains, createClient, WagmiConfig } from "wagmi"
+import { configureChains, createConfig, WagmiConfig } from "wagmi"
 import { EthereumClient, w3mConnectors, w3mProvider} from "@web3modal/ethereum"
 import { Web3Modal } from "@web3modal/react"
 
@@ -15,15 +15,15 @@ import "src/styles/globals.css"
 
 const chains = [chain]
 
-const { provider } = configureChains(chains, [w3mProvider({ projectId })])
+const { publicClient } = configureChains(chains, [w3mProvider({ projectId })])
 
-const wagmiClient = createClient({
+const wagmiConfig = createConfig({
   autoConnect: true,
-  connectors: w3mConnectors({ projectId, version: 2, chains }), // todo v2?
-  provider,
+  connectors: w3mConnectors({ projectId, version: 1, chains }),
+  publicClient
 })
 
-const ethereumClient = new EthereumClient(wagmiClient, chains)
+const ethereumClient = new EthereumClient(wagmiConfig, chains)
 
 // =================================================================================================
 // SETUP (global hooks & customization)
@@ -40,7 +40,7 @@ const MyApp: AppType = ({ Component, pageProps }) => {
         <link rel="shortcut icon" href="/favicon.png" />
       </Head>
 
-      <WagmiConfig client={wagmiClient}>
+      <WagmiConfig config={wagmiConfig}>
         {jotaiDebug()}
         <Component {...pageProps} />
       </WagmiConfig>

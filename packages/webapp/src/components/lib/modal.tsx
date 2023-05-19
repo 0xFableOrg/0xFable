@@ -1,4 +1,5 @@
-import React, { ReactNode, RefObject, useEffect, useState } from "react"
+import React, { ReactNode, RefObject, useState } from "react"
+
 import { useEscapeKey } from "src/hooks/useEscapeKey"
 import { useIsMounted } from "src/hooks/useIsMounted"
 
@@ -67,7 +68,7 @@ const ModalInner = ({ ctrl, children }: { ctrl: ModalController, children: React
     console.error("Modal rendered but its display property is false")
 
   // If closeable and displayed, we can close the modal by pressing the escape key.
-  useEscapeKey(state.displayed, ctrl.close)
+  useEscapeKey(state.displayed && state.closeable, ctrl.close)
 
   // -----------------------------------------------------------------------------------------------
 
@@ -232,11 +233,10 @@ export class ModalController {
   }
 
   /**
-   * Attempt to close the modal by closing it, if allowed. Does nothing if not allowed.
-   * If `closingHides` is true, the modal is hidden instead of closed.
+   * Attempt to close the modal by closing it. Note that this will work even if the modal is not
+   * closeable! If `closingHides` is true, the modal is hidden instead of closed.
    */
   readonly close = () => {
-    if (!this.state_.closeable) return // not allowed
     // note that !loaded implies !displayed
     if (!this.state_.loaded) return // already in target state
     if (this.state_.closingHides)

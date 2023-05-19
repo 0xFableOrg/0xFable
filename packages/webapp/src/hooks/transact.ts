@@ -1,5 +1,4 @@
-import { providers } from "ethers"
-import { type Hash } from "src/types"
+import type { Address, Hash } from "src/types"
 import {
   useContractEvent,
   useContractRead,
@@ -7,17 +6,18 @@ import {
   usePrepareContractWrite,
   useWaitForTransaction,
 } from "wagmi"
+import { type TransactionReceipt } from "viem"
 
 // =================================================================================================
 // useWrite
 
 export type UseWriteParams = {
-  contract: `0x${string}`
+  contract: Address
   abi: any
   functionName: string
   args?: any[]
   onWrite?: () => void
-  onSuccess?: (data: providers.TransactionReceipt) => void
+  onSuccess?: (data: TransactionReceipt) => void
   onSigned?: (data: { hash: Hash }) => void
   onError?: (err: Error) => void
   setLoading?: (string) => void
@@ -79,7 +79,7 @@ export function useWrite(params: UseWriteParams): UseWriteResult {
     args: args || [],
     enabled,
     onError
-  })
+  } as any) // the types are correct but wagmi is being capricious
 
   // Uses the configuration to get a write function which will send the transaction. After `write`
   // is called and the user signs the transaction in the wallet, the `data` will be populated with a
@@ -121,7 +121,7 @@ export type UseReadParams = {
   abi: any,
   functionName: string,
   args?: any[],
-  onSuccess?: (data: providers.TransactionReceipt) => void,
+  onSuccess?: (data: TransactionReceipt) => void,
   onError?: (err: Error) => void,
   enabled?: boolean
 }
