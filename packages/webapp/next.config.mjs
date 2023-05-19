@@ -35,6 +35,13 @@ const nextConfig = {
     ]
   },
   webpack(config, { dev, isServer }) {
+    // prevent node-gyp from failing because "can't resolve fs"
+    config.resolve.fallback = {
+      ...config.resolve.fallback,
+      fs: false,
+      net: false,
+      tls: false
+    }
 
     // why did you render
     if (dev && !isServer) {
@@ -58,7 +65,7 @@ const nextConfig = {
   }
 }
 
-// Thi hack makes it possible to use the Jotai devtools
+// This hack makes it possible to use the Jotai devtools
 // Source: https://github.com/jotaijs/jotai-devtools/issues/47
 const withTranspileModules = require("next-transpile-modules")([
   "jotai-devtools",
