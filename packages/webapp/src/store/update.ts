@@ -18,7 +18,7 @@ import { gameData, gameID, hasVisitedBoard, isGameCreator, isGameJoiner } from "
 import { gameData_, gameStatus_, playerAddress_, } from "src/store/private"
 import { subscribeToGame } from "src/store/subscriptions"
 import { GameStatus, StaticGameData } from "src/types"
-import { AccountResult, NetworkResult, parseBigInt } from "src/utils/rpc-utils"
+import { AccountResult, NetworkResult } from "src/utils/rpc-utils"
 
 // =================================================================================================
 // INITIALIZATION
@@ -113,13 +113,6 @@ function updateNetwork(result: NetworkResult) {
  * a refresh lands with another ID, it will be ignored.
  */
 function setDependencies(ID: BigInt) {
-  // This can happen when loading from local storage. Parse & reset the ID.
-  // TODO change how the game ID is stored/parsed from local storage?
-  if (typeof ID === "string") {
-    store.set(gameID, parseBigInt(ID))
-    return
-  }
-
   console.log(`transitioning to game ID ${ID}`)
 
   // avoid using inconsistent data

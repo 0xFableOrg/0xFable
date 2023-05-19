@@ -51,6 +51,21 @@ export function toString(obj: any) {
 
 // -------------------------------------------------------------------------------------------------
 
+/**
+ * Parses a bigint-compatible value into a bigint.
+ * Returns null if the value is null or if it cannot be parsed.
+ */
+export function parseBigInt(value: string|number|bigint): bigint {
+  if (value == null) return null
+  try {
+    return BigInt(value).valueOf()
+  } catch (e) {
+    return null
+  }
+}
+
+// -------------------------------------------------------------------------------------------------
+
 /** Check if the string represents a positive integer. */
 export function isStringPositiveInteger(str: string): boolean {
   const n = Math.floor(Number(str))

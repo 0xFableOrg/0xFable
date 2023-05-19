@@ -12,22 +12,7 @@ import { Chain } from "wagmi"
 // =================================================================================================
 
 /**
- * Parses an Ethers' BigNumberish (union type) into a BigInt.
- * Returns null if the value is null or if it cannot be parsed.
- */
-export function parseBigInt(value: string|number|bigint): bigint {
-  if (value == null) return null
-  try {
-    return BigInt(value).valueOf()
-  } catch (e) {
-    return null
-  }
-}
-
-// -------------------------------------------------------------------------------------------------
-
-/**
- * Simplification of GetAccountResult<TProvider> (not export, because of course) in wagmi.
+ * Simplification of wagmi's unexported GetAccountResult<TProvider>.
  */
 export type AccountResult = {
   status: 'disconnected' | 'connecting' | 'connected' | 'reconnecting'
@@ -37,7 +22,7 @@ export type AccountResult = {
 // -------------------------------------------------------------------------------------------------
 
 /**
- * Simplification of GetNetworkResult (not exported, because of course) in wagmi.
+ * Simplification of wagmi's unexported GetNetworkResult.
  */
 export type NetworkResult = {
   chain?: Chain
