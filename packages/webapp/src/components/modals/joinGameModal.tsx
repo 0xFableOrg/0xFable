@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from "react"
 import { ModalMenuButton, ModalTitle } from "src/components/lib/modalElements"
 import { InGameMenuModalContent } from "src/components/modals/inGameMenuModalContent"
 
-import { useGameWrite } from "src/hooks/fableTransact"
+import { useGameWrite } from "src/hooks/useFableWrite"
 import { useDebugValues } from "src/hooks/useDebug"
 import * as store from "src/store"
 import { GameStatus } from "src/types"

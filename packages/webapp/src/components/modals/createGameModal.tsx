@@ -7,7 +7,7 @@ import { Modal, ModalController, useModalController } from "src/components/lib/m
 import { ModalMenuButton, ModalTitle, SpinnerWithMargin } from "src/components/lib/modalElements"
 import { InGameMenuModalContent } from "src/components/modals/inGameMenuModalContent"
 import { gameABI } from "src/generated"
-import { useGameWrite } from "src/hooks/fableTransact"
+import { useGameWrite } from "src/hooks/useFableWrite"
 import * as store from "src/store"
 import { GameStatus } from "src/types"
 import { LoadingModalContent } from "src/components/lib/loadingModal"

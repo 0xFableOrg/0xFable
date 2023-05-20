@@ -5,18 +5,14 @@ import { useEffect, useState } from "react"
 import Hand from "src/components/hand"
 import { GameEndedModal } from "src/components/modals/gameEndedModal"
 import { LoadingModal } from "src/components/lib/loadingModal"
-import { ModalTitle } from "src/components/lib/modalElements"
 import { Navbar } from "src/components/navbar"
-import { useGameWrite } from "src/hooks/fableTransact"
-import { useIsHydrated } from "src/hooks/useIsHydrated"
+import { useGameWrite } from "src/hooks/useFableWrite"
 import * as store from "src/store"
 import { GameStatus } from "src/types"
 import { useModalController } from "src/components/lib/modal"
 
 const Play: NextPage = () => {
-  const isHydrated = useIsHydrated()
   const [ gameID ] = useAtom(store.gameID)
-  const [ data ] = useAtom(store.gameData)
   const [ gameStatus ] = useAtom(store.gameStatus)
   const [ hasVisitedBoard, setHasVisitedBoard ] = useAtom(store.hasVisitedBoard)
   useEffect(() => setHasVisitedBoard(true), [hasVisitedBoard])
