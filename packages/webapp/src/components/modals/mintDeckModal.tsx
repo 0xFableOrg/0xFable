@@ -1,6 +1,6 @@
 import { useState } from "react"
 
-import { ModalMenuButton, ModalTitle, SpinnerWithMargin } from "src/components/lib/modalElements"
+import { ModalMenuButton, ModalTitle } from "src/components/lib/modalElements"
 import { useDeckAirdropWrite } from "src/hooks/useFableWrite"
 import { Modal, ModalController, useModalController } from "src/components/lib/modal"
 import { LoadingModalContent } from "src/components/lib/loadingModal"

@@ -26,7 +26,7 @@ export const JoinGameModal = () => {
   useEffect(() => {
     if (isGameJoiner && !ctrl.displayed)
       ctrl.display()
-  }, [isGameJoiner, ctrl.displayed])
+  }, [isGameJoiner, ctrl, ctrl.displayed])
 
   return <>
     <ModalMenuButton display={ctrl.display} label="Join →"/>
@@ -58,7 +58,7 @@ const JoinGameModalContent = ({ ctrl }: { ctrl: ModalController }) => {
   // The modal can't be closed in the normal way when in a loading state.
   useEffect(() => {
     ctrl.closeableAndSurroundCloseable = loading === null
-  }, [loading])
+  }, [ctrl, loading])
 
   // NOTE(norswap): Right now, the hook can cause error when you type a number that is not a valid
   //   game ID. This is fine. Alternatively, we could validate the input game ID and enable the hook

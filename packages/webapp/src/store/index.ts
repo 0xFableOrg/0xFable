@@ -43,7 +43,7 @@ export const playerAddress = readOnlyAtom<Address>(playerAddress_)
  * ID of the game the player is currently participating in (creating, joined, or playing).
  * This is stored in local storage.
  */
-export const gameID = atomWithStorage(GAME_ID_STORAGE_KEY, null as BigInt)
+export const gameID = atomWithStorage(GAME_ID_STORAGE_KEY, null as bigint|null)
 // atomWithStorage causes the creation of another anonymous atom
 
 /** Static game data (excluding per-player information).  */

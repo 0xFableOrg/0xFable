@@ -19,12 +19,12 @@ export const GameEndedModal = ({ closeCallback }) => {
   const exitToMenu = useCallback(() => {
     setGameID(null)
     void router.push("/")
-  }, [])
+  }, [router, setGameID])
 
   const viewGame = useCallback(() => {
     ctrl.close()
     closeCallback()
-  }, [closeCallback])
+  }, [closeCallback, ctrl])
 
   return <Modal ctrl={ctrl}>
     <ModalTitle>Game Ended</ModalTitle>

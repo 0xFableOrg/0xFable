@@ -8,13 +8,12 @@
 
 import { getDefaultStore, type Getter } from "jotai"
 import { chain } from "src/constants"
-import { setup } from "src/setup"
 import { formatTimestamp } from "src/utils/js-utils"
 import { getAccount, readContract, watchAccount, watchNetwork, getNetwork } from "wagmi/actions"
 
 import { deployment } from "src/deployment"
 import { gameABI } from "src/generated"
-import { gameData, gameID, hasVisitedBoard, isGameCreator, isGameJoiner } from "src/store"
+import { gameID, hasVisitedBoard, isGameCreator, isGameJoiner } from "src/store"
 import { gameData_, gameStatus_, playerAddress_, } from "src/store/private"
 import { subscribeToGame } from "src/store/subscriptions"
 import { GameStatus, StaticGameData } from "src/types"
@@ -112,7 +111,7 @@ function updateNetwork(result: NetworkResult) {
  * It never causes race conditions or weird data states: this resets all associated states, and if
  * a refresh lands with another ID, it will be ignored.
  */
-function setDependencies(ID: BigInt) {
+function setDependencies(ID: bigint|null) {
   console.log(`transitioning to game ID ${ID}`)
 
   // avoid using inconsistent data

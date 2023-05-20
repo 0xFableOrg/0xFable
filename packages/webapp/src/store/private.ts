@@ -10,7 +10,6 @@
 import { atom } from "jotai"
 
 import { Address, GameStatus, StaticGameData } from "src/types"
-import { gameData, gameStatus, playerAddress } from "src/store"
 
 // =================================================================================================
 // PRIVATE ATOMS

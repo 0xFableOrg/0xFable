@@ -6,7 +6,6 @@
  */
 
 import { setupStore } from "src/store"
-import { serialize } from "wagmi"
 
 // =================================================================================================
 
@@ -32,7 +31,7 @@ export function setup() {
  * Replaces an object's function, for instance:
  * `console.log = replaceFunction(console, "log", (old) => (...args) => old("LOGGING: ", ...args))`
  */
-export function replaceFunction<T extends Function>
+export function replaceFunction<T>
     (obj: object, name: string, replacement: (old: T) => T): T {
   const old = obj[name]["0xFable_oldFunction"] ?? obj[name]
   const result = replacement(old)

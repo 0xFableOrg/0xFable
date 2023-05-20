@@ -1,6 +1,4 @@
 import Image from "next/image"
-import * as store from "src/store"
-import { useAtom } from "jotai"
 
 //quick fix for hackathon
 const cards = [

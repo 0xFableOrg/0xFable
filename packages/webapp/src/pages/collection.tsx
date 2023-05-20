@@ -1,6 +1,4 @@
-import { useAtomsDebugValue, useAtomsDevtools } from "jotai-devtools"
 import debounce from "lodash/debounce"
-import { type NextPage } from "next"
 import Head from "next/head"
 // This causes the "Ignoring unsupported entryTypes: largest-contentful-paint.", presumably
 // because Firefox does not support some associated features.

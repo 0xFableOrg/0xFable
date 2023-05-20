@@ -36,7 +36,7 @@ const eventNames = [
 // -------------------------------------------------------------------------------------------------
 
 /** ID of the game we are currently subscribed to, or null if we are not subscribed. */
-let currentlySubscribedID: BigInt = null
+let currentlySubscribedID: bigint|null = null
 
 /** List of function to call to unsubscribe from game updates. */
 let unsubFunctions: (() => void)[] = []
@@ -47,7 +47,7 @@ let unsubFunctions: (() => void)[] = []
  * Subscribe to all game events for the specified game ID. If the ID is null, unsubscribe from all
  * events we are currently subscribed to instead.
  */
-export function subscribeToGame(ID: BigInt) {
+export function subscribeToGame(ID: bigint|null) {
 
   // NOTE(norswap) we can't filter on ID with ethers, maybe with Viem?
   // If we could, this should be implemented as a logic that unsubscribe from the previous ID
@@ -106,22 +106,22 @@ function handleEvent(name: string, args: GameEventArgs) {
 
   switch (name) {
     case 'CardDrawn': {
-      const { player } = args
+      const { _player } = args
       break
     } case 'CardPlayed': {
-      const { player, card } = args
+      const { _player, _card } = args
       break
     } case 'PlayerAttacked': {
-      const { attacking, defending } = args
+      const { _attacking, _defending } = args
       break
     } case 'PlayerDefended': {
-      const { attacking, defending } = args
+      const { _attacking, _defending } = args
       break
     } case 'PlayerPassed': {
-      const { player } = args
+      const { _player } = args
       break
     } case 'PlayerJoined': {
-      const { player } = args
+      const { _player } = args
       // Refetch game data to get up to date player list and update the status.
       void refreshGameData()
       break

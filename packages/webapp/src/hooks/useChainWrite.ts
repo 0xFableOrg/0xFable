@@ -10,6 +10,7 @@ import { type TransactionReceipt } from "viem"
  * - Refer to {@link completeParams} for default values/behaviours.
  * - Significant differences/additions/things to note:
  *   - `prepare` controls we use {@link usePrepareContractWrite} or not, false by default
+ *      This causes conditional inclusion of a hook, so cannot be changed over component lifecycle.
  *   - `setLoading` is a function taking a string describing what we are currently waiting for
  *   - `enabled` is true by default
  *   - `onError` is passed to all functions that can fail
@@ -96,7 +97,7 @@ export function useChainWrite(_params: UseWriteParams): UseWriteResult {
 
   // Unlikely that this is more work than memoization would incur!
   const {
-   contract, abi, functionName, args, enabled, prepare, onSigned, onWrite, onSuccess, onError, setLoading
+   contract, abi, functionName, args, enabled, prepare, onSigned, onWrite, onSuccess, onError
   } = completeParams(_params)
 
   // TODO(norswap): It could be good to include some generic error handling / preprocessing here.
@@ -107,6 +108,7 @@ export function useChainWrite(_params: UseWriteParams): UseWriteResult {
     // Prepare the transaction configuration: this will call the RPC to simulate the call and get
     // the estimated gas cost. This might decrease the time to perform a tx, but might increase RPC
     // costs, and might cause errors depending on the caching policy (which I haven't investigated).
+    // eslint-disable-next-line
     ? usePrepareContractWrite({
         address: contract,
         abi,

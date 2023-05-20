@@ -1,7 +1,7 @@
 import { ReactNode } from "react"
 
 import { ModalTitle, SpinnerWithMargin } from "src/components/lib/modalElements"
-import { Modal, ModalController, useModalController } from "src/components/lib/modal"
+import { Modal, ModalController } from "src/components/lib/modal"
 
 // =================================================================================================
 

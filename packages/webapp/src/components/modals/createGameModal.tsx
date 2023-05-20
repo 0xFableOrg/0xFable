@@ -22,7 +22,7 @@ export const CreateGameModal = () => {
   useEffect(() => {
     if (isGameCreator && !ctrl.displayed)
       ctrl.display()
-  }, [isGameCreator, ctrl.displayed])
+  }, [isGameCreator, ctrl, ctrl.displayed])
 
   return <>
     <ModalMenuButton display={ctrl.display} label="Create Game →" />
@@ -61,7 +61,7 @@ const CreateGameModalContent = ({ ctrl }: { ctrl: ModalController }) => {
   useEffect(() => {
     // React forces us to use an effect, can't update a component state in another component.
     ctrl.closeableAndSurroundCloseable = !created && loading === null
-  }, [created, loading])
+  }, [created, loading, ctrl])
 
   // Load game board game once the game start, unless we've visited it for this game already.
   useEffect(() => {
