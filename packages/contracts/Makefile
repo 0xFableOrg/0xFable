@@ -2,6 +2,10 @@
 # (-include to ignore error if it does not exist)
 -include .env
 
+# Set CONFIG to "LOCAL" by default. Other valid values: "TEST" or "MAIN".
+CONFIG?=LOCAL
+export CONFIG
+
 # See README.md for documentation.
 
 setup:
@@ -57,11 +61,11 @@ selectors:
 	forge upload-selectors --all > out/selectors.txt
 .PHONY: selectors
 
-# TODO: handle different deployment targets (possibly via envs?)
+# Deploys locally, to testnet or mainnet depending on the $CONFIG value (locally if not set).
 deploy: build
-	@forge script src/deploy/Deploy.s.sol:DeployLocal \
-		--fork-url http://localhost:8545 \
-		--private-key $(PRIVATE_KEY0) \
+	@forge script src/deploy/Deploy.s.sol:Deploy \
+		--fork-url $(RPC_$(CONFIG)) \
+		--private-key $(PRIVATE_KEY_$(CONFIG)) \
 		--broadcast \
 		| grep "address " > out/deployment.txt
 	@cat out/deployment.txt
@@ -69,5 +73,20 @@ deploy: build
 		out/deployment.txt \
 		out/abis.json \
 		> out/deployment.json
-	@cd ../webapp && pnpm wagmi generate
 .PHONY: deploy
+
+# Sometimes the deployment crashes, this allows us to see why. Hardcoded to only use local
+# deployment.
+debug-deploy:
+	forge script src/deploy/Deploy.s.sol:Deploy \
+		--fork-url http://localhost:8545 \
+		--private-key $(PRIVATE_KEY_LOCAL) \
+		--broadcast
+.PHONY: debug-deploy
+
+# My hatred for git modules runs so deep, I'm straight up vendoring all of forge-std.
+update-forge-std:
+	rm -rf lib/forge-std
+	cd lib && git clone git@github.com:foundry-rs/forge-std.git
+	cd lib/forge-std && git submodule update --init --recursive
+.PHONY: update-forge-std
