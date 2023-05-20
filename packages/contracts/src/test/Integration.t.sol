@@ -7,12 +7,15 @@ import "../InventoryCardsCollection.sol";
 import "../Game.sol";
 
 import "forge-std/Test.sol";
+import "../deploy/Deploy.s.sol";
 
 contract Integration is Test {
+    Deploy private deployment;
     CardsCollection private cardsCollection;
     Inventory private inventory;
     InventoryCardsCollection private inventoryCardsCollection;
     Game private game;
+    DeckAirdrop private airdrop;
 
     bytes32 private constant salt = bytes32(uint256(4269));
     address private constant player1 = 0x00000000000000000000000000000000DeaDBeef;
@@ -27,60 +30,24 @@ contract Integration is Test {
 
     uint8 private constant NONE = 255;
 
-
-    function createDeck(uint256 start, address player) internal {
-        uint256 i = 0;
-        cardsCollection.mint(player, start + i++, "Horrible Gremlin", "", "", 1, 1);
-        cardsCollection.mint(player, start + i++, "Horrible Gremlin", "", "", 1, 1);
-        cardsCollection.mint(player, start + i++, "Horrible Gremlin", "", "", 1, 1);
-        cardsCollection.mint(player, start + i++, "Horrible Gremlin", "", "", 1, 1);
-        cardsCollection.mint(player, start + i++, "Wise Elf", "", "", 1, 3);
-        cardsCollection.mint(player, start + i++, "Wise Elf", "", "", 1, 3);
-        cardsCollection.mint(player, start + i++, "Wise Elf", "", "", 1, 3);
-        cardsCollection.mint(player, start + i++, "Wise Elf", "", "", 1, 3);
-        cardsCollection.mint(player, start + i++, "Fire Fighter", "", "", 2, 2);
-        cardsCollection.mint(player, start + i++, "Fire Fighter", "", "", 2, 2);
-        cardsCollection.mint(player, start + i++, "Fire Fighter", "", "", 2, 2);
-        cardsCollection.mint(player, start + i++, "Fire Fighter", "", "", 2, 2);
-        cardsCollection.mint(player, start + i++, "Grave Digger", "", "", 2, 3);
-        cardsCollection.mint(player, start + i++, "Grave Digger", "", "", 2, 3);
-        cardsCollection.mint(player, start + i++, "Grave Digger", "", "", 2, 3);
-        cardsCollection.mint(player, start + i++, "Grave Digger", "", "", 2, 3);
-        cardsCollection.mint(player, start + i++, "Mana Fiend", "", "", 3, 1);
-        cardsCollection.mint(player, start + i++, "Mana Fiend", "", "", 3, 1);
-        cardsCollection.mint(player, start + i++, "Mana Fiend", "", "", 3, 1);
-        cardsCollection.mint(player, start + i++, "Mana Fiend", "", "", 3, 1);
-        cardsCollection.mint(player, start + i++, "Goblin Queen", "", "", 3, 2);
-        cardsCollection.mint(player, start + i++, "Goblin Queen", "", "", 3, 2);
-        cardsCollection.mint(player, start + i++, "Goblin Queen", "", "", 3, 2);
-        cardsCollection.mint(player, start + i++, "Goblin Queen", "", "", 3, 2);
-
-        uint256[] memory deck = new uint256[](24);
-
-        vm.startPrank(player);
-        cardsCollection.setApprovalForAll(address(inventory), true);
-        for (uint256 j = 0; j < i; ++j) {
-            inventory.addCard(player, start + j);
-            deck[j] = start + j;
-        }
-        inventory.addDeck(player, Inventory.Deck(deck));
-        vm.stopPrank();
-    }
+    // =============================================================================================
 
     function setUp() public {
-        cardsCollection = new CardsCollection();
-        inventory = new Inventory(salt, cardsCollection);
-        inventoryCardsCollection = inventory.inventoryCardsCollection();
-        game = new Game(inventory, DrawVerifier(address(0)), PlayVerifier(address(0)));
+        deployment = new Deploy();
+        deployment.dontLog();
+        deployment.run();
 
-        createDeck(0,  player1);
-        createDeck(24, player2);
+        cardsCollection = deployment.cardsCollection();
+        inventory = deployment.inventory();
+        inventoryCardsCollection = deployment.inventoryCardsCollection();
+        game = deployment.game();
+        airdrop = deployment.airdrop();
+
+        vm.prank(player1);
+        airdrop.claimAirdrop();
+        vm.prank(player2);
+        airdrop.claimAirdrop();
     }
-
-    // TODO: this uses a single deck for both players, offset all of player 2's cards by 24
-
-    // Offset for player 2 deck IDs.
-    uint8 private constant p2o = 24;
 
     function testGame() public {
         uint256 gameID = 0;

@@ -53,13 +53,13 @@ contract Inventory is Ownable {
     // CONSTANTS
 
     // Max number of decks that each player can have.
-    uint256 constant MAX_DECKS = 256;
+    uint256 constant private MAX_DECKS = 256;
 
     // Min number of cards in a deck.
-    uint256 constant MIN_DECK_SIZE = 10;
+    uint256 constant private MIN_DECK_SIZE = 10;
 
     // Max number of cards in a deck.
-    uint256 constant MAX_DECK_SIZE = 40;
+    uint256 constant private MAX_DECK_SIZE = 40;
 
     // =============================================================================================
     // TYPES
@@ -78,10 +78,10 @@ contract Inventory is Ownable {
 
     // Map a player to whether he's currently engaged in a game (in which case he cannot remove
     // cards from the inventory).
-    mapping(address => bool) inGame;
+    mapping(address => bool) public inGame;
 
     // Maps keccak256(delegate, player) to true if the player delegated to the delegate.
-    mapping(bytes32 => bool) delegations;
+    mapping(bytes32 => bool) public delegations;
 
     // The NFT collection that contains all admissible cards for use with this inventory contract.
     // This can't be called `cardsCollection` because it would cause a naming conflict with

@@ -6,7 +6,7 @@ import "./Inventory.sol";
 import "openzeppelin/token/ERC721/ERC721.sol";
 import "openzeppelin/access/Ownable.sol";
 
-    struct Lore {
+struct Lore {
     string name;
     string flavor;
     string URL;
@@ -23,17 +23,29 @@ struct Card {
     Stats stats;
 }
 
+error Unauthorized();
+
 contract CardsCollection is ERC721, Ownable {
 
     Inventory public inventory;
+
+    // Let's skip 0 to catch bugs due to default values.
+    uint256 private nextID = 1;
 
     constructor() ERC721("Cards", "CARD") Ownable() {}
 
     mapping(uint256 => Lore) public lore;
     mapping(uint256 => Stats) private stats_;
 
+    // Airdrop manager.
+    address public airdrop;
+
     function setInventory(Inventory inventory_) external onlyOwner {
         inventory = inventory_;
+    }
+
+    function setAirdrop(DeckAirdrop airdrop_) onlyOwner external {
+        airdrop = address(airdrop_);
     }
 
     // Authorize the inventory contract to transfer cards.
@@ -43,12 +55,15 @@ contract CardsCollection is ERC721, Ownable {
 
     function mint(
             address to,
-            uint256 tokenID,
             string calldata name,
             string calldata flavor,
             string calldata URL,
             uint8 attack,
-            uint8 defense) external onlyOwner {
+            uint8 defense) external returns(uint256 tokenID) {
+        if (msg.sender != owner() && msg.sender != airdrop)
+            revert Unauthorized();
+
+        tokenID = nextID++;
         _safeMint(to, tokenID, "");
         stats_[tokenID] = Stats(attack, defense);
         lore[tokenID] = Lore(name, flavor, URL);

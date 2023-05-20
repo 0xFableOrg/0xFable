@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.12;
+pragma solidity ^0.8.19;
 
 // Source: https://github.com/mds1/multicall/blob/eb34ad2954f9ceb475a24bb0155bff3bef0f5409/src/Multicall3.sol
+// + Replaced block.difficult with block.prevrandao
 
 /// @title Multicall3
 /// @notice Aggregate results from multiple function calls
@@ -180,7 +181,7 @@ contract Multicall3 {
 
     /// @notice Returns the block difficulty
     function getCurrentBlockDifficulty() public view returns (uint256 difficulty) {
-        difficulty = block.difficulty;
+        difficulty = block.prevrandao;
     }
 
     /// @notice Returns the block gas limit
