@@ -9,7 +9,7 @@
 
 import { atom } from "jotai"
 
-import { Address, GameStatus, StaticGameData } from "src/types"
+import { Address, GameCards, FetchedGameData } from "src/types"
 
 // =================================================================================================
 // PRIVATE ATOMS
@@ -18,16 +18,16 @@ import { Address, GameStatus, StaticGameData } from "src/types"
 export const playerAddress_ = atom(null as Address)
 
 /** cf. {@link gameData} */
-export const gameData_ = atom(null as StaticGameData)
+export const gameData_ = atom(null as FetchedGameData)
 
-/** cf. {@link gameStatus} */
-export const gameStatus_ = atom(null as GameStatus)
+/** TODO */
+export const gameCards_ = atom(null as GameCards)
 
 // =================================================================================================
 // DEBUG LABELS
 
 playerAddress_.debugLabel = 'playerAddress_'
 gameData_.debugLabel      = 'gameData_'
-gameStatus_.debugLabel    = 'gameStatus_'
+gameCards_.debugLabel     = 'gameCards_'
 
 // =================================================================================================

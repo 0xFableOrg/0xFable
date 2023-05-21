@@ -12,7 +12,7 @@ import { Log } from "viem"
 
 import { deployment } from "src/deployment"
 import { gameABI } from "src/generated"
-import { gameID } from "src/store"
+import { gameData, gameID } from "src/store"
 import { refreshGameData } from "src/store/update"
 import { format } from "src/utils/js-utils"
 
@@ -123,7 +123,8 @@ function handleEvent(name: string, args: GameEventArgs) {
     } case 'PlayerJoined': {
       const { _player } = args
       // Refetch game data to get up to date player list and update the status.
-      void refreshGameData()
+      // If this is the last player to join, we also need to refetch the cards.
+      void refreshGameData({ forceFetchCards: store.get(gameData).playersLeftToJoin <= 1 })
       break
     }
     case 'GameStarted': {

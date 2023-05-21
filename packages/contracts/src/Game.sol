@@ -181,13 +181,14 @@ contract Game {
         uint256[] cards;
     }
 
-    // A subset of `GameData` members, adding the game ID, and excluding non-readable members
-    // (mapping, function), and the cards array that never changes. Use `getCards()` to read them
-    // instead.
-    struct StaticGameData {
+    // A read-friendly version of `GameData`, adding the gameID, flattening the player data into an
+    // arary, excluding the joinCheck predicate, as well as the cards array that never changes. Use
+    // `getCards()` to read them instead.
+    struct FetchedGameData {
         uint256 gameID;
         address gameCreator;
         address[] players;
+        PlayerData[] playerData;
         uint256 lastBlockNum;
         uint8 playersLeftToJoin;
         uint8[] livePlayers;
@@ -204,13 +205,6 @@ contract Game {
 
     // Maps game IDs to game data.
     mapping(uint256 => GameData) public gameData;
-
-    struct Farts {
-        uint256 x;
-        uint256 y;
-    }
-
-    mapping(uint256 => Farts) public gameFarts;
 
     // The inventory containing the cards that will be used in this game.
     Inventory public inventory;
@@ -304,12 +298,16 @@ contract Game {
 
     // Returns a subset of `GameData` members, excluding non-readable members (mapping, function),
     // and the cards array that never changes. Use `getCards()` to read them instead.
-    function staticGameData(uint256 gameID) external view returns(StaticGameData memory) {
+    function fetchGameData(uint256 gameID) external view returns(FetchedGameData memory) {
         GameData storage gdata = gameData[gameID];
-        return StaticGameData({
+        PlayerData[] memory playerData = new PlayerData[](gdata.players.length);
+        for (uint8 i = 0; i < gdata.players.length; ++i)
+            playerData[i] = gdata.playerData[gdata.players[i]];
+        return FetchedGameData({
             gameID: gameID,
             gameCreator: gdata.gameCreator,
             players: gdata.players,
+            playerData: playerData,
             lastBlockNum: gdata.lastBlockNum,
             playersLeftToJoin: gdata.playersLeftToJoin,
             livePlayers: gdata.livePlayers,
@@ -317,6 +315,14 @@ contract Game {
             currentStep: gdata.currentStep,
             attackingPlayer: gdata.attackingPlayer
         });
+    }
+
+    // ---------------------------------------------------------------------------------------------
+
+    // Get the cards that will be used in the game. The results of this are undefined before the
+    // game is started (i.e. the final player set is known).
+    function getCards(uint256 gameID) external view returns(uint256[] memory) {
+        return gameData[gameID].cards;
     }
 
     // ---------------------------------------------------------------------------------------------

@@ -52,6 +52,25 @@ export function toString(obj: any) {
 // -------------------------------------------------------------------------------------------------
 
 /**
+ * Shallowly compares two objects with depth 1 by checking the equality of their members.
+ */
+export function shallowCompare(obj1: object, obj2: object): boolean {
+  const keys1 = Object.keys(obj1)
+  const keys2 = Object.keys(obj2)
+
+  if (keys1.length !== keys2.length)
+    return false
+
+  for (const key of keys1)
+    if (obj1[key] !== obj2[key])
+      return false
+
+  return true
+}
+
+// -------------------------------------------------------------------------------------------------
+
+/**
  * Parses a bigint-compatible value into a bigint.
  * Returns null if the value is null or if it cannot be parsed.
  */

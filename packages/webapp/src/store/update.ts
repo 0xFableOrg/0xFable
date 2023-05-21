@@ -6,17 +6,17 @@
 
 // =================================================================================================
 
-import { getDefaultStore, type Getter } from "jotai"
+import { getDefaultStore } from "jotai"
 import { chain } from "src/constants"
 import { formatTimestamp } from "src/utils/js-utils"
-import { getAccount, readContract, watchAccount, watchNetwork, getNetwork } from "wagmi/actions"
+import { getAccount, getNetwork, readContract, watchAccount, watchNetwork } from "wagmi/actions"
 
 import { deployment } from "src/deployment"
 import { gameABI } from "src/generated"
-import { gameID, hasVisitedBoard, isGameCreator, isGameJoiner } from "src/store"
-import { gameData_, gameStatus_, playerAddress_, } from "src/store/private"
+import { gameID, gameStatus, hasVisitedBoard, isGameCreator, isGameJoiner } from "src/store"
+import { gameCards_, gameData_, playerAddress_ } from "src/store/private"
 import { subscribeToGame } from "src/store/subscriptions"
-import { GameStatus, StaticGameData } from "src/types"
+import { GameStatus, FetchedGameData } from "src/types"
 import { AccountResult, NetworkResult } from "src/utils/rpc-utils"
 
 // =================================================================================================
@@ -81,7 +81,7 @@ function updatePlayerAddress(result: AccountResult) {
 
 /** Returns true if the network we are connected to is the one we support ({@link chain}). */
 function isNetworkValid(network: NetworkResult = getNetwork()) {
-  return network.chain && network.chain.id === chain.id
+  return network.chain?.id === chain.id
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -115,90 +115,15 @@ function setDependencies(ID: bigint|null) {
   console.log(`transitioning to game ID ${ID}`)
 
   // avoid using inconsistent data
-  store.set(gameData_, null as StaticGameData)
-  store.set(gameStatus_, GameStatus.UNKNOWN)
+  store.set(gameData_, null as FetchedGameData)
   store.set(hasVisitedBoard, false)
 
   // TODO reset per-player state here, when we start using it
 
   subscribeToGame(ID) // will unusubscribe if ID is null
-  if (ID !== null) void refreshGameData()
-}
-
-// -------------------------------------------------------------------------------------------------
-
-/**
- * Returns the stored game data. If it is not yet available, this will return null and trigger an
- * async refresh.
- */
-export function getGameData_(get: Getter): StaticGameData {
-  const current = get(gameData_)
-  if (current === null && get(gameID) !== null)
-    void refreshGameData()
-  return current
-}
-
-// -------------------------------------------------------------------------------------------------
-
-/**
- * Returns the stored game status. If it is not yet available, this will return null and trigger an
- * async refresh.
- */
-export function getGameStatus_(get: Getter): GameStatus {
-  const current = get(gameStatus_)
-  if (current === null && get(gameID) !== null)
-    void refreshGameData()
-  return current
-}
-
-// -------------------------------------------------------------------------------------------------
-
-/**
- * Returns the stored game data. If it is not yet available, this will trigger a refresh and
- * wait until the result is available to return.
- */
-function setGameData_(data: StaticGameData) {
-  if (data === null) {
-    console.error("setGameData_ called with null data")
-    return
-  }
-
-  const ID = data.gameID
-  const storeID = store.get(gameID)
-  // The game ID changed underneath this update, ignore it.
-  if (ID !== storeID) {
-    console.log(`Rejected stale data with game ID ${ID} (current game ID is ${storeID})`)
-    return
-  }
-
-  store.set(gameData_, data)
-
-  // NOTE(norswap): We do not (yet?) handle replaying games.
-  //   Replaying games need to be event-based in any case, so there needs to be an abstraction
-  //   layer that allows for fetching either from the chain or from an indexer.
-  //   Another problem with this is that we can't get the intermediate game data from events.
-  //   (We could reconstruct it though, or make sure we can.)
-  //   This could be a good use-case for MUDv2?
-  //   This does not solve the problem that player hands are private, and only with their
-  //   collaboration can we reconstruct a replay where their hands is visible.
-
-  if (data.playersLeftToJoin == 0) {
-    if (data.livePlayers.length <= 1)
-      store.set(gameStatus_, GameStatus.ENDED)
-    else
-      store.set(gameStatus_, GameStatus.STARTED)
-  } else if (data.players.includes(store.get(playerAddress_))) {
-    store.set(gameStatus_, GameStatus.JOINED)
-  } else {
-    store.set(gameStatus_, GameStatus.CREATED)
-  }
-
-  if(!store.get(isGameCreator) && !store.get(isGameJoiner)) {
-    console.warn(`Tracking a game (${store.get(gameID)}) we are not participating in, resetting to null.`)
-    store.set(gameID, null)
-  }
-
-  // TODO parse data and ensure that the store is consistent with it
+  if (ID !== null)
+    // We might be jumping into an in-progress game, so fetch cards.
+    void refreshGameData({ forceFetchCards: true })
 }
 
 // =================================================================================================
@@ -212,18 +137,29 @@ let lastRequestTimestamp = 0
 let sequenceNumber = 1
 let lastCompletedNumber = 0
 
+/** If the game has started and we don't have the cards yet, we need to fetch them. */
+function shouldUpdateCards(): boolean {
+  return store.get(gameStatus) >= GameStatus.STARTED && store.get(gameCards_) === null
+}
+
 /**
  * Triggers a manual refresh of the game data, setting the {@link gameData} atom.
  * If the game ID changes the while the refresh is in flight, the refresh is ignored.
  *
- * TODO: implement a sequence number so that we can ignore stale refreshes.
+ * @param forceFetchCards forces fetching the cards even though {@link shouldUpdateCards} initially
+ * returns false. This is useful when we know that the new game data will move us to a state where
+ * we should update the cards. We still check if the update is necessary anyhow.
  */
-export async function refreshGameData() {
+export async function refreshGameData({ forceFetchCards = false } = {}) {
+  console.log("forceFetchCards", forceFetchCards)
   const ID = store.get(gameID)
+
   if (ID === null) {
     console.error("refreshGameData called with null ID")
     return
   }
+
+  // === Throttle ===
 
   const seqNum = sequenceNumber++
   const timestamp = Date.now()
@@ -231,28 +167,47 @@ export async function refreshGameData() {
     return // there is a recent-ish refresh in flight
   lastRequestTimestamp = timestamp
 
-  const fetched = await readContract({
+  // === Fetch ===
+
+  const gameDataPromise = readContract({
     address: deployment.Game,
     abi: gameABI,
-    functionName: "staticGameData",
-    args: [ID.valueOf()] // TODO can we store the primitive type directly?
+    functionName: "fetchGameData",
+    args: [ID]
   })
 
-  // TODO is this step still needed?
-  const gameData: StaticGameData = {
-    gameID: fetched.gameID,
-    gameCreator: fetched.gameCreator,
-    players: fetched.players,
-    lastBlockNum: fetched.lastBlockNum,
-    playersLeftToJoin: fetched.playersLeftToJoin,
-    livePlayers: fetched.livePlayers,
-    currentPlayer: fetched.currentPlayer,
-    currentStep: fetched.currentStep,
-    attackingPlayer: fetched.attackingPlayer
+  let gameCardsPromise: Promise<readonly bigint[]> = null
+
+  console.log("fetching cards???", forceFetchCards, shouldUpdateCards())
+
+  // If the game has started and we haven't got the cards yet, fetch them.
+  if (forceFetchCards || shouldUpdateCards()) {
+    gameCardsPromise = readContract({
+      address: deployment.Game,
+      abi: gameABI,
+      functionName: "getCards",
+      args: [ID]
+    })
   }
+
+  // Await after firing all calls
+  const gameData = await gameDataPromise
+  const gameCards = await gameCardsPromise
+
+  // === Stale Update Filtering ===
 
   if (seqNum < lastCompletedNumber) return // ignore zombie refresh
   lastCompletedNumber = seqNum
+
+  const storeID = store.get(gameID)
+  const stale = ID !== storeID
+  if (stale) {
+    // The game ID changed underneath this update, ignore it.
+    console.log(`Rejected stale data with game ID ${ID} (current game ID is ${storeID})`)
+    return
+  }
+
+  // === Log Updates (1/2) ===
 
   console.groupCollapsed(`fetched data (at ${formatTimestamp(timestamp)})`)
   console.dir(gameData)
@@ -261,8 +216,31 @@ export async function refreshGameData() {
   // Allow another refresh immediately.
   lastRequestTimestamp = 0
 
-  // This will check that the game data's game ID is consistent with the game ID in the store.
-  setGameData_(gameData)
+  // === Update Store ===
+
+  store.set(gameData_, gameData)
+  const updateCards = shouldUpdateCards()
+
+  if (gameCards && updateCards) {
+    const decks = gameData.playerData.map(pdata =>
+      gameCards.slice(pdata.deckStart, pdata.deckEnd))
+    store.set(gameCards_, {
+      gameID: ID,
+      cards: gameCards,
+      decks: decks
+    })
+  }
+
+  // === Log Updates (2/2) ===
+
+  if (gameCards && updateCards) console.log("fetched game cards")
+  console.groupEnd()
+
+  // === Sanity Check ===
+  // NOTE: We don't yet support spectating games.
+
+  if(!store.get(isGameCreator) && !store.get(isGameJoiner))
+    console.warn(`Tracking a game (${store.get(gameID)}) we are not participating in.`)
 }
 
 // =================================================================================================

@@ -15,10 +15,10 @@
 import { atom, getDefaultStore } from "jotai"
 import { atomWithStorage } from "jotai/utils"
 
-import { type Address, type StaticGameData } from "src/types"
+import { type Address, type FetchedGameData, GameStatus } from "src/types"
 import { readOnlyAtom } from "src/utils/react-utils"
-import { playerAddress_ } from "src/store/private"
-import { getGameData_, getGameStatus_ } from "src/store/update"
+import { playerAddress_, gameData_ } from "src/store/private"
+import { zeroAddress } from "viem"
 
 export { setupStore, refreshGameData } from "src/store/update"
 
@@ -47,13 +47,27 @@ export const gameID = atomWithStorage(GAME_ID_STORAGE_KEY, null as bigint|null)
 // atomWithStorage causes the creation of another anonymous atom
 
 /** Static game data (excluding per-player information).  */
-export const gameData = atom<StaticGameData>(getGameData_)
-
-/** Current game status (CREATED, JOINED, STARTED, etc) */
-export const gameStatus = atom(getGameStatus_)
+export const gameData = readOnlyAtom<FetchedGameData>(gameData_)
 
 /** Lets us load the game board once the game starts, but come back to the main menu later. */
 export const hasVisitedBoard = atom(false)
+
+/** Current game status (CREATED, JOINED, STARTED, etc) */
+export const gameStatus = atom((get) => {
+  const gameData = get(gameData_)
+  if (gameData == null || gameData.gameCreator == zeroAddress)
+    return GameStatus.UNKNOWN
+  else if (gameData.playersLeftToJoin == 0) {
+    if (gameData.livePlayers.length <= 1)
+      return GameStatus.ENDED
+    else
+      return GameStatus.STARTED
+  } else if (gameData.players.includes(store.get(playerAddress_))) {
+    return GameStatus.JOINED
+  } else {
+    return GameStatus.CREATED
+  }
+})
 
 /** True if we have created the current game. */
 export const isGameCreator = atom ((get) => {

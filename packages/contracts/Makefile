@@ -73,6 +73,7 @@ deploy: build
 		out/deployment.txt \
 		out/abis.json \
 		> out/deployment.json
+	@cd ../webapp && pnpm wagmi generate
 .PHONY: deploy
 
 # Sometimes the deployment crashes, this allows us to see why. Hardcoded to only use local
