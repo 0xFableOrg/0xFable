@@ -300,14 +300,14 @@ contract Game {
     // and the cards array that never changes. Use `getCards()` to read them instead.
     function fetchGameData(uint256 gameID) external view returns(FetchedGameData memory) {
         GameData storage gdata = gameData[gameID];
-        PlayerData[] memory playerData = new PlayerData[](gdata.players.length);
+        PlayerData[] memory pData = new PlayerData[](gdata.players.length);
         for (uint8 i = 0; i < gdata.players.length; ++i)
-            playerData[i] = gdata.playerData[gdata.players[i]];
+            pData[i] = gdata.playerData[gdata.players[i]];
         return FetchedGameData({
             gameID: gameID,
             gameCreator: gdata.gameCreator,
             players: gdata.players,
-            playerData: playerData,
+            playerData: pData,
             lastBlockNum: gdata.lastBlockNum,
             playersLeftToJoin: gdata.playersLeftToJoin,
             livePlayers: gdata.livePlayers,
