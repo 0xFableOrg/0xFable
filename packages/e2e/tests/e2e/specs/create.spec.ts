@@ -6,7 +6,10 @@ import { test, expect } from "../fixtures"
 test.describe.configure({ mode: "serial" })
 
 let sharedPage
-let sharedPage2
+
+function _test(...args) {
+  // disabled test!
+}
 
 test.beforeAll(async ({ page }) => {
   sharedPage = page;
@@ -80,4 +83,24 @@ test("create & join", async () => {
 
   // wait for on-chain inclusion
   await expect(sharedPage.getByRole("heading", { name: "Waiting for other player..." })).toBeVisible()
+})
+
+// TODO
+//    It would be great if we could figure out how to have two browser windows using two
+//    separately configured Metamask accounts. In the meantime, adding a second account and
+//    switching between them seems like the way to go.
+
+test("join from other address", async () => {
+  // TODO needed?
+  // await metamask.disconnectWalletFromAllDapps();
+
+  // second Anvil account
+  await metamask.importAccount("59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d");
+
+  // TODO test -- we could maybe use metamask.switchasccount too
+  await sharedPage.getByRole("button", { name: "Connect Wallet" }).click()
+  await sharedPage.getByRole("button", { name: "MetaMask" }).click();
+  await metamask.acceptAccess();
+
+  await expect(sharedPage.getByRole("button", { name: "0x70...79C8"})).toBeVisible()
 })
