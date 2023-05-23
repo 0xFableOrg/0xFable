@@ -54,6 +54,8 @@ const filteredErrorMessages = [] // none right now
 
 const filteredWarningMessages = [
   "Lit is in dev mode.",
+  // React in dev mode, in Playwright
+  "Please install/enable Redux devtools extension",
   // WalletConnect
   "SingleFile is hooking the IntersectionObserver API to detect and load deferred images"
 ]

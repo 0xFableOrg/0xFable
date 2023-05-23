@@ -57,6 +57,7 @@ export function subscribeToGame(ID: bigint|null) {
     // remove subscription
     unsubFunctions.forEach(unsub => unsub())
     unsubFunctions = []
+    console.log(`unsubscribed from game events for game ID ${currentlySubscribedID}`)
     currentlySubscribedID = null
   }
   else if (currentlySubscribedID === null) {

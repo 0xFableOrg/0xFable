@@ -151,7 +151,6 @@ function shouldUpdateCards(): boolean {
  * we should update the cards. We still check if the update is necessary anyhow.
  */
 export async function refreshGameData({ forceFetchCards = false } = {}) {
-  console.log("forceFetchCards", forceFetchCards)
   const ID = store.get(gameID)
 
   if (ID === null) {
@@ -177,8 +176,6 @@ export async function refreshGameData({ forceFetchCards = false } = {}) {
   })
 
   let gameCardsPromise: Promise<readonly bigint[]> = null
-
-  console.log("fetching cards???", forceFetchCards, shouldUpdateCards())
 
   // If the game has started and we haven't got the cards yet, fetch them.
   if (forceFetchCards || shouldUpdateCards()) {

@@ -1,20 +1,13 @@
 {
   "compilerOptions": {
     "target": "es2022",
-    "baseUrl": "./src",
+    "baseUrl": ".",
     "paths": {
-      "src/*": [
-        "./*"
-      ],
-      "contracts/*": [
-        "../../contracts/*"
-      ]
+      "src/*": ["./*"],
+      "contracts/*": ["../../contracts/*"]
     },
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "es2022"
-    ],
+    "types": ["node"],
+    "lib": ["dom", "dom.iterable", "es2022"],
     "allowJs": true,
     "checkJs": true,
     "skipLibCheck": true,
@@ -24,19 +17,12 @@
     "noEmit": true,
     "incremental": true,
     "esModuleInterop": true,
-    "module": "esnext",
-    "moduleResolution": "node",
+    "module": "es2022",
+    "moduleResolution": "nodenext",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "preserve"
   },
-  "include": [
-    "next-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx"
-  ],
-  "exclude": [
-    "node_modules",
-    "src/generated.ts"
-  ]
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
+  "exclude": ["node_modules", "src/generated.ts"]
 }
