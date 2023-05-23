@@ -43,6 +43,7 @@ contract Deploy is Script {
         // initialize
         cardsCollection.setInventory(inventory);
         inventory.setAirdrop(airdrop);
+        inventory.setGame(game);
         cardsCollection.setAirdrop(airdrop);
 
         if (log) {
@@ -112,6 +113,7 @@ contract DeployDeterministic is Script {
         // initialize
         cardsCollection.setInventory(inventory);
         inventory.setAirdrop(airdrop);
+        inventory.setGame(game);
         cardsCollection.setAirdrop(airdrop);
 
         if (log) {

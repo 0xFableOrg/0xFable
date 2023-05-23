@@ -67,8 +67,6 @@ const JoinGameModalContent = ({ ctrl }: { ctrl: ModalController }) => {
   // Temporary, we do use 0x0 to signal the absence of a root, so we need to use a different value.
   const HashOne = "0x0000000000000000000000000000000000000000000000000000000000000001"
 
-  useDebugValues({ inputGameID, gameID, gameStatus, joined, started, loading })
-
   const { write: join } = useGameWrite({
     functionName: "joinGame",
     args: inputGameID

@@ -2,8 +2,11 @@
 // Changed global to globalThis to avoid warnings.
 
 import { test as base, chromium, type BrowserContext } from "@playwright/test";
-import { initialSetup } from "@synthetixio/synpress/commands/metamask";
-import { prepareMetamask } from "@synthetixio/synpress/helpers";
+import metamask from "@synthetixio/synpress/commands/metamask.js";
+import helpers from "@synthetixio/synpress/helpers.js";
+
+const { initialSetup } = metamask;
+const { prepareMetamask } = helpers;
 
 export const test = base.extend<{
   context: BrowserContext;
@@ -37,7 +40,10 @@ export const test = base.extend<{
     // setup metamask
     await initialSetup(chromium, {
       secretWordsOrPrivateKey:
+        // "59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d",
         "test test test test test test test test test test test junk",
+        // "amused spin first verb garlic pumpkin dish aerobic run smoke subway slogan",
+        // "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
       network: "localhost",
       password: "Tester@1234",
       enableAdvancedSettings: true,

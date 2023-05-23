@@ -200,11 +200,14 @@ contract Game {
     // =============================================================================================
     // FIELDS
 
-    // Game IDs are attributed sequentially.
-    uint256 nextID;
+    // Game IDs are attributed sequentially. Reserve 0 to stipulate absence of game.
+    uint256 nextID = 1;
 
     // Maps game IDs to game data.
     mapping(uint256 => GameData) public gameData;
+
+    // Maps players to the game they're currently in.
+    mapping(address => uint256) public inGame;
 
     // The inventory containing the cards that will be used in this game.
     Inventory public inventory;
@@ -498,6 +501,8 @@ contract Game {
 
         uint256 randomness = uint256(blockhash(gdata.lastBlockNum));
         checkInitialHandProof(pdata, gdata.cards, randomness, proof);
+
+        inGame[msg.sender] = gameID;
         emit PlayerJoined(gameID, msg.sender);
 
         if (--gdata.playersLeftToJoin == 0) {
@@ -521,6 +526,7 @@ contract Game {
         //   the health of all remaining players to 0 at the same time.
         if (gdata.livePlayers.length == 1) {
             address winner = gdata.players[gdata.livePlayers[0]];
+            delete inGame[winner];
             deleteGame(gdata, gameID);
             emit Champion(gameID, winner);
         }
@@ -560,6 +566,7 @@ contract Game {
             // If health is not zero, the player conceded, and a different event is emitted for that.
             emit PlayerDefeated(gameID, player);
 
+        delete inGame[player];
         maybeEndGame(gdata, gameID);
     }
 

@@ -60,6 +60,9 @@ importers:
       '@types/node':
         specifier: ^20.2.1
         version: 20.2.1
+      viem:
+        specifier: ^0.3.31
+        version: 0.3.31(typescript@5.0.4)(zod@3.21.4)
 
   packages/webapp:
     dependencies:

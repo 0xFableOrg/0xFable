@@ -50,7 +50,7 @@ contract Integration is Test {
     }
 
     function testGame() public {
-        uint256 gameID = 0;
+        uint256 gameID = 1;
         // TODO
         //game.createGame(2, game.allowAnyPlayerAndDeck);
         game.createGame(2);
@@ -72,7 +72,7 @@ contract Integration is Test {
         assertEq(pdata.battlefield, 1);
 
         // attack with Horrible Gremlin
-        game.attack(0, 1, size1array);
+        game.attack(gameID, 1, size1array);
         pdata = game.playerData(gameID, player1);
         assertEq(pdata.attacking.length, 1);
         assertEq(pdata.attacking[0], 0);

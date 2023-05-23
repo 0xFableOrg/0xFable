@@ -7,6 +7,7 @@ import "./InventoryCardsCollection.sol";
 
 import "openzeppelin/access/Ownable.sol";
 import "forge-std/console.sol";
+import "./Game.sol";
 
 contract Inventory is Ownable {
 
@@ -76,10 +77,6 @@ contract Inventory is Ownable {
     // Maps a player to list of their decks.
     mapping(address => Deck[]) private decks;
 
-    // Map a player to whether he's currently engaged in a game (in which case he cannot remove
-    // cards from the inventory).
-    mapping(address => bool) public inGame;
-
     // Maps keccak256(delegate, player) to true if the player delegated to the delegate.
     mapping(bytes32 => bool) public delegations;
 
@@ -94,6 +91,10 @@ contract Inventory is Ownable {
 
     // Airdrop manager.
     address public airdrop;
+
+    // TODO: use this to check that players are not adding/removing cards from their deck during a game
+    // Game contract.
+    address public game;
 
     // =============================================================================================
     // MODIFIERS
@@ -127,6 +128,12 @@ contract Inventory is Ownable {
 
     function setAirdrop(DeckAirdrop airdrop_) onlyOwner external {
         airdrop = address(airdrop_);
+    }
+
+    // ---------------------------------------------------------------------------------------------
+
+    function setGame(Game game_) onlyOwner external {
+        game = address(game_);
     }
 
     // =============================================================================================
