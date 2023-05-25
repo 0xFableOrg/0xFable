@@ -19,6 +19,7 @@ contract Deploy is Script {
     InventoryCardsCollection public inventoryCardsCollection;
     DrawVerifier public drawVerifier;
     PlayVerifier public playVerifier;
+    InitialVerifier public initialVerifier;
     Game public game;
     DeckAirdrop public airdrop;
 
@@ -37,7 +38,8 @@ contract Deploy is Script {
         inventoryCardsCollection = inventory.inventoryCardsCollection();
         drawVerifier = new DrawVerifier();
         playVerifier = new PlayVerifier();
-        game = new Game(inventory, drawVerifier, playVerifier);
+        initialVerifier = new InitialVerifier();
+        game = new Game(inventory, drawVerifier, playVerifier, initialVerifier);
         airdrop = new DeckAirdrop(inventory);
 
         // initialize
@@ -86,6 +88,7 @@ contract DeployDeterministic is Script {
     InventoryCardsCollection public inventoryCardsCollection;
     DrawVerifier public drawVerifier;
     PlayVerifier public playVerifier;
+    InitialVerifier public initialVerifier;
     Game public game;
     DeckAirdrop public airdrop;
 
@@ -107,7 +110,8 @@ contract DeployDeterministic is Script {
         inventoryCardsCollection = inventory.inventoryCardsCollection();
         drawVerifier = new DrawVerifier{salt: salt}();
         playVerifier = new PlayVerifier{salt: salt}();
-        game = new Game{salt: salt}(inventory, drawVerifier, playVerifier);
+        initialVerifier = new InitialVerifier{salt: salt}();
+        game = new Game{salt: salt}(inventory, drawVerifier, playVerifier, initialVerifier);
         airdrop = new DeckAirdrop{salt: salt}(inventory);
 
         // initialize
