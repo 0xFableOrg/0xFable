@@ -5,6 +5,7 @@ import "./Inventory.sol";
 import "./CardsCollection.sol";
 import "./DrawVerifier.sol";
 import "./PlayVerifier.sol";
+import "./InitialVerifier.sol";
 
 import "forge-std/console.sol";
 
@@ -220,6 +221,7 @@ contract Game {
     // Draw card and play card verifiers.
     DrawVerifier public drawVerifier;
     PlayVerifier public playVerifier;
+    InitialVerifier public initialVerifier;
 
     // =============================================================================================
     // MODIFIERS
@@ -297,11 +299,17 @@ contract Game {
 
     // =============================================================================================
 
-    constructor(Inventory inventory_, DrawVerifier drawVerifier_, PlayVerifier playVerifier_) {
+    constructor(
+        Inventory inventory_, 
+        DrawVerifier drawVerifier_, 
+        PlayVerifier playVerifier_, 
+        InitialVerifier initialVerifier_
+    ) {
         inventory = inventory_;
         cardsCollection = inventory.originalCardsCollection();
         drawVerifier = drawVerifier_;
         playVerifier = playVerifier_;
+        initialVerifier = initialVerifier_;
     }
 
     // =============================================================================================
