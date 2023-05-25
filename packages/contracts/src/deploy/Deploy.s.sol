@@ -18,6 +18,7 @@ contract Deploy is Script {
     InventoryCardsCollection public inventoryCardsCollection;
     DrawVerifier public drawVerifier;
     PlayVerifier public playVerifier;
+    InitialVerifier public initialVerifier;
     Game public game;
     DeckAirdrop public airdrop;
 
@@ -36,7 +37,8 @@ contract Deploy is Script {
         inventoryCardsCollection = inventory.inventoryCardsCollection();
         drawVerifier = new DrawVerifier();
         playVerifier = new PlayVerifier();
-        game = new Game(inventory, drawVerifier, playVerifier);
+        initialVerifier = new InitialVerifier();
+        game = new Game(inventory, drawVerifier, playVerifier, initialVerifier);
         airdrop = new DeckAirdrop(inventory);
 
         // initialize
