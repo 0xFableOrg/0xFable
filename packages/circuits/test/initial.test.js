@@ -30,7 +30,7 @@ describe("Initial Hand Test", () => {
         let deckPredicate = []
         deckLeaves = [...initialDeck];
         for (let i = 0; i < maxDeckSize; i++) {
-            deckPredicate.push(maxDeckSize ** i);
+            deckPredicate.push(2**i);
         }
 
         // arbitrary shuffle
@@ -86,11 +86,11 @@ describe("Initial Hand Test", () => {
         for (let i = 0; i < 64; i++) {
             if (drawnIndices.has(i)) {
                 // card is drawn
-                deckPredicate.push(maxDeckSize ** handCount);
+                deckPredicate.push(2**handCount);
                 handCount++;
             } else {
                 // card is not drawn
-                deckPredicate.push(maxDeckSize ** deckCount);
+                deckPredicate.push(2**deckCount);
                 deckCount++;
             }
         }

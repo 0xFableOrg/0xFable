@@ -14,8 +14,8 @@ template Shuffle(levels) {
     var deckSum;
     var deckPredicateSum;
     for (var i = 0; i < maxDeckSize; i++) {
-        deckSum += initialDeck[i] * (maxDeckSize**i);
-        deckPredicateSum += (maxDeckSize**i);
+        deckSum += initialDeck[i] * (2**i);
+        deckPredicateSum += (2**i);
     }
 
     // we need to use intermediate signals to prevent non quadratic error

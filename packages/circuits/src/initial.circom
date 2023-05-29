@@ -12,8 +12,8 @@ include "./merkle.circom";
 `newDeckLeaves` are the cards in the new deck (cf. newDeckRoot), padded with 255 to reach a size of 2**levels
 `drawnCardIndices` is an array contain containing 1 if the corresponding index is to be drawn, zero otherwise.
 `deckPredicate[i]` contains
-    if drawnCardIndices[i] == 0 : (2**levels) ** positionInHand
-    if drawnCardIndices[i] == 1 : (2**levels) ** positionInNewDeck
+    if drawnCardIndices[i] == 0 : 2 ** positionInHand
+    if drawnCardIndices[i] == 1 : 2 ** positionInNewDeck
     (positions start at 0)
 
 This circuit maintains privacy because the users shuffles his deck after drawing the cards and does not reveal this new ordering.
@@ -31,8 +31,6 @@ template Initial(levels, cardCount) {
     signal input newHandLeaves[2**levels]; // private signal
     signal input deckPredicate[2**levels];
     signal input drawnCardIndices[2**levels];
-
-    var maxDeckSize = 2**levels;
 
     component checkInitialDeck = CheckMerkleRoot(levels);
     checkInitialDeck.root <== deckRoot;
@@ -65,8 +63,8 @@ template Initial(levels, cardCount) {
     var deckPredicateSum = 0;
     var newDeckSum = 0;
     for (var i = 0; i < 2**levels - cardCount; i++) {
-        newDeckSum += newDeckLeaves[i] * (maxDeckSize**i);
-        deckPredicateSum += (maxDeckSize**i);
+        newDeckSum += newDeckLeaves[i] * (2**i);
+        deckPredicateSum += (2**i);
     }
     deckSum === newDeckSum;
     // check that the remaining of the deck is null
@@ -77,8 +75,8 @@ template Initial(levels, cardCount) {
     // check that the cards in the hand are those that were drawn
     var newHandSum = 0;
     for (var i = 0; i < cardCount; i++) {
-        newHandSum += newHandLeaves[i] * (maxDeckSize**i);
-        deckPredicateSum += (maxDeckSize**i);
+        newHandSum += newHandLeaves[i] * (2**i);
+        deckPredicateSum += (2**i);
     }
     handSum === newHandSum;
     // check that the remaining hand is null
