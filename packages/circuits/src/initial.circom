@@ -11,7 +11,7 @@ include "./merkle.circom";
 `newDeckRoot` is the root of the deck after drawing the cards and unconstrained shuffling by the player
 `newDeckLeaves` are the cards in the new deck (cf. newDeckRoot), padded with 255 to reach a size of 2**levels
 `drawnCardIndices` is an array contain containing 1 if the corresponding index is to be drawn, zero otherwise.
-`drawnPredicate[i]` contains
+`deckPredicate[i]` contains
     if drawnCardIndices[i] == 0 : (2**levels) ** positionInHand
     if drawnCardIndices[i] == 1 : (2**levels) ** positionInNewDeck
     (positions start at 0)
