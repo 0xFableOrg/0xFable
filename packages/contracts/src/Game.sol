@@ -467,9 +467,59 @@ contract Game {
     // (swap removed card with last card, and truncate the array by one).
     //
     // The player's deck is cards[pdata.deckStart:pdata.deckEnd].
-    function checkInitialHandProof(PlayerData storage pdata, uint256[] storage cards,
+    function checkInitialHandProof(PlayerData storage pdata, bytes32 initialDeckRoot,
              uint256 randomness, bytes calldata proof) view internal {
-        // TODO(PROOF)
+        // use randomness to decide drawn cards
+        uint256[7] memory selectedIndices = drawRandomIndices(randomness);
+
+        // construct circuit public signals
+        uint256[] memory pubSignals = new uint256[](131);
+        pubSignals[0] = uint256(initialDeckRoot);
+        pubSignals[1] = uint256(pdata.deckRoot);
+        pubSignals[2] = uint256(pdata.handRoot);
+        // elements 67-130 are the binary drawn indices (0 if not drawn, 1 if drawn)
+        for (uint256 i = 0; i < 7; i++) {
+            pubSignals[selectedIndices[i] + 67] = 1;
+        }
+        // elements 3-66 are the deck predicates
+        uint256 deckCount = 0;
+        uint256 handCount = 0;
+        for (uint256 i = 3; i < 67; i++) {
+            if (pubSignals[i+64] == 1) {
+                // the index is drawn
+                pubSignals[i] = 2**handCount;
+                handCount++;
+            } else {
+                // the index is not drawn
+                pubSignals[i] = 2**deckCount;
+                deckCount++;
+            }
+        }
+        initialVerifier.verifyProof(proof, pubSignals);
+    }
+
+    function drawRandomIndices(uint256 randomness) internal pure returns (uint256[7] memory) {
+        uint256[64] memory indices;
+        uint256[7] memory selectedIndices;
+        
+        // Initialize the elements array with values 0-63
+        for (uint256 i = 0; i < 64; i++) {
+            indices[i] = i;
+        }
+        
+        // Draw 7 random elements
+        uint256 lastIndex = 63;
+        for (uint256 i = 0; i < 7; i++) {
+            // Generate a random index within the remaining elements
+            uint256 randomIndex = uint256(keccak256(abi.encodePacked(randomness, i))) % (lastIndex + 1);
+            
+            // Select the random element and move the last element to its place
+            selectedIndices[i] = indices[randomIndex];
+            indices[randomIndex] = indices[lastIndex];
+            lastIndex--;
+        }
+        
+        return selectedIndices;
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -505,10 +555,11 @@ contract Game {
 
         pdata.health = STARTING_HEALTH;
         pdata.handRoot = handRoot;
+        bytes32 initialDeckRoot = pdata.deckRoot;
         pdata.deckRoot = deckRoot;
 
         uint256 randomness = uint256(blockhash(gdata.lastBlockNum));
-        checkInitialHandProof(pdata, gdata.cards, randomness, proof);
+        checkInitialHandProof(pdata, initialDeckRoot, randomness, proof);
 
         inGame[msg.sender] = gameID;
         emit PlayerJoined(gameID, msg.sender);
@@ -768,4 +819,3 @@ contract Game {
 
     // ---------------------------------------------------------------------------------------------
 }
-
