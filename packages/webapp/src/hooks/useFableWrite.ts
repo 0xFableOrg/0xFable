@@ -3,7 +3,8 @@ import { type TransactionReceipt } from "viem"
 import { deployment } from "src/deployment"
 import { cardsCollectionABI, deckAirdropABI, gameABI, inventoryABI } from "src/generated"
 import { useChainWrite, UseWriteResult } from "src/hooks/useChainWrite"
-import { type Hash } from "src/types"
+
+import { Hash } from "src/chain"
 
 // =================================================================================================
 // use<Contract>Write: just `useWrite` with the contract address and ABI already set.

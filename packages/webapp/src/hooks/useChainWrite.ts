@@ -1,6 +1,7 @@
-import type { Address, Hash } from "src/types"
+
 import { useContractWrite, usePrepareContractWrite, useWaitForTransaction } from "wagmi"
 import { type TransactionReceipt } from "viem"
+import { Address, Hash } from "src/chain"
 
 // =================================================================================================
 

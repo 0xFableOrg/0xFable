@@ -40,6 +40,7 @@ const CreateGameModalContent = ({ ctrl }: { ctrl: ModalController }) => {
   const [ gameData ] = useAtom(store.gameData)
   const [ gameStatus ] = useAtom(store.gameStatus)
   const [ hasVisitedBoard ] = useAtom(store.hasVisitedBoard)
+  const [ , draw ] = useAtom(store.drawHand)
   const [ loading, setLoading ] = useState<string>(null)
   const [ joinCompleted, setJoinCompleted ] = useState(false)
   const router = useRouter()
@@ -139,6 +140,15 @@ const CreateGameModalContent = ({ ctrl }: { ctrl: ModalController }) => {
     }
   })
 
+  const drawAndJoin = () => {
+    setLoading("Drawing cards...")
+    // TODO This won't work: we need to fetch the players deck!
+    //      The draw function will need to use the deck cards, not the game cards who are not
+    //      initialized yet.
+    draw()
+    join()
+  }
+
   const { write: cancel } = useGameWrite({
     functionName: "cancelGame",
     args: [gameID],
@@ -187,7 +197,7 @@ const CreateGameModalContent = ({ ctrl }: { ctrl: ModalController }) => {
       {`${gameID}`}
     </p>
     {!joined && <div className="flex justify-center gap-4">
-      <button className="btn" disabled={!join} onClick={join}>
+      <button className="btn" disabled={!join} onClick={drawAndJoin}>
         Join Game
       </button>
       <button className="btn" disabled={!cancel} onClick={cancel}>

@@ -20,7 +20,7 @@ const Play: NextPage = () => {
   const [ hideResults, setHideResults ] = useState(false)
   const [ concedeCompleted, setConcedeCompleted ] = useState(false)
 
-  const [ playerHand ] = useAtom(store.playerHand)
+  const playerHand = []
 
   const ended = gameStatus === GameStatus.ENDED || concedeCompleted
 
