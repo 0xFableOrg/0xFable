@@ -12,7 +12,7 @@ import { Log } from "viem"
 
 import { deployment } from "src/deployment"
 import { gameABI } from "src/generated"
-import { gameData, gameID } from "src/store"
+import { gameData, gameID, playerAddress } from "src/store"
 import { refreshGameData } from "src/store/update"
 import { format } from "src/utils/js-utils"
 
@@ -124,8 +124,13 @@ function handleEvent(name: string, args: GameEventArgs) {
     } case 'PlayerJoined': {
       const { _player } = args
       // Refetch game data to get up to date player list and update the status.
-      // If this is the last player to join, we also need to refetch the cards.
-      void refreshGameData({ forceFetchCards: store.get(gameData).playersLeftToJoin <= 1 })
+
+      // If the last player joined, we need to fetch the cards. This optimization allows us to fetch
+      // the game data and the cards in parallel instead of waiting for the game data to indicate a
+      // STARTED state to initiate fetching the cards.
+
+      const forceFetchCards = store.get(gameData).playersLeftToJoin <= 1
+      void refreshGameData({ forceFetchCards })
       break
     }
     case 'GameStarted': {

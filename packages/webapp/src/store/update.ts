@@ -7,17 +7,22 @@
 // =================================================================================================
 
 import { getDefaultStore } from "jotai"
-import { chain } from "src/constants"
-import { formatTimestamp } from "src/utils/js-utils"
 import { getAccount, getNetwork, readContract, watchAccount, watchNetwork } from "wagmi/actions"
 
 import { deployment } from "src/deployment"
 import { gameABI } from "src/generated"
-import { gameID, gameStatus, hasVisitedBoard, isGameCreator, isGameJoiner } from "src/store"
-import { gameCards_, gameData_, playerAddress_ } from "src/store/private"
+import {
+  gameID,
+  gameStatus,
+  hasVisitedBoard,
+  isGameCreator,
+  isGameJoiner
+} from "src/store"
+import { gameCards_, gameData_, playerAddress_, randomness_ } from "src/store/private"
 import { subscribeToGame } from "src/store/subscriptions"
-import { GameStatus, FetchedGameData } from "src/types"
-import { AccountResult, NetworkResult } from "src/utils/rpc-utils"
+import { GameStatus, type FetchedGameData, currentPlayerAddress, gameStatus as getGameStatus } from "src/types"
+import { AccountResult, chains, NetworkResult } from "src/chain"
+import { formatTimestamp } from "src/utils/js-utils"
 
 // =================================================================================================
 // INITIALIZATION
@@ -81,7 +86,7 @@ function updatePlayerAddress(result: AccountResult) {
 
 /** Returns true if the network we are connected to is the one we support ({@link chain}). */
 function isNetworkValid(network: NetworkResult = getNetwork()) {
-  return network.chain?.id === chain.id
+  return chains.some(chain => chain.id === network.chain?.id)
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -152,6 +157,7 @@ function shouldUpdateCards(): boolean {
  */
 export async function refreshGameData({ forceFetchCards = false } = {}) {
   const ID = store.get(gameID)
+  const player = store.get(playerAddress_)
 
   if (ID === null) {
     console.error("refreshGameData called with null ID")
@@ -197,7 +203,8 @@ export async function refreshGameData({ forceFetchCards = false } = {}) {
   lastCompletedNumber = seqNum
 
   const storeID = store.get(gameID)
-  const stale = ID !== storeID
+  const storePlayer = store.get(playerAddress_)
+  const stale = ID !== storeID || player !== storePlayer
   if (stale) {
     // The game ID changed underneath this update, ignore it.
     console.log(`Rejected stale data with game ID ${ID} (current game ID is ${storeID})`)
@@ -214,6 +221,8 @@ export async function refreshGameData({ forceFetchCards = false } = {}) {
   lastRequestTimestamp = 0
 
   // === Update Store ===
+
+  // TODO only update if things changed?
 
   store.set(gameData_, gameData)
   const updateCards = shouldUpdateCards()
@@ -236,8 +245,47 @@ export async function refreshGameData({ forceFetchCards = false } = {}) {
   // === Sanity Check ===
   // NOTE: We don't yet support spectating games.
 
-  if(!store.get(isGameCreator) && !store.get(isGameJoiner))
+  if(!store.get(isGameCreator) && !store.get(isGameJoiner)) {
     console.warn(`Tracking a game (${store.get(gameID)}) we are not participating in.`)
+    // NOTE(norswap): hunting an heisenbug that I've seen happen after creating a game
+    console.log("address", store.get(playerAddress_))
+    console.log("creator", store.get(gameData_)?.gameCreator)
+  }
+
+  // === Fetch Randomness ===
+
+  // TODO
+
+  // The current player is not us, no need to fetch randomness.
+  if (player !== currentPlayerAddress(gameData))
+    return
+
+  // The randomness is meaningless before the game starts.
+  // This should be covered by the player check, but let's be safe.
+  if (getGameStatus(gameData, player) < GameStatus.STARTED)
+    return
+
+
+  // TODO maybe we already have the randomness?
+  //      e.g. gamedata did not change (should be tackled upstream)
+  //      or data changed, but player and lastBlockNum did not (I think impossible rn but should handle to be future-proof)
+
+  // Randomness is needed, but we do not have it yet. The previous value is incorrect, erase it.
+  store.set(randomness_, null)
+
+  const randomness = readContract({
+    address: deployment.Game,
+    abi: gameABI,
+    functionName: "getRandomness",
+    args: [gameData.lastBlockNum]
+  })
+
+  const randomNum = BigInt(await randomness)
+
+  // TODO stale filtering: ID, player, lastBlockNum
+
+  console.log("fetched randomness: ", randomNum)
+  store.set(randomness_, randomNum)
 }
 
 // =================================================================================================

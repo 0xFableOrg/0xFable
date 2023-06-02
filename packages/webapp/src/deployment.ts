@@ -1,4 +1,11 @@
-import type { Address } from "wagmi";
+/**
+ * This module imports the JSON containing the deployed addresses from the `contracts` package, and
+ * exports it as a TypeScript type.
+ *
+ * @module deployment
+ */
+
+import type { Address } from "wagmi"
 import * as deployment_ from "contracts/out/deployment.json" assert { type: "json" }
 
 export interface Deployment {

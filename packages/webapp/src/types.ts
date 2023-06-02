@@ -1,5 +1,18 @@
-export type Address = `0x${string}`
-export type Hash = `0x${string}`
+/**
+ * A set of game-specific types, and functions to derive data from those types.
+ *
+ * @module types
+ */
+
+import { Address, Hash } from "src/chain"
+import { gameData_, playerAddress_ } from "src/store/private"
+import { zeroAddress } from "viem"
+import { store } from "src/store"
+
+// =================================================================================================
+// TYPES
+
+// -------------------------------------------------------------------------------------------------
 
 export type Card = {
   id: bigint
@@ -14,6 +27,8 @@ export type Card = {
   }
 }
 
+// -------------------------------------------------------------------------------------------------
+
 export enum GameStatus {
   UNKNOWN,
   CREATED,
@@ -22,6 +37,8 @@ export enum GameStatus {
   ENDED
 }
 
+// -------------------------------------------------------------------------------------------------
+
 export enum GameStep {
   DRAW,
   PLAY,
@@ -29,6 +46,8 @@ export enum GameStep {
   DEFEND,
   PASS
 }
+
+// -------------------------------------------------------------------------------------------------
 
 export type PlayerData = {
   health: number
@@ -44,6 +63,8 @@ export type PlayerData = {
   attacking: readonly number[]
 }
 
+// -------------------------------------------------------------------------------------------------
+
 export type FetchedGameData = {
   gameID: bigint
   gameCreator: Address
@@ -57,8 +78,70 @@ export type FetchedGameData = {
   attackingPlayer: Address
 }
 
+// -------------------------------------------------------------------------------------------------
+
+/** All the cards that will be used in the game. */
 export type GameCards = {
   gameID: bigint
+  /**
+   * All the cards that will be used in the game, as represented on-chain, i.e. as a concatenation
+   * of all the (initial) players' decks.
+   */
   cards: readonly bigint[]
+  /**
+   * Same as `cards`, but split into (initial) player decks.
+   */
   decks: readonly bigint[][]
 }
+
+// -------------------------------------------------------------------------------------------------
+
+/**
+ * The cards specific to a player, including the cards in their hand, the current
+ * ordering of their deck as per updating rules after drawing cards, and their graveyard.
+ *
+ * Note that the hand and the player deck are *private* information, and cannot be derived from
+ * on-chain data.
+ */
+export type PlayerCards = {
+  hand: bigint[]
+  deck: bigint[]
+  graveyard: bigint[]
+}
+
+// -------------------------------------------------------------------------------------------------
+
+/**
+ * For storing {@link PlayerCards} in local storage, keyed by gameID (stringified) and player.
+ */
+export type PlayerCardsStore = {
+  [gameID: string]: { [player: Address]: PlayerCards }
+}
+
+// =================================================================================================
+// DERIVED DATA
+
+/** Returns the address of the current player according to the passed game data. */
+export function currentPlayerAddress(gdata: FetchedGameData): Address {
+  return gdata.players[gdata.currentPlayer]
+}
+
+// -------------------------------------------------------------------------------------------------
+
+/** Returns the game status based on the game data. */
+export function gameStatus(gdata: FetchedGameData, player: Address): GameStatus {
+  if (gdata == null || gdata.gameCreator == zeroAddress)
+    return GameStatus.UNKNOWN
+  else if (gdata.playersLeftToJoin == 0) {
+    if (gdata.livePlayers.length <= 1)
+      return GameStatus.ENDED
+    else
+      return GameStatus.STARTED
+  } else if (gdata.players.includes(player)) {
+    return GameStatus.JOINED
+  } else {
+    return GameStatus.CREATED
+  }
+}
+
+// =================================================================================================

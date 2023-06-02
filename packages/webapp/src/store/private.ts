@@ -8,8 +8,15 @@
 // =================================================================================================
 
 import { atom } from "jotai"
+import { atomWithStorage } from "jotai/utils"
 
-import { Address, GameCards, FetchedGameData } from "src/types"
+import type {
+  GameCards,
+  FetchedGameData,
+  PlayerCardsStore
+} from "src/types"
+import { Address } from "src/chain"
+
 
 // =================================================================================================
 // PRIVATE ATOMS
@@ -20,14 +27,22 @@ export const playerAddress_ = atom(null as Address)
 /** cf. {@link gameData} */
 export const gameData_ = atom(null as FetchedGameData)
 
-/** TODO */
+/** cf. {@link GameCards} */
 export const gameCards_ = atom(null as GameCards)
+
+/** cf. {@link PlayerCardsStore} */
+export const playerCardsStore_ = atomWithStorage("0xFable::playerCards", {} as PlayerCardsStore)
+
+/** cf. {@link randomness} (in store) */
+export const randomness_ = atom(null as bigint)
 
 // =================================================================================================
 // DEBUG LABELS
 
-playerAddress_.debugLabel = 'playerAddress_'
-gameData_.debugLabel      = 'gameData_'
-gameCards_.debugLabel     = 'gameCards_'
+playerAddress_.debugLabel     = 'playerAddress_'
+gameData_.debugLabel          = 'gameData_'
+gameCards_.debugLabel         = 'gameCards_'
+playerCardsStore_.debugLabel  = 'playerCardsStore_'
+randomness_.debugLabel        = 'randomness_'
 
 // =================================================================================================
