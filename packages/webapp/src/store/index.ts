@@ -15,7 +15,7 @@
 import { atom, getDefaultStore } from "jotai"
 import { atomWithStorage } from "jotai/utils"
 
-import { type FetchedGameData, gameStatus as getGameStatus } from "src/types"
+import { type FetchedGameData, getGameStatus } from "src/types"
 import { readOnlyAtom } from "src/utils/react-utils"
 import { playerAddress_, gameData_, randomness_ } from "src/store/private"
 import { Address } from "src/chain"
