@@ -91,11 +91,23 @@ export function isStringPositiveInteger(str: string): boolean {
   return n !== Infinity && String(n) === str && n >= 0
 }
 
+// -------------------------------------------------------------------------------------------------
+
+/**
+ * Formats a UNIX timestamp as a string in the format "HH:MM:SS".
+ */
 export function formatTimestamp(timestamp: number) {
   const date = new Date(timestamp)
   return [date.getHours(), date.getMinutes(), date.getSeconds()]
     .map((num) => num < 10 ? "0" + num : num)
     .join(":")
+}
+
+// -------------------------------------------------------------------------------------------------
+
+/** Async function that waits for the given number of milliseconds. */
+export async function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
 // =================================================================================================

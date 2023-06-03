@@ -20,7 +20,7 @@ import {
 } from "src/store"
 import { gameCards_, gameData_, playerAddress_, randomness_ } from "src/store/private"
 import { subscribeToGame } from "src/store/subscriptions"
-import { GameStatus, type FetchedGameData, currentPlayerAddress, gameStatus as getGameStatus } from "src/types"
+import { GameStatus, type FetchedGameData, currentPlayerAddress, getGameStatus } from "src/types"
 import { AccountResult, chains, NetworkResult } from "src/chain"
 import { formatTimestamp } from "src/utils/js-utils"
 

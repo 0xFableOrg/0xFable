@@ -5,9 +5,7 @@
  */
 
 import { Address, Hash } from "src/chain"
-import { gameData_, playerAddress_ } from "src/store/private"
 import { zeroAddress } from "viem"
-import { store } from "src/store"
 
 // =================================================================================================
 // TYPES
@@ -129,7 +127,7 @@ export function currentPlayerAddress(gdata: FetchedGameData): Address {
 // -------------------------------------------------------------------------------------------------
 
 /** Returns the game status based on the game data. */
-export function gameStatus(gdata: FetchedGameData, player: Address): GameStatus {
+export function getGameStatus(gdata: FetchedGameData, player: Address): GameStatus {
   if (gdata == null || gdata.gameCreator == zeroAddress)
     return GameStatus.UNKNOWN
   else if (gdata.playersLeftToJoin == 0) {
