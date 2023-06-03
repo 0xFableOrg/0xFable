@@ -1,9 +1,8 @@
-import { useAtom } from "jotai"
 import { useRouter } from "next/router"
 import { useCallback } from "react"
 
 import { ModalTitle } from "src/components/lib/modalElements"
-import * as store from "src/store"
+import { useGameID } from "src/store/hooks"
 import { Modal, useModalController } from "src/components/lib/modal"
 
 /**
@@ -14,7 +13,7 @@ import { Modal, useModalController } from "src/components/lib/modal"
 export const GameEndedModal = ({ closeCallback }) => {
   const ctrl = useModalController({ displayed: true, closeable: false })
   const router = useRouter()
-  const [ , setGameID ] = useAtom(store.gameID)
+  const [ , setGameID ] = useGameID()
 
   const exitToMenu = useCallback(() => {
     setGameID(null)

@@ -1,4 +1,3 @@
-import { useAtom } from "jotai"
 import debounce from "lodash/debounce"
 import { useRouter } from "next/router"
 import { useEffect, useMemo, useState } from "react"
@@ -6,8 +5,7 @@ import { ModalMenuButton, ModalTitle } from "src/components/lib/modalElements"
 import { InGameMenuModalContent } from "src/components/modals/inGameMenuModalContent"
 
 import { useGameWrite } from "src/hooks/useFableWrite"
-import { useDebugValues } from "src/hooks/useDebug"
-import * as store from "src/store"
+import * as store from "src/store/hooks"
 import { GameStatus } from "src/types"
 import { isStringPositiveInteger } from "src/utils/js-utils"
 import { parseBigInt } from "src/utils/js-utils"
@@ -19,7 +17,7 @@ import { gameABI } from "src/generated"
 // =================================================================================================
 
 export const JoinGameModal = () => {
-  const [ isGameJoiner ] = useAtom(store.isGameJoiner)
+  const isGameJoiner = store.useIsGameJoiner()
   const ctrl = useModalController({ loaded: isGameJoiner })
 
   // If we're on the home page and we have joined a game we didn't create, this modal should be displayed.
@@ -39,10 +37,10 @@ export const JoinGameModal = () => {
 // =================================================================================================
 
 const JoinGameModalContent = ({ ctrl }: { ctrl: ModalController }) => {
+  const [ gameID, setGameID ] = store.useGameID()
+  const gameStatus = store.useGameStatus()
+  const [ hasVisitedBoard ] = store.useHasVisitedBoard()
   const [ inputGameID, setInputGameID ] = useState(null)
-  const [ gameID, setGameID ] = useAtom(store.gameID)
-  const [ gameStatus ] = useAtom(store.gameStatus)
-  const [ hasVisitedBoard ] = useAtom(store.hasVisitedBoard)
   const [ loading, setLoading ] = useState<string>(null)
   const router = useRouter()
 

@@ -12,8 +12,6 @@ import { deployment } from "src/deployment"
 import { throttledFetch } from "src/utils/throttled-fetch"
 import { FetchedGameData } from "src/types"
 
-// TODO what is the retry fail behaviour?
-
 // =================================================================================================
 
 /**

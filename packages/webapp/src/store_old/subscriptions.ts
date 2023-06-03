@@ -1,11 +1,6 @@
 /**
  * Manages on-chain subscription that update the store.
  *
- * Currently, the subscription only trigger a refetch of the game state, from which the store is
- * updated. In the future, we might want to optimistically apply updates from events (optimistically
- * because even though events should be legitimate, we might have applied them on a stale game
- * state), to be reconciled after the data is refetched.
- *
  * @module store/subscriptions
  */
 
@@ -17,7 +12,7 @@ import { Log } from "viem"
 
 import { deployment } from "src/deployment"
 import { gameABI } from "src/generated"
-import { gameData, gameID } from "src/store"
+import { gameData, gameID, playerAddress } from "src/store_old"
 import { refreshGameData } from "src/store/update"
 import { format } from "src/utils/js-utils"
 
@@ -54,8 +49,9 @@ let unsubFunctions: (() => void)[] = []
  */
 export function subscribeToGame(ID: bigint|null) {
 
-  // TODO use viem watchContractEvent to filter on game ID
-  // This will need logic that unsubscribes from the previous ID and subscribes to the new one.
+  // NOTE(norswap) we can't filter on ID with ethers, maybe with Viem?
+  // If we could, this should be implemented as a logic that unsubscribe from the previous ID
+  // and subscribe to the new one.
 
   if (ID === null) {
     // remove subscription
@@ -86,10 +82,14 @@ export function subscribeToGame(ID: bigint|null) {
 // =================================================================================================
 // EVENT LISTENER
 
-type GameEventArgs = { gameID: bigint } & any
-type GameEventLog = { args: GameEventArgs } & Log
+export type GameEventArgs = { gameID: bigint } & any
+export type GameEventLog = { args: GameEventArgs } & Log
 
-function gameEventListener(name: string, logs: readonly GameEventLog[]) {
+export function gameEventListener(name: string, logs: readonly GameEventLog[]) {
+  if (logs.length > 1)
+    // I'm not sure this can occur, hence the print statement.
+    console.debug(`received ${logs.length} (> 1) ${name} events`)
+
   for (const log of logs)
     handleEvent(name, log.args)
 }
@@ -136,6 +136,7 @@ function handleEvent(name: string, args: GameEventArgs) {
     case 'GameStarted': {
       // No need to refetch game data, game started is triggered by a player joining, which
       // refreshes the game data.
+      // Also no need to set the game status, the game data refresh will do it.
       break
     }
     case 'PlayerConceded': {
@@ -149,6 +150,7 @@ function handleEvent(name: string, args: GameEventArgs) {
     case 'Champion': {
       // No need to refetch game data, a player winning is triggered by a player conceding or being
       // defeating, which refreshes the game data.
+      // Also no need to set the game status, the game data refresh will do it.
       break
     }
   }

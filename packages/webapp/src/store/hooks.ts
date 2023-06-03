@@ -9,7 +9,7 @@
 import { Address } from "src/chain"
 import { FetchedGameData, GameStatus } from "src/types"
 import { useAtom, useAtomValue } from "jotai"
-import * as atoms from "src/store2/atoms"
+import * as atoms from "src/store/atoms"
 
 // =================================================================================================
 

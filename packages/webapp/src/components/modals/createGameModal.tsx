@@ -1,4 +1,3 @@
-import { useAtom } from "jotai"
 import { useRouter } from "next/router"
 import { useEffect, useState } from "react"
 import { decodeEventLog } from "viem"
@@ -8,14 +7,14 @@ import { ModalMenuButton, ModalTitle, SpinnerWithMargin } from "src/components/l
 import { InGameMenuModalContent } from "src/components/modals/inGameMenuModalContent"
 import { gameABI } from "src/generated"
 import { useGameWrite } from "src/hooks/useFableWrite"
-import * as store from "src/store"
+import * as store from "src/store/hooks"
 import { GameStatus } from "src/types"
 import { LoadingModalContent } from "src/components/lib/loadingModal"
 
 // =================================================================================================
 
 export const CreateGameModal = () => {
-  const [ isGameCreator ] = useAtom(store.isGameCreator)
+  const isGameCreator = store.useIsGameCreator()
   const ctrl = useModalController({ loaded: isGameCreator })
 
   // If we're on the home page and we're the game creator, this modal should be displayed.
@@ -36,14 +35,15 @@ export const CreateGameModal = () => {
 
 const CreateGameModalContent = ({ ctrl }: { ctrl: ModalController }) => {
 
-  const [ gameID, setGameID ] = useAtom(store.gameID)
-  const [ gameData ] = useAtom(store.gameData)
-  const [ gameStatus ] = useAtom(store.gameStatus)
-  const [ hasVisitedBoard ] = useAtom(store.hasVisitedBoard)
-  const [ , draw ] = useAtom(store.drawHand)
+  const [ gameID, setGameID ] = store.useGameID()
+  const gameData = store.useGameData()
+  const gameStatus = store.useGameStatus()
+  const [ hasVisitedBoard ] = store.useHasVisitedBoard()
   const [ loading, setLoading ] = useState<string>(null)
   const [ joinCompleted, setJoinCompleted ] = useState(false)
   const router = useRouter()
+
+  const draw = () => {} // TODO
 
   const created = gameStatus >= GameStatus.CREATED
   const joined  = gameStatus >= GameStatus.JOINED || joinCompleted

@@ -5,7 +5,7 @@
  * @module setup
  */
 
-import { setupStore } from "src/store"
+import { setupStore } from "src/store/update"
 
 // =================================================================================================
 

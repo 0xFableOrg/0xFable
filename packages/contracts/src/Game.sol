@@ -169,6 +169,8 @@ contract Game {
         address gameCreator;
         mapping(address => PlayerData) playerData;
         address[] players;
+        // Last block number at which the game data changed, updated in player actions via the
+        // `step` modifier, as well as in createGame, joinGame, cancelGame and concedeGame.
         uint256 lastBlockNum;
         uint8 playersLeftToJoin;
         uint8[] livePlayers;
@@ -249,13 +251,19 @@ contract Game {
         if (gdata.players[gdata.currentPlayer] != msg.sender)
             revert WrongPlayer();
         if (block.number > 256 && gdata.lastBlockNum < block.number - 256) {
+            // TODO(LATER): This is the max timeout, make shorter + implement a chess clock.
             // Action timed out: the player loses.
             concedeGame(gameID);
             emit PlayerTimedOut(gameID, msg.sender);
             return;
         }
 
-        // TODO(LATER): This is the max timeout, make shorter + implement a chess clock.
+        // TODO: Should we explicitly prevent multiple actions on the same turn?
+        //       In principle, they will either fail (can't get randomness because it will depend on
+        //       the current block's hash) or succeed without hurdle (e.g. player 2 defending in the
+        //       same block as player 1 attacking, because someone crafted a bot that is able to
+        //       read the info from the mempool & react quickly. But maybe it's better to be
+        //       conservative and avoid future problems arising from hidden assumptions.
 
         if (gdata.currentStep == GameStep.PLAY) {
             if (requestedStep != GameStep.PLAY
@@ -297,7 +305,7 @@ contract Game {
     }
 
     // =============================================================================================
-    // FUNCTIONS
+    // VIEW FUNCTIONS
 
     // Returns a subset of `GameData` members, excluding non-readable members (mapping, function),
     // and the cards array that never changes. Use `getCards()` to read them instead.
@@ -343,9 +351,25 @@ contract Game {
 
     // ---------------------------------------------------------------------------------------------
 
+    // Returns the given player's deck listing.
+    function playerDeck(uint256 gameID, address player)
+    public view exists(gameID) returns(uint256[] memory) {
+        GameData storage gdata = gameData[gameID];
+        PlayerData storage pdata = gdata.playerData[player];
+        uint256[] memory deck = new uint256[](pdata.deckEnd - pdata.deckStart);
+        for (uint256 i = 0; i < deck.length; ++i)
+            deck[i] = gdata.cards[pdata.deckStart + i];
+        return deck;
+    }
+
+    // =============================================================================================
+    // FUNCTIONS
+
+    // ---------------------------------------------------------------------------------------------
+
     // To be used as callback for `createGame`, allow any player to join with any deck.
     function allowAnyPlayerAndDeck(uint256 /*gameID*/, address /*player*/, uint8 /*deckID*/, bytes memory /*data*/)
-            external pure returns(bool) {
+    external pure returns(bool) {
         return true;
     }
 
@@ -388,21 +412,9 @@ contract Game {
 
     // ---------------------------------------------------------------------------------------------
 
-    // Returns the given player's deck listing.
-    function playerDeck(uint256 gameID, address player)
-            public view exists(gameID) returns(uint256[] memory) {
-        GameData storage gdata = gameData[gameID];
-        PlayerData storage pdata = gdata.playerData[player];
-        uint256[] memory deck = new uint256[](pdata.deckEnd - pdata.deckStart);
-        for (uint256 i = 0; i < deck.length; ++i)
-            deck[i] = gdata.cards[pdata.deckStart + i];
-        return deck;
-    }
-
-    // ---------------------------------------------------------------------------------------------
-
     // Clear (zero) the contents of the array and make it zero-sized.
     function clear(uint8[] storage array) internal {
+        // TODO should be done in assembly, avoiding to overwrite the size on every pop
         for (uint256 i = 0; i < array.length; ++i)
             array.pop();
     }
@@ -418,7 +430,6 @@ contract Game {
 
         // clear players and player data
         for (uint256 i = 0; i < gdata.players.length; ++i) {
-            // TODO(LATER) Is all of this necessary beyond clearing the mapping?
             PlayerData storage pdata = gdata.playerData[gdata.players[i]];
             clear(pdata.attacking);
             delete gdata.playerData[gdata.players[i]];
@@ -449,6 +460,7 @@ contract Game {
         if (gdata.playersLeftToJoin == 0)
             revert GameAlreadyStarted();
         deleteGame(gdata, gameID);
+        gdata.lastBlockNum = block.number;
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -536,11 +548,13 @@ contract Game {
 
     // Let a player concede defeat.
     function concedeGame(uint256 gameID) public exists(gameID) {
-        if (gameData[gameID].playerData[msg.sender].handRoot == 0)
+        GameData storage gdata = gameData[gameID];
+        if (gdata.playerData[msg.sender].handRoot == 0)
             revert PlayerNotInGame();
 
         playerDefeated(gameID, msg.sender);
         emit PlayerConceded(gameID, msg.sender);
+        gdata.lastBlockNum = block.number;
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -549,7 +563,7 @@ contract Game {
         GameData storage gdata = gameData[gameID];
 
         // TODO: Move this out to a library, turn it to a uint8[32] bespoke data type that stores length in first slot?
-        //   This would enable to perform this in a single shift once the player is found.
+        //       This would enable to perform this in a single shift once the player is found.
         // Remove the player from the livePlayers array.
         // This is safe because we ascertained the player is in the game.
         bool shifting = false;

@@ -1,18 +1,22 @@
 /**
  * Manages on-chain subscription that update the store.
  *
+ * Currently, the subscription only trigger a refetch of the game state, from which the store is
+ * updated. In the future, we might want to optimistically apply updates from events (optimistically
+ * because even though events should be legitimate, we might have applied them on a stale game
+ * state), to be reconciled after the data is refetched.
+ *
  * @module store/subscriptions
  */
 
 // =================================================================================================
 
-import { getDefaultStore } from "jotai"
-import { watchContractEvent } from "wagmi/actions"
 import { Log } from "viem"
+import { getPublicClient } from "wagmi/actions"
 
 import { deployment } from "src/deployment"
 import { gameABI } from "src/generated"
-import { gameData, gameID, playerAddress } from "src/store"
+import { store, gameData, gameID } from "src/store/atoms"
 import { refreshGameData } from "src/store/update"
 import { format } from "src/utils/js-utils"
 
@@ -49,47 +53,39 @@ let unsubFunctions: (() => void)[] = []
  */
 export function subscribeToGame(ID: bigint|null) {
 
-  // NOTE(norswap) we can't filter on ID with ethers, maybe with Viem?
-  // If we could, this should be implemented as a logic that unsubscribe from the previous ID
-  // and subscribe to the new one.
+  const publicClient = getPublicClient()
+  const needsUnsub = currentlySubscribedID !== null && ID !== currentlySubscribedID
+  const needsSub   = ID !== null && ID !== currentlySubscribedID
 
-  if (ID === null) {
+  if (needsUnsub) {
     // remove subscription
     unsubFunctions.forEach(unsub => unsub())
     unsubFunctions = []
     console.log(`unsubscribed from game events for game ID ${currentlySubscribedID}`)
     currentlySubscribedID = null
   }
-  else if (currentlySubscribedID === null) {
+  if (needsSub) {
     currentlySubscribedID = ID
-    // setup initial subscription
     eventNames.forEach(eventName => {
-      unsubFunctions.push(watchContractEvent({
+      unsubFunctions.push(publicClient.watchContractEvent({
         address: deployment.Game,
         abi: gameABI,
-        eventName: eventName as any
-      }, logs => gameEventListener(eventName, logs)))
+        eventName: eventName as any,
+        args: { gameID: ID },
+        onLogs: logs => gameEventListener(eventName, logs)
+      }))
     })
     console.log(`subscribed to game events for game ID ${ID}`)
-  }
-  else {
-    // Changing game we are subscribed to — no need to change the subscription,
-    // only the ID we filter on
-    currentlySubscribedID = ID
   }
 }
 
 // =================================================================================================
 // EVENT LISTENER
 
-export type GameEventArgs = { gameID: bigint } & any
-export type GameEventLog = { args: GameEventArgs } & Log
+type GameEventArgs = { gameID: bigint } & any
+type GameEventLog = { args: GameEventArgs } & Log
 
-export function gameEventListener(name: string, logs: readonly GameEventLog[]) {
-  if (logs.length > 1)
-    // I'm not sure this can occur, hence the print statement.
-    console.debug(`received ${logs.length} (> 1) ${name} events`)
-
+function gameEventListener(name: string, logs: readonly GameEventLog[]) {
   for (const log of logs)
     handleEvent(name, log.args)
 }
@@ -99,7 +95,6 @@ export function gameEventListener(name: string, logs: readonly GameEventLog[]) {
 function handleEvent(name: string, args: GameEventArgs) {
   console.log(`event fired ${name}(${format(args)})`)
 
-  const store = getDefaultStore()
   const ID = store.get(gameID)
 
   // Event is not for the game we're tracking, ignore.
@@ -136,7 +131,6 @@ function handleEvent(name: string, args: GameEventArgs) {
     case 'GameStarted': {
       // No need to refetch game data, game started is triggered by a player joining, which
       // refreshes the game data.
-      // Also no need to set the game status, the game data refresh will do it.
       break
     }
     case 'PlayerConceded': {
@@ -150,7 +144,6 @@ function handleEvent(name: string, args: GameEventArgs) {
     case 'Champion': {
       // No need to refetch game data, a player winning is triggered by a player conceding or being
       // defeating, which refreshes the game data.
-      // Also no need to set the game status, the game data refresh will do it.
       break
     }
   }
