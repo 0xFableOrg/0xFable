@@ -7,18 +7,20 @@ import { GameEndedModal } from "src/components/modals/gameEndedModal"
 import { LoadingModal } from "src/components/lib/loadingModal"
 import { Navbar } from "src/components/navbar"
 import { useGameWrite } from "src/hooks/useFableWrite"
-import * as store from "src/store"
+import * as store from "src/store/hooks"
 import { GameStatus } from "src/types"
 import { useModalController } from "src/components/lib/modal"
+import { useIsHydrated } from "src/hooks/useIsHydrated"
 
 const Play: NextPage = () => {
-  const [ gameID ] = useAtom(store.gameID)
-  const [ gameStatus ] = useAtom(store.gameStatus)
-  const [ hasVisitedBoard, setHasVisitedBoard ] = useAtom(store.hasVisitedBoard)
-  useEffect(() => setHasVisitedBoard(true), [hasVisitedBoard])
+  const [ gameID ] = store.useGameID()
+  const gameStatus = store.useGameStatus()
+  const [ hasVisitedBoard, visitBoard ] = store.useHasVisitedBoard()
+  useEffect(() => visitBoard, [hasVisitedBoard])
   const [ loading, setLoading ] = useState<string>(null)
   const [ hideResults, setHideResults ] = useState(false)
   const [ concedeCompleted, setConcedeCompleted ] = useState(false)
+  const hydrated = useIsHydrated()
 
   const playerHand = []
 
@@ -41,6 +43,8 @@ const Play: NextPage = () => {
 
   // -----------------------------------------------------------------------------------------------
 
+  if (!hydrated) return <></>
+
   return (
     <>
       {loading && <LoadingModal ctrl={ctrl} loading={loading} setLoading={setLoading} />}
@@ -62,6 +66,7 @@ const Play: NextPage = () => {
               100
             </div> */}
           </div>
+
 
           {!ended && <>
             <button
@@ -89,7 +94,6 @@ const Play: NextPage = () => {
               SEE RESULTS & EXIT
             </button>
           </>}
-
 
           <div className="relative row-span-6 rounded-xl rounded-t-none border border-t-0 bg-base-300 shadow-inner">
             <p className="z-0 m-2 font-mono font-bold"> ⚔️ p1 address </p>

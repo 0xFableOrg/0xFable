@@ -1,8 +1,8 @@
 import { Getter, Setter } from "jotai"
 import { serialize as serializeBigInt } from "wagmi"
 
-import { gameID, randomness } from "src/store"
-import { gameCards_, playerAddress_, playerCardsStore_ } from "src/store/private"
+import { gameID, randomness } from "src/store_old"
+import { gameCards_, playerAddress_, playerCardsStore_ } from "src/store_old/private"
 import { PlayerCards } from "src/types"
 
 const initialCardsInHand = 5

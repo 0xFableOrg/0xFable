@@ -17,11 +17,11 @@ import { atomWithStorage } from "jotai/utils"
 
 import { type FetchedGameData, getGameStatus } from "src/types"
 import { readOnlyAtom } from "src/utils/react-utils"
-import { playerAddress_, gameData_, randomness_ } from "src/store/private"
+import { playerAddress_, gameData_, randomness_ } from "src/store_old/private"
 import { Address } from "src/chain"
-import { doDrawHand } from "src/store/cards"
+import { doDrawHand } from "src/store_old/cards"
 
-export { setupStore, refreshGameData } from "src/store/update"
+export { setupStore, refreshGameData } from "src/store_old/update"
 
 // =================================================================================================
 
