@@ -10,7 +10,7 @@ Tooling required:
 
 ## Configuration
 
-Copy `.env.example` to `.env` and customize if necessary.
+Run `make setup` and customize `.env` if necessary.
 
 By default:
 - `PRIVATE_KEY_LOCAL` is set the to the first Anvil devnet account (seeded by ETH)
@@ -18,7 +18,7 @@ By default:
 ## Commands
 
 - `cd ../.. && make setup` - initialize libraries and npm packages
-- `make setup` - copies `.env.example` to `.env` if `.env` does not exist
+- `make setup` - sets up symlinks & copies `.env.example` to `.env` if `.env` does not exist
 - `make build` - build your project
 - `make test` - run tests on temp local devnet
 - `make watch` - watch files and re-run tests on temp local devnet

@@ -8,8 +8,13 @@ export CONFIG
 
 # See README.md for documentation.
 
+# The reason for this weird setup is that the IntelliJ solidity plugin will not resolve imports
+# if they're not in `lib` and do not have a `src` directory (the `remappings.txt` file is ignored).
 setup:
-	[ ! -f .env ] && cp .env.example .env
+	if [ ! -f .env ]; then cp .env.example .env; fi
+	ln -sf ../node_modules/forge-std lib/forge-std
+	mkdir -p lib/openzeppelin
+	ln -sf ../../node_modules/@openzeppelin/contracts lib/openzeppelin/src
 .PHONY: setup
 
 build:
