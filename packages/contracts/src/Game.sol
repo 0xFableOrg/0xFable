@@ -224,19 +224,22 @@ contract Game {
     // =============================================================================================
     // MODIFIERS
 
+
+
+    function _checkIfExists(uint256 _gameId) private {
+        if (gameData[_gameID].lastBlockNum == 0)
+            revert NoGameNoLife();
+    }
+
     // Check that the game exists (has been created and is not finished).
     modifier exists(uint256 gameID) {
-        if (gameData[gameID].lastBlockNum == 0)
-            revert NoGameNoLife();
+        _checkIfExists(gameId);
         _;
     }
 
     // ---------------------------------------------------------------------------------------------
 
-    // Checks that the game exists, that the requested step is compatible with the game state, and
-    // that the next player is the message sender.
-    modifier step(uint256 gameID, GameStep requestedStep) {
-
+    function _checkLegitStep(uint256 gameId, GameStep requestedStep) private {
         // NOTE(norswap): This whole function is pretty fragile and must be revisited whenever the
         //   the step structure changes.
 
@@ -295,6 +298,13 @@ contract Game {
         gdata.lastBlockNum = block.number;
     }
 
+    // Checks that the game exists, that the requested step is compatible with the game state, and
+    // that the next player is the message sender.
+    modifier step(uint256 gameID, GameStep requestedStep) {
+        _checkLegitStep(gameId,requestedStep);
+        _;
+    }
+
     // =============================================================================================
 
     constructor(Inventory inventory_, DrawVerifier drawVerifier_, PlayVerifier playVerifier_) {
@@ -312,7 +322,8 @@ contract Game {
     function fetchGameData(uint256 gameID) external view returns(FetchedGameData memory) {
         GameData storage gdata = gameData[gameID];
         PlayerData[] memory pData = new PlayerData[](gdata.players.length);
-        for (uint8 i = 0; i < gdata.players.length; ++i)
+        uint8 gdataLength = uint8(gdata.players.length);
+        for (uint8 i = 0; i < gdataLength; ++i)
             pData[i] = gdata.playerData[gdata.players[i]];
         return FetchedGameData({
             gameID: gameID,
