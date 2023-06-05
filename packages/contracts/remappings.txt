@@ -1,3 +1,4 @@
 forge-std/=lib/forge-std/src/
+ds-test/=node_modules/ds-test/src/
 openzeppelin/=lib/openzeppelin/src/
-multicall/=lib/multicall
+multicall/=lib/multicall/
