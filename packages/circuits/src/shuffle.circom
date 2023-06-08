@@ -1,5 +1,6 @@
 pragma circom 2.0.0;
 
+include "../node_modules/circomlib/circuits/comparators.circom";
 include "./merkle.circom";
 
 template Shuffle(levels) {
@@ -42,3 +43,57 @@ template Shuffle(levels) {
     checkFinalDeck.root <== deckRoot;
     checkFinalDeck.leaves <== finalDeck;
 }
+
+template AtIndex(N) {
+    signal input array[N];
+    signal input index;
+    signal output out;
+
+    component isEqual[N];
+
+    signal accumulator[N+1];
+    accumulator[0] <== 0;
+    for (var i = 0; i < N; i++) {
+        // Check if i == index
+        isEqual[i] = IsEqual(); 
+        isEqual[i].in[0] <== i;
+        isEqual[i].in[1] <== index;
+        accumulator[i+1] <== accumulator[i] + (isEqual[i].out * array[i]); 
+    }
+
+    out <== accumulator[N]; 
+}
+
+template FisherYates(deckSize, lastIndex) {
+    signal input index;
+    signal input deck[deckSize];
+    signal output updatedDeck[deckSize];
+    signal output selectedCard;
+
+    component mux[deckSize];
+    component isEqual[deckSize];
+
+    // TODO: check index less than lastIndex
+
+    for (var i = 0; i < lastIndex; i++) {
+        isEqual[i] = IsEqual();
+        isEqual[i].in[0] <== i;
+        isEqual[i].in[1] <== index;
+        mux[i] = DualMux();
+        mux[i].in[0] <== deck[i];
+        mux[i].in[1] <== deck[deckSize-1];
+        mux[i].s <== isEqual[i].out;
+        updatedDeck[i] <== mux[i].out[0];
+    }
+
+    for (var i = lastIndex; i < deckSize; i++) {
+        updatedDeck[i] <== 255;
+    }
+
+    component select = AtIndex(deckSize);
+    select.array <== deck;
+    select.index <== index;
+    selectedCard <== select.out;
+}
+
+// component main = FisherYates(64, 63);
