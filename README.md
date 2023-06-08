@@ -15,8 +15,10 @@ Tooling required:
   - Last `foundryup`: 16 May 2023
 - Node.js & [PNPM](https://pnpm.io/) (`npm install -g pnpm`)
   - Tested with Node v20.1.0
+- [Circom](https://docs.circom.io/getting-started/installation/)
+  - Needed to build circuits package
 
-Run contract tests for basic sanity testing: 
+Run contract tests for basic sanity testing:
 
 - `(cd packages/contracts && make test)`
 
@@ -41,7 +43,7 @@ This will do the following from a single terminal (using run-pty):
 - Run the NextJS dev command (web server + live reload)
 - Deploy the contracts to the local node
 - Build the zk circuits (this make take a while, especially the first time when you'll need to
-   download the 300MB trusted setup file)
+  download the 300MB trusted setup file). Make sure you have [circom](https://docs.circom.io/getting-started/installation/) installed.
 
 After that, you can visit the app at http://localhost:3000/ (if that port is already occupied,
 NextJS might affect another one).
