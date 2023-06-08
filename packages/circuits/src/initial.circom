@@ -1,6 +1,9 @@
 pragma circom 2.0.0;
 
 include "./merkle.circom";
+include "./shuffle.circom";
+include "../node_modules/circomlib/circuits/comparators.circom";
+
 
 /**** DOCUMENTATION ****
 
@@ -29,63 +32,38 @@ template Initial(levels, cardCount) {
     signal input newDeckLeaves[2**levels]; // private signal
     signal input newHandRoot;
     signal input newHandLeaves[2**levels]; // private signal
-    signal input deckPredicate[2**levels];
-    signal input drawnCardIndices[2**levels];
+    signal input privateSalt; // private input
+    signal input committedSalt;
+    signal input blockhash;
+
+    // TODO: decide which hash function to use
+    component checkSalt = Poseidon(1);
+    checkSalt.inputs[0] <== privateSalt;
+    committedSalt === checkSalt.out;
+
+    component randomness = Poseidon(2);
+    randomness.inputs[0] <== privateSalt;
+    randomness.inputs[1] <== blockhash;
 
     component checkInitialDeck = CheckMerkleRoot(levels);
     checkInitialDeck.root <== deckRoot;
     checkInitialDeck.leaves <== deckLeaves;
 
-    var indicesSum = 0;
-    var deckSum = 0;
-    var handSum = 0;
-    component mux[2**levels];
-    signal tempDeckPredicateSum[2**levels]; // we need to use intermediate signals to prevent non quadratic error
-    for (var i = 0; i < 2**levels; i++) {
-        // check that indices can only take 0 or 1
-        drawnCardIndices[i] * (1 - drawnCardIndices[i]) === 0;
-        indicesSum += drawnCardIndices[i];
-
-        mux[i] = DualMux();
-        mux[i].in[0] <== deckLeaves[i] * deckPredicate[i];
-        mux[i].in[1] <== 0;
-        mux[i].s <== drawnCardIndices[i];
-        deckSum += mux[i].out[0];
-        handSum += mux[i].out[1];
-
-        // sum the deck predicate
-        tempDeckPredicateSum[i] <== i==0 ? deckPredicate[i] : tempDeckPredicateSum[i-1] + deckPredicate[i];
-    }
-    // check that number of drawn cards is correct
-    cardCount === indicesSum;
-
-    // check that the new deck contains the same cards as the old deck, minus those that were drawn
-    var deckPredicateSum = 0;
-    var newDeckSum = 0;
-    for (var i = 0; i < 2**levels - cardCount; i++) {
-        newDeckSum += newDeckLeaves[i] * (2**i);
-        deckPredicateSum += (2**i);
-    }
-    deckSum === newDeckSum;
-    // check that the remaining of the deck is null
-    for (var i = 2**levels - cardCount; i < 2**levels; i++) {
-        newDeckLeaves[i] === 255;
-    }
-
-    // check that the cards in the hand are those that were drawn
-    var newHandSum = 0;
+    var initialLastIndex = 2**levels - 1;
+    component drawCards[cardCount];
+    signal tempDeckLeaves[cardCount+1][2**levels];
+    signal selectedIndex[cardCount];
+    tempDeckLeaves[0] <== deckLeaves;
     for (var i = 0; i < cardCount; i++) {
-        newHandSum += newHandLeaves[i] * (2**i);
-        deckPredicateSum += (2**i);
+        var lastIndex = initialLastIndex - i;
+        selectedIndex[i] <== randomness.out % lastIndex;
+        drawCards[i] = FisherYates(2**levels, lastIndex);
+        drawCards[i].index <== selectedIndex[i];
+        drawCards[i].deck <== tempDeckLeaves[i];
+        tempDeckLeaves[i+1] <== drawCards[i].updatedDeck;
+        newHandLeaves[i] === drawCards[i].selectedCard;
     }
-    handSum === newHandSum;
-    // check that the remaining hand is null
-    for (var i = cardCount; i < 2**levels; i++) {
-        newHandLeaves[i] === 255;
-    }
-
-    // constraint the deck predicate sum
-    deckPredicateSum === tempDeckPredicateSum[2**levels - 1];
+    newDeckLeaves === tempDeckLeaves[cardCount];
 
     component checkNewDeck = CheckMerkleRoot(levels);
     checkNewDeck.root <== newDeckRoot;
