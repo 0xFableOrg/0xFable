@@ -57,7 +57,7 @@ template Initial(levels, cardCount) {
     tempDeckLeaves[0] <== deckLeaves;
     for (var i = 0; i < cardCount; i++) {
         var lastIndex = initialLastIndex - i;
-        selectedIndex[i] <== randomness.out % lastIndex;
+        selectedIndex[i] <== randomness.out % lastIndex; // this line doesn't yet work due to quadratic constraints, just here for placeholder
         drawCards[i] = FisherYates(2**levels, lastIndex);
         drawCards[i].index <== selectedIndex[i];
         drawCards[i].deck <== tempDeckLeaves[i];
