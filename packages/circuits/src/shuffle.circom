@@ -17,9 +17,9 @@ template FisherYates(levels, lastIndex) {
     checkIndex.in[1] <== lastIndex;
     checkIndex.out === 1;
 
-    signal accumulator[lastIndex+1]; // accumulator is used to calculate selected card
+    signal accumulator[lastIndex+2]; // accumulator is used to calculate selected card
     accumulator[0] <== 0;
-    for (var i = 0; i < lastIndex; i++) {
+    for (var i = 0; i <= lastIndex; i++) {
         isEqual[i] = IsEqual();
         isEqual[i].in[0] <== i;
         isEqual[i].in[1] <== index;
@@ -29,13 +29,13 @@ template FisherYates(levels, lastIndex) {
         mux[i].in[0] <== deck[i];
         mux[i].in[1] <== deck[lastIndex];
         mux[i].s <== isEqual[i].out;
-        updatedDeck[i] <== mux[i].out[0];
+        updatedDeck[i] <== (i == lastIndex)? 255: mux[i].out[0];
     }
 
     // fill up remaining indices with 255 (null)
-    for (var i = lastIndex; i < 2**levels; i++) {
+    for (var i = lastIndex+1; i < 2**levels; i++) {
         updatedDeck[i] <== 255;
     }
 
-    selectedCard <==accumulator[lastIndex];
+    selectedCard <==accumulator[lastIndex+1];
 }
