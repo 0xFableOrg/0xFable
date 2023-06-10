@@ -13,18 +13,16 @@ include "../node_modules/circomlib/circuits/comparators.circom";
 `deckLeaves` are the cards in the initial deck listing (padded with 255 to reach a size of 2**levels)
 `newDeckRoot` is the root of the deck after drawing the cards and unconstrained shuffling by the player
 `newDeckLeaves` are the cards in the new deck (cf. newDeckRoot), padded with 255 to reach a size of 2**levels
-`drawnCardIndices` is an array contain containing 1 if the corresponding index is to be drawn, zero otherwise.
-`deckPredicate[i]` contains
-    if drawnCardIndices[i] == 0 : 2 ** positionInHand
-    if drawnCardIndices[i] == 1 : 2 ** positionInNewDeck
-    (positions start at 0)
-
-This circuit maintains privacy because the users shuffles his deck after drawing the cards and does not reveal this new ordering.
+`newHandRoot` is the root of the new hand listing
+`newHandLeaves` are the cards in the new hand listing (padded with 255 to reach a size of 2**levels)
+`privateSalt` is the private salt that only the player knows
+`committedSalt` is the salt that the player commits to using a Poseidon hash function
+`blockhash` is the blockhash of the block for latest interaction with the contract
 
 */
 
 template Initial(levels, cardCount) {
-    /// @dev non linear constraints of around 240693
+    /// @dev non linear constraints of around 245k
     /// @dev levels do not include the top level root
 
     signal input deckRoot;
