@@ -44,56 +44,43 @@ template Shuffle(levels) {
     checkFinalDeck.leaves <== finalDeck;
 }
 
-template AtIndex(N) {
-    signal input array[N];
+template FisherYates(levels, lastIndex) {
     signal input index;
-    signal output out;
-
-    component isEqual[N];
-
-    signal accumulator[N+1];
-    accumulator[0] <== 0;
-    for (var i = 0; i < N; i++) {
-        // Check if i == index
-        isEqual[i] = IsEqual(); 
-        isEqual[i].in[0] <== i;
-        isEqual[i].in[1] <== index;
-        accumulator[i+1] <== accumulator[i] + (isEqual[i].out * array[i]); 
-    }
-
-    out <== accumulator[N]; 
-}
-
-template FisherYates(deckSize, lastIndex) {
-    signal input index;
-    signal input deck[deckSize];
-    signal output updatedDeck[deckSize];
+    signal input deck[2**levels];
+    signal output updatedDeck[2**levels];
     signal output selectedCard;
 
-    component mux[deckSize];
-    component isEqual[deckSize];
+    component mux[2**levels];
+    component isEqual[2**levels];
 
-    // TODO: check index less than lastIndex
+    // safety constraint to check index less than lastIndex
+    component checkIndex = LessThan(levels);
+    checkIndex.in[0] <== index;
+    checkIndex.in[1] <== lastIndex;
+    checkIndex.out === 1;
 
+    signal accumulator[lastIndex+1]; // accumulator is used to calculate selected card
+    accumulator[0] <== 0;
     for (var i = 0; i < lastIndex; i++) {
         isEqual[i] = IsEqual();
         isEqual[i].in[0] <== i;
         isEqual[i].in[1] <== index;
+        accumulator[i+1] <== accumulator[i] + (isEqual[i].out * deck[i]); 
+        // if index == i, then we swap the card at i with the card at lastIndex
         mux[i] = DualMux();
         mux[i].in[0] <== deck[i];
-        mux[i].in[1] <== deck[deckSize-1];
+        mux[i].in[1] <== deck[2**levels-1];
         mux[i].s <== isEqual[i].out;
         updatedDeck[i] <== mux[i].out[0];
     }
 
-    for (var i = lastIndex; i < deckSize; i++) {
+    // fill up remaining indices with 255 (null)
+    for (var i = lastIndex; i < 2**levels; i++) {
         updatedDeck[i] <== 255;
     }
 
-    component select = AtIndex(deckSize);
-    select.array <== deck;
-    select.index <== index;
-    selectedCard <== select.out;
+    selectedCard <==accumulator[lastIndex];
 }
 
 // component main = FisherYates(64, 63);
+component main { public[deckRoot] } = Shuffle(6);
