@@ -4,107 +4,49 @@ const { callGenWitness } = require('circom-helper');
 
 describe("Initial Hand Test", () => {
     let mimcsponge;
-    let initialDeck = [];
+    let poseidon;
+    let privateSalt = BigInt(1234); // random private salt
+    let blockhash = BigInt(5678); // block hash from smart contract
     let deckLeaves = [], handLeaves = [];
     let deckRoot;
     let newDeckRoot, newHandRoot;
 
     beforeAll(async () => {
         mimcsponge = await circomlib.buildMimcSponge();
+        poseidon = await circomlib.buildPoseidon();
 
         // initialize deck leaves and hand leaves
         for (let i = 0; i < 64; i++) {
-            initialDeck.push(BigInt(i));
+            deckLeaves.push(BigInt(i));
             handLeaves.push(BigInt(255));
         }
-        deckRoot = getMerkleRoot(initialDeck, mimcsponge);
+        deckRoot = getMerkleRoot(deckLeaves, mimcsponge);
     });
 
     // set longer timeout for test
     jest.setTimeout(25000);
 
-    it("Should be able to shuffle a deck", async () => {
-        // assume user draws 7 cards
-        const maxDeckSize = 64;
-
-        let deckPredicate = []
-        deckLeaves = [...initialDeck];
-        for (let i = 0; i < maxDeckSize; i++) {
-            deckPredicate.push(2**i);
-        }
-
-        // arbitrary shuffle
-        // swap index 2 and 7
-        deckLeaves[2] = initialDeck[7];
-        deckLeaves[7] = initialDeck[2];
-        let temp = deckPredicate[2];
-        deckPredicate[2] = deckPredicate[7];
-        deckPredicate[7] = temp;
-        
-        // swap index 4 and 14
-        deckLeaves[4] = initialDeck[14];
-        deckLeaves[14] = initialDeck[4];
-        temp = deckPredicate[4];
-        deckPredicate[4] = deckPredicate[14];
-        deckPredicate[14] = temp;
-
-        deckRoot = getMerkleRoot(deckLeaves, mimcsponge);
-
-        // construct the circuit inputs
-        const circuit = 'shuffle.test';
-        const circuitInputs = ff.utils.stringifyBigInts({
-            deckRoot: mimcsponge.F.toObject(deckRoot),
-            initialDeck: initialDeck,
-            finalDeck: deckLeaves,
-            deckPredicate: deckPredicate
-        });
-
-        // Generate the witness
-        expect(await callGenWitness(circuit, circuitInputs)).toBeDefined();
-    }) 
-
     it("Should correctly construct an initial hand proof", async () => {
         // assume user draws 7 cards
         const maxDeckSize = 64;
-        let drawnIndices = [2,4,6,8,10,12,14];
+        const cardCount = 7;
 
-        // update hand leaves
-        let newHandLeaves = [...handLeaves];
-        for (let i = 0; i < drawnIndices.length; i++) {
-            newHandLeaves[i] = deckLeaves[drawnIndices[i]];
-        }
-        newHandRoot = getMerkleRoot(newHandLeaves, mimcsponge);
-
-        drawnIndices = new Set(drawnIndices);
-        let drawnCardIndices = Array(64).fill(0);
-        for (const index of drawnIndices) {
-            drawnCardIndices[index] = 1;
-        }
-        let deckPredicate = []
-        let deckCount = 0;
-        let handCount = 0;
-        for (let i = 0; i < 64; i++) {
-            if (drawnIndices.has(i)) {
-                // card is drawn
-                deckPredicate.push(2**handCount);
-                handCount++;
-            } else {
-                // card is not drawn
-                deckPredicate.push(2**deckCount);
-                deckCount++;
-            }
-        }
-
-        // update deck leaves
+        // draw cards
         let newDeckLeaves = [...deckLeaves];
-        for (const index of drawnIndices) {
-            newDeckLeaves[index] = BigInt(255);
+        let newHandLeaves = [...handLeaves];
+        const randomness = poseidon.F.toObject(poseidon([privateSalt, blockhash]));
+        let lastIndex = maxDeckSize - 1;
+        let drawnIndex;
+        for (let i = 0; i < cardCount; i++) {
+            drawnIndex = randomness % BigInt(lastIndex);
+            newHandLeaves[i] = newDeckLeaves[drawnIndex];
+            newDeckLeaves[drawnIndex] = newDeckLeaves[lastIndex];
+            newDeckLeaves[lastIndex] = BigInt(255);
+            lastIndex--;
         }
-        // reorder deck leaves
-        newDeckLeaves = [
-            ...newDeckLeaves.filter((num) => num != 255), // keep all non-255 numbers
-            ...newDeckLeaves.filter((num) => num == 255), // move all 255 numbers to the end
-        ];
+
+        // construct merkle root        
+        newHandRoot = getMerkleRoot(newHandLeaves, mimcsponge);
         newDeckRoot = getMerkleRoot(newDeckLeaves, mimcsponge);
 
         // construct the circuit inputs
@@ -116,8 +58,9 @@ describe("Initial Hand Test", () => {
             newDeckLeaves: newDeckLeaves,
             newHandRoot: mimcsponge.F.toObject(newHandRoot),
             newHandLeaves: newHandLeaves,
-            deckPredicate: deckPredicate,
-            drawnCardIndices: drawnCardIndices
+            privateSalt: privateSalt,
+            committedSalt: poseidon.F.toObject(poseidon([privateSalt])),
+            blockhash: blockhash
         });
 
         // Generate the witness
