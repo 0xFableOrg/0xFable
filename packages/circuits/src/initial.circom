@@ -52,15 +52,11 @@ template Initial(levels, cardCount) {
     component drawCards[cardCount];
     signal tempDeckLeaves[cardCount+1][2**levels];
     signal selectedIndex[cardCount];
-    signal divider[cardCount];
     tempDeckLeaves[0] <== deckLeaves;
     for (var i = 0; i < cardCount; i++) {
         var lastIndex = initialLastIndex - i;
-        // select and constraint randomness
+        // select randomness
         selectedIndex[i] <-- randomness.out % lastIndex;
-        divider[i] <-- randomness.out / lastIndex;
-        lastIndex * divider[i] + selectedIndex[i] === randomness.out;
-        // draw cards using fisher yates
         drawCards[i] = FisherYates(levels, lastIndex);
         drawCards[i].index <== selectedIndex[i];
         drawCards[i].deck <== tempDeckLeaves[i];

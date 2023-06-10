@@ -27,7 +27,7 @@ template FisherYates(levels, lastIndex) {
         // if index == i, then we swap the card at i with the card at lastIndex
         mux[i] = DualMux();
         mux[i].in[0] <== deck[i];
-        mux[i].in[1] <== deck[2**levels-1];
+        mux[i].in[1] <== deck[lastIndex];
         mux[i].s <== isEqual[i].out;
         updatedDeck[i] <== mux[i].out[0];
     }
