@@ -5,7 +5,6 @@ import "./Inventory.sol";
 import "./CardsCollection.sol";
 
 import "openzeppelin/access/Ownable.sol";
-import "forge-std/console2.sol";
 
 error AlreadyClaimed();
 
