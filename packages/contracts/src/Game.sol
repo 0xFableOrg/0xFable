@@ -163,7 +163,6 @@ contract Game {
         // Bitfield of cards in the player's graveyard (same thing as `battlefield`).
         uint256 graveyard;
         uint8[] attacking;
-        bytes32 committedSalt;
     }
 
     // All the data for a single game instance.
@@ -354,7 +353,7 @@ contract Game {
     // ---------------------------------------------------------------------------------------------
 
     // Returns the current randomness for the game — used to draw cards.
-    function getRandomness(uint256 gameID) public view returns(bytes32) {
+    function getRandomness(uint256 gameID) external view returns(bytes32) {
         return blockhash(gameData[gameID].lastBlockNum);
     }
 
@@ -482,16 +481,57 @@ contract Game {
     // The player's deck is cards[pdata.deckStart:pdata.deckEnd].
     function checkInitialHandProof(PlayerData storage pdata, bytes32 initialDeckRoot,
              uint256 randomness, bytes calldata proof) view internal {
+        // use randomness to decide drawn cards
+        uint256[7] memory selectedIndices = drawRandomIndices(randomness);
+
         // construct circuit public signals
-        uint256[] memory pubSignals = new uint256[](5);
+        uint256[] memory pubSignals = new uint256[](131);
         pubSignals[0] = uint256(initialDeckRoot);
         pubSignals[1] = uint256(pdata.deckRoot);
         pubSignals[2] = uint256(pdata.handRoot);
-        pubSignals[3] = uint256(pdata.committedSalt);
-        pubSignals[4] = randomness;
-        // TODO: we need to check result from verifyProof and revert if false
-        /// @dev currently bypass check for testing
+        // elements 67-130 are the binary drawn indices (0 if not drawn, 1 if drawn)
+        for (uint256 i = 0; i < 7; i++) {
+            pubSignals[selectedIndices[i] + 67] = 1;
+        }
+        // elements 3-66 are the deck predicates
+        uint256 deckCount = 0;
+        uint256 handCount = 0;
+        for (uint256 i = 3; i < 67; i++) {
+            if (pubSignals[i+64] == 1) {
+                // the index is drawn
+                pubSignals[i] = 2**handCount;
+                handCount++;
+            } else {
+                // the index is not drawn
+                pubSignals[i] = 2**deckCount;
+                deckCount++;
+            }
+        }
         initialVerifier.verifyProof(proof, pubSignals);
+    }
+
+    function drawRandomIndices(uint256 randomness) internal pure returns (uint256[7] memory) {
+        uint256[64] memory indices;
+        uint256[7] memory selectedIndices;
+        
+        // Initialize the elements array with values 0-63
+        for (uint256 i = 0; i < 64; i++) {
+            indices[i] = i;
+        }
+        
+        // Draw 7 random elements
+        uint256 lastIndex = 63;
+        for (uint256 i = 0; i < 7; i++) {
+            // Generate a random index within the remaining elements
+            uint256 randomIndex = uint256(keccak256(abi.encodePacked(randomness, i))) % (lastIndex + 1);
+            
+            // Select the random element and move the last element to its place
+            selectedIndices[i] = indices[randomIndex];
+            indices[randomIndex] = indices[lastIndex];
+            lastIndex--;
+        }
+        
+        return selectedIndices;
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -501,7 +541,7 @@ contract Game {
     //
     // The data field is ignored for now (we allow any player to join any game).
     function joinGame(uint256 gameID, uint8 deckID, bytes calldata data, bytes32 handRoot, bytes32 deckRoot,
-            bytes32 committedSalt, bytes calldata proof) external {
+            bytes calldata proof) external {
 
         GameData storage gdata = gameData[gameID];
         PlayerData storage pdata = gdata.playerData[msg.sender];
@@ -529,9 +569,8 @@ contract Game {
         pdata.handRoot = handRoot;
         bytes32 initialDeckRoot = pdata.deckRoot;
         pdata.deckRoot = deckRoot;
-        pdata.committedSalt = committedSalt; ///@dev player needs to commit a private salt for randomness
 
-        uint256 randomness = uint256(getRandomness(gameID));
+        uint256 randomness = uint256(blockhash(gdata.lastBlockNum));
         checkInitialHandProof(pdata, initialDeckRoot, randomness, proof);
 
         inGame[msg.sender] = gameID;
