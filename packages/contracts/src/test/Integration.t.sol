@@ -25,8 +25,6 @@ contract Integration is Test {
     bytes32 private constant HAND_ROOT = bytes32(uint256(42));
     // Placeholder for all deck roots.
     bytes32 private constant DECK_ROOT = bytes32(uint256(42));
-    // Placeholder for committed salt
-    bytes32 private constant COMMITTED_SALT = bytes32(uint256(42));
     // Placeholder for all proofs.
     bytes private constant PROOF = bytes("proof");
 
@@ -58,9 +56,9 @@ contract Integration is Test {
         game.createGame(2);
         inventory.getDeck(player1, 0);
         vm.prank(player1);
-        game.joinGame(gameID, 0, bytes(""), HAND_ROOT, DECK_ROOT, COMMITTED_SALT, PROOF);
+        game.joinGame(gameID, 0, bytes(""), HAND_ROOT, DECK_ROOT, PROOF);
         vm.prank(player2);
-        game.joinGame(gameID, 0, bytes(""), HAND_ROOT, DECK_ROOT, COMMITTED_SALT, PROOF);
+        game.joinGame(gameID, 0, bytes(""), HAND_ROOT, DECK_ROOT, PROOF);
 
         Game.PlayerData memory pdata;
         uint8[] memory size1array = new uint8[](1);
