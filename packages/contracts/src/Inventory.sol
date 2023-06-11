@@ -6,7 +6,6 @@ import "./DeckAirdrop.sol";
 import "./InventoryCardsCollection.sol";
 
 import "openzeppelin/access/Ownable.sol";
-import "forge-std/console.sol";
 import "./Game.sol";
 
 contract Inventory is Ownable {

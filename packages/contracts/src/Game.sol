@@ -7,8 +7,6 @@ import "./DrawVerifier.sol";
 import "./PlayVerifier.sol";
 import "./InitialVerifier.sol";
 
-import "forge-std/console.sol";
-
 // Data + logic to play a game.
 // NOTE: We try to lay the groundwork to support games with over 2 players, however they are not
 //   supported and will not work in the current state.
