@@ -84,6 +84,9 @@ contract Game {
     // Players cannot start game without committing a salt
     error SaltNotCommitted();
 
+    // ZK proof generated is incorrect
+    error InvalidProof();
+
     // =============================================================================================
     // EVENTS
 
@@ -209,6 +212,9 @@ contract Game {
 
     // Game IDs are attributed sequentially. Reserve 0 to stipulate absence of game.
     uint256 nextID = 1;
+
+    // Boolean to indicate whether we should check zk proof
+    bool checkProof = false; ///@dev this should be set to true in production
 
     // Maps game IDs to game data.
     mapping(uint256 => GameData) public gameData;
@@ -495,9 +501,13 @@ contract Game {
         pubSignals[2] = uint256(pdata.handRoot);
         pubSignals[3] = committedSalt;
         pubSignals[4] = randomness;
-        // TODO: we need to check result from verifyProof and revert if false
+
         /// @dev currently bypass check for testing
-        initialVerifier.verifyProof(proof, pubSignals);
+        if (checkProof) {
+            if (!initialVerifier.verifyProof(proof, pubSignals))
+                revert InvalidProof();
+        }
+            
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -638,7 +648,11 @@ contract Game {
         pubSignals[3] = uint256(handRoot);
         pubSignals[4] = randomness;
 
-        drawVerifier.verifyProof(proof, pubSignals);
+        /// @dev currently bypass check for testing
+        if (checkProof) {
+            if (!drawVerifier.verifyProof(proof, pubSignals))
+                revert InvalidProof();
+        }
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -679,7 +693,11 @@ contract Game {
         pubSignals[1] = uint256(handRoot);
         pubSignals[2] = card;
 
-        playVerifier.verifyProof(proof, pubSignals);
+        /// @dev currently bypass check for testing
+        if (checkProof) {
+            if (!playVerifier.verifyProof(proof, pubSignals))
+                revert InvalidProof();
+        }
     }
 
     // ---------------------------------------------------------------------------------------------
