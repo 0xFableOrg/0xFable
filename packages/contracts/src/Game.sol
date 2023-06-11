@@ -80,6 +80,12 @@ contract Game {
     // Trying to defend with an attacker (on the battlefield at the given index).
     error DefenderAttacking(uint8 index);
 
+    // Players cannot commit salt more than once
+    error SaltAlreadyCommitted(bytes32 salt);
+
+    // Players cannot start game without committing a salt
+    error SaltNotCommitted();
+
     // =============================================================================================
     // EVENTS
 
@@ -211,6 +217,9 @@ contract Game {
 
     // Maps players to the game they're currently in.
     mapping(address => uint256) public inGame;
+
+    // Maps players to their committed salt.
+    mapping(address => bytes32) public salts;
 
     // The inventory containing the cards that will be used in this game.
     Inventory public inventory;
@@ -353,7 +362,7 @@ contract Game {
     // ---------------------------------------------------------------------------------------------
 
     // Returns the current randomness for the game — used to draw cards.
-    function getRandomness(uint256 gameID) external view returns(bytes32) {
+    function getRandomness(uint256 gameID) public view returns(bytes32) {
         return blockhash(gameData[gameID].lastBlockNum);
     }
 
@@ -480,58 +489,25 @@ contract Game {
     //
     // The player's deck is cards[pdata.deckStart:pdata.deckEnd].
     function checkInitialHandProof(PlayerData storage pdata, bytes32 initialDeckRoot,
-             uint256 randomness, bytes calldata proof) view internal {
-        // use randomness to decide drawn cards
-        uint256[7] memory selectedIndices = drawRandomIndices(randomness);
-
+             uint256 randomness, uint256 committedSalt, bytes calldata proof) view internal {
         // construct circuit public signals
-        uint256[] memory pubSignals = new uint256[](131);
+        uint256[] memory pubSignals = new uint256[](5);
         pubSignals[0] = uint256(initialDeckRoot);
         pubSignals[1] = uint256(pdata.deckRoot);
         pubSignals[2] = uint256(pdata.handRoot);
-        // elements 67-130 are the binary drawn indices (0 if not drawn, 1 if drawn)
-        for (uint256 i = 0; i < 7; i++) {
-            pubSignals[selectedIndices[i] + 67] = 1;
-        }
-        // elements 3-66 are the deck predicates
-        uint256 deckCount = 0;
-        uint256 handCount = 0;
-        for (uint256 i = 3; i < 67; i++) {
-            if (pubSignals[i+64] == 1) {
-                // the index is drawn
-                pubSignals[i] = 2**handCount;
-                handCount++;
-            } else {
-                // the index is not drawn
-                pubSignals[i] = 2**deckCount;
-                deckCount++;
-            }
-        }
+        pubSignals[3] = committedSalt;
+        pubSignals[4] = randomness;
+        // TODO: we need to check result from verifyProof and revert if false
+        /// @dev currently bypass check for testing
         initialVerifier.verifyProof(proof, pubSignals);
     }
 
-    function drawRandomIndices(uint256 randomness) internal pure returns (uint256[7] memory) {
-        uint256[64] memory indices;
-        uint256[7] memory selectedIndices;
-        
-        // Initialize the elements array with values 0-63
-        for (uint256 i = 0; i < 64; i++) {
-            indices[i] = i;
-        }
-        
-        // Draw 7 random elements
-        uint256 lastIndex = 63;
-        for (uint256 i = 0; i < 7; i++) {
-            // Generate a random index within the remaining elements
-            uint256 randomIndex = uint256(keccak256(abi.encodePacked(randomness, i))) % (lastIndex + 1);
-            
-            // Select the random element and move the last element to its place
-            selectedIndices[i] = indices[randomIndex];
-            indices[randomIndex] = indices[lastIndex];
-            lastIndex--;
-        }
-        
-        return selectedIndices;
+    // ---------------------------------------------------------------------------------------------
+    // Function for player to commit a salt before the game starts.
+    function commitSalt(bytes32 salt) public {
+        if (salts[msg.sender] != 0)
+            revert SaltAlreadyCommitted(salts[msg.sender]);
+        salts[msg.sender] = salt;
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -547,6 +523,8 @@ contract Game {
         PlayerData storage pdata = gdata.playerData[msg.sender];
         if (pdata.handRoot != 0)
             revert AlreadyJoined();
+        if (salts[msg.sender] == 0)
+            revert SaltNotCommitted();
 
         if (gdata.playersLeftToJoin == 0)
             revert GameAlreadyStarted();
@@ -570,8 +548,9 @@ contract Game {
         bytes32 initialDeckRoot = pdata.deckRoot;
         pdata.deckRoot = deckRoot;
 
-        uint256 randomness = uint256(blockhash(gdata.lastBlockNum));
-        checkInitialHandProof(pdata, initialDeckRoot, randomness, proof);
+        uint256 randomness = uint256(getRandomness(gameID));
+        uint256 committedSalt = uint256(salts[msg.sender]);
+        checkInitialHandProof(pdata, initialDeckRoot, randomness, committedSalt, proof);
 
         inGame[msg.sender] = gameID;
         emit PlayerJoined(gameID, msg.sender);
