@@ -60,6 +60,7 @@ install-frozen:
 # install the most up-to-date version matching the specifier.
 install:
 	pnpm install -r
+	@echo "If the lockfileVersion changed, please update 'packageManager' in package.json!"
 .PHONY: install
 
 # Shows packages for which new versions are available (compared to the installed version).
@@ -74,12 +75,14 @@ outdated:
 # to update them.
 update:
 	pnpm update -r
+	@echo "If the lockfileVersion changed, please update 'packageManager' in package.json!"
 .PHONY: update
 
 # Updates all packages to their latest version (even if they do not match the version specifier!).
 # It will also update the version specifiers to point to the new version.
 update-deps-latest:
 	pnpm update -r --latest
+	@echo "If the lockfileVersion changed, please update 'packageManager' in package.json!"
 .PHONY: update-deps-latest
 
 # In case you accidentally pollute the node_modules directories
