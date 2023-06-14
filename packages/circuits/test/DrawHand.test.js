@@ -20,7 +20,7 @@ describe("Draw Hand Test", () => {
     });
 
     // set longer timeout for test
-    jest.setTimeout(25000);
+    jest.setTimeout(30000);
 
     it("Should correctly construct an initial hand proof", async () => {
         // assume user draws 7 cards

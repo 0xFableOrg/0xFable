@@ -73,7 +73,7 @@ template DrawHand(levels, initialHandSize) {
 
         // pick out a random card — we need to do the dance to prove the modulus
         drawCards[i].index <-- randomness.outs[0] % lastIndex;
-        divisors[i] <-- randomness.outs[0] / lastIndex;
+        divisors[i] <-- randomness.outs[0] \ lastIndex;
         randomness.outs[0] === divisors[i] * lastIndex + drawCards[i].index;
 
         // update deck and hand
