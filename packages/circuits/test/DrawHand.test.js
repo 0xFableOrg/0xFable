@@ -2,25 +2,21 @@ const circomlib = require('circomlibjs');
 const ff = require('ffjavascript');
 const { callGenWitness } = require('circom-helper');
 
-describe("Initial Hand Test", () => {
+describe("Draw Hand Test", () => {
     let mimcsponge;
-    let poseidon;
-    let privateSalt = BigInt(1234); // random private salt
-    let blockhash = BigInt(5678); // block hash from smart contract
-    let deckLeaves = [], handLeaves = [];
-    let deckRoot;
-    let newDeckRoot, newHandRoot;
+    let salt = BigInt(1234); // random private salt
+    let publicRandom = BigInt(5678); // block hash from smart contract
+    let initialDeck = [], initialHand = [];
+    let deckRoot, handRoot;
 
     beforeAll(async () => {
         mimcsponge = await circomlib.buildMimcSponge();
-        poseidon = await circomlib.buildPoseidon();
 
         // initialize deck leaves and hand leaves
         for (let i = 0; i < 64; i++) {
-            deckLeaves.push(BigInt(i));
-            handLeaves.push(BigInt(255));
+            initialDeck.push(BigInt(i));
+            initialHand.push(BigInt(255));
         }
-        deckRoot = getMerkleRoot(deckLeaves, mimcsponge);
     });
 
     // set longer timeout for test
@@ -32,35 +28,36 @@ describe("Initial Hand Test", () => {
         const cardCount = 7;
 
         // draw cards
-        let newDeckLeaves = [...deckLeaves];
-        let newHandLeaves = [...handLeaves];
-        const randomness = poseidon.F.toObject(poseidon([privateSalt, blockhash]));
+        let deck = [...initialDeck];
+        let hand = [...initialHand];
+        const randomness = mimcsponge.F.toObject(mimcsponge([salt, publicRandom]));
         let lastIndex = maxDeckSize - 1;
         let drawnIndex;
         for (let i = 0; i < cardCount; i++) {
             drawnIndex = randomness % BigInt(lastIndex);
-            newHandLeaves[i] = newDeckLeaves[drawnIndex];
-            newDeckLeaves[drawnIndex] = newDeckLeaves[lastIndex];
-            newDeckLeaves[lastIndex] = BigInt(255);
+            hand[i] = deck[drawnIndex];
+            deck[drawnIndex] = deck[lastIndex];
+            deck[lastIndex] = BigInt(255);
             lastIndex--;
         }
 
         // construct merkle root        
-        newHandRoot = getMerkleRoot(newHandLeaves, mimcsponge);
-        newDeckRoot = getMerkleRoot(newDeckLeaves, mimcsponge);
+        handRoot = getMerkleRoot(hand, mimcsponge);
+        deckRoot = getMerkleRoot(deck, mimcsponge);
 
         // construct the circuit inputs
-        const circuit = 'initial.test';
+        const circuit = 'Initial.test';
         const circuitInputs = ff.utils.stringifyBigInts({
-            deckRoot: mimcsponge.F.toObject(deckRoot), 
-            newDeckRoot: mimcsponge.F.toObject(newDeckRoot), 
-            deckLeaves: deckLeaves,
-            newDeckLeaves: newDeckLeaves,
-            newHandRoot: mimcsponge.F.toObject(newHandRoot),
-            newHandLeaves: newHandLeaves,
-            privateSalt: privateSalt,
-            committedSalt: poseidon.F.toObject(poseidon([privateSalt])),
-            blockhash: blockhash
+            // public inputs
+            initialDeck,
+            deckRoot: mimcsponge.F.toObject(deckRoot),
+            handRoot: mimcsponge.F.toObject(handRoot),
+            saltHash: mimcsponge.F.toObject(mimcsponge([salt])),
+            publicRandom,
+            // private inputs
+            salt,
+            deck,
+            hand
         });
 
         // Generate the witness

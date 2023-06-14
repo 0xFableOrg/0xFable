@@ -280,11 +280,11 @@ Merkle tree, and providing the correct mixed Merkle root to the contracts for th
 But the hand is not the only Merkle root we need to maintain. We also need to maintain a Merkle root
 for our deck!
 
-The reason has to do with how cards are drawn. Say my private random value is `r`. I will add the
-card `deck[r % deck.length]` to my hand. But now this cards has left my deck and cannot be drawn
-again! We enforce this by modifying the deck: we set `deck[r % deck.length] = deck.last` and then
-delete `deck.last` the last item of the deck. Next time, we can use the same method but with a
-shorter `deck.length` to draw a new card.
+The reason has to do with how cards are drawn. Say my  random value is `r`. I will add the card
+`deck[r % deck.length]` to my hand. But now this cards has left my deck and cannot be drawn again!
+We enforce this by modifying the deck: we set `deck[r % deck.length] = deck.last` and then delete
+`deck.last` the last item of the deck. Next time, we can use the same method but with a shorter
+`deck.length` to draw a new card.
 
 Same as before, to prove we did this correctly, the contract needs to have a commitment to our
 current deck, and the opponent cannot know the cards left in the deck (or he would know exactly what
@@ -317,9 +317,9 @@ issue](https://github.com/norswap/0xFable/issues/42).
 The circuits are written using Circom. The three proofs outlined in the previous section are
 respectively implemented by the circuit files:
 
-1. `initial.circom`
-2. `draw.circom`
-3. `play.circom`
+1. `DrawHand.circom`
+2. `Draw.circom`
+3. `Play.circom`
 
 If you want to get more familiar with Circom, I highly recommend [this Circom course from
 0xParc](http://learn.0xparc.org/circom/).
@@ -329,12 +329,7 @@ defined in the above file and instantiate them as circuits with concrete paramet
 they set an initial hand size, as well as maximum hand and deck sizes (7 cards in the initial hand,
 16 cards max for the hand, 64 cards max for the deck currently).
 
-TODO: explain the zk-circuits more in-depth
-
-The circuits are still undergoing some development, in particular the `initial` circuit currently
-does not handle the random selection part.
-
-(And again, mixing with the committed private value is handled nowhere.)
+!! The circuits are still undergoing some development at the moment.
 
 When compiling each circuit, Circom generates a prover (WebAssembly code, used in the frontend) and
 a verifier (Solidity code, used in the contracts).
@@ -348,6 +343,169 @@ Incidentally, this means that if the zero-knowledge circuits are under developme
 don't generate the proofs yet, we can still test the game by just bypassing the proof verification.
 That's exactly what we do at the time of writing!
 
+Let's dive into each of the three circuits work. [This will need to change
+soon](https://github.com/norswap/0xFable/issues/50) because this current approach is not practical
+(the proving time is too high and the "proving key" that needs to be imported by the client is much
+too big).
+
+### `DrawHand.circom`
+
+This circuit starts by computing the randomness from the private random value (which must be
+verified against the on-chain commitment) and the public randomness.
+
+Then, for every card we will draw, we select a random index to pick (which is `randomness %
+remainingDeckSize`). We then update the deck by swapping the card at that index with the last card
+in the deck, we also collect all the cards we drew.
+
+Doing this in Circom is more involved than it seems because it's not possible to index an array with
+an integer that isn't known at compile time. As a result, the fully general approach to index an
+array (unless some kind of trick can be used for the specific case) is to iterate the whole array
+and compare the loop variable to the index we want to access. You can see this done in the
+`RemoveIndex` template.
+
+In fact, that template is incorrect, because we use the lastIndex as a compile-time constant, but
+this will only work for deck that have the max size of 64. For smaller decks, the results will not
+be correct. Fixing this would require two iterations over the array instead of one: one to access
+the index to be removed, and one to access the last index.
+
+Once we've drawn all the cards, we simply check that the resulting deck and hand's Merkle roots
+match those that we provided to the proof.
+
+Doing this really kills our proof performance, as it requires doing ~128 hashes, which generate a
+lot of constraints, even when using zk-friendly hash function (we use MiMCSponge, which in our tests
+with the circomlib implementation and the Circom Plonk backend is a faster than Poseidon, another
+such hash function). When we rewrite the circuits, we will instead hash all the cards in a single
+hashing operation. We can further minimize the operations to be done by packing the cards in a small
+number of field elements ("signals"), since every card is a number betweeen 0 and 255.
+
+Also note that we currently don't salt the Merkle roots (in any contract) but we need to do so in
+the future, otherwise it will be possible for opponents to brute force the hashes to figure out what
+we drew.
+
+### `Draw.circom`
+
+This circuit is responsible for drawing a single card. (Note that we could iterate this logic to
+implement `DrawHand`, but the resulting circuit would be much larger than the one we have now.)
+
+It takes as public inputs the old and new deck and hand Merkle roots.
+
+As private inputs, it takes Merkle proofs for:
+- the card drawn in the deck
+- the last card in the deck
+- the last card in the hand
+- the new card added to the hand (relative to the new hand root)
+
+These "proofs" are "Merkle branches". If you consider the path from a leaf to the root in a *binary*
+Merkle tree, they are all the siblings of the nodes on that path. Given such a path and the leaf,
+you can recompute the root. Obtaining the root passed in means the proof checks out.
+
+It then uses the value in the Merkle proofs to verify that the new roots are correct transformations
+of the old roots.
+
+One thing that this circuit needs to do, but doesn't curently, is derive the random index to draw
+from. This should be done in exactly the same way as in the `DrawHand` proof.
+
+### `Play.circom`
+
+This proof is very similar to the draw proof, except it doesn't involve the deck.
+
+It proves the correct transition from the old hand root to the new hand root, proving that the card
+we are playing was indeed in the hand, and that we correctly updated the hand to remove the card (by
+swapping it with the last card in the hand, and reducing the size of the hand by one).
+
+Again, this should normally derive the random index.
+
 ## Frontend
 
-TODO: write about the frontend architecture
+Our frontend stack comprises Typescript, React, Jotai (atom-based state management), Next.js and
+Tailwind CSS for the UI, as well as Wagmi, Viem (an ethers.js / web3.js alternative by the Wagmi
+team) and Web3Modal for blockchain interaction.
+
+We're investigating changing many parts of that stack:
+
+- [using Vite instead of Next (for better source maps)](https://github.com/norswap/0xFable/issues/43)
+- [using Solid.js instead of React](https://github.com/norswap/0xFable/issues/13) (very speculative,
+  probably only if a Solid.js fan pops up to help)
+- [using MUD](https://github.com/norswap/0xFable/issues/29) — a full stack web3 framework that
+  simplifies syncing the frontend with the blockchain
+- [using ConnectKit instead of Web3Modal for wallet interaction](https://github.com/norswap/0xFable/issues/18)
+
+(Crucially no decisions have been arrested on any of those things.)
+
+### Store Structure
+
+Beyond the stack, the most important thing to understand in the frontend is how blockchain
+interaction is structured. This mostly happens in the `store` module, which is structured as
+follows:
+
+- `atoms.ts` — This defines the atoms that actually store the state. These atoms *should not* be
+  read direclty from React, instead hooks from `hooks.ts` should be used.
+- `hooks.ts` — React hooks that abstract over the atoms in `atom.ts`. Having this layer helps keeps
+  things clean and will make it easier to migrate to another state management library later if
+  needed.
+- `network.ts` — Defines functions to fetch blockchain data, taking care of various things such as
+  retries, throttling, filtering zombies (i.e., a request completing after a more recent one
+  completed for the same data) and error-handling (todo!). These functions are used by `update.ts`
+  and `actions.ts`.
+- `actions.ts` — Actions that can be called from the frontend to perform a mix of blockchain
+  interaction and local state updates. (See important notes about this below.)
+- `update.ts` — Responsible to refresh/synchronize the local state with the blockchain state. (See
+  important notes about this below.)
+- `subscriptions.ts` — Manages event subscriptions. Currently, we simply use them to trigger an
+  update to the game data via `update.ts`.
+
+### State Synchronization
+
+An important insight in understanding the relationship between frontend and blockchain is that the
+goal is to keep the frontend synchronized to the chain, which is the source of truth.
+
+The absolute simplest way to do that is to use a pure derivation: fetch all the game data from
+the chain, and re-derive the local state from it. And that's exactly what we do right now.
+
+The whole game state (minus the private parts, which we need to preciously conserve locally) can be
+fetched by calling the `fetchGameState` view function from `Game.sol`.
+
+This is the main role of `update.ts`: ensure all the atoms are updated correctly with respect to
+this data.
+
+But `update.ts` also ensures we do not end in mixed or abherrant state. For instance, it resets the
+state if we switch the wallet address or the blockchain network. The key mandate is that at any time
+that the state can be read (e.g. by React hooks) or written (e.g. by actions), the state presented
+should be fully consistent.
+
+In the future, we will introduce "optimistic updates", where we update the local state before having
+had confirmation that the state changed on the blockchain. This helps make the game feel more
+snappy, but must be handled carefully.
+
+These optimistic updates can be triggered once the player initiates an action, or when we receive an
+event from our chain subscriptions (normally we'd have to wait an extra roundtrip to the blockchain
+to fetch the new state in both of these cases).
+
+### Actions and Chain Interaction
+
+The `actions.ts` is meant to represent user actions that change the state. These actions will be of
+two natures:
+
+1. change the local state
+2. change the blockchain state (reflected locally)
+
+The first action mostly has to do with private data: for instance drawing our initial hand is an
+action that modifies the local state, but not the blockchain state — because the hand is private.
+
+Of course, we'll need to commit to the hand on-chain, but that can be considered as a separate
+action. The key idea here is that the drawn hand cannot be derived from on-chain data via
+`update.ts`.
+
+The second kind of action basically calls an on-chain function, and its completion will trigger an
+update via `update.ts`. Currently, these are not implement in `action.ts` at all, but instead rely
+on wagmi hooks wrapped in custom logic implemented in `hooks/useChainWrite.ts` and
+`hooks/useFableWrite.ts`.
+
+I'm not sure these things should be managed as hooks at all, so they might move to `actions.ts` in
+the future.
+
+Wagmi is very convenient, but it's hard to understand the intricacies of what it does. Understanding
+its behaviour with respect to React and blockchain interaction (retries? timeouts? caching?)
+requires to understand tanstack-query (a library used by Wagmi) and how Wagmi configures it (which
+is not documented, you need to read the code). I think it's possible to build a simpler and more
+transparent abstraction instead and diminish our dependencies on Wagmi.
