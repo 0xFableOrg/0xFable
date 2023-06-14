@@ -1,14 +1,17 @@
 pragma circom 2.0.0;
 
-include "./merkle.circom";
+include "../lib/Merkle.circom";
 
 template Draw(levels) {
     /// @dev levels do not include the top level root
-    
+
+    // public inputs
     signal input deckRoot;
     signal input newDeckRoot;
     signal input handRoot;
     signal input newHandRoot;
+
+    // private inputs
     signal input drawnCardLeaf;
     signal input deckDrawnCardIndex;
     signal input deckDrawnCardHashPath[levels];

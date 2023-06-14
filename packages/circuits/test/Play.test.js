@@ -3,7 +3,7 @@ const ff = require('ffjavascript');
 const { callGenWitness } = require('circom-helper');
 
 describe("Play Cards Test", () => {
-    const circuit = 'play.test';
+    const circuit = 'Play.test';
     let mimcsponge;
     let handLeaf1, handLeaf2, handLeaf3, handLeaf4, handHash1, handHash2, handRoot;
 

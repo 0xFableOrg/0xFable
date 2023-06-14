@@ -6,31 +6,28 @@
 
 # Node
 node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
 
-# Foundry
+# Contract outputs
 packages/contracts/cache/
 packages/contracts/out/
 packages/contracts/broadcast/
+packages/webapp/src/generated.ts
 
 # IntelliJ config
 .idea/
 *.iml
 
-# React outputs
-packages/react/www/app.js
-packages/react/www/app.css
+# Webapp outputs
+packages/webapp/.next
+packages/webapp/next-env.d.ts
 
-# Webapp outputes
-packages/webapp/build
-packages/webapp/src/generated.ts
-
-# next.js
-.next/
-/out/
-next-env.d.ts
-
-# debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.pnpm-debug.log*
+# Circuits outputs
+packages/circuits/build
+packages/circuits/out
+packages/circuits/trusted_setup
+packages/circuits/zkeys
+packages/webapp/public/proofs

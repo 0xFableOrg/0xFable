@@ -65,12 +65,8 @@ install-test-deps:
 .PRECIOUS: out/%.r1cs out/%.wasm out/%.sym out/%.zkey out/%.vkey.json out/%.wtns out/%.public.json \
 	out/%.proof.json trusted_setup/%.ptau
 
-# Use dummy circuit to test that everything is working properly.
-build-test: out/VerifyCards.sol out/Cards.proof.json
-.PHONY: build-test
-
 # Build verifier contracts & all other outputs.
-build: out/VerifyDraw6.sol out/VerifyInitial67.sol out/VerifyPlay4.sol
+all: out/VerifyDraw.sol out/VerifyDrawHand.sol out/VerifyPlay.sol
 .PHONY: build
 
 test-server:
@@ -83,10 +79,54 @@ make test:
 	pnpm jest
 .PHONY: test
 
-# Remove outputs
+# Remove all outputs
 clean:
 	rm -rf out
 .PHONY: clean
+
+# Utility for circuit-specific commands, verifying the CIRCUIT variable is set.
+check-circuit-specified:
+	@if [ -z "$(CIRCUIT)" ]; then \
+		echo "Please specify the circuit to operate on, e.g. CIRCUIT=Cards make build"; \
+		exit 1; \
+	fi
+.PHONY: check-circuit-specified
+
+# Build a specific circuit
+build: check-circuit-specified
+	make out/Verify$(CIRCUIT).sol out/$(CIRCUIT).vkey.json
+.PHONY: circuit
+
+# Delete outputs for a specific circuit
+delete: check-circuit-specified
+	rm -rf out/$(CIRCUIT).* out/Verify$(CIRCUIT).sol out/$(CIRCUIT)_js
+.PHONY: delete
+
+# Forces rebuilding a specific circuit
+rebuild: delete build
+.PHONY: rebuild
+
+# Builds and install the relevant outputs for a specific circuit into the webapp and contracts
+# packages.
+install: build
+	mkdir -p ../webapp/public/proofs
+	cp -f out/Verify$(CIRCUIT).sol ../contracts/src/
+	cp -f out/$(CIRCUIT).zkey ../webapp/public/proofs/
+	cp -f out/$(CIRCUIT).vkey.json ../webapp/public/proofs/
+	cp -f out/$(CIRCUIT)_js/$(CIRCUIT).wasm ../webapp/public/proofs/
+.PHONY: install
+
+# Uninstalls the relevant outputs for a specific circuit from the webapp and contracts packages.
+uninstall: check-circuit-specified
+	rm -f ../contracts/src/Verify$(CIRCUIT).sol
+	rm -f ../webapp/public/proofs/$(CIRCUIT).zkey
+	rm -f ../webapp/public/proofs/$(CIRCUIT).vkey.json
+	rm -f ../webapp/public/proofs/$(CIRCUIT).wasm
+.PHONY: uninstall
+
+# Rebuilds and install a specific circuit
+reinstall: rebuild install
+.PHONY: reinstall
 
 ####################################################################################################
 # DEBUG
@@ -118,7 +158,7 @@ trusted_setup/%.ptau:
 .PHONY: download_setup
 
 # Compiles a circuit
-out/%.r1cs out/%.wasm out/%.sym: src/%.circom
+out/%.r1cs out/%.wasm out/%.sym: src/instantiated/%.circom
 	@echo "## Compiling $<"
 	@mkdir -p out
 	circom $< --r1cs --wasm --sym -o out

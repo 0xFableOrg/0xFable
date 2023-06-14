@@ -3,7 +3,7 @@ const ff = require('ffjavascript');
 const { callGenWitness } = require('circom-helper');
 
 describe("Merkle Tree Test", () => {
-    const circuit = 'merkle.test';
+    const circuit = 'Merkle.test';
     let mimcsponge;
     let deckLeaf1, deckLeaf2, deckLeaf3, deckLeaf4, deckHash1, deckHash2, deckRoot;
 
