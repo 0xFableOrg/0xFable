@@ -30,7 +30,7 @@ describe("Draw Hand Test", () => {
         // draw cards
         let deck = [...initialDeck];
         let hand = [...initialHand];
-        const randomness = mimcsponge.F.toObject(mimcsponge([salt, publicRandom]));
+        const randomness = mimcsponge.F.toObject(mimcsponge.multiHash([salt, publicRandom]));
         let lastIndex = maxDeckSize - 1;
         let drawnIndex;
         for (let i = 0; i < cardCount; i++) {
@@ -46,13 +46,13 @@ describe("Draw Hand Test", () => {
         deckRoot = getMerkleRoot(deck, mimcsponge);
 
         // construct the circuit inputs
-        const circuit = 'Initial.test';
+        const circuit = 'DrawHand.test';
         const circuitInputs = ff.utils.stringifyBigInts({
             // public inputs
             initialDeck,
             deckRoot: mimcsponge.F.toObject(deckRoot),
             handRoot: mimcsponge.F.toObject(handRoot),
-            saltHash: mimcsponge.F.toObject(mimcsponge([salt])),
+            saltHash: mimcsponge.F.toObject(mimcsponge.multiHash([salt])),
             publicRandom,
             // private inputs
             salt,
