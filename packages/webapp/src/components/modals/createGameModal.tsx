@@ -10,6 +10,7 @@ import { useGameWrite } from "src/hooks/useFableWrite"
 import * as store from "src/store/hooks"
 import { GameStatus } from "src/types"
 import { LoadingModalContent } from "src/components/lib/loadingModal"
+import { ABORTED, drawCards } from "src/store/actions"
 
 // =================================================================================================
 
@@ -17,7 +18,8 @@ export const CreateGameModal = () => {
   const isGameCreator = store.useIsGameCreator()
   const ctrl = useModalController({ loaded: isGameCreator })
 
-  // If we're on the home page and we're the game creator, this modal should be displayed.
+  // Otherwise if we're on the home page and we're the game creator, this modal should be displayed.
+  // An explicit intervention is necessary because the state might update while the modal is closed.
   useEffect(() => {
     if (isGameCreator && !ctrl.displayed)
       ctrl.display()
@@ -35,6 +37,7 @@ export const CreateGameModal = () => {
 
 const CreateGameModalContent = ({ ctrl }: { ctrl: ModalController }) => {
 
+  const playerAddress = store.usePlayerAddress()
   const [ gameID, setGameID ] = store.useGameID()
   const gameData = store.useGameData()
   const gameStatus = store.useGameStatus()
@@ -42,8 +45,6 @@ const CreateGameModalContent = ({ ctrl }: { ctrl: ModalController }) => {
   const [ loading, setLoading ] = useState<string>(null)
   const [ joinCompleted, setJoinCompleted ] = useState(false)
   const router = useRouter()
-
-  const draw = () => {} // TODO
 
   const created = gameStatus >= GameStatus.CREATED
   const joined  = gameStatus >= GameStatus.JOINED || joinCompleted
@@ -140,13 +141,15 @@ const CreateGameModalContent = ({ ctrl }: { ctrl: ModalController }) => {
     }
   })
 
-  const drawAndJoin = () => {
+  const drawAndJoin = async () => {
     setLoading("Drawing cards...")
-    // TODO This won't work: we need to fetch the players deck!
-    //      The draw function will need to use the deck cards, not the game cards who are not
-    //      initialized yet.
-    draw()
-    join()
+    // TODO WIP
+    const hand = await drawCards(gameID, playerAddress, gameData, 0)
+    if (hand === ABORTED) {
+      setLoading(null)
+    } else {
+      join()
+    }
   }
 
   const { write: cancel } = useGameWrite({
