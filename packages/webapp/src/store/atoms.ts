@@ -10,7 +10,7 @@
 import { atom, getDefaultStore } from "jotai"
 import { Address } from "src/chain"
 import { atomWithStorage } from "jotai/utils"
-import { FetchedGameData, GameCards, getGameStatus } from "src/types"
+import { ErrorConfig, FetchedGameData, GameCards, getGameStatus } from "src/types"
 
 // =================================================================================================
 // STORE
@@ -58,6 +58,11 @@ export const hasVisitedBoard = atom(false)
 /** Current randomness value. Only meaninfully defined if it's our turn! */
 export const randomness = atom(null as bigint|null)
 
+// -------------------------------------------------------------------------------------------------
+
+/** If non-null, an error modal will be displayed with the given configuration. */
+export const errorConfig = atom(null as ErrorConfig|null)
+
 // =================================================================================================
 // DERIVED ATOMS
 
@@ -92,6 +97,7 @@ gameCards.debugLabel        = "gameCards"
 hasVisitedBoard.debugLabel  = "hasVisitedBoard"
 gameStatus.debugLabel       = "gameStatus"
 randomness.debugLabel       = "randomness"
+errorConfig.debugLabel      = "errorConfig"
 gameStatus.debugLabel       = "gameStatus"
 isGameCreator.debugLabel    = "isGameCreator"
 isGameJoiner.debugLabel     = "isGameJoiner"

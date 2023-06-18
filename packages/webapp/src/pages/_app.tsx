@@ -4,8 +4,10 @@ import jotaiDebug from "src/components/lib/jotaiDebug"
 import { WagmiConfig } from "wagmi"
 import { Web3Modal } from "@web3modal/react"
 
-import { setup } from "src/setup"
 import { walletConnectProjectID, wagmiConfig, web3ModalEthereumClient} from "src/chain"
+import { GlobalErrorModal } from "src/components/modals/globalErrorModal"
+import { useErrorConfig } from "src/store/hooks"
+import { setup } from "src/setup"
 
 import "src/styles/globals.css"
 
@@ -17,6 +19,7 @@ setup()
 // =================================================================================================
 
 const MyApp: AppType = ({ Component, pageProps }) => {
+  const errorConfig = useErrorConfig()
   return (
     <>
       <Head>
@@ -33,6 +36,8 @@ const MyApp: AppType = ({ Component, pageProps }) => {
         projectId={walletConnectProjectID}
         ethereumClient={web3ModalEthereumClient}
       />
+
+      {errorConfig && <GlobalErrorModal config={errorConfig} />}
     </>
   )
 }
