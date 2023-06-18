@@ -16,7 +16,7 @@ import { getPublicClient } from "wagmi/actions"
 
 import { deployment } from "src/deployment"
 import { gameABI } from "src/generated"
-import { store, gameData, gameID } from "src/store/atoms"
+import * as store from "src/store/atoms"
 import { refreshGameData } from "src/store/update"
 import { format } from "src/utils/js-utils"
 
@@ -95,7 +95,7 @@ function gameEventListener(name: string, logs: readonly GameEventLog[]) {
 function handleEvent(name: string, args: GameEventArgs) {
   console.log(`event fired ${name}(${format(args)})`)
 
-  const ID = store.get(gameID)
+  const ID = store.get(store.gameID)
 
   // Event is not for the game we're tracking, ignore.
   if (ID != args.gameID) return
@@ -124,7 +124,7 @@ function handleEvent(name: string, args: GameEventArgs) {
       // the game data and the cards in parallel instead of waiting for the game data to indicate a
       // STARTED state to initiate fetching the cards.
 
-      const forceFetchCards = store.get(gameData).playersLeftToJoin <= 1
+      const forceFetchCards = store.get(store.gameData).playersLeftToJoin <= 1
       void refreshGameData({ forceFetchCards })
       break
     }

@@ -9,13 +9,13 @@
 import { Address } from "src/chain"
 import { ErrorConfig, FetchedGameData, GameStatus } from "src/types"
 import { useAtom, useAtomValue } from "jotai"
-import * as atoms from "src/store/atoms"
+import * as store from "src/store/atoms"
 
 // =================================================================================================
 
 /** Player address — the connected wallet address. */
 export function usePlayerAddress(): Address {
-  return useAtomValue(atoms.playerAddress)
+  return useAtomValue(store.playerAddress)
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -27,14 +27,14 @@ export function usePlayerAddress(): Address {
  * to clear the game data (by passing null).
  */
 export function useGameID(): [bigint|null, (ID: bigint|null) => void] {
-  return useAtom(atoms.gameID)
+  return useAtom(store.gameID)
 }
 
 // -------------------------------------------------------------------------------------------------
 
 /** The current state of the game. */
 export function useGameData(): FetchedGameData {
-  return useAtomValue(atoms.gameData)
+  return useAtomValue(store.gameData)
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -46,7 +46,7 @@ export function useGameData(): FetchedGameData {
  * Returns the current value and a function that can be used to indicate we visited the game board.
  */
 export function useHasVisitedBoard(): [boolean, () => void] {
-  const [ value, setValue ] = useAtom(atoms.hasVisitedBoard)
+  const [ value, setValue ] = useAtom(store.hasVisitedBoard)
   return [ value, () => setValue(true) ]
 }
 
@@ -54,28 +54,28 @@ export function useHasVisitedBoard(): [boolean, () => void] {
 
 /** If non-null, the configuration of an error modal to be displayed. */
 export function useErrorConfig(): ErrorConfig|null {
-  return useAtomValue(atoms.errorConfig)
+  return useAtomValue(store.errorConfig)
 }
 
 // -------------------------------------------------------------------------------------------------
 
 /** Current game status (CREATED, JOINED, STARTED, etc) */
 export function useGameStatus(): GameStatus {
-  return useAtomValue(atoms.gameStatus)
+  return useAtomValue(store.gameStatus)
 }
 
 // -------------------------------------------------------------------------------------------------
 
 /** True if we have created the current game. */
 export function useIsGameCreator(): boolean {
-  return useAtomValue(atoms.isGameCreator)
+  return useAtomValue(store.isGameCreator)
 }
 
 // -------------------------------------------------------------------------------------------------
 
 /** True if we have have joined BUT are not the creator of the current game. */
 export function useIsGameJoiner(): boolean {
-  return useAtomValue(atoms.isGameJoiner)
+  return useAtomValue(store.isGameJoiner)
 }
 
 // =================================================================================================
