@@ -81,11 +81,11 @@ const ModalInner = ({ ctrl, children }: { ctrl: ModalController, children: React
 
   return <>
     <div
-        className={`modal modal-open ${ctrl.state.surroundCloseable ? "cursor-pointer" : ""}`}
+        className={`modal modal-open justify-content ${ctrl.state.surroundCloseable ? "cursor-pointer" : ""}`}
         onClick={state.surroundCloseable ? ctrl.close : undefined}
-        style={{display: displayed ? "flex" : "none"}}
+        style={{display: displayed ? "inherit" : "none"}}
     >
-      <div className="modal-box relative border-white border cursor-default z-10">
+      <div className="modal-box border-white border cursor-default z-10">
         {state.closeable &&
           <button className="btn btn-sm btn-circle absolute right-2 top-2" onClick={ctrl.close}>
             ✕
