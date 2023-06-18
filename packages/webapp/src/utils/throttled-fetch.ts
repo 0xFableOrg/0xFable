@@ -11,6 +11,27 @@ const defaultThrottlePeriod = 2000
 
 // -------------------------------------------------------------------------------------------------
 
+/** Returned by {@link throttledFetch} when a rejected because of throttling. */
+export const THROTTLED = Symbol("THROTTLED")
+
+/** Returned by {@link throttledFetch} when a fetch is rejected because it is a zombie. */
+export const ZOMBIE = Symbol("ZOMBIE")
+
+/**
+ * Type returned by {@link throttledFetch}, which can be the result type, {@link THROTTLED} or
+ * {@link ZOMBIE}.
+ */
+export type Fetched<Result> = Result | typeof THROTTLED | typeof ZOMBIE
+
+// -------------------------------------------------------------------------------------------------
+
+// NOTE(norswap): Throttling was designed with the idea in mind that we would always emit a fetch
+// for the data we need when we don't have it. The architecture has changed a bit and now we only
+// fetch the game data, and we only do that when we have a sign that it's needed, or we're retrying,
+// or in case of the safety fallback fetch on a timer (not yet implemented). As such, there should
+// never be a case when we actually need to throttle anything, and we might consider deleting this
+// code.
+
 /**
  * Returns a function wrapping {@link fetchFn} that will be throttled so that if another fetch (from
  * another call to the returned function) is in-flight, and less than {@link throttlePeriod}
@@ -27,7 +48,7 @@ const defaultThrottlePeriod = 2000
 export function throttledFetch
     <Params extends any[], Result>
     (fetchFn: (...args: Params) => Promise<Result>, throttlePeriod: number = defaultThrottlePeriod)
-    : (...args: Params) => Promise<Result>|null {
+    : (...args: Params) => Promise<Fetched<Result>> {
 
   // Used for throttling
   let lastRequestTimestamp = 0

@@ -206,6 +206,7 @@ contract Game {
         uint8 currentPlayer;
         GameStep currentStep;
         address attackingPlayer;
+        uint256[] cards;
     }
 
     // =============================================================================================
@@ -331,7 +332,7 @@ contract Game {
 
     // Returns a subset of `GameData` members, excluding non-readable members (mapping, function),
     // and the cards array that never changes. Use `getCards()` to read them instead.
-    function fetchGameData(uint256 gameID) external view returns(FetchedGameData memory) {
+    function fetchGameData(uint256 gameID, bool fetchCards) external view returns(FetchedGameData memory) {
         GameData storage gdata = gameData[gameID];
         PlayerData[] memory pData = new PlayerData[](gdata.players.length);
         for (uint8 i = 0; i < gdata.players.length; ++i)
@@ -347,7 +348,8 @@ contract Game {
             livePlayers: gdata.livePlayers,
             currentPlayer: gdata.currentPlayer,
             currentStep: gdata.currentStep,
-            attackingPlayer: gdata.attackingPlayer
+            attackingPlayer: gdata.attackingPlayer,
+            cards : fetchCards ? gdata.cards : new uint256[](0)
         });
     }
 
