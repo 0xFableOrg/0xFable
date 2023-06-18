@@ -10,12 +10,13 @@ import { getDefaultStore } from "jotai"
 import { getAccount, getNetwork, watchAccount, watchNetwork } from "wagmi/actions"
 
 import { subscribeToGame } from "src/store/subscriptions"
-import { GameStatus, type FetchedGameData } from "src/types"
+import { type FetchedGameData, GameStatus } from "src/types"
 import { AccountResult, chains, NetworkResult } from "src/chain"
 import { formatTimestamp } from "src/utils/js-utils"
 import * as atoms from "src/store/atoms"
 import { Address } from "wagmi"
 import * as net from "src/store/network"
+import { THROTTLED, ZOMBIE } from "src/utils/throttled-fetch"
 
 // =================================================================================================
 // INITIALIZATION
@@ -164,42 +165,6 @@ function isStaleVerbose(ID: bigint, player: Address): boolean {
 // -------------------------------------------------------------------------------------------------
 
 /**
- * Fetches the game data or the given game ID and player address, and updates the store with the
- * fetched data (if not throttled, zombie, or stale). Returns the fetched data.
- */
-async function updateGameData(ID: bigint, player: Address): Promise<FetchedGameData> {
-  const gameData = await net.fetchGameData(ID)
-  if (gameData === null || isStale(ID, player)) return
-
-  const timestamp = Date.now()
-  console.groupCollapsed(`updated game data (at ${formatTimestamp(timestamp)})`)
-  console.dir(gameData)
-  console.groupEnd()
-
-  const oldGameData = store.get(atoms.gameData)
-  if (oldGameData !== null && oldGameData.lastBlockNum >= gameData.lastBlockNum)
-    // We already have more or as recent data, no need to trigger a store update.
-    return oldGameData
-
-  store.set(atoms.gameData, gameData)
-  return gameData
-}
-
-// -------------------------------------------------------------------------------------------------
-
-/**
- * Fetches the game cards for the given game ID and player address (if not throttled, zombie, or
- * stale). Returns the fetched cards.
- */
-async function fetchCards(ID: bigint, player: Address): Promise<readonly bigint[]> {
-  const cards = await net.fetchCards(ID)
-  if (cards === null || isStale(ID, player)) return
-  return cards
-}
-
-// -------------------------------------------------------------------------------------------------
-
-/**
  * Triggers a refresh of the game data, setting the {@link atoms.gameData} atom. If the game ID or
  * the player changes the while the refresh is in flight, the refresh is ignored.
  *
@@ -211,32 +176,45 @@ async function fetchCards(ID: bigint, player: Address): Promise<readonly bigint[
  * we should update the cards.
  */
 export async function refreshGameData({ forceFetchCards = false } = {}) {
-  const ID = store.get(atoms.gameID)
+  const gameID = store.get(atoms.gameID)
   const player = store.get(atoms.playerAddress)
 
-  if (ID === null) {
+  if (gameID === null) {
     console.error("refreshGameData called with null ID")
     return
   }
 
   const shouldFetchCards = shouldUpdateCards() || forceFetchCards
 
-  if (!shouldFetchCards) {
-    void updateGameData(ID, player)
-  } else {
-    // We need the game data in order to update the cards in the store.
-    const gameDataPromise = updateGameData(ID, player)
-    const cardsPromise = fetchCards(ID, player)
-    const gameData = await gameDataPromise
-    const cards = await cardsPromise
-    if (shouldUpdateCards()) {
-      // Don't (re)assign if cards were fetched in the meantime or if the game isn't started yet.
-      const decks = gameData.playerData.map(pdata => cards.slice(pdata.deckStart, pdata.deckEnd))
-      store.set(atoms.gameCards, {gameID: ID, cards, decks})
-      const timestamp = Date.now()
-      console.log(`updated cards (at ${formatTimestamp(timestamp)})`)
-    }
+  const gameData = await net.fetchGameData(gameID, shouldFetchCards)
+
+  if (gameData === ZOMBIE || gameData == THROTTLED || isStaleVerbose(gameID, player))
+    // Either game changed (stale), or there should be a request in flight that will give us the
+    // data (throttled), or we should have more recent data (zombie).
+    return
+
+  const oldGameData = store.get(atoms.gameData)
+  if (oldGameData !== null && oldGameData.lastBlockNum >= gameData.lastBlockNum)
+    // We already have more or as recent data, no need to trigger a store update.
+    return oldGameData
+
+  store.set(atoms.gameData, gameData)
+
+  if (shouldFetchCards) {
+    const cards = gameData.cards
+    const decks = gameData.playerData.map(pdata => cards.slice(pdata.deckStart, pdata.deckEnd))
+    store.set(atoms.gameCards, {gameID, cards, decks})
   }
+
+  const timestamp = Date.now()
+  console.groupCollapsed(
+    "updated game data " +
+    (shouldFetchCards ? "(including cards) " : "") +
+    `(at ${formatTimestamp(timestamp)})`)
+  console.dir(gameData)
+  console.groupEnd()
+
+  return gameData
 }
 
 // =================================================================================================

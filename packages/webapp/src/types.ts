@@ -75,6 +75,10 @@ export type FetchedGameData = {
   currentPlayer: number
   currentStep: GameStep
   attackingPlayer: Address
+  /**
+   * Array of cards involved in the game, only included if requested, otherwise empty.
+   */
+  cards: readonly bigint[]
 }
 
 // -------------------------------------------------------------------------------------------------
