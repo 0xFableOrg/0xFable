@@ -6,23 +6,19 @@
 
 // =================================================================================================
 
-import { getDefaultStore } from "jotai"
 import { getAccount, getNetwork, watchAccount, watchNetwork } from "wagmi/actions"
 
 import { subscribeToGame } from "src/store/subscriptions"
 import { type FetchedGameData, GameStatus } from "src/types"
 import { AccountResult, chains, NetworkResult } from "src/chain"
 import { formatTimestamp } from "src/utils/js-utils"
-import * as atoms from "src/store/atoms"
+import * as store from "src/store/atoms"
 import { Address } from "wagmi"
 import * as net from "src/store/network"
 import { THROTTLED, ZOMBIE } from "src/utils/throttled-fetch"
 
 // =================================================================================================
 // INITIALIZATION
-
-// The frontend can only handle one game at a time, for which we use the default store.
-const store = getDefaultStore()
 
 // Only run setup once.
 let setupHasRun = false
@@ -45,12 +41,12 @@ export function setupStore() {
 
   // The game ID can change from actions in this tab, but also in other tabs, or can be retrieved
   // from the storage upon boot, so we need to listen to the storage.
-  store.sub(atoms.gameID, () => {
-    gameIDListener(store.get(atoms.gameID))
+  store.store.sub(store.gameID, () => {
+    gameIDListener(store.get(store.gameID))
   })
 
   // Make sure we don't miss the initial value, if already set.
-  const gameID = store.get(atoms.gameID)
+  const gameID = store.get(store.gameID)
   if (gameID !== null)
     gameIDListener(gameID)
 }
@@ -63,13 +59,13 @@ export function setupStore() {
  * wallet is disconnected, as well as the game data.
  */
 function updatePlayerAddress(result: AccountResult) {
-  const oldAddress = store.get(atoms.playerAddress)
+  const oldAddress = store.get(store.playerAddress)
   // normalize to null (never undefined)
   const newAddress = result.status === 'disconnected' ? null : (result.address || null)
 
   if (oldAddress !== newAddress && isNetworkValid()) {
     console.log(`player address changed from ${oldAddress} to ${newAddress}`)
-    store.set(atoms.playerAddress, newAddress)
+    store.set(store.playerAddress, newAddress)
 
     // TODO the below should go away if we stop saving the gameID in browser storage and just fetch
     //      the gameID a player is in instead
@@ -80,7 +76,7 @@ function updatePlayerAddress(result: AccountResult) {
     // If the old address is null, there is also nothing to reset (excepted at load).
     if (oldAddress !== null)
       // New player means current game & game data is stale, reset it.
-      store.set(atoms.gameID, null)
+      store.set(store.gameID, null)
   }
 }
 
@@ -100,7 +96,7 @@ function isNetworkValid(network: NetworkResult = getNetwork()) {
 function updateNetwork(result: NetworkResult) {
   console.log(`network changed to chain with ID ${result.chain?.id}`)
   if (!isNetworkValid(result)) {
-    store.set(atoms.gameID, null) // resets all game data
+    store.set(store.gameID, null) // resets all game data
   }
 }
 
@@ -122,8 +118,8 @@ function gameIDListener(ID: bigint|null) {
   console.log(`transitioning to game ID ${ID}`)
 
   // avoid using inconsistent data
-  store.set(atoms.gameData, null as FetchedGameData)
-  store.set(atoms.hasVisitedBoard, false)
+  store.set(store.gameData, null as FetchedGameData)
+  store.set(store.hasVisitedBoard, false)
 
   subscribeToGame(ID) // will unusubscribe if ID is null
   if (ID !== null)
@@ -138,7 +134,7 @@ function gameIDListener(ID: bigint|null) {
 
 /** If the game has started and we don't have the cards yet, we need to fetch them. */
 function shouldUpdateCards(): boolean {
-  return store.get(atoms.gameStatus) >= GameStatus.STARTED && store.get(atoms.gameCards) === null
+  return store.get(store.gameStatus) >= GameStatus.STARTED && store.get(store.gameCards) === null
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -149,8 +145,8 @@ function shouldUpdateCards(): boolean {
  * fetched data should be discarded.
  */
 function isStaleVerbose(ID: bigint, player: Address): boolean {
-  const storeID = store.get(atoms.gameID)
-  const storePlayer = store.get(atoms.playerAddress)
+  const storeID = store.get(store.gameID)
+  const storePlayer = store.get(store.playerAddress)
   if (player !== storePlayer) {
     console.log(`Rejected stale data with player ${player} (current: ${storePlayer})`)
     return true
@@ -165,19 +161,19 @@ function isStaleVerbose(ID: bigint, player: Address): boolean {
 // -------------------------------------------------------------------------------------------------
 
 /**
- * Triggers a refresh of the game data, setting the {@link atoms.gameData} atom. If the game ID or
+ * Triggers a refresh of the game data, setting the {@link store.gameData} atom. If the game ID or
  * the player changes the while the refresh is in flight, the refresh is ignored.
  *
  * If necessary ({@link shouldUpdateCards} returns true), also fetches the cards and updates the
- * {@link atoms.gameCards} atom accordingly.
+ * {@link store.gameCards} atom accordingly.
  *
  * @param forceFetchCards forces fetching the cards even though {@link shouldUpdateCards} initially
  * returns false. This is useful when we know that the new game data will move us to a state where
  * we should update the cards.
  */
 export async function refreshGameData({ forceFetchCards = false } = {}) {
-  const gameID = store.get(atoms.gameID)
-  const player = store.get(atoms.playerAddress)
+  const gameID = store.get(store.gameID)
+  const player = store.get(store.playerAddress)
 
   if (gameID === null) {
     console.error("refreshGameData called with null ID")
@@ -193,17 +189,17 @@ export async function refreshGameData({ forceFetchCards = false } = {}) {
     // data (throttled), or we should have more recent data (zombie).
     return
 
-  const oldGameData = store.get(atoms.gameData)
+  const oldGameData = store.get(store.gameData)
   if (oldGameData !== null && oldGameData.lastBlockNum >= gameData.lastBlockNum)
     // We already have more or as recent data, no need to trigger a store update.
     return oldGameData
 
-  store.set(atoms.gameData, gameData)
+  store.set(store.gameData, gameData)
 
   if (shouldFetchCards) {
     const cards = gameData.cards
     const decks = gameData.playerData.map(pdata => cards.slice(pdata.deckStart, pdata.deckEnd))
-    store.set(atoms.gameCards, {gameID, cards, decks})
+    store.set(store.gameCards, {gameID, cards, decks})
   }
 
   const timestamp = Date.now()
@@ -224,9 +220,9 @@ export async function refreshGameData({ forceFetchCards = false } = {}) {
 
 /** Check whether the game ID, player, or game state (if defined) shifted underneath us. */
 export function isStale(gameID: bigint, player: Address, gameData?: FetchedGameData): boolean {
-  return store.get(atoms.gameID) !== gameID
-    || store.get(atoms.playerAddress) !== player
-    || (gameData !== undefined && store.get(atoms.gameData).lastBlockNum !== gameData.lastBlockNum)
+  return store.get(store.gameID) !== gameID
+    || store.get(store.playerAddress) !== player
+    || (gameData !== undefined && store.get(store.gameData).lastBlockNum !== gameData.lastBlockNum)
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -248,8 +244,8 @@ export const STALE = Symbol("STALE")
  * changed.
  */
 export async function asyncWithGameContext<T>(fn: () => Promise<T>): Promise<T | typeof STALE> {
-  const gameID = store.get(atoms.gameID)
-  const player = store.get(atoms.playerAddress)
+  const gameID = store.get(store.gameID)
+  const player = store.get(store.playerAddress)
 
   const result = await fn()
 
@@ -270,9 +266,9 @@ export async function asyncWithGameContext<T>(fn: () => Promise<T>): Promise<T |
  * instead.
  */
 export async function asyncWithGameStateContext<T>(fn: () => Promise<T>): Promise<T | typeof STALE> {
-  const gameID = store.get(atoms.gameID)
-  const player = store.get(atoms.playerAddress)
-  const gameData = store.get(atoms.gameData)
+  const gameID = store.get(store.gameID)
+  const player = store.get(store.playerAddress)
+  const gameData = store.get(store.gameData)
 
   const result = await fn()
 
