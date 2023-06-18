@@ -1,5 +1,5 @@
 {
-  "name": "@cards/e2e",
+  "name": "@xfable/e2e",
   "version": "1.0.0",
   "private": "true",
   "type": "module",

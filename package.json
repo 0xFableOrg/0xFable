@@ -1,6 +1,6 @@
 {
-  "name": "@cards/monorepo",
-  "author": "cards-team",
+  "name": "@xfable/monorepo",
+  "author": "0xFable Team",
   "license": "BSD-3-Clause-Clear",
   "version": "1.0.0",
   "private": true,
