@@ -1,7 +1,8 @@
-import React, { ReactNode, RefObject, useState } from "react"
+import React, { ReactNode, RefObject, useEffect, useState } from "react"
 
 import { useEscapeKey } from "src/hooks/useEscapeKey"
 import { useIsMounted } from "src/hooks/useIsMounted"
+import { useErrorConfig } from "src/store/hooks"
 
 // =================================================================================================
 
@@ -47,6 +48,7 @@ export const Modal = ({ ctrl, children }: { ctrl: ModalController, children: Rea
 
   const [ loaded, setLoaded ] = useState(ctrl.state.loaded)
   const isMounted = useIsMounted()
+
   ctrl.setLoaded = setLoaded
   ctrl.isMounted = isMounted
 
@@ -64,11 +66,16 @@ const ModalInner = ({ ctrl, children }: { ctrl: ModalController, children: React
   const [ state, setState ] = useState(ctrl.state)
   ctrl.setState = setState
 
+  const errorConfig = useErrorConfig()
+
   if (!state.loaded)
-    console.error("Modal rendered but its display property is false")
+    console.error("Modal rendered but its loaded property is false")
+
+  // If an errorConfig is set, the modal should be hidden.
+  const displayed = state.displayed && (!errorConfig || state.displayedOnError)
 
   // If closeable and displayed, we can close the modal by pressing the escape key.
-  useEscapeKey(state.displayed && state.closeable, ctrl.close)
+  useEscapeKey(displayed && state.closeable, ctrl.close)
 
   // -----------------------------------------------------------------------------------------------
 
@@ -76,7 +83,7 @@ const ModalInner = ({ ctrl, children }: { ctrl: ModalController, children: React
     <div
         className={`modal modal-open ${ctrl.state.surroundCloseable ? "cursor-pointer" : ""}`}
         onClick={state.surroundCloseable ? ctrl.close : undefined}
-        style={{display: state.displayed ? "flex" : "none"}}
+        style={{display: displayed ? "flex" : "none"}}
     >
       <div className="modal-box relative border-white border cursor-default z-10">
         {state.closeable &&
@@ -110,16 +117,36 @@ export function useModalController(initial: Partial<ModalState>): ModalControlle
  * The state of a modal. See {@link Modal} for more detail on the modal's operation.
  */
 export type ModalState = {
-  /** Whether the modal is (initially) loaded (render function called, has React state). */
+  /**
+   * Whether the modal is loaded (render function called, has React state).
+   */
   loaded: boolean
-  /** Whether the modal is (initially) displayed if loaded (default: true). */
+  /**
+   * Whether the modal is displayed if loaded (default: true).
+   *
+   * The modal could still be hidden despite its `displayed` property being true if there is an
+   * error (i.e. an {@link ErrorConfig} is set).
+   */
   displayed: boolean
-  /** Whether the modal is (initially) closeable (default: true). */
+  /**
+   * Whether the modal is closeable (default: true).
+   */
   closeable: boolean
-  /** Whether the modal is (initially) closeable by clicking outside it, if closeable at all (default: true). */
+  /**
+   * Whether the modal is closeable by clicking outside it, if closeable at all
+   * (default: true).
+   */
   surroundCloseable: boolean
-  /** Whether closing the modal hides it instead of closing it, keeping it rendered in the DOM (default: false). */
+  /**
+   * Whether closing the modal hides it instead of closing it, keeping it rendered in the DOM
+   * (default: false).
+   */
   closingHides: boolean
+  /**
+   * Whether the modal should be displayed even if we're displaying an error, i.e. an {@link
+   * ErrorConfig} is set (default: false).
+   */
+  displayedOnError: boolean
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -169,6 +196,7 @@ export class ModalController {
       closeable: true,
       surroundCloseable: true,
       closingHides: false,
+      displayedOnError: false,
       ...initial
     }
     if (!this.state_.loaded)    this.state_.displayed = false

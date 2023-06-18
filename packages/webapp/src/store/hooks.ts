@@ -7,7 +7,7 @@
  * @module store/hooks
  */
 import { Address } from "src/chain"
-import { FetchedGameData, GameStatus } from "src/types"
+import { ErrorConfig, FetchedGameData, GameStatus } from "src/types"
 import { useAtom, useAtomValue } from "jotai"
 import * as atoms from "src/store/atoms"
 
@@ -48,6 +48,13 @@ export function useGameData(): FetchedGameData {
 export function useHasVisitedBoard(): [boolean, () => void] {
   const [ value, setValue ] = useAtom(atoms.hasVisitedBoard)
   return [ value, () => setValue(true) ]
+}
+
+// -------------------------------------------------------------------------------------------------
+
+/** If non-null, the configuration of an error modal to be displayed. */
+export function useErrorConfig(): ErrorConfig|null {
+  return useAtomValue(atoms.errorConfig)
 }
 
 // -------------------------------------------------------------------------------------------------

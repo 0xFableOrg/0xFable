@@ -116,6 +116,19 @@ export type PlayerCardsStore = {
   [gameID: string]: { [player: Address]: PlayerCards }
 }
 
+// -------------------------------------------------------------------------------------------------
+
+/** This configure the global error modal to display an error message. */
+export type ErrorConfig = {
+  title: string
+  message: string
+  onClose?: () => void
+  buttons: readonly {
+    text: string
+    onClick: () => void
+  }[]
+}
+
 // =================================================================================================
 // DERIVED DATA
 
