@@ -44,20 +44,4 @@ export const fetchCards: (ID: bigint) => Promise<readonly bigint[]|null> =
     })
   })
 
-// -------------------------------------------------------------------------------------------------
-
-/**
- * Fetches the randomness for the given block number, handling throttling and zombie updates, as
- * well as retries (via wagmi).
- */
-export const fetchRandomness: (blockNum: bigint) => Promise<bigint|null> =
-  throttledFetch(async (blockNum: bigint) => {
-    return BigInt(await readContract({
-      address: deployment.Game,
-      abi: gameABI,
-      functionName: "getRandomness",
-      args: [blockNum]
-    }))
-  })
-
 // =================================================================================================

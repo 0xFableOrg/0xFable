@@ -10,7 +10,7 @@ import { getDefaultStore } from "jotai"
 import { getAccount, getNetwork, watchAccount, watchNetwork } from "wagmi/actions"
 
 import { subscribeToGame } from "src/store/subscriptions"
-import { GameStatus, type FetchedGameData, currentPlayerAddress, getGameStatus } from "src/types"
+import { GameStatus, type FetchedGameData } from "src/types"
 import { AccountResult, chains, NetworkResult } from "src/chain"
 import { formatTimestamp } from "src/utils/js-utils"
 import * as atoms from "src/store/atoms"
@@ -123,7 +123,6 @@ function gameIDListener(ID: bigint|null) {
   // avoid using inconsistent data
   store.set(atoms.gameData, null as FetchedGameData)
   store.set(atoms.hasVisitedBoard, false)
-  store.set(atoms.randomness, null)
 
   subscribeToGame(ID) // will unusubscribe if ID is null
   if (ID !== null)
@@ -183,7 +182,6 @@ async function updateGameData(ID: bigint, player: Address): Promise<FetchedGameD
     return oldGameData
 
   store.set(atoms.gameData, gameData)
-  void updateRandomness(ID, player, gameData)
   return gameData
 }
 
@@ -202,45 +200,11 @@ async function fetchCards(ID: bigint, player: Address): Promise<readonly bigint[
 // -------------------------------------------------------------------------------------------------
 
 /**
- * Fetches the randomness for the given game ID, player address and block number (if not throttled,
- * zombie, or stale) and updates the store accordingly.
- */
-async function updateRandomness(ID: bigint, player: Address, gameData: FetchedGameData) {
-
-  // (1) The current player is not us, no need to fetch randomness.
-  // (2) The randomness is meaningless before the game starts.
-  //     (This should be covered by the player check, but let's be safe.)
-  if (player !== currentPlayerAddress(gameData)
-  ||  getGameStatus(gameData, player) < GameStatus.STARTED)
-  {
-    store.set(atoms.randomness, null) // not strictly necessary, doesn't hurt to be safe
-    return
-  }
-
-  // At this point, we know the gameData (hence its lastBlockNum) changed, and that the current
-  // player is us, so we need the randomness.
-
-  // Randomness is needed, but we do not have it yet. The previous value is incorrect, erase it.
-  store.set(atoms.randomness, null)
-
-  const randomness = await net.fetchRandomness(gameData.lastBlockNum)
-  if (randomness === null || isStale(ID, player)) return
-
-  const timestamp = Date.now()
-  console.log(`updated randomness (at ${formatTimestamp(timestamp)})`)
-
-  store.set(atoms.randomness, randomness)
-}
-
-// -------------------------------------------------------------------------------------------------
-
-/**
  * Triggers a refresh of the game data, setting the {@link atoms.gameData} atom. If the game ID or
  * the player changes the while the refresh is in flight, the refresh is ignored.
  *
  * If necessary ({@link shouldUpdateCards} returns true), also fetches the cards and updates the
- * {@link atoms.gameCards} atom accordingly. Similarly updates the randomness {@link
- * atoms.randomness} if needed.
+ * {@link atoms.gameCards} atom accordingly.
  *
  * @param forceFetchCards forces fetching the cards even though {@link shouldUpdateCards} initially
  * returns false. This is useful when we know that the new game data will move us to a state where

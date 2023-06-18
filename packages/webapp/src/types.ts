@@ -69,6 +69,7 @@ export type FetchedGameData = {
   players: readonly Address[]
   playerData: readonly PlayerData[]
   lastBlockNum: bigint
+  publicRandomness: bigint
   playersLeftToJoin: number
   livePlayers: readonly number[]
   currentPlayer: number
