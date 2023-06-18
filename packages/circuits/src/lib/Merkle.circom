@@ -4,8 +4,6 @@ include "../../node_modules/circomlib/circuits/mimcsponge.circom";
 include "../../node_modules/circomlib/circuits/bitify.circom";
 include "../../node_modules/circomlib/circuits/comparators.circom";
 
-
-// Computes Poseidon([left, right])
 template HashLeftRight() {
     signal input left;
     signal input right;
