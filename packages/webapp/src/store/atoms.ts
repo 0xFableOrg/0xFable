@@ -10,7 +10,7 @@
 import { atom, getDefaultStore } from "jotai"
 import { Address } from "src/chain"
 import { atomWithStorage } from "jotai/utils"
-import { ErrorConfig, FetchedGameData, GameCards, getGameStatus } from "src/types"
+import { ErrorConfig, FetchedGameData, GameCards, getGameStatus, PrivateInfoStore } from "src/types"
 
 // =================================================================================================
 // STORE
@@ -58,6 +58,20 @@ export const hasVisitedBoard = atom(false)
 
 // -------------------------------------------------------------------------------------------------
 
+// TODO persist this to browser storage!
+//   - needs provision for pruning this when game are completed
+//   - ... or do not even exist because we're running on a local devnet
+
+/**
+ * Store {@link PrivateInfo} in local storage, keyed by gameID (stringified) and player.
+ *
+ * This information cannot be derived from on-chain data, it's therefore important to persist it
+ * to browser storage in order to survive page reloads.
+ */
+export const privateInfoStore = atom({} as PrivateInfoStore)
+
+// -------------------------------------------------------------------------------------------------
+
 /** If non-null, an error modal will be displayed with the given configuration. */
 export const errorConfig = atom(null as ErrorConfig|null)
 
@@ -94,6 +108,7 @@ gameData.debugLabel         = "gameData"
 gameCards.debugLabel        = "gameCards"
 hasVisitedBoard.debugLabel  = "hasVisitedBoard"
 gameStatus.debugLabel       = "gameStatus"
+privateInfoStore.debugLabel = "privateInfoStore"
 errorConfig.debugLabel      = "errorConfig"
 gameStatus.debugLabel       = "gameStatus"
 isGameCreator.debugLabel    = "isGameCreator"

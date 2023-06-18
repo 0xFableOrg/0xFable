@@ -96,25 +96,49 @@ export type GameCards = {
 // -------------------------------------------------------------------------------------------------
 
 /**
- * The cards specific to a player, including the cards in their hand, the current
- * ordering of their deck as per updating rules after drawing cards, and their graveyard.
+ * The player's private info, i.e., his secret salt, the cards currently in their hand, as well as
+ * the current ordering of their deck as per updating rules after drawing cards.
  *
- * Note that the hand and the player deck are *private* information, and cannot be derived from
- * on-chain data.
+ * This information cannot be derived from on-chain data.
  */
-export type PlayerCards = {
+export type PrivateInfo = {
+  /** The player's secret salt, necessary to hide information. */
+  salt: bigint
+  /** The player's current hand. */
   hand: bigint[]
+  /** The player's current deck ordering. */
   deck: bigint[]
-  graveyard: bigint[]
+  /** Merkle root of {@link hand}. */
+  handRoot: bigint
+  /** Merkle root of {@link deck}. */
+  deckRoot: bigint
 }
 
 // -------------------------------------------------------------------------------------------------
 
 /**
- * For storing {@link PlayerCards} in local storage, keyed by gameID (stringified) and player.
+ * For storing {@link PrivateInfo} in local storage, keyed by gameID (stringified) and player.
  */
-export type PlayerCardsStore = {
-  [gameID: string]: { [player: Address]: PlayerCards }
+export type PrivateInfoStore = {
+  [gameID: string]: { [player: Address]: PrivateInfo }
+}
+
+// -------------------------------------------------------------------------------------------------
+
+/**
+ * Public view of the game board, derived from {@link FetchedGameData}.
+ */
+export type GameBoard = {
+  /**
+   * Cards in each player's graveyard in the game.
+   * Players are ordered as in {@link FetchedGameData.players}.
+   */
+  graveyard: bigint[][]
+  /**
+   * Cards on the battlefield, under the control of each player.
+   * Players are ordered as in {@link FetchedGameData.players}.
+   */
+  battlefield: bigint[][]
 }
 
 // -------------------------------------------------------------------------------------------------
