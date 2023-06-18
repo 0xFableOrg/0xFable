@@ -18,6 +18,9 @@ import { ErrorConfig, FetchedGameData, GameCards, getGameStatus } from "src/type
 /** The Jotai store instance that has all our atoms. */
 export const store = getDefaultStore()
 
+export const set = store.set
+export const get = store.get
+
 // =================================================================================================
 // READ/WRITE ATOMS
 
