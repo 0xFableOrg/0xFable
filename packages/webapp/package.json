@@ -11,6 +11,7 @@
     "@emotion/react": "^11.11.0",
     "@web3modal/ethereum": "^2.4.1",
     "@web3modal/react": "^2.4.1",
+    "circomlibjs": "^0.1.7",
     "jotai": "^2.1.0",
     "jotai-devtools": "^0.5.3",
     "lodash": "^4.17.21",
@@ -18,8 +19,9 @@
     "next-transpile-modules": "^10.0.0",
     "react": "18.2.0",
     "react-dom": "18.2.0",
-    "viem": "^0.3.31",
-    "wagmi": "^1.0.5"
+    "snarkjs": "^0.7.0",
+    "viem": "^1.0.7",
+    "wagmi": "^1.2.0"
   },
   "devDependencies": {
     "@swc-jotai/debug-label": "^0.0.10",
@@ -31,7 +33,7 @@
     "@types/react-dom": "^18.2.4",
     "@typescript-eslint/eslint-plugin": "^5.59.6",
     "@typescript-eslint/parser": "^5.59.6",
-    "@wagmi/cli": "^1.0.1",
+    "@wagmi/cli": "^1.2.0",
     "@welldone-software/why-did-you-render": "^7.0.1",
     "autoprefixer": "^10.4.14",
     "daisyui": "^2.51.6",
