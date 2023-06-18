@@ -84,14 +84,22 @@ template DrawHand(levels, initialHandSize) {
     deck === intermediateDecks[initialHandSize];
 
     // check the deck root matches the deck content after drawing
-    component checkNewDeck = CheckMerkleRoot(levels);
-    checkNewDeck.root <== deckRoot;
-    checkNewDeck.leaves <== deck;
+    component checkNewDeck = MiMCSponge(2**levels+1, 220, 1);
+    for (var i = 0; i < 2**levels; i++) {
+        checkNewDeck.ins[i] <== deck[i];
+    }
+    checkNewDeck.ins[2**levels] <== salt;
+    checkNewDeck.k <== 0;
+    checkNewDeck.outs[0] === deckRoot;
 
     // check the hand root matches the drawn cards
-    component checkNewHand = CheckMerkleRoot(levels);
-    checkNewHand.root <== handRoot;
-    checkNewHand.leaves <== hand;
+    component checkNewHand = MiMCSponge(2**levels+1, 220, 1);
+    for (var i = 0; i < 2**levels; i++) {
+        checkNewHand.ins[i] <== hand[i];
+    }
+    checkNewHand.ins[2**levels] <== salt;
+    checkNewHand.k <== 0;
+    checkNewHand.outs[0] === handRoot;
 }
 
 /**
