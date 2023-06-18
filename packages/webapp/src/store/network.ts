@@ -7,10 +7,11 @@
 
 import { readContract } from "wagmi/actions"
 
-import { gameABI } from "src/generated"
+import { gameABI, inventoryABI } from "src/generated"
 import { deployment } from "src/deployment"
 import { throttledFetch } from "src/utils/throttled-fetch"
 import { FetchedGameData } from "src/types"
+import { Address } from "src/chain"
 
 // =================================================================================================
 
@@ -43,5 +44,20 @@ export const fetchCards: (ID: bigint) => Promise<readonly bigint[]|null> =
       args: [ID]
     })
   })
+
+// -------------------------------------------------------------------------------------------------
+
+/**
+ * Fetches the deck with the given ID for the given player. This is only called once at the start of
+ * a game, and so doesn't need to handle throttling and zombies.
+ */
+export async function fetchDeck(player: Address, deckID: number): Promise<readonly bigint[]|null> {
+  return readContract({
+    address: deployment.Inventory,
+    abi: inventoryABI,
+    functionName: "getDeck",
+    args: [player, deckID]
+  })
+}
 
 // =================================================================================================
