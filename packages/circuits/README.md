@@ -12,6 +12,11 @@
 
 This only works on Linux currently.
 
+You'll also need to install the npm package `circom-helper`, either globally or locally (but don't
+commit to git). We removed it because it caused [build
+issues](https://github.com/norswap/0xFable/issues/53) on some configurations, and we're [moving away
+from it anyway](https://github.com/norswap/0xFable/issues/52).
+
 ```
 # only the first time
 make install-test-deps 
