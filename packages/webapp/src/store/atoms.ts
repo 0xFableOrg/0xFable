@@ -58,11 +58,6 @@ export const hasVisitedBoard = atom(false)
 
 // -------------------------------------------------------------------------------------------------
 
-/** Current randomness value. Only meaninfully defined if it's our turn! */
-export const randomness = atom(null as bigint|null)
-
-// -------------------------------------------------------------------------------------------------
-
 /** If non-null, an error modal will be displayed with the given configuration. */
 export const errorConfig = atom(null as ErrorConfig|null)
 
@@ -99,7 +94,6 @@ gameData.debugLabel         = "gameData"
 gameCards.debugLabel        = "gameCards"
 hasVisitedBoard.debugLabel  = "hasVisitedBoard"
 gameStatus.debugLabel       = "gameStatus"
-randomness.debugLabel       = "randomness"
 errorConfig.debugLabel      = "errorConfig"
 gameStatus.debugLabel       = "gameStatus"
 isGameCreator.debugLabel    = "isGameCreator"

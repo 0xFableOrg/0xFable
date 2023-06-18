@@ -200,6 +200,7 @@ contract Game {
         address[] players;
         PlayerData[] playerData;
         uint256 lastBlockNum;
+        uint256 publicRandomness;
         uint8 playersLeftToJoin;
         uint8[] livePlayers;
         uint8 currentPlayer;
@@ -341,6 +342,7 @@ contract Game {
             players: gdata.players,
             playerData: pData,
             lastBlockNum: gdata.lastBlockNum,
+            publicRandomness : getPublicRandomness(gameID),
             playersLeftToJoin: gdata.playersLeftToJoin,
             livePlayers: gdata.livePlayers,
             currentPlayer: gdata.currentPlayer,
@@ -365,9 +367,9 @@ contract Game {
 
     // ---------------------------------------------------------------------------------------------
 
-    // Returns the current randomness for the game — used to draw cards.
-    function getRandomness(uint256 gameID) public view returns(bytes32) {
-        return blockhash(gameData[gameID].lastBlockNum);
+    // Returns the current public randomness for the game — used to draw cards.
+    function getPublicRandomness(uint256 gameID) public view returns(uint256) {
+        return uint256(blockhash(gameData[gameID].lastBlockNum));
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -511,8 +513,9 @@ contract Game {
     }
 
     // ---------------------------------------------------------------------------------------------
+
     // Function for player to commit a salt before the game starts.
-    function commitSalt(bytes32 salt) public {
+    function commitSalt(bytes32 salt) external {
         if (salts[msg.sender] != 0)
             revert SaltAlreadyCommitted(salts[msg.sender]);
         salts[msg.sender] = salt;
@@ -531,6 +534,10 @@ contract Game {
         PlayerData storage pdata = gdata.playerData[msg.sender];
         if (pdata.handRoot != 0)
             revert AlreadyJoined();
+
+        // TODO just for testing
+        salts[msg.sender] = bytes32(uint256(42));
+
         if (salts[msg.sender] == 0)
             revert SaltNotCommitted();
 
@@ -556,7 +563,7 @@ contract Game {
         bytes32 initialDeckRoot = pdata.deckRoot;
         pdata.deckRoot = deckRoot;
 
-        uint256 randomness = uint256(getRandomness(gameID));
+        uint256 randomness = uint256(getPublicRandomness(gameID));
         uint256 committedSalt = uint256(salts[msg.sender]);
         checkInitialHandProof(pdata, initialDeckRoot, randomness, committedSalt, proof);
 
