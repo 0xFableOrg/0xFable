@@ -67,6 +67,17 @@ export function shallowCompare(obj1: object, obj2: object): boolean {
 
   return true
 }
+// -------------------------------------------------------------------------------------------------
+
+/**
+ * Parses a bigint-compatible value into a bigint.
+ */
+export function parseBigInt(value: string|number|bigint|Uint8Array): bigint {
+  if (typeof value === "bigint") return value
+  if (value instanceof Uint8Array)
+    return BigInt("0x" + Array.from(value).map(byte => byte.toString(16).padStart(2, "0")).join(""))
+  return BigInt(value).valueOf()
+}
 
 // -------------------------------------------------------------------------------------------------
 
@@ -74,11 +85,11 @@ export function shallowCompare(obj1: object, obj2: object): boolean {
  * Parses a bigint-compatible value into a bigint.
  * Returns null if the value is null or if it cannot be parsed.
  */
-export function parseBigInt(value: string|number|bigint): bigint {
-  if (value == null) return null
+export function parseBigIntOrNull(value: string|number|bigint|Uint8Array|null): bigint|null {
+  if (value === null) return null
   try {
-    return BigInt(value).valueOf()
-  } catch (e) {
+    return parseBigInt(value)
+  } catch(e) {
     return null
   }
 }

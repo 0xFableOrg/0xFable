@@ -8,7 +8,7 @@ import { useGameWrite } from "src/hooks/useFableWrite"
 import * as store from "src/store/hooks"
 import { GameStatus } from "src/types"
 import { isStringPositiveInteger } from "src/utils/js-utils"
-import { parseBigInt } from "src/utils/js-utils"
+import { parseBigIntOrNull } from "src/utils/js-utils"
 import { Modal, ModalController, useModalController } from "src/components/lib/modal"
 import { LoadingModalContent } from "src/components/lib/loadingModal"
 import { decodeEventLog } from "viem"
@@ -69,7 +69,7 @@ const JoinGameModalContent = ({ ctrl }: { ctrl: ModalController }) => {
     functionName: "joinGame",
     args: inputGameID
       ? [
-        parseBigInt(inputGameID),
+        parseBigIntOrNull(inputGameID),
         0, // deckID
         HashOne, // data for callback
         HashOne, // hand root
