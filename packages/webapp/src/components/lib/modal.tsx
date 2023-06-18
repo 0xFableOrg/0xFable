@@ -3,6 +3,7 @@ import React, { ReactNode, RefObject, useEffect, useState } from "react"
 import { useEscapeKey } from "src/hooks/useEscapeKey"
 import { useIsMounted } from "src/hooks/useIsMounted"
 import { useErrorConfig } from "src/store/hooks"
+import { createPortal } from "react-dom"
 
 // =================================================================================================
 
@@ -53,9 +54,11 @@ export const Modal = ({ ctrl, children }: { ctrl: ModalController, children: Rea
   ctrl.isMounted = isMounted
 
   return <>
-    {loaded && <ModalInner ctrl={ctrl}>
+    {loaded && createPortal(
+      <ModalInner ctrl={ctrl}>
       {children}
-    </ModalInner>}
+      </ModalInner>,
+      document.body)}
   </>
 }
 
@@ -79,11 +82,15 @@ const ModalInner = ({ ctrl, children }: { ctrl: ModalController, children: React
 
   // -----------------------------------------------------------------------------------------------
 
+  // NOTE(norswap): We're now using the <dialog> element for better accessibility. However, because
+  // we are not using dialog.showModal, we do not get the focus restriction to the modal or
+  // ESC-quitting.
+
   return <>
-    <div
-        className={`modal modal-open justify-content ${ctrl.state.surroundCloseable ? "cursor-pointer" : ""}`}
+    <dialog
+        className={`modal modal-open justify-center ${ctrl.state.surroundCloseable ? "cursor-pointer" : ""}`}
         onClick={state.surroundCloseable ? ctrl.close : undefined}
-        style={{display: displayed ? "inherit" : "none"}}
+        style={{display: displayed ? "flex" : "none"}}
     >
       <div className="modal-box border-white border cursor-default z-10">
         {state.closeable &&
@@ -96,7 +103,7 @@ const ModalInner = ({ ctrl, children }: { ctrl: ModalController, children: React
           {children}
         </div>
       </div>
-    </div>
+    </dialog>
   </>
 }
 
