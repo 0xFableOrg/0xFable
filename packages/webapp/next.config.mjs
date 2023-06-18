@@ -44,6 +44,11 @@ const nextConfig = {
       readline: false
     }
 
+    config.experiments = {
+      ...config.experiments,
+      topLevelAwait: true // enable await at top-level in modules
+    }
+
     // why did you render
     if (dev && !isServer) {
       const originalEntry = config.entry
