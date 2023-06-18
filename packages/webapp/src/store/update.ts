@@ -148,7 +148,7 @@ function shouldUpdateCards(): boolean {
  * store gameID and player address are different, meaning they change underneath the fetch and the
  * fetched data should be discarded.
  */
-function isStale(ID: bigint, player: Address): boolean {
+function isStaleVerbose(ID: bigint, player: Address): boolean {
   const storeID = store.get(atoms.gameID)
   const storePlayer = store.get(atoms.playerAddress)
   if (player !== storePlayer) {
@@ -273,6 +273,71 @@ export async function refreshGameData({ forceFetchCards = false } = {}) {
       console.log(`updated cards (at ${formatTimestamp(timestamp)})`)
     }
   }
+}
+
+// =================================================================================================
+// STALENESS CHECKS
+
+// -------------------------------------------------------------------------------------------------
+
+/** Check whether the game ID, player, or game state (if defined) shifted underneath us. */
+export function isStale(gameID: bigint, player: Address, gameData?: FetchedGameData): boolean {
+  return store.get(atoms.gameID) !== gameID
+    || store.get(atoms.playerAddress) !== player
+    || (gameData !== undefined && store.get(atoms.gameData).lastBlockNum !== gameData.lastBlockNum)
+}
+
+// -------------------------------------------------------------------------------------------------
+
+/**
+ * This symbol is returned by {@link asyncWithGameContext} and {@link asyncWithGameStateContext}
+ * when the state shifts underneath the asynchronous call.
+ */
+export const STALE = Symbol("STALE")
+
+// -------------------------------------------------------------------------------------------------
+
+/**
+ * This function calls `fn`, asynchronously returning its result, but only if the current game ID
+ * and player address haven't shifted underneath the call (which would mean we disconnected or
+ * switched to a completely different game). Otherwise, it returns {@link STALE}.
+ *
+ * Unlike {@link asyncWithGameStateContext}, this function does not check if the game state itself
+ * changed.
+ */
+export async function asyncWithGameContext<T>(fn: () => Promise<T>): Promise<T | typeof STALE> {
+  const gameID = store.get(atoms.gameID)
+  const player = store.get(atoms.playerAddress)
+
+  const result = await fn()
+
+  if (isStale(gameID, player))
+    return STALE
+
+  return result
+}
+
+// -------------------------------------------------------------------------------------------------
+
+/**
+ * This function calls `fn`, asynchronously returning its result, but only if the current game ID,
+ * player address and last block number for the game (hence, the game data in general) info haven't
+ * shifted underneath the call. Otherwise, it returns {@link STALE}.
+ *
+ * If you only want to check that the game & player didn't change, use {@link asyncWithGameContext}
+ * instead.
+ */
+export async function asyncWithGameStateContext<T>(fn: () => Promise<T>): Promise<T | typeof STALE> {
+  const gameID = store.get(atoms.gameID)
+  const player = store.get(atoms.playerAddress)
+  const gameData = store.get(atoms.gameData)
+
+  const result = await fn()
+
+  if (isStale(gameID, player, gameData))
+    return STALE
+
+  return result
 }
 
 // =================================================================================================
