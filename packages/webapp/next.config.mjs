@@ -40,7 +40,8 @@ const nextConfig = {
       ...config.resolve.fallback,
       fs: false,
       net: false,
-      tls: false
+      tls: false,
+      readline: false
     }
 
     // why did you render
