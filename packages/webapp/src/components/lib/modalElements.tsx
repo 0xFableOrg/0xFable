@@ -1,5 +1,3 @@
-import { Spinner } from "src/components/lib/spinner"
-
 // =================================================================================================
 
 export const ModalTitle = ({ children }) => {
@@ -8,9 +6,9 @@ export const ModalTitle = ({ children }) => {
 
 // -------------------------------------------------------------------------------------------------
 
-export const SpinnerWithMargin = () => {
+export const Spinner = () => {
   return <div className="flex justify-center my-8">
-    <Spinner />
+    <span className="loading loading-spinner loading-lg text-primary"></span>
   </div>
 }
 

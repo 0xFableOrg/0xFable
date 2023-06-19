@@ -3,7 +3,7 @@ import { useEffect, useState } from "react"
 import { decodeEventLog } from "viem"
 
 import { Modal, ModalController, useModalController } from "src/components/lib/modal"
-import { ModalMenuButton, ModalTitle, SpinnerWithMargin } from "src/components/lib/modalElements"
+import { ModalMenuButton, ModalTitle, Spinner } from "src/components/lib/modalElements"
 import { InGameMenuModalContent } from "src/components/modals/inGameMenuModalContent"
 import { gameABI } from "src/generated"
 import { useGameWrite } from "src/hooks/useFableWrite"
@@ -208,7 +208,7 @@ const CreateGameModalContent = ({ ctrl }: { ctrl: ModalController }) => {
       </button>
     </div>}
     {joined && <div className="flex flex-col justify-center gap-4 items-center">
-      <SpinnerWithMargin />
+      <Spinner />
       <button className="btn" disabled={!cancel} onClick={cancel}>
         Cancel Game
       </button>
