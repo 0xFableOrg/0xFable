@@ -1,6 +1,6 @@
 import { ReactNode } from "react"
 
-import { ModalTitle, SpinnerWithMargin } from "src/components/lib/modalElements"
+import { ModalTitle, Spinner } from "src/components/lib/modalElements"
 import { Modal, ModalController } from "src/components/lib/modal"
 
 // =================================================================================================
@@ -48,7 +48,7 @@ export const LoadingModalContent =
   return <>
     <ModalTitle>{loading}</ModalTitle>
     {children}
-    <SpinnerWithMargin />
+    <Spinner />
     {cancellable && <div className="flex justify-center">
       <button className="btn center" onClick={() => setLoading(null)}>
         Cancel
