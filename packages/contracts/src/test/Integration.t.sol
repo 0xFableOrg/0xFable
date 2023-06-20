@@ -1,14 +1,13 @@
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 pragma solidity ^0.8.0;
 
-import {CardsCollection} from "../CardsCollection.sol";
-import {DeckAirdrop} from "../DeckAirdrop.sol";
-import {Inventory} from "../Inventory.sol";
-import {InventoryCardsCollection} from "../InventoryCardsCollection.sol";
-import {Game} from "../Game.sol";
+import "../CardsCollection.sol";
+import "../Inventory.sol";
+import "../InventoryCardsCollection.sol";
+import "../Game.sol";
 
-import {Test} from "forge-std/Test.sol";
-import {Deploy} from "../deploy/Deploy.s.sol";
+import "forge-std/Test.sol";
+import "../deploy/Deploy.s.sol";
 
 contract Integration is Test {
     Deploy private deployment;
@@ -51,11 +50,8 @@ contract Integration is Test {
         vm.prank(player2);
         airdrop.claimAirdrop();
     }
-
-    function testGame() public {
-        uint256 gameID = 1;
-        // TODO
-        //game.createGame(2, game.allowAnyPlayerAndDeck);
+    
+    function gameSetup(uint256 gameID) internal {
         game.createGame(2);
         inventory.getDeck(player1, 0);
         vm.startPrank(player1);
@@ -66,6 +62,11 @@ contract Integration is Test {
         game.commitSalt(COMMITTED_SALT);
         game.joinGame(gameID, 0, bytes(""), HAND_ROOT, DECK_ROOT, PROOF);
         vm.stopPrank();
+    }
+
+    function testGame() public {
+        uint256 gameID = 1;
+        gameSetup(gameID);
 
         Game.PlayerData memory pdata;
         uint8[] memory size1array = new uint8[](1);
@@ -184,4 +185,5 @@ contract Integration is Test {
 
         vm.stopPrank();
     }
+
 }
