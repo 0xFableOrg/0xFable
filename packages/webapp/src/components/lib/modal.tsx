@@ -1,6 +1,5 @@
-import React, { ReactNode, RefObject, useEffect, useState } from "react"
+import React, { ReactNode, RefObject, useRef, useState } from "react"
 
-import { useEscapeKey } from "src/hooks/useEscapeKey"
 import { useIsMounted } from "src/hooks/useIsMounted"
 import { useErrorConfig } from "src/store/hooks"
 import { createPortal } from "react-dom"
@@ -70,25 +69,44 @@ const ModalInner = ({ ctrl, children }: { ctrl: ModalController, children: React
   ctrl.setState = setState
 
   const errorConfig = useErrorConfig()
-
-  if (!state.loaded)
-    console.error("Modal rendered but its loaded property is false")
+  const dialogRef = useRef(null)
 
   // If an errorConfig is set, the modal should be hidden.
   const displayed = state.displayed && (!errorConfig || state.displayedOnError)
 
-  // If closeable and displayed, we can close the modal by pressing the escape key.
-  useEscapeKey(displayed && state.closeable, ctrl.close)
+  // Doing the below dance to show the modal via `showModal` buys us a few things:
+  // - focus is restricted to the modal
+  // - ESC key closes the modal without custom code (though it's easy to setup) if desired
+
+  const dialogEscapeHandler = (event: Event) => {
+    if (!ctrl.state.closeable) // state from useState might be stale!
+      // don't close dialog on ESC if it's not closeable
+      event.preventDefault()
+    else
+      // in addition to closing the dialog (default behaviour), this will update the controller state
+      ctrl.close()
+  }
+
+  const dialogRefCallback = (dialog: HTMLDialogElement) => {
+    if (dialog === null) return
+    dialogRef.current = dialog
+    dialog.addEventListener('cancel', dialogEscapeHandler)
+    if (displayed && dialog.attributes["open"] === undefined)
+      // If the modal should be displayed but isn't.
+      dialog.showModal()
+    if (!displayed && dialog.attributes["open"] !== undefined)
+      // If the modal should be hidden but isn't.
+      dialog.close()
+  }
+
+  if (!state.loaded)
+    console.error("Modal rendered but its loaded property is false")
 
   // -----------------------------------------------------------------------------------------------
 
-  // NOTE(norswap): We're now using the <dialog> element for better accessibility. However, because
-  // we are not using dialog.showModal, we do not get the focus restriction to the modal or
-  // ESC-quitting.
-
   return <>
-    <dialog
-        className={`modal modal-open justify-center ${ctrl.state.surroundCloseable ? "cursor-pointer" : ""}`}
+    <dialog ref={dialogRefCallback}
+        className={`modal justify-center ${ctrl.state.surroundCloseable ? "cursor-pointer" : ""}`}
         onClick={state.surroundCloseable ? ctrl.close : undefined}
         style={{display: displayed ? "flex" : "none"}}
     >
