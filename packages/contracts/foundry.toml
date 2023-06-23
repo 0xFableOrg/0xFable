@@ -11,5 +11,11 @@ via_ir = false
 # allow all paths — necessary for pnpm
 allow_paths = ["/"]
 
+# Ignores the "unused-param" solidity warning, which triggers for Circom-generated code.
+# We are still checking for unused variables via `make lint-check`, so this is fine.
+# error code reference: https://book.getfoundry.sh/reference/config/solidity-compiler#ignored_error_codes
+ignored_error_codes = [5667]
+
 [profile.ci]
+# Gives super verbose output by default (-vvvv) when running tests on CI.
 verbosity = 4

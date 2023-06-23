@@ -6,9 +6,9 @@ import {DeckAirdrop} from "../DeckAirdrop.sol";
 import {Game} from "../Game.sol";
 import {Inventory} from "../Inventory.sol";
 import {InventoryCardsCollection} from "../InventoryCardsCollection.sol";
-import {DrawVerifier} from "../verifiers/DrawVerifier.sol";
-import {InitialVerifier} from "../verifiers/InitialVerifier.sol";
-import {PlayVerifier} from "../verifiers/PlayVerifier.sol";
+import {PlonkVerifier as DrawVerifier} from "../verifiers/DrawVerifier.sol";
+import {PlonkVerifier as DrawHandVerifier} from "../verifiers/DrawHandVerifier.sol";
+import {PlonkVerifier as PlayVerifier} from "../verifiers/PlayVerifier.sol";
 
 import {Script, console2} from "forge-std/Script.sol";
 import {Multicall3} from "multicall/Multicall3.sol";
@@ -21,7 +21,7 @@ contract Deploy is Script {
     InventoryCardsCollection public inventoryCardsCollection;
     DrawVerifier public drawVerifier;
     PlayVerifier public playVerifier;
-    InitialVerifier public initialVerifier;
+    DrawHandVerifier public drawHandVerifier;
     Game public game;
     DeckAirdrop public airdrop;
 
@@ -46,8 +46,8 @@ contract Deploy is Script {
         inventoryCardsCollection = inventory.inventoryCardsCollection();
         drawVerifier = new DrawVerifier();
         playVerifier = new PlayVerifier();
-        initialVerifier = new InitialVerifier();
-        game = new Game(inventory, drawVerifier, playVerifier, initialVerifier);
+        drawHandVerifier = new DrawHandVerifier();
+        game = new Game(inventory, drawVerifier, playVerifier, drawHandVerifier);
         airdrop = new DeckAirdrop(inventory);
 
         // initialize

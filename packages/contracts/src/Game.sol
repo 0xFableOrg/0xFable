@@ -3,9 +3,9 @@ pragma solidity ^0.8.0;
 
 import {Inventory} from "./Inventory.sol";
 import {CardsCollection, Stats} from "./CardsCollection.sol";
-import {DrawVerifier} from "./verifiers/DrawVerifier.sol";
-import {PlayVerifier} from "./verifiers/PlayVerifier.sol";
-import {InitialVerifier} from "./verifiers/InitialVerifier.sol";
+import {PlonkVerifier as DrawVerifier} from "./verifiers/DrawVerifier.sol";
+import {PlonkVerifier as DrawHandVerifier} from "./verifiers/DrawHandVerifier.sol";
+import {PlonkVerifier as PlayVerifier} from "./verifiers/PlayVerifier.sol";
 
 // Data + logic to play a game.
 // NOTE: We try to lay the groundwork to support games with over 2 players, however they are not
@@ -236,7 +236,7 @@ contract Game {
     // Draw card and play card verifiers.
     DrawVerifier public drawVerifier;
     PlayVerifier public playVerifier;
-    InitialVerifier public initialVerifier;
+    DrawHandVerifier public drawHandVerifier;
 
     // =============================================================================================
     // MODIFIERS
@@ -320,13 +320,13 @@ contract Game {
         Inventory inventory_,
         DrawVerifier drawVerifier_,
         PlayVerifier playVerifier_,
-        InitialVerifier initialVerifier_
+        DrawHandVerifier drawHandVerifier_
     ) {
         inventory = inventory_;
         cardsCollection = inventory.originalCardsCollection();
         drawVerifier = drawVerifier_;
         playVerifier = playVerifier_;
-        initialVerifier = initialVerifier_;
+        drawHandVerifier = drawHandVerifier_;
     }
 
     // =============================================================================================
@@ -515,17 +515,20 @@ contract Game {
         uint256 committedSalt,
         bytes calldata proof
     ) internal view {
+        if (address(drawVerifier) == address(0)) return;
+
         // construct circuit public signals
-        uint256[] memory pubSignals = new uint256[](5);
-        pubSignals[0] = uint256(initialDeckRoot);
-        pubSignals[1] = uint256(pdata.deckRoot);
-        pubSignals[2] = uint256(pdata.handRoot);
-        pubSignals[3] = committedSalt;
-        pubSignals[4] = randomness;
+        uint256[68] memory pubSignals;
+        // TODO copy deck in slots 0-63
+        pubSignals[64] = uint256(initialDeckRoot);
+        pubSignals[65] = uint256(pdata.handRoot); // TODO should be supplied as argument
+        pubSignals[66] = committedSalt;
+        pubSignals[67] = randomness;
 
         /// @dev currently bypass check for testing
         if (checkProof) {
-            if (!initialVerifier.verifyProof(proof, pubSignals)) {
+            uint256[24] memory _proof = abi.decode(proof, (uint256[24]));
+            if (!drawHandVerifier.verifyProof(_proof, pubSignals)) {
                 revert InvalidProof();
             }
         }
@@ -681,21 +684,23 @@ contract Game {
         PlayerData storage pdata,
         bytes32 handRoot,
         bytes32 deckRoot,
-        uint256 randomness,
+        uint256, /*randomness*/
         bytes calldata proof
     ) internal view {
         if (address(drawVerifier) == address(0)) return;
 
-        uint256[] memory pubSignals = new uint256[](5);
+        uint256[4] memory pubSignals;
         pubSignals[0] = uint256(pdata.deckRoot);
         pubSignals[1] = uint256(deckRoot);
         pubSignals[2] = uint256(pdata.handRoot);
         pubSignals[3] = uint256(handRoot);
-        pubSignals[4] = randomness;
+        // TODO
+        // pubSignals[4] = randomness;
 
         /// @dev currently bypass check for testing
         if (checkProof) {
-            if (!drawVerifier.verifyProof(proof, pubSignals)) {
+            uint256[24] memory _proof = abi.decode(proof, (uint256[24]));
+            if (!drawVerifier.verifyProof(_proof, pubSignals)) {
                 revert InvalidProof();
             }
         }
@@ -735,14 +740,15 @@ contract Game {
     {
         if (address(playVerifier) == address(0)) return;
 
-        uint256[] memory pubSignals = new uint256[](3);
+        uint256[3] memory pubSignals;
         pubSignals[0] = uint256(pdata.handRoot);
         pubSignals[1] = uint256(handRoot);
         pubSignals[2] = card;
 
         /// @dev currently bypass check for testing
         if (checkProof) {
-            if (!playVerifier.verifyProof(proof, pubSignals)) {
+            uint256[24] memory _proof = abi.decode(proof, (uint256[24]));
+            if (!playVerifier.verifyProof(_proof, pubSignals)) {
                 revert InvalidProof();
             }
         }
