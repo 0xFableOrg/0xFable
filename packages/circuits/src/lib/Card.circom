@@ -86,3 +86,26 @@ template RemoveCard(size) {
         updatedDeck[i] <== muxLastIndex[i].out[0];
     }
 }
+
+template AddCard(size) {
+
+    signal input index;
+    signal input card;
+    signal input deck[size];
+    signal output updatedDeck[size];
+
+    component isEqual[size];
+    component mux[size];
+    signal newHandInNum[size];
+    for (var i = 0; i < size; i++) {
+        isEqual[i] = IsEqual();
+        isEqual[i].in[0] <== i;
+        isEqual[i].in[1] <== index;
+        mux[i] = DualMux();
+        mux[i].in[0] <== deck[i];
+        mux[i].in[1] <== card;
+        mux[i].s <== isEqual[i].out;
+        updatedDeck[i] <== mux[i].out[0];
+    }
+
+}

@@ -28,7 +28,7 @@ include "../../node_modules/circomlib/circuits/bitify.circom";
  *   (replacing them with cards from the back of the deck and shrinking the deck)
  * - `salt` is the player's secret salt
  *
- * About 222k Plonk constraints.
+ * 21193 Plonk constraints.
  */
 template DrawHand(elementSize, initialHandSize) {
 
