@@ -24,7 +24,7 @@ C ?= Cards
 # Circuit Files Cheat Sheet:
 # Input-independent:
 # - <xxx>.ptau = universal trusted setup (powers of tau) file
-# - Verify<circuit>.sol = solidity contract to verify proofs for <circuit>
+# - <circuit>Verifier.sol = solidity contract to verify proofs for <circuit>
 # - <circuit>.r1cs = Rank 1 Constraint System constraints for <circuit>
 # - <circuit>.wasm = wasm code to generate the witness, for <circuit>
 # - <circuit>.sym = symbols file for debugging / printing annotated circuit, for <circuit>
@@ -66,7 +66,7 @@ install-test-deps:
 	out/%.proof.json trusted_setup/%.ptau
 
 # Build verifier contracts & all other outputs.
-all: out/VerifyDraw.sol out/VerifyDrawHand.sol out/VerifyPlay.sol
+all: out/DrawVerifier.sol out/DrawHandVerifier.sol out/PlayVerifier.sol
 .PHONY: build
 
 test-server:
@@ -87,19 +87,19 @@ clean:
 # Utility for circuit-specific commands, verifying the CIRCUIT variable is set.
 check-circuit-specified:
 	@if [ -z "$(CIRCUIT)" ]; then \
-		echo "Please specify the circuit to operate on, e.g. CIRCUIT=Cards make build"; \
+		echo "Please specify the circuit to operate on, e.g. CIRCUIT=Draw make build"; \
 		exit 1; \
 	fi
 .PHONY: check-circuit-specified
 
 # Build a specific circuit
 build: check-circuit-specified
-	make out/Verify$(CIRCUIT).sol out/$(CIRCUIT).vkey.json
+	make out/$(CIRCUIT)Verifier.sol out/$(CIRCUIT).vkey.json
 .PHONY: circuit
 
 # Delete outputs for a specific circuit
 delete: check-circuit-specified
-	rm -rf out/$(CIRCUIT).* out/Verify$(CIRCUIT).sol out/$(CIRCUIT)_js
+	rm -rf out/$(CIRCUIT).* out/$(CIRCUIT)Verifier.sol out/$(CIRCUIT)_js
 .PHONY: delete
 
 # Forces rebuilding a specific circuit
@@ -110,7 +110,7 @@ rebuild: delete build
 # packages.
 install: build
 	mkdir -p ../webapp/public/proofs
-	cp -f out/Verify$(CIRCUIT).sol ../contracts/src/
+	cp -f out/$(CIRCUIT)Verifier.sol ../contracts/src/verifiers/
 	cp -f out/$(CIRCUIT).zkey ../webapp/public/proofs/
 	cp -f out/$(CIRCUIT).vkey.json ../webapp/public/proofs/
 	cp -f out/$(CIRCUIT)_js/$(CIRCUIT).wasm ../webapp/public/proofs/
@@ -118,7 +118,7 @@ install: build
 
 # Uninstalls the relevant outputs for a specific circuit from the webapp and contracts packages.
 uninstall: check-circuit-specified
-	rm -f ../contracts/src/Verify$(CIRCUIT).sol
+	rm -f ../contracts/src/verifiers/$(CIRCUIT)Verifier.sol
 	rm -f ../webapp/public/proofs/$(CIRCUIT).zkey
 	rm -f ../webapp/public/proofs/$(CIRCUIT).vkey.json
 	rm -f ../webapp/public/proofs/$(CIRCUIT).wasm
@@ -131,14 +131,14 @@ reinstall: rebuild install
 ####################################################################################################
 # DEBUG
 
-# Display info & stats about circuit $C
-info:
-	pnpm snarkjs r1cs info out/$(C).r1cs
+# Display info & stats about circuit $CIRCUIT
+info: check-circuit-specified
+	pnpm snarkjs r1cs info out/$(CIRCUIT).r1cs
 .PHONY: info
 
-# Lists constraints for circuit $C
-constraints:
-	pnpm snarkjs r1cs print out/$(C).r1cs "out/$(C).sym"
+# Lists constraints for circuit $CIRCUIT
+constraints: check-circuit-specified
+	pnpm snarkjs r1cs print out/$(CIRCUIT).r1cs "out/$(CIRCUIT).sym"
 .PHONY: constraints
 
 # Generates a readable version of the constraints - for debugging purposes only
@@ -174,7 +174,7 @@ out/%.vkey.json: out/%.zkey
 	pnpm snarkjs zkey export verificationkey $< $@
 
 # Generate the verification contract logic
-out/Verify%.sol: out/%.zkey
+out/%Verifier.sol: out/%.zkey
 	@echo "## Generating $@"
 	pnpm snarkjs zkey export solidityverifier $< $@
 
