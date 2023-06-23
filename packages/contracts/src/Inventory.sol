@@ -8,6 +8,8 @@ import {InventoryCardsCollection} from "./InventoryCardsCollection.sol";
 
 import {Ownable} from "openzeppelin/access/Ownable.sol";
 
+import {Utils} from "./lib/Utils.sol";
+
 contract Inventory is Ownable {
     // =============================================================================================
     // ERRORS
@@ -34,7 +36,7 @@ contract Inventory is Ownable {
     // A player cannot add card, remove card, remove deck, replace deck, add card to deck, remove card from deck
     // while participating in a game
     error PlayerIsInActiveGame(address player);
-    
+
     // Number of card copies in a deck cannot exceed `MAX_CARD_COPY`
     error CardExceedsMaxCopy(uint256 cardID);
 
@@ -65,10 +67,10 @@ contract Inventory is Ownable {
     uint256 private constant MIN_DECK_SIZE = 10;
 
     // Max number of cards in a deck.
-    uint256 private constant MAX_DECK_SIZE = 40;
+    uint256 private constant MAX_DECK_SIZE = 64;
 
     // Max card copies in a deck.
-    uint256 constant private MAX_CARD_COPY = 3;
+    uint256 private constant MAX_CARD_COPY = 3;
 
     // =============================================================================================
     // TYPES
@@ -127,12 +129,11 @@ contract Inventory is Ownable {
         _;
     }
 
-     // ---------------------------------------------------------------------------------------------
+    // ---------------------------------------------------------------------------------------------
 
     // Checks that the player is not currently participating in any game.
     modifier notInGame(address player) {
-        if (game.playing(player))
-            revert PlayerIsInActiveGame(player);
+        if (game.playing(player)) revert PlayerIsInActiveGame(player);
         _;
     }
 
@@ -153,7 +154,7 @@ contract Inventory is Ownable {
 
     // ---------------------------------------------------------------------------------------------
 
-    function setGame(Game game_) onlyOwner external {
+    function setGame(Game game_) external onlyOwner {
         game = game_;
     }
 
@@ -222,9 +223,10 @@ contract Inventory is Ownable {
     // ---------------------------------------------------------------------------------------------
 
     // Remove the given deck for the sender, leaving the deck at the given ID empty.
-    function removeDeck(address player, uint8 deckID) 
-            external delegated(player) exists(player, deckID) notInGame(player) 
-    {
+    function removeDeck(
+        address player,
+        uint8 deckID
+    ) external delegated(player) exists(player, deckID) notInGame(player) {
         delete decks[player][deckID];
         emit DeckRemoved(player, deckID);
     }
@@ -233,8 +235,11 @@ contract Inventory is Ownable {
 
     // Replace the deck with the given ID. This can be a deck that was previously removed, granted
     // that there exists a deck with a higher ID. Emits events for deck removal and adding.
-    function replaceDeck(address player, uint8 deckID, Deck calldata deck)
-            external delegated(player) exists(player, deckID) notInGame(player) {
+    function replaceDeck(
+        address player,
+        uint8 deckID,
+        Deck calldata deck
+    ) external delegated(player) exists(player, deckID) notInGame(player) {
         _addDeck(player, deckID, deck);
         emit DeckRemoved(player, deckID);
         emit DeckAdded(player, deckID);
@@ -245,8 +250,11 @@ contract Inventory is Ownable {
     // Add the given card to the given deck. The player does not need to have the card in the
     // inventory to do this (however, if he does not, the deck will not be playable).
     // You can't remove a card from a deck if it would bring the size to above the maximum size.
-    function addCardToDeck(address player, uint8 deckID, uint256 cardID)
-            external delegated(player) exists(player, deckID) notInGame(player) {
+    function addCardToDeck(
+        address player,
+        uint8 deckID,
+        uint256 cardID
+    ) external delegated(player) exists(player, deckID) notInGame(player) {
         Deck storage deck = decks[player][deckID];
         if (deck.cards.length == MAX_DECK_SIZE) {
             revert BigDeckEnergy();
@@ -259,8 +267,11 @@ contract Inventory is Ownable {
 
     // Remove the card a the given index in the given deck.
     // You can't remove a card from a deck if it would bring the size to below the minimum size.
-    function removeCardFromDeck(address player, uint8 deckID, uint8 index)
-            external delegated(player) exists(player, deckID) notInGame(player) {
+    function removeCardFromDeck(
+        address player,
+        uint8 deckID,
+        uint8 index
+    ) external delegated(player) exists(player, deckID) notInGame(player) {
         Deck storage deck = decks[player][deckID];
         if (deck.cards.length == MIN_DECK_SIZE) {
             revert BigDeckEnergy();
@@ -276,18 +287,21 @@ contract Inventory is Ownable {
     // Checks that the player has all the cards in the given deck in the inventory.
     function checkDeck(address player, uint8 deckID) external view exists(player, deckID) {
         Deck memory deck = decks[player][deckID];
-        uint256 deckLength = deck.cards.length;
+        uint256[] memory sortedCards = Utils.sort(deck.cards);
+        uint256 deckLength = sortedCards.length;
+        uint256 cardCopies;
+        uint256 prev;
         for (uint256 i = 0; i < deckLength; ++i) {
-            uint256 cardID = deck.cards[i];
-            if (inventoryCardsCollection.ownerOf(cardID) != player) {
-                revert CardNotInInventory(cardID);
-                
-            // check that each card does not exceed its maximum amount of copies
-            uint256 cardCopies;
-            for (uint256 j = 0; j < deckLength; ++j) {
-                if (cardID == deck.cards[j]) ++cardCopies;
+            uint256 cardID = sortedCards[i];
+            if(cardID == prev){ 
+                cardCopies++;
+                // check that each card does not exceed its maximum amount of copies
+                if (cardCopies > MAX_CARD_COPY) revert CardExceedsMaxCopy(cardID);
+            } else {
+                if (inventoryCardsCollection.ownerOf(cardID) != player) revert CardNotInInventory(cardID);
+                cardCopies = uint256(1); 
             }
-            if (cardCopies > MAX_CARD_COPY) revert CardExceedsMaxCopy(cardID);
+            prev = sortedCards[i];
         }
         // NOTE(norswap): Deck size is implicitly checked when updating the deck.
     }
