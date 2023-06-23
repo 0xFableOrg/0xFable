@@ -1,6 +1,7 @@
 pragma circom 2.0.0;
 
 include "../lib/Merkle.circom";
+include "../lib/BytePacking.circom";
 
 include "../../node_modules/circomlib/circuits/comparators.circom";
 include "../../node_modules/circomlib/circuits/mimcsponge.circom";
@@ -55,25 +56,10 @@ template DrawHand(levels, initialHandSize) {
     randomness.k <== 0;
 
     // unpack initial deck
-    component unpackInitialDeck[2];
-    component convertToNum[64];
-    signal initialDeckInBits[512]; // 64 cards * 8 bits per card
+    component unpackDeck = UnpackCards(2);
     signal initialDeckInNum[64];
-    for (var i = 0; i < 2; i++) {
-        unpackInitialDeck[i] = Num2Bits(256);
-        unpackInitialDeck[i].in <== initialDeck[i];
-        for (var j = 0; j < 256; j++) {
-            initialDeckInBits[j + i*256] <== unpackInitialDeck[i].out[j];
-        }
-    }
-
-    for (var i = 0; i < 64; i++) {
-        convertToNum[i] = Bits2Num(8);
-        for (var j = 0; j < 8; j++) {
-            convertToNum[i].in[j] <== initialDeckInBits[j + i*8];
-        }
-        initialDeckInNum[i] <== convertToNum[i].out;
-    }
+    unpackDeck.packedCards <== initialDeck;
+    initialDeckInNum <== unpackDeck.unpackedCards;
 
     component drawCards[initialHandSize];
     signal divisors[initialHandSize];
@@ -104,24 +90,10 @@ template DrawHand(levels, initialHandSize) {
         // hand[i] === drawCards[i].selectedCard;
     }
 
-    // unpack intermidiateDEcks[initialHandSize]
-    component repackInitialDeck[2];
-    component convertToBits[64];
-    signal newDeckInBits[512]; // 64 cards * 8 bits per card
-    signal newDeckInNum[64];
-    for (var i = 0; i < 64; i++) {
-        convertToBits[i] = Num2Bits(8);
-        convertToBits[i].in <== intermediateDecks[initialHandSize][i];
-        for (var j = 0; j < 8; j++) {
-            newDeckInBits[j + i*8] <== convertToBits[i].out[j];
-        }
-    }
+    component packDeck = PackCards(2);
+    packDeck.unpackedCards <== intermediateDecks[initialHandSize];
     for (var i = 0; i < 2; i++) {
-        repackInitialDeck[i] = Bits2Num(256);
-        for (var j = 0; j < 256; j++) {
-            repackInitialDeck[i].in[j] <== newDeckInBits[j + i*256];
-        }
-        deck[i] === repackInitialDeck[i].out;
+        deck[i] === packDeck.packedCards[i];
     }
 
     // check the deck root matches the deck content after drawing
