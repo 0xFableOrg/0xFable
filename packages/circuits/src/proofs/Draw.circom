@@ -1,11 +1,12 @@
 pragma circom 2.0.0;
 
 include "../lib/Merkle.circom";
+include "../lib/Card.circom";
 include "./DrawHand.circom";
 
 template Draw(elementSize) {
     /// @dev levels do not include the top level root
-    /// 75 k constraints
+    /// 21777 constraints
 
     // public inputs
     signal input deckRoot;
@@ -15,6 +16,7 @@ template Draw(elementSize) {
     signal input saltHash;
     signal input publicRandom;
     signal input initialHandSize;
+    signal input lastIndex;
 
     // private inputs
     signal input salt;
@@ -67,20 +69,11 @@ template Draw(elementSize) {
 
     signal divisor;
 
-    // NOTE: This is buggy.
-    // This should use a new public signal giving the deck size, and be `deckSize - 1 - i`.
-    // Unfortunately, doing so would break the circuit because we rely on lastIndex being a
-    // compile-time constant. This is fixable, but requires to double the number of deck iterations
-    // (need to add an extra iteration to pick out the current last card).
-    var lastIndex = elementSize*32 - 1;
-    component drawCard = RemoveIndex(elementSize*32, lastIndex + 1);
-
-    // pick out a random card — we need to do the dance to prove the modulus
-    drawCard.index <-- randomness.outs[0] % lastIndex;
-    divisor <-- randomness.outs[0] \ lastIndex;
-    randomness.outs[0] === divisor * lastIndex + drawCard.index;
+    component drawCard = RemoveCard(elementSize*32);
 
     // update deck and hand
+    drawCard.lastIndex <== lastIndex;
+    drawCard.randomness <== randomness.outs[0];
     drawCard.deck <== initialDeckInNum;
     // pack the updated deck into 256-bit elements
     component packDeck = PackCards(elementSize);
@@ -89,21 +82,13 @@ template Draw(elementSize) {
         newDeck[i] === packDeck.packedCards[i];
     }
 
-    /// @dev I know the following code block (line 76-88) can be further optimized with RemoveIndex template to remove redundant looping
-    /// @dev but it only introduces 500 extra constraints, so for the purpose of this comparison, I'll leave it for now
-    component isEqual[elementSize*32];
-    component mux[elementSize*32];
+    // add selected card to hand
+    component updateHand = AddCard(elementSize*32);
     signal newHandInNum[elementSize*32];
-    for (var i = 0; i < elementSize*32; i++) {
-        isEqual[i] = IsEqual();
-        isEqual[i].in[0] <== i;
-        isEqual[i].in[1] <== initialHandSize;
-        mux[i] = DualMux();
-        mux[i].in[0] <== initialHandInNum[i];
-        mux[i].in[1] <== drawCard.selectedCard;
-        mux[i].s <== isEqual[i].out;
-        newHandInNum[i] <== mux[i].out[0];
-    }
+    updateHand.index <== initialHandSize;
+    updateHand.card <== drawCard.selectedCard;
+    updateHand.deck <== initialDeckInNum;
+    newHandInNum <== updateHand.updatedDeck;
 
     // pack the updated hand into 256-bit elements
     component packHand = PackCards(elementSize);
