@@ -2,10 +2,8 @@ pragma circom 2.0.0;
 
 include "../lib/Merkle.circom";
 include "../lib/Card.circom";
-include "./DrawHand.circom";
 
 template Draw(elementSize) {
-    /// @dev levels do not include the top level root
     /// 21777 constraints
 
     // public inputs
@@ -66,8 +64,6 @@ template Draw(elementSize) {
     signal initialHandInNum[elementSize*32];
     unpackHand.packedCards <== hand;
     initialHandInNum <== unpackHand.unpackedCards;
-
-    signal divisor;
 
     component drawCard = RemoveCard(elementSize*32);
 
