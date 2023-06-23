@@ -64,7 +64,6 @@ template DrawHand(elementSize, initialHandSize) {
     initialDeckInNum <== unpackDeck.unpackedCards;
 
     component drawCards[initialHandSize];
-    signal divisors[initialHandSize];
 
     // This will contain the deck as one card is being drawn (swapped out for last card) at a time.
     signal intermediateDecks[initialHandSize+1][elementSize*32];
