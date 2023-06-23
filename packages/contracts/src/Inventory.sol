@@ -295,7 +295,7 @@ contract Inventory is Ownable {
             uint256 cardID = sortedCards[i];
             if(cardID == prev){ 
                 cardCopies++;
-                // check that each card does not exceed its maximum amount of copies
+                // check that each card does not exceed its maximum amount of copies.
                 if (cardCopies > MAX_CARD_COPY) revert CardExceedsMaxCopy(cardID);
             } else {
                 if (inventoryCardsCollection.ownerOf(cardID) != player) revert CardNotInInventory(cardID);
