@@ -1,12 +1,9 @@
 pragma circom 2.0.0;
 
-include "../lib/Merkle.circom";
 include "../lib/BytePacking.circom";
 include "../lib/Card.circom";
 
-include "../../node_modules/circomlib/circuits/comparators.circom";
 include "../../node_modules/circomlib/circuits/mimcsponge.circom";
-include "../../node_modules/circomlib/circuits/bitify.circom";
 
 /**
  * This circuit is responsible for proving that the player drew the correct initial hand of cards.

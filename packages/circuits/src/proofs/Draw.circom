@@ -1,7 +1,9 @@
 pragma circom 2.0.0;
 
-include "../lib/Merkle.circom";
 include "../lib/Card.circom";
+include "../lib/BytePacking.circom";
+
+include "../../node_modules/circomlib/circuits/mimcsponge.circom";
 
 template Draw(elementSize) {
     /// 21777 constraints
