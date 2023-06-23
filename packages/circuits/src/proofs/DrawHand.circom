@@ -34,6 +34,7 @@ template DrawHand(elementSize, initialHandSize) {
 
     // public inputs
     signal input initialDeck[elementSize];
+    signal input lastIndex;
     signal input deckRoot;
     signal input handRoot;
     signal input saltHash;
@@ -71,11 +72,11 @@ template DrawHand(elementSize, initialHandSize) {
     intermediateDecks[0] <== initialDeckInNum;
 
     for (var i = 0; i < initialHandSize; i++) {
-        var lastIndex = elementSize*32 - 1 - i;
+        var currentLastIndex = lastIndex - i;
         drawCards[i] = RemoveCard(elementSize*32);
 
         // update deck and hand
-        drawCards[i].lastIndex <== lastIndex;
+        drawCards[i].lastIndex <== currentLastIndex;
         drawCards[i].randomness <== randomness.outs[0];
         drawCards[i].deck <== intermediateDecks[i];
         intermediateDecks[i+1] <== drawCards[i].updatedDeck;
