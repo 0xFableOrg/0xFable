@@ -1,9 +1,8 @@
 {
   "extends": "solhint:recommended",
-  "plugins": ["prettier"],
+
   "rules": {
-    "code-complexity": ["error", 8],
-    "compiler-version": ["error", ">=0.8.0"],
+    "compiler-version": ["error", ">=0.8.0 <0.8.20"],
     "const-name-snakecase": "off",
     "constructor-syntax": "error",
     "func-visibility": ["error", { "ignoreConstructors": true }],
@@ -12,11 +11,6 @@
     "no-empty-blocks": "off",
     "payable-fallback": "off",
     "reason-string": "off",
-    "prettier/prettier": [
-      "error",
-      {
-        "endOfLine": "auto"
-      }
-    ]
+    "code-complexity": "off"
   }
 }

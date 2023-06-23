@@ -45,16 +45,20 @@ clean:
 	forge clean
 .PHONY: clean
 
-# Solhint will run prettier (prettier plugin configured).
-# It also reports more details about prettier violation than prettier itself.
-lint-check:
-	pnpm solhint --config ./.solhint.json "src/**/*.sol"
-.PHONY: lint-check
+check: lint-check format-check
+.PHONY: check
+
+format-check:
+	forge fmt --check src/*.sol src/test/*.sol src/deploy/*.sol
+.PHONY: format-check
 
 lint:
-	pnpm prettier --check "src/**/*.sol" --write
-	pnpm solhint --config ./.solhint.json "src/**/*.sol" --fix
+	pnpm solhint --config ./.solhint.json "src/*.sol" "src/test/*.sol" "src/deploy/*.sol"
 .PHONY: lint
+
+format:
+	forge fmt src/*.sol src/test/*.sol src/deploy/*.sol
+.PHONY: format
 
 # The 1337 chain id matches chain.localhost in RainbowKit & "Localhost 8545" in MetaMask.
 anvil:

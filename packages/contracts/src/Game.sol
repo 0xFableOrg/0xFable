@@ -1,17 +1,16 @@
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 pragma solidity ^0.8.0;
 
-import "./Inventory.sol";
-import "./CardsCollection.sol";
-import "./DrawVerifier.sol";
-import "./PlayVerifier.sol";
-import "./InitialVerifier.sol";
+import {Inventory} from "./Inventory.sol";
+import {CardsCollection, Stats} from "./CardsCollection.sol";
+import {DrawVerifier} from "./verifiers/DrawVerifier.sol";
+import {PlayVerifier} from "./verifiers/PlayVerifier.sol";
+import {InitialVerifier} from "./verifiers/InitialVerifier.sol";
 
 // Data + logic to play a game.
 // NOTE: We try to lay the groundwork to support games with over 2 players, however they are not
 //   supported and will not work in the current state.
 contract Game {
-
     // =============================================================================================
     // ERRORS
 
@@ -140,10 +139,10 @@ contract Game {
     // =============================================================================================
     // CONSTANTS
 
-    uint16 constant STARTING_HEALTH = 20;
+    uint16 private constant STARTING_HEALTH = 20;
 
     // Marks the absence of index inside an index array.
-    uint8 constant NONE = 255;
+    uint8 private constant NONE = 255;
 
     // =============================================================================================
     // TYPES
@@ -213,10 +212,11 @@ contract Game {
     // FIELDS
 
     // Game IDs are attributed sequentially. Reserve 0 to stipulate absence of game.
-    uint256 nextID = 1;
+    uint256 private nextID = 1;
 
     // Boolean to indicate whether we should check zk proof
-    bool checkProof = false; ///@dev this should be set to true in production
+    bool private checkProof = false;
+    ///@dev this should be set to true in production
 
     // Maps game IDs to game data.
     mapping(uint256 => GameData) public gameData;
@@ -243,8 +243,9 @@ contract Game {
 
     // Check that the game exists (has been created and is not finished).
     modifier exists(uint256 gameID) {
-        if (gameData[gameID].lastBlockNum == 0)
+        if (gameData[gameID].lastBlockNum == 0) {
             revert NoGameNoLife();
+        }
         _;
     }
 
@@ -253,7 +254,6 @@ contract Game {
     // Checks that the game exists, that the requested step is compatible with the game state, and
     // that the next player is the message sender.
     modifier step(uint256 gameID, GameStep requestedStep) {
-
         // NOTE(norswap): This whole function is pretty fragile and must be revisited whenever the
         //   the step structure changes.
 
@@ -263,10 +263,12 @@ contract Game {
 
         GameData storage gdata = gameData[gameID];
 
-        if (gdata.lastBlockNum == 0)
+        if (gdata.lastBlockNum == 0) {
             revert NoGameNoLife();
-        if (gdata.players[gdata.currentPlayer] != msg.sender)
+        }
+        if (gdata.players[gdata.currentPlayer] != msg.sender) {
             revert WrongPlayer();
+        }
         if (block.number > 256 && gdata.lastBlockNum < block.number - 256) {
             // TODO(LATER): This is the max timeout, make shorter + implement a chess clock.
             // Action timed out: the player loses.
@@ -283,16 +285,16 @@ contract Game {
         //       conservative and avoid future problems arising from hidden assumptions.
 
         if (gdata.currentStep == GameStep.PLAY) {
-            if (requestedStep != GameStep.PLAY
-            && requestedStep != GameStep.ATTACK
-                && requestedStep != GameStep.PASS)
+            if (requestedStep != GameStep.PLAY && requestedStep != GameStep.ATTACK && requestedStep != GameStep.PASS) {
                 revert WrongStep();
+            }
         } else if (gdata.currentStep == GameStep.ATTACK) {
-            if (requestedStep != GameStep.ATTACK
-                && requestedStep != GameStep.PASS)
+            if (requestedStep != GameStep.ATTACK && requestedStep != GameStep.PASS) {
                 revert WrongStep();
-        } else if (gdata.currentStep != requestedStep)
+            }
+        } else if (gdata.currentStep != requestedStep) {
             revert WrongStep();
+        }
 
         _;
 
@@ -315,9 +317,9 @@ contract Game {
     // =============================================================================================
 
     constructor(
-        Inventory inventory_, 
-        DrawVerifier drawVerifier_, 
-        PlayVerifier playVerifier_, 
+        Inventory inventory_,
+        DrawVerifier drawVerifier_,
+        PlayVerifier playVerifier_,
         InitialVerifier initialVerifier_
     ) {
         inventory = inventory_;
@@ -332,24 +334,25 @@ contract Game {
 
     // Returns a subset of `GameData` members, excluding non-readable members (mapping, function),
     // and the cards array that never changes. Use `getCards()` to read them instead.
-    function fetchGameData(uint256 gameID, bool fetchCards) external view returns(FetchedGameData memory) {
+    function fetchGameData(uint256 gameID, bool fetchCards) external view returns (FetchedGameData memory) {
         GameData storage gdata = gameData[gameID];
         PlayerData[] memory pData = new PlayerData[](gdata.players.length);
-        for (uint8 i = 0; i < gdata.players.length; ++i)
+        for (uint8 i = 0; i < gdata.players.length; ++i) {
             pData[i] = gdata.playerData[gdata.players[i]];
+        }
         return FetchedGameData({
             gameID: gameID,
             gameCreator: gdata.gameCreator,
             players: gdata.players,
             playerData: pData,
             lastBlockNum: gdata.lastBlockNum,
-            publicRandomness : getPublicRandomness(gameID),
+            publicRandomness: getPublicRandomness(gameID),
             playersLeftToJoin: gdata.playersLeftToJoin,
             livePlayers: gdata.livePlayers,
             currentPlayer: gdata.currentPlayer,
             currentStep: gdata.currentStep,
             attackingPlayer: gdata.attackingPlayer,
-            cards : fetchCards ? gdata.cards : new uint256[](0)
+            cards: fetchCards ? gdata.cards : new uint256[](0)
         });
     }
 
@@ -357,33 +360,33 @@ contract Game {
 
     // Get the cards that will be used in the game. The results of this are undefined before the
     // game is started (i.e. the final player set is known).
-    function getCards(uint256 gameID) external view returns(uint256[] memory) {
+    function getCards(uint256 gameID) external view returns (uint256[] memory) {
         return gameData[gameID].cards;
     }
 
     // ---------------------------------------------------------------------------------------------
 
-    function playerData(uint256 gameID, address player) external view returns(PlayerData memory) {
+    function playerData(uint256 gameID, address player) external view returns (PlayerData memory) {
         return gameData[gameID].playerData[player];
     }
 
     // ---------------------------------------------------------------------------------------------
 
     // Returns the current public randomness for the game — used to draw cards.
-    function getPublicRandomness(uint256 gameID) public view returns(uint256) {
+    function getPublicRandomness(uint256 gameID) public view returns (uint256) {
         return uint256(blockhash(gameData[gameID].lastBlockNum));
     }
 
     // ---------------------------------------------------------------------------------------------
 
     // Returns the given player's deck listing.
-    function playerDeck(uint256 gameID, address player)
-    public view exists(gameID) returns(uint256[] memory) {
+    function playerDeck(uint256 gameID, address player) public view exists(gameID) returns (uint256[] memory) {
         GameData storage gdata = gameData[gameID];
         PlayerData storage pdata = gdata.playerData[player];
         uint256[] memory deck = new uint256[](pdata.deckEnd - pdata.deckStart);
-        for (uint256 i = 0; i < deck.length; ++i)
+        for (uint256 i = 0; i < deck.length; ++i) {
             deck[i] = gdata.cards[pdata.deckStart + i];
+        }
         return deck;
     }
 
@@ -393,8 +396,11 @@ contract Game {
     // ---------------------------------------------------------------------------------------------
 
     // To be used as callback for `createGame`, allow any player to join with any deck.
-    function allowAnyPlayerAndDeck(uint256 /*gameID*/, address /*player*/, uint8 /*deckID*/, bytes memory /*data*/)
-    external pure returns(bool) {
+    function allowAnyPlayerAndDeck(uint256, /*gameID*/ address, /*player*/ uint8, /*deckID*/ bytes memory /*data*/ )
+        external
+        pure
+        returns (bool)
+    {
         return true;
     }
 
@@ -404,18 +410,20 @@ contract Game {
     // check if a given player is allowed to join. For testing purposes, you can use the
     // `allowAnyPlayerInDeck` function in this contract. Joining the game must happen on a later
     // block than starting the game.
-    function createGame(
-        uint8 numberOfPlayers
+    function createGame(uint8 numberOfPlayers)
         // TODO this is very hard to encode in wagmi/ethers
         // , function (uint256, address, uint8, bytes memory) external returns (bool) joinCheck
-        ) external returns (uint256 gameID) {
-
-        unchecked { // for gas efficiency lol
+        external
+        returns (uint256 gameID)
+    {
+        unchecked {
+            // for gas efficiency lol
             gameID = nextID++;
         }
 
-        if (numberOfPlayers < 2)
+        if (numberOfPlayers < 2) {
             revert YoullNeverPlayAlone();
+        }
 
         GameData storage gdata = gameData[gameID];
         gdata.gameCreator = msg.sender;
@@ -440,18 +448,20 @@ contract Game {
     // Clear (zero) the contents of the array and make it zero-sized.
     function clear(uint8[] storage array) internal {
         // TODO should be done in assembly, avoiding to overwrite the size on every pop
-        for (uint256 i = 0; i < array.length; ++i)
+        for (uint256 i = 0; i < array.length; ++i) {
             array.pop();
+        }
     }
 
     // ---------------------------------------------------------------------------------------------
 
     // Deletes the game that we do not need anymore.
     // TODO: think about we might want to keep or not
-    function deleteGame(GameData storage gdata, uint256 /*gameID*/) internal {
+    function deleteGame(GameData storage gdata, uint256 /*gameID*/ ) internal {
         // clear cards
-        for (uint256 i = 0; i < gdata.cards.length; ++i)
+        for (uint256 i = 0; i < gdata.cards.length; ++i) {
             delete gdata.cards[i];
+        }
 
         // clear players and player data
         for (uint256 i = 0; i < gdata.players.length; ++i) {
@@ -480,10 +490,12 @@ contract Game {
     // Cancel a game you created, before it is started.
     function cancelGame(uint256 gameID) external {
         GameData storage gdata = gameData[gameID];
-        if (gdata.gameCreator != msg.sender)
+        if (gdata.gameCreator != msg.sender) {
             revert OvereagerCanceller();
-        if (gdata.playersLeftToJoin == 0)
+        }
+        if (gdata.playersLeftToJoin == 0) {
             revert GameAlreadyStarted();
+        }
         deleteGame(gdata, gameID);
         gdata.lastBlockNum = block.number;
     }
@@ -496,8 +508,13 @@ contract Game {
     // (swap removed card with last card, and truncate the array by one).
     //
     // The player's deck is cards[pdata.deckStart:pdata.deckEnd].
-    function checkInitialHandProof(PlayerData storage pdata, bytes32 initialDeckRoot,
-             uint256 randomness, uint256 committedSalt, bytes calldata proof) view internal {
+    function checkInitialHandProof(
+        PlayerData storage pdata,
+        bytes32 initialDeckRoot,
+        uint256 randomness,
+        uint256 committedSalt,
+        bytes calldata proof
+    ) internal view {
         // construct circuit public signals
         uint256[] memory pubSignals = new uint256[](5);
         pubSignals[0] = uint256(initialDeckRoot);
@@ -508,18 +525,19 @@ contract Game {
 
         /// @dev currently bypass check for testing
         if (checkProof) {
-            if (!initialVerifier.verifyProof(proof, pubSignals))
+            if (!initialVerifier.verifyProof(proof, pubSignals)) {
                 revert InvalidProof();
+            }
         }
-            
     }
 
     // ---------------------------------------------------------------------------------------------
 
     // Function for player to commit a salt before the game starts.
     function commitSalt(bytes32 salt) external {
-        if (salts[msg.sender] != 0)
+        if (salts[msg.sender] != 0) {
             revert SaltAlreadyCommitted(salts[msg.sender]);
+        }
         salts[msg.sender] = salt;
     }
 
@@ -529,24 +547,33 @@ contract Game {
     // means you agree with the deck listing that was reported by the `createGame` function.
     //
     // The data field is ignored for now (we allow any player to join any game).
-    function joinGame(uint256 gameID, uint8 deckID, bytes calldata data, bytes32 handRoot, bytes32 deckRoot,
-            bytes calldata proof) external {
-
+    function joinGame(
+        uint256 gameID,
+        uint8 deckID,
+        bytes calldata data,
+        bytes32 handRoot,
+        bytes32 deckRoot,
+        bytes calldata proof
+    ) external {
         GameData storage gdata = gameData[gameID];
         PlayerData storage pdata = gdata.playerData[msg.sender];
-        if (pdata.handRoot != 0)
+        if (pdata.handRoot != 0) {
             revert AlreadyJoined();
+        }
 
         // TODO just for testing
         salts[msg.sender] = bytes32(uint256(42));
 
-        if (salts[msg.sender] == 0)
+        if (salts[msg.sender] == 0) {
             revert SaltNotCommitted();
+        }
 
-        if (gdata.playersLeftToJoin == 0)
+        if (gdata.playersLeftToJoin == 0) {
             revert GameAlreadyStarted();
-        if (!gdata.joinCheck(gameID, msg.sender, deckID, data))
+        }
+        if (!gdata.joinCheck(gameID, msg.sender, deckID, data)) {
             revert NotAllowedToJoin();
+        }
         gdata.livePlayers.push(uint8(gdata.players.length));
         gdata.players.push(msg.sender);
 
@@ -556,8 +583,9 @@ contract Game {
         inventory.checkDeck(msg.sender, deckID);
         uint256[] memory deck = inventory.getDeck(msg.sender, deckID);
 
-        for (uint256 i = 0; i < deck.length; i++)
+        for (uint256 i = 0; i < deck.length; i++) {
             cards.push(deck[i]);
+        }
         pdata.deckEnd = uint8(cards.length);
 
         pdata.health = STARTING_HEALTH;
@@ -604,8 +632,9 @@ contract Game {
     // Let a player concede defeat.
     function concedeGame(uint256 gameID) public exists(gameID) {
         GameData storage gdata = gameData[gameID];
-        if (gdata.playerData[msg.sender].handRoot == 0)
+        if (gdata.playerData[msg.sender].handRoot == 0) {
             revert PlayerNotInGame();
+        }
 
         playerDefeated(gameID, msg.sender);
         emit PlayerConceded(gameID, msg.sender);
@@ -623,17 +652,20 @@ contract Game {
         // This is safe because we ascertained the player is in the game.
         bool shifting = false;
         uint8[] storage livePlayers = gdata.livePlayers;
-        for(uint256 i = 0; i < livePlayers.length - 1; i++){
-            if (gdata.players[livePlayers[i]] == player)
+        for (uint256 i = 0; i < livePlayers.length - 1; i++) {
+            if (gdata.players[livePlayers[i]] == player) {
                 shifting = true;
-            if (shifting)
-                livePlayers[i] = livePlayers[i+1];
+            }
+            if (shifting) {
+                livePlayers[i] = livePlayers[i + 1];
+            }
         }
         livePlayers.pop();
 
-        if (gdata.playerData[msg.sender].health == 0)
+        if (gdata.playerData[msg.sender].health == 0) {
             // If health is not zero, the player conceded, and a different event is emitted for that.
             emit PlayerDefeated(gameID, player);
+        }
 
         delete inGame[player];
         maybeEndGame(gdata, gameID);
@@ -645,9 +677,13 @@ contract Game {
     // according to `randomness`, and that `deckRoot` is a correctly updated version of
     // `pdata.deckRoot`, that removes the drawn card from the deck using fast array removal (swap
     // removed card with last card, and truncate the array by one).
-    function checkDrawProof(PlayerData storage pdata, bytes32 handRoot, bytes32 deckRoot,
-            uint256 randomness, bytes calldata proof) view internal {
-
+    function checkDrawProof(
+        PlayerData storage pdata,
+        bytes32 handRoot,
+        bytes32 deckRoot,
+        uint256 randomness,
+        bytes calldata proof
+    ) internal view {
         if (address(drawVerifier) == address(0)) return;
 
         uint256[] memory pubSignals = new uint256[](5);
@@ -659,18 +695,19 @@ contract Game {
 
         /// @dev currently bypass check for testing
         if (checkProof) {
-            if (!drawVerifier.verifyProof(proof, pubSignals))
+            if (!drawVerifier.verifyProof(proof, pubSignals)) {
                 revert InvalidProof();
+            }
         }
     }
 
     // ---------------------------------------------------------------------------------------------
 
     // Submit updated hand and deck roots after having drawn a card from the deck.
-    function drawCard
-            (uint256 gameID, bytes32 handRoot, bytes32 deckRoot, bytes calldata proof)
-            external step(gameID, GameStep.DRAW) {
-
+    function drawCard(uint256 gameID, bytes32 handRoot, bytes32 deckRoot, bytes calldata proof)
+        external
+        step(gameID, GameStep.DRAW)
+    {
         GameData storage gdata = gameData[gameID];
         PlayerData storage pdata = gdata.playerData[msg.sender];
         uint256 randomness = uint256(blockhash(gdata.lastBlockNum));
@@ -692,9 +729,10 @@ contract Game {
 
     // Check that `card` was contained within `pdata.handRoot` and that `handRoot` is a correctly
     // updated version of `pdata.handRoot`, without card, removed using fast array removal.
-    function checkPlayProof(PlayerData storage pdata, bytes32 handRoot, uint256 card,
-            bytes calldata proof) view internal {
-
+    function checkPlayProof(PlayerData storage pdata, bytes32 handRoot, uint256 card, bytes calldata proof)
+        internal
+        view
+    {
         if (address(playVerifier) == address(0)) return;
 
         uint256[] memory pubSignals = new uint256[](3);
@@ -704,8 +742,9 @@ contract Game {
 
         /// @dev currently bypass check for testing
         if (checkProof) {
-            if (!playVerifier.verifyProof(proof, pubSignals))
+            if (!playVerifier.verifyProof(proof, pubSignals)) {
                 revert InvalidProof();
+            }
         }
     }
 
@@ -713,11 +752,14 @@ contract Game {
 
     // Play the given card (index into `gameData.cards`).
     function playCard(uint256 gameID, bytes32 handRoot, uint8 cardIndex, bytes calldata proof)
-            external step(gameID, GameStep.PLAY) {
+        external
+        step(gameID, GameStep.PLAY)
+    {
         GameData storage gdata = gameData[gameID];
         PlayerData storage pdata = gdata.playerData[msg.sender];
-        if (cardIndex > gdata.cards.length)
+        if (cardIndex > gdata.cards.length) {
             revert CardIndexTooHigh();
+        }
         uint256 card = gdata.cards[cardIndex];
         checkPlayProof(pdata, handRoot, card, proof);
         pdata.handRoot = handRoot;
@@ -728,16 +770,17 @@ contract Game {
     // ---------------------------------------------------------------------------------------------
 
     // Returns true iff the array contains the items.
-    function contains (uint8[] storage array, uint8 item) internal view returns(bool) {
-        for (uint256 i = 0; i < array.length; ++i)
+    function contains(uint8[] storage array, uint8 item) internal view returns (bool) {
+        for (uint256 i = 0; i < array.length; ++i) {
             if (array[i] == item) return true;
+        }
         return false;
     }
 
     // ---------------------------------------------------------------------------------------------
 
     // Returns true iff the array contains duplicate elements (in O(n) time). 255 (NONE) is ignored.
-    function hasDuplicate(uint8[] calldata array) internal pure returns(bool) {
+    function hasDuplicate(uint8[] calldata array) internal pure returns (bool) {
         uint256 bitmap = 0;
         for (uint256 i = 0; i < array.length; ++i) {
             if (array[i] != NONE && (bitmap & (1 << array[i])) != 0) return true;
@@ -750,21 +793,26 @@ contract Game {
 
     // Declare attackers (indexes into the `cards` array).
     function attack(uint256 gameID, uint8 targetPlayer, uint8[] calldata attacking)
-            external step(gameID, GameStep.ATTACK) {
-
+        external
+        step(gameID, GameStep.ATTACK)
+    {
         GameData storage gdata = gameData[gameID];
         PlayerData storage pdata = gdata.playerData[msg.sender];
 
         // NOTE: This allows attacking dead player in (unsupported) games with > 2 players.
-        if (gdata.currentPlayer == targetPlayer || targetPlayer > gdata.players.length)
+        if (gdata.currentPlayer == targetPlayer || targetPlayer > gdata.players.length) {
             revert WrongAttackTarget();
+        }
 
-        if (hasDuplicate(attacking))
+        if (hasDuplicate(attacking)) {
             revert DuplicateAttacker();
+        }
 
-        for (uint256 i = 0; i < attacking.length; ++i)
-            if ((pdata.battlefield & (1 << attacking[i])) == 0)
+        for (uint256 i = 0; i < attacking.length; ++i) {
+            if ((pdata.battlefield & (1 << attacking[i])) == 0) {
                 revert AttackerNotOnBattlefield();
+            }
+        }
 
         clear(pdata.attacking); // Delete old attacking array.
         pdata.attacking = attacking;
@@ -776,24 +824,25 @@ contract Game {
 
     // Declare defenders & resolve combat: each creature in `defending` will block the
     // corresponding creature in the attacker's `attacking` array.
-    function defend (uint256 gameID, uint8[] calldata defending)
-            external step(gameID, GameStep.DEFEND) {
-
+    function defend(uint256 gameID, uint8[] calldata defending) external step(gameID, GameStep.DEFEND) {
         GameData storage gdata = gameData[gameID];
         PlayerData storage defender = gdata.playerData[msg.sender];
         PlayerData storage attacker = gdata.playerData[gdata.attackingPlayer];
         uint8[] storage attacking = attacker.attacking;
 
-        if (attacking.length != defending.length)
+        if (attacking.length != defending.length) {
             revert AttackerDefenderMismatch();
+        }
 
         // TODO make sure duplicate 255 are ignored
-        if (hasDuplicate(defending))
+        if (hasDuplicate(defending)) {
             revert DuplicateDefender();
+        }
 
         // iterate over attackers
         for (uint256 i = 0; i < attacking.length; ++i) {
-            if (defending[i] == NONE) { // attacker not blocked
+            if (defending[i] == NONE) {
+                // attacker not blocked
                 uint256 attackingCard = gdata.cards[attacking[i]];
                 uint8 damage = cardsCollection.stats(attackingCard).attack;
                 if (defender.health <= damage) {
@@ -803,30 +852,34 @@ contract Game {
                 } else {
                     defender.health -= damage;
                 }
-            } else { // attacker blocked
-                if ((defender.battlefield & (1 << defending[i])) == 0)
+            } else {
+                // attacker blocked
+                if ((defender.battlefield & (1 << defending[i])) == 0) {
                     revert DefenderNotOnBattlefield();
-                if (contains(defender.attacking, defending[i]))
+                }
+                if (contains(defender.attacking, defending[i])) {
                     revert DefenderAttacking(defending[i]);
+                }
 
                 Stats memory attackerStats;
                 Stats memory defenderStats;
-                { // avoid stack too deep
-                   uint256 attackingCard = gdata.cards[attacking[i]];
-                   uint256 defendingCard = gdata.cards[defending[i]];
-                   attackerStats = cardsCollection.stats(attackingCard);
-                   defenderStats = cardsCollection.stats(defendingCard);
+                {
+                    // avoid stack too deep
+                    uint256 attackingCard = gdata.cards[attacking[i]];
+                    uint256 defendingCard = gdata.cards[defending[i]];
+                    attackerStats = cardsCollection.stats(attackingCard);
+                    defenderStats = cardsCollection.stats(defendingCard);
                 }
 
                 if (attackerStats.attack >= defenderStats.defense) {
                     defender.battlefield -= (1 << defending[i]);
-                    defender.graveyard   |= (1 << defending[i]);
+                    defender.graveyard |= (1 << defending[i]);
                     emit CreatureDestroyed(gameID, msg.sender, defending[i]);
                 }
 
                 if (defenderStats.attack >= attackerStats.defense) {
                     attacker.battlefield -= (1 << attacking[i]);
-                    attacker.graveyard   |= (1 << attacking[i]);
+                    attacker.graveyard |= (1 << attacking[i]);
                     emit CreatureDestroyed(gameID, gdata.attackingPlayer, attacking[i]);
                 }
             }

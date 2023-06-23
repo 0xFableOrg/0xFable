@@ -15,11 +15,13 @@ Tooling required:
   - Last `foundryup`: 16 May 2023
 - Node.js & [PNPM](https://pnpm.io/) (`npm install -g pnpm`)
   - Tested with Node v20.1.0
+  - The appropriate pnpm version is listed under the "packageManager key in [`package.json`](./package.json)
   - If you have any issues while installing dependencies with pnpm you can try to use `corepack` to make sure you use correct version of pnpm.
     - `corepack enable`
     - `corepack pnpm install`
 - [Circom](https://docs.circom.io/getting-started/installation/)
   - Needed to build circuits package
+  - Test with version 2.1.4
 
 Run contract tests for basic sanity testing:
 

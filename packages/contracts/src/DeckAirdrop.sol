@@ -1,15 +1,14 @@
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 pragma solidity ^0.8.0;
 
-import "./Inventory.sol";
-import "./CardsCollection.sol";
+import {Inventory} from "./Inventory.sol";
+import {CardsCollection} from "./CardsCollection.sol";
 
-import "openzeppelin/access/Ownable.sol";
+import {Ownable} from "openzeppelin/access/Ownable.sol";
 
 error AlreadyClaimed();
 
 contract DeckAirdrop is Ownable {
-
     uint256 public deckSize;
 
     Inventory public inventory;
@@ -23,11 +22,11 @@ contract DeckAirdrop is Ownable {
     }
 
     function claimAirdrop() external {
-        if (claimed[msg.sender])
+        if (claimed[msg.sender]) {
             revert AlreadyClaimed();
+        }
         address target = msg.sender;
-        uint256 first =
-        cardsCollection.mint(target, "Horrible Gremlin", "", "", 1, 1);
+        uint256 first = cardsCollection.mint(target, "Horrible Gremlin", "", "", 1, 1);
         cardsCollection.mint(target, "Horrible Gremlin", "", "", 1, 1);
         cardsCollection.mint(target, "Horrible Gremlin", "", "", 1, 1);
         cardsCollection.mint(target, "Horrible Gremlin", "", "", 1, 1);
@@ -50,16 +49,17 @@ contract DeckAirdrop is Ownable {
         cardsCollection.mint(target, "Goblin Queen", "", "", 3, 2);
         cardsCollection.mint(target, "Goblin Queen", "", "", 3, 2);
         cardsCollection.mint(target, "Goblin Queen", "", "", 3, 2);
-        uint256 last =
-        cardsCollection.mint(target, "Goblin Queen", "", "", 3, 2);
+        uint256 last = cardsCollection.mint(target, "Goblin Queen", "", "", 3, 2);
 
-        for (uint256 i = first; i <= last; ++i)
+        for (uint256 i = first; i <= last; ++i) {
             inventory.addCard(msg.sender, i);
+        }
 
         uint256 numCards = last - first + 1;
         uint256[] memory cards = new uint256[](numCards);
-        for (uint256 i = 0; i < numCards; ++i)
+        for (uint256 i = 0; i < numCards; ++i) {
             cards[i] = first + i;
+        }
 
         inventory.addDeck(msg.sender, Inventory.Deck(cards));
     }

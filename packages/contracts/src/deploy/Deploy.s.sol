@@ -1,14 +1,17 @@
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 pragma solidity ^0.8.0;
 
-import "../CardsCollection.sol";
-import "../Inventory.sol";
-import "../InventoryCardsCollection.sol";
-import "../Game.sol";
-import "../DeckAirdrop.sol";
+import {CardsCollection} from "../CardsCollection.sol";
+import {DeckAirdrop} from "../DeckAirdrop.sol";
+import {Game} from "../Game.sol";
+import {Inventory} from "../Inventory.sol";
+import {InventoryCardsCollection} from "../InventoryCardsCollection.sol";
+import {DrawVerifier} from "../verifiers/DrawVerifier.sol";
+import {InitialVerifier} from "../verifiers/InitialVerifier.sol";
+import {PlayVerifier} from "../verifiers/PlayVerifier.sol";
 
-import "forge-std/Script.sol";
-import "multicall/Multicall3.sol";
+import {Script, console2} from "forge-std/Script.sol";
+import {Multicall3} from "multicall/Multicall3.sol";
 
 contract Deploy is Script {
     bytes32 private constant salt = bytes32(uint256(4269));
@@ -22,10 +25,16 @@ contract Deploy is Script {
     Game public game;
     DeckAirdrop public airdrop;
 
-    bool private log = true;
+    bool private doLog = true;
 
     function dontLog() external {
-        log = false;
+        doLog = false;
+    }
+
+    function log(string memory s, address a) private view {
+        if (doLog) {
+            console2.log(s, a); // solhint-disable-line
+        }
     }
 
     function run() external {
@@ -47,24 +56,22 @@ contract Deploy is Script {
         inventory.setGame(game);
         cardsCollection.setAirdrop(airdrop);
 
-        if (log) {
-            console2.log("CardsCollection address", address(cardsCollection));
-            console2.log("Inventory address", address(inventory));
-            console2.log("InventoryCardsCollection address", address(inventoryCardsCollection));
-            console2.log("Game address", address(game));
-            console2.log("DeckAirdrop address", address(airdrop));
-        }
+        log("CardsCollection address", address(cardsCollection));
+        log("Inventory address", address(inventory));
+        log("InventoryCardsCollection address", address(inventoryCardsCollection));
+        log("Game address", address(game));
+        log("DeckAirdrop address", address(airdrop));
 
         vm.stopBroadcast();
 
         // Anvil first two test accounts.
         string memory mnemonic = "test test test test test test test test test test test junk";
-        (address ACCOUNT0,) = deriveRememberKey(mnemonic, 0);
-        (address ACCOUNT1,) = deriveRememberKey(mnemonic, 1);
+        (address account0,) = deriveRememberKey(mnemonic, 0);
+        (address account1,) = deriveRememberKey(mnemonic, 1);
 
-        vm.broadcast(ACCOUNT0);
+        vm.broadcast(account0);
         airdrop.claimAirdrop();
-        vm.broadcast(ACCOUNT1);
+        vm.broadcast(account1);
         airdrop.claimAirdrop();
 
         // In case we need it.

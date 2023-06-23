@@ -1,15 +1,16 @@
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 pragma solidity ^0.8.0;
 
-import "./Inventory.sol";
+import {DeckAirdrop} from "./DeckAirdrop.sol";
+import {Inventory} from "./Inventory.sol";
 
-import "openzeppelin/token/ERC721/ERC721.sol";
-import "openzeppelin/access/Ownable.sol";
+import {ERC721} from "openzeppelin/token/ERC721/ERC721.sol";
+import {Ownable} from "openzeppelin/access/Ownable.sol";
 
 struct Lore {
     string name;
     string flavor;
-    string URL;
+    string URL; // solhint-disable-line
 }
 
 struct Stats {
@@ -26,7 +27,6 @@ struct Card {
 error Unauthorized();
 
 contract CardsCollection is ERC721, Ownable {
-
     Inventory public inventory;
 
     // Let's skip 0 to catch bugs due to default values.
@@ -44,7 +44,7 @@ contract CardsCollection is ERC721, Ownable {
         inventory = inventory_;
     }
 
-    function setAirdrop(DeckAirdrop airdrop_) onlyOwner external {
+    function setAirdrop(DeckAirdrop airdrop_) external onlyOwner {
         airdrop = address(airdrop_);
     }
 
@@ -54,14 +54,16 @@ contract CardsCollection is ERC721, Ownable {
     }
 
     function mint(
-            address to,
-            string calldata name,
-            string calldata flavor,
-            string calldata URL,
-            uint8 attack,
-            uint8 defense) external returns(uint256 tokenID) {
-        if (msg.sender != owner() && msg.sender != airdrop)
+        address to,
+        string calldata name,
+        string calldata flavor,
+        string calldata URL, // solhint-disable-line
+        uint8 attack,
+        uint8 defense
+    ) external returns (uint256 tokenID) {
+        if (msg.sender != owner() && msg.sender != airdrop) {
             revert Unauthorized();
+        }
 
         tokenID = nextID++;
         _safeMint(to, tokenID, "");
@@ -69,16 +71,16 @@ contract CardsCollection is ERC721, Ownable {
         lore[tokenID] = Lore(name, flavor, URL);
     }
 
-    function stats(uint256 card) external view returns(Stats memory) {
+    function stats(uint256 card) external view returns (Stats memory) {
         return stats_[card];
     }
 
     // TODO - remove this function?
-    function getLore (uint256 card) external view returns(Lore memory) {
+    function getLore(uint256 card) external view returns (Lore memory) {
         return lore[card];
     }
 
-    function getCard(uint256 card) external view returns(Card memory) {
+    function getCard(uint256 card) external view returns (Card memory) {
         return Card(card, lore[card], stats_[card]);
     }
 }

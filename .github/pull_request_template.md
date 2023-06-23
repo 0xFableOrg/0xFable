@@ -7,7 +7,7 @@ Link related issues!
 ## Checklist
 
 - [ ] I have performed a self-review of my code
-- [ ] I ran `make lint` and fixed resulting issues
+- [ ] I ran `make check` and fixed resulting issues
 - [ ] I ran the relevant tests and they all pass
 - [ ] I wrote tests for my new features, or added regression tests for the bug I fixed
 
