@@ -4,6 +4,7 @@ include "../lib/Merkle.circom";
 
 include "../../node_modules/circomlib/circuits/comparators.circom";
 include "../../node_modules/circomlib/circuits/mimcsponge.circom";
+include "../../node_modules/circomlib/circuits/bitify.circom";
 
 /**
  * This circuit is responsible for proving that the player drew the correct initial hand of cards.
@@ -30,7 +31,7 @@ include "../../node_modules/circomlib/circuits/mimcsponge.circom";
 template DrawHand(levels, initialHandSize) {
 
     // public inputs
-    signal input initialDeck[2**levels];
+    signal input initialDeck[2];
     signal input deckRoot;
     signal input handRoot;
     signal input saltHash;
@@ -38,8 +39,8 @@ template DrawHand(levels, initialHandSize) {
 
     // private inputs
     signal input salt;
-    signal input deck[2**levels];
-    signal input hand[2**levels];
+    signal input deck[2];
+    signal input hand[2];
 
     // verify the private salt matches the public salt hash
     component checkSalt = MiMCSponge(1, 220, 1);
@@ -53,12 +54,33 @@ template DrawHand(levels, initialHandSize) {
     randomness.ins[1] <== publicRandom;
     randomness.k <== 0;
 
+    // unpack initial deck
+    component unpackInitialDeck[2];
+    component convertToNum[64];
+    signal initialDeckInBits[512]; // 64 cards * 8 bits per card
+    signal initialDeckInNum[64];
+    for (var i = 0; i < 2; i++) {
+        unpackInitialDeck[i] = Num2Bits(256);
+        unpackInitialDeck[i].in <== initialDeck[i];
+        for (var j = 0; j < 256; j++) {
+            initialDeckInBits[j + i*256] <== unpackInitialDeck[i].out[j];
+        }
+    }
+
+    for (var i = 0; i < 64; i++) {
+        convertToNum[i] = Bits2Num(8);
+        for (var j = 0; j < 8; j++) {
+            convertToNum[i].in[j] <== initialDeckInBits[j + i*8];
+        }
+        initialDeckInNum[i] <== convertToNum[i].out;
+    }
+
     component drawCards[initialHandSize];
     signal divisors[initialHandSize];
 
     // This will contain the deck as one card is being drawn (swapped out for last card) at a time.
     signal intermediateDecks[initialHandSize+1][2**levels];
-    intermediateDecks[0] <== initialDeck;
+    intermediateDecks[0] <== initialDeckInNum;
 
     for (var i = 0; i < initialHandSize; i++) {
 
@@ -79,25 +101,44 @@ template DrawHand(levels, initialHandSize) {
         // update deck and hand
         drawCards[i].deck <== intermediateDecks[i];
         intermediateDecks[i+1] <== drawCards[i].updatedDeck;
-        hand[i] === drawCards[i].selectedCard;
+        // hand[i] === drawCards[i].selectedCard;
     }
-    deck === intermediateDecks[initialHandSize];
+
+    // unpack intermidiateDEcks[initialHandSize]
+    component repackInitialDeck[2];
+    component convertToBits[64];
+    signal newDeckInBits[512]; // 64 cards * 8 bits per card
+    signal newDeckInNum[64];
+    for (var i = 0; i < 64; i++) {
+        convertToBits[i] = Num2Bits(8);
+        convertToBits[i].in <== intermediateDecks[initialHandSize][i];
+        for (var j = 0; j < 8; j++) {
+            newDeckInBits[j + i*8] <== convertToBits[i].out[j];
+        }
+    }
+    for (var i = 0; i < 2; i++) {
+        repackInitialDeck[i] = Bits2Num(256);
+        for (var j = 0; j < 256; j++) {
+            repackInitialDeck[i].in[j] <== newDeckInBits[j + i*256];
+        }
+        deck[i] === repackInitialDeck[i].out;
+    }
 
     // check the deck root matches the deck content after drawing
-    component checkNewDeck = MiMCSponge(2**levels+1, 220, 1);
-    for (var i = 0; i < 2**levels; i++) {
+    component checkNewDeck = MiMCSponge(3, 220, 1);
+    for (var i = 0; i < 2; i++) {
         checkNewDeck.ins[i] <== deck[i];
     }
-    checkNewDeck.ins[2**levels] <== salt;
+    checkNewDeck.ins[2] <== salt;
     checkNewDeck.k <== 0;
     checkNewDeck.outs[0] === deckRoot;
 
     // check the hand root matches the drawn cards
-    component checkNewHand = MiMCSponge(2**levels+1, 220, 1);
-    for (var i = 0; i < 2**levels; i++) {
+    component checkNewHand = MiMCSponge(3, 220, 1);
+    for (var i = 0; i < 2; i++) {
         checkNewHand.ins[i] <== hand[i];
     }
-    checkNewHand.ins[2**levels] <== salt;
+    checkNewHand.ins[2] <== salt;
     checkNewHand.k <== 0;
     checkNewHand.outs[0] === handRoot;
 }
