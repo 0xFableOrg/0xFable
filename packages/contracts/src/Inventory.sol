@@ -1,15 +1,14 @@
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 pragma solidity ^0.8.0;
 
-import "./CardsCollection.sol";
-import "./DeckAirdrop.sol";
-import "./InventoryCardsCollection.sol";
+import {CardsCollection} from "./CardsCollection.sol";
+import {DeckAirdrop} from "./DeckAirdrop.sol";
+import {Game} from "./Game.sol";
+import {InventoryCardsCollection} from "./InventoryCardsCollection.sol";
 
-import "openzeppelin/access/Ownable.sol";
-import "./Game.sol";
+import {Ownable} from "openzeppelin/access/Ownable.sol";
 
 contract Inventory is Ownable {
-
     // =============================================================================================
     // ERRORS
 
@@ -53,13 +52,13 @@ contract Inventory is Ownable {
     // CONSTANTS
 
     // Max number of decks that each player can have.
-    uint256 constant private MAX_DECKS = 256;
+    uint256 private constant MAX_DECKS = 256;
 
     // Min number of cards in a deck.
-    uint256 constant private MIN_DECK_SIZE = 10;
+    uint256 private constant MIN_DECK_SIZE = 10;
 
     // Max number of cards in a deck.
-    uint256 constant private MAX_DECK_SIZE = 40;
+    uint256 private constant MAX_DECK_SIZE = 40;
 
     // =============================================================================================
     // TYPES
@@ -100,8 +99,9 @@ contract Inventory is Ownable {
 
     // Checks that the message sender has a deck with the given ID.
     modifier exists(address player, uint8 deckID) {
-        if (deckID >= decks[player].length || decks[player][deckID].cards.length == 0)
+        if (deckID >= decks[player].length || decks[player][deckID].cards.length == 0) {
             revert DeckDoesNotExist(player, deckID);
+        }
         _;
     }
 
@@ -109,8 +109,12 @@ contract Inventory is Ownable {
 
     // Checks that the player has delegated to the message sender.
     modifier delegated(address player) {
-        if (msg.sender != player && msg.sender != airdrop && !delegations[keccak256(abi.encodePacked(msg.sender, player))])
+        if (
+            msg.sender != player && msg.sender != airdrop
+                && !delegations[keccak256(abi.encodePacked(msg.sender, player))]
+        ) {
             revert PlayerNotDelegatedToSender();
+        }
         _;
     }
 
@@ -125,13 +129,13 @@ contract Inventory is Ownable {
 
     // ---------------------------------------------------------------------------------------------
 
-    function setAirdrop(DeckAirdrop airdrop_) onlyOwner external {
+    function setAirdrop(DeckAirdrop airdrop_) external onlyOwner {
         airdrop = address(airdrop_);
     }
 
     // ---------------------------------------------------------------------------------------------
 
-    function setGame(Game game_) onlyOwner external {
+    function setGame(Game game_) external onlyOwner {
         game = address(game_);
     }
 
@@ -165,17 +169,20 @@ contract Inventory is Ownable {
     // ---------------------------------------------------------------------------------------------
 
     function checkDeckSize(Deck storage deck) internal view {
-        if (deck.cards.length > MAX_DECK_SIZE)
+        if (deck.cards.length > MAX_DECK_SIZE) {
             revert BigDeckEnergy();
+        }
     }
 
     // ---------------------------------------------------------------------------------------------
 
     function _addDeck(address player, uint8 deckID, Deck calldata deck) internal {
-        if (deck.cards.length < MIN_DECK_SIZE)
+        if (deck.cards.length < MIN_DECK_SIZE) {
             revert SmallDeckEnergy();
-        if (deck.cards.length > MAX_DECK_SIZE)
+        }
+        if (deck.cards.length > MAX_DECK_SIZE) {
             revert BigDeckEnergy();
+        }
         decks[player][deckID] = deck;
     }
 
@@ -183,11 +190,11 @@ contract Inventory is Ownable {
 
     // Adds a new deck with the given cards for the sender. The player does not need to have the
     // cards in the inventory to do this (however, if he does not, the deck will not be playable).
-    function addDeck(address player, Deck calldata deck)
-            external delegated(player) returns(uint8 deckID) {
+    function addDeck(address player, Deck calldata deck) external delegated(player) returns (uint8 deckID) {
         uint256 longDeckID = decks[player].length;
-        if (longDeckID >= MAX_DECKS)
+        if (longDeckID >= MAX_DECKS) {
             revert OutOfDeckIDs();
+        }
         deckID = uint8(longDeckID);
         decks[player].push();
         _addDeck(player, deckID, deck);
@@ -207,7 +214,10 @@ contract Inventory is Ownable {
     // Replace the deck with the given ID. This can be a deck that was previously removed, granted
     // that there exists a deck with a higher ID. Emits events for deck removal and adding.
     function replaceDeck(address player, uint8 deckID, Deck calldata deck)
-            external delegated(player) exists(player, deckID) {
+        external
+        delegated(player)
+        exists(player, deckID)
+    {
         _addDeck(player, deckID, deck);
         emit DeckRemoved(player, deckID);
         emit DeckAdded(player, deckID);
@@ -219,10 +229,14 @@ contract Inventory is Ownable {
     // inventory to do this (however, if he does not, the deck will not be playable).
     // You can't remove a card from a deck if it would bring the size to above the maximum size.
     function addCardToDeck(address player, uint8 deckID, uint256 cardID)
-            external delegated(player) exists(player, deckID) {
+        external
+        delegated(player)
+        exists(player, deckID)
+    {
         Deck storage deck = decks[player][deckID];
-        if (deck.cards.length == MAX_DECK_SIZE)
+        if (deck.cards.length == MAX_DECK_SIZE) {
             revert BigDeckEnergy();
+        }
         deck.cards.push(cardID);
         emit CardAddedToDeck(deckID, cardID);
     }
@@ -232,10 +246,14 @@ contract Inventory is Ownable {
     // Remove the card a the given index in the given deck.
     // You can't remove a card from a deck if it would bring the size to below the minimum size.
     function removeCardFromDeck(address player, uint8 deckID, uint8 index)
-            external delegated(player) exists(player, deckID) {
+        external
+        delegated(player)
+        exists(player, deckID)
+    {
         Deck storage deck = decks[player][deckID];
-        if (deck.cards.length == MIN_DECK_SIZE)
+        if (deck.cards.length == MIN_DECK_SIZE) {
             revert BigDeckEnergy();
+        }
         uint256 cardID = deck.cards[index];
         deck.cards[index] = deck.cards[deck.cards.length - 1];
         deck.cards.pop();
@@ -247,10 +265,11 @@ contract Inventory is Ownable {
     // Checks that the player has all the cards in the given deck in the inventory.
     function checkDeck(address player, uint8 deckID) external view exists(player, deckID) {
         Deck storage deck = decks[player][deckID];
-        for (uint256 i = 0; i < deck.cards.length ; ++i) {
+        for (uint256 i = 0; i < deck.cards.length; ++i) {
             uint256 cardID = deck.cards[i];
-            if (inventoryCardsCollection.ownerOf(cardID) != player)
+            if (inventoryCardsCollection.ownerOf(cardID) != player) {
                 revert CardNotInInventory(cardID);
+            }
         }
         // NOTE(norswap): Deck size is implicitly checked when updating the deck.
         // TODO(LATER): check that each card does not exceed its maximum amount of copies
@@ -259,8 +278,12 @@ contract Inventory is Ownable {
     // ---------------------------------------------------------------------------------------------
 
     // Returns the list of cards in the given deck of the given player.
-    function getDeck(address player, uint8 deckID) external view
-            exists(player, deckID) returns(uint256[] memory deckCards) {
+    function getDeck(address player, uint8 deckID)
+        external
+        view
+        exists(player, deckID)
+        returns (uint256[] memory deckCards)
+    {
         return decks[player][deckID].cards;
     }
 

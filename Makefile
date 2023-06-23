@@ -34,6 +34,11 @@ circuits:
 	cd packages/circuits && make build
 .PHONY: circuits
 
+# Performs code-quality checks.
+check:
+	cd packages/contracts && make check
+.PHONY: check
+
 # ==================================================================================================
 # IMPLEMENTATION DETAILS
 
