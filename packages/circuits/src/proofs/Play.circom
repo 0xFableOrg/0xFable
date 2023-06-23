@@ -3,6 +3,8 @@ pragma circom 2.0.0;
 include "../lib/Card.circom";
 include "../lib/BytePacking.circom";
 
+include "../../node_modules/circomlib/circuits/mimcsponge.circom";
+
 template Play(elementSize) {
     /// 12594 constraints
 
