@@ -37,7 +37,7 @@ contract Inventory is Ownable {
     // while participating in a game
     error PlayerIsInActiveGame(address player);
 
-    // Number of card copies in a deck cannot exceed `MAX_CARD_COPY`
+    // Number of card copies in a deck cannot exceed `MAX_CARD_COPY`.
     error CardExceedsMaxCopy(uint256 cardID);
 
     // =============================================================================================
