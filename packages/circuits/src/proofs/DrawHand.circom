@@ -2,6 +2,7 @@ pragma circom 2.0.0;
 
 include "../lib/Merkle.circom";
 include "../lib/BytePacking.circom";
+include "../lib/Card.circom";
 
 include "../../node_modules/circomlib/circuits/comparators.circom";
 include "../../node_modules/circomlib/circuits/mimcsponge.circom";
@@ -70,22 +71,12 @@ template DrawHand(elementSize, initialHandSize) {
     intermediateDecks[0] <== initialDeckInNum;
 
     for (var i = 0; i < initialHandSize; i++) {
-
-        // NOTE: This is buggy.
-        // This should use a new public signal giving the deck size, and be `deckSize - 1 - i`.
-        // Unfortunately, doing so would break the circuit because we rely on lastIndex being a
-        // compile-time constant. This is fixable, but requires to double the number of deck iterations
-        // (need to add an extra iteration to pick out the current last card).
         var lastIndex = elementSize*32 - 1 - i;
-
-        drawCards[i] = RemoveIndex(elementSize*32, lastIndex + 1);
-
-        // pick out a random card — we need to do the dance to prove the modulus
-        drawCards[i].index <-- randomness.outs[0] % lastIndex;
-        divisors[i] <-- randomness.outs[0] \ lastIndex;
-        randomness.outs[0] === divisors[i] * lastIndex + drawCards[i].index;
+        drawCards[i] = RemoveCard(elementSize*32);
 
         // update deck and hand
+        drawCards[i].lastIndex <== lastIndex;
+        drawCards[i].randomness <== randomness.outs[0];
         drawCards[i].deck <== intermediateDecks[i];
         intermediateDecks[i+1] <== drawCards[i].updatedDeck;
         drawnCards[i] <== drawCards[i].selectedCard;
