@@ -33,8 +33,8 @@ contract Inventory is Ownable {
     // A deck contains a card that the player hasn't transferred to the inventory.
     error CardNotInInventory(uint256 cardID);
 
-    // A player cannot add card, remove card, remove deck, replace deck, add card to deck, remove card from deck
-    // while participating in a game
+    // A player cannot add/remove cards to/from the inventory, nor modify decks, while participating
+    // in a game.
     error PlayerIsInActiveGame(address player);
 
     // Number of card copies in a deck cannot exceed `MAX_CARD_COPY`.
