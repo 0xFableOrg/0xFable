@@ -11,28 +11,28 @@ include "../../node_modules/circomlib/circuits/bitify.circom";
  * This circuit is responsible for proving that the player drew the correct initial hand of cards.
  *
  * Parameters:
- * - `levels` is the base-2 log of the max size of the deck (6 for a deck of max 64 cards)
- * - `initialHandSize` is the amount of cards to draw
+ * - `elementSize` is the number of packed elements for deck and hand (each element can hold a uint256, where each card represented by a byte)
+ * - `initialHandSize` is the number of cards to draw
  *
  * Public inputs:
- * - `initialDeck` are the cards in the initial deck listing (padded with 255 to reach a size of 2**levels)
- * - `deckRoot` is the Merkle root of the deck after drawing the cards
- * - `handRoot` is the Merkleroot of the hand the player drew
+ * - `initialDeck` are the cards in the initial deck listing (packed into 256-bit elements)
+ * - `deckRoot` is the hash of the deck after drawing the cards, together with the salt
+ * - `handRoot` is the hash of the hand the player drew, together with the salt
  * - `saltHash` is the hash of player's secret salt, acting as an on-chain commitment to that salt
  * - `publicRandom` is a public randomness value available on-chain
  *
  * Private inputs:
- * - `hand` are the cards drawn by the player
- * - `deck` are the cards in the deck after removing the drawn card
+ * - `hand` are the cards drawn by the player (packed into 256-bit elements)
+ * - `deck` are the cards in the deck after removing the drawn card (packed into 256-bit elements)
  *   (replacing them with cards from the back of the deck and shrinking the deck)
  * - `salt` is the player's secret salt
  *
  * About 222k Plonk constraints.
  */
-template DrawHand(levels, initialHandSize) {
+template DrawHand(elementSize, initialHandSize) {
 
     // public inputs
-    signal input initialDeck[2];
+    signal input initialDeck[elementSize];
     signal input deckRoot;
     signal input handRoot;
     signal input saltHash;
@@ -40,8 +40,8 @@ template DrawHand(levels, initialHandSize) {
 
     // private inputs
     signal input salt;
-    signal input deck[2];
-    signal input hand[2];
+    signal input deck[elementSize];
+    signal input hand[elementSize];
 
     // verify the private salt matches the public salt hash
     component checkSalt = MiMCSponge(1, 220, 1);
@@ -56,8 +56,8 @@ template DrawHand(levels, initialHandSize) {
     randomness.k <== 0;
 
     // unpack initial deck
-    component unpackDeck = UnpackCards(2);
-    signal initialDeckInNum[64];
+    component unpackDeck = UnpackCards(elementSize);
+    signal initialDeckInNum[elementSize*32];
     unpackDeck.packedCards <== initialDeck;
     initialDeckInNum <== unpackDeck.unpackedCards;
 
@@ -65,7 +65,8 @@ template DrawHand(levels, initialHandSize) {
     signal divisors[initialHandSize];
 
     // This will contain the deck as one card is being drawn (swapped out for last card) at a time.
-    signal intermediateDecks[initialHandSize+1][2**levels];
+    signal intermediateDecks[initialHandSize+1][elementSize*32];
+    signal drawnCards[elementSize*32];
     intermediateDecks[0] <== initialDeckInNum;
 
     for (var i = 0; i < initialHandSize; i++) {
@@ -75,9 +76,9 @@ template DrawHand(levels, initialHandSize) {
         // Unfortunately, doing so would break the circuit because we rely on lastIndex being a
         // compile-time constant. This is fixable, but requires to double the number of deck iterations
         // (need to add an extra iteration to pick out the current last card).
-        var lastIndex = 2**levels - 1 - i;
+        var lastIndex = elementSize*32 - 1 - i;
 
-        drawCards[i] = RemoveIndex(levels, lastIndex + 1);
+        drawCards[i] = RemoveIndex(elementSize*32, lastIndex + 1);
 
         // pick out a random card — we need to do the dance to prove the modulus
         drawCards[i].index <-- randomness.outs[0] % lastIndex;
@@ -87,30 +88,43 @@ template DrawHand(levels, initialHandSize) {
         // update deck and hand
         drawCards[i].deck <== intermediateDecks[i];
         intermediateDecks[i+1] <== drawCards[i].updatedDeck;
-        // hand[i] === drawCards[i].selectedCard;
+        drawnCards[i] <== drawCards[i].selectedCard;
     }
 
-    component packDeck = PackCards(2);
+    // fill up drawnCards with 255 to reach a size of 2**levels
+    for (var i = initialHandSize; i < elementSize*32; i++) {
+        drawnCards[i] <== 255;
+    }
+
+    // pack the deck into 256-bit elements
+    component packDeck = PackCards(elementSize);
     packDeck.unpackedCards <== intermediateDecks[initialHandSize];
-    for (var i = 0; i < 2; i++) {
+    for (var i = 0; i < elementSize; i++) {
         deck[i] === packDeck.packedCards[i];
     }
 
+    // pack the hand into 256-bit elements
+    component packHand = PackCards(elementSize);
+    packHand.unpackedCards <== drawnCards;
+    for (var i = 0; i < elementSize; i++) {
+        hand[i] === packHand.packedCards[i];
+    }
+
     // check the deck root matches the deck content after drawing
-    component checkNewDeck = MiMCSponge(3, 220, 1);
-    for (var i = 0; i < 2; i++) {
+    component checkNewDeck = MiMCSponge(elementSize+1, 220, 1);
+    for (var i = 0; i < elementSize; i++) {
         checkNewDeck.ins[i] <== deck[i];
     }
-    checkNewDeck.ins[2] <== salt;
+    checkNewDeck.ins[elementSize] <== salt;
     checkNewDeck.k <== 0;
     checkNewDeck.outs[0] === deckRoot;
 
     // check the hand root matches the drawn cards
-    component checkNewHand = MiMCSponge(3, 220, 1);
-    for (var i = 0; i < 2; i++) {
+    component checkNewHand = MiMCSponge(elementSize+1, 220, 1);
+    for (var i = 0; i < elementSize; i++) {
         checkNewHand.ins[i] <== hand[i];
     }
-    checkNewHand.ins[2] <== salt;
+    checkNewHand.ins[elementSize] <== salt;
     checkNewHand.k <== 0;
     checkNewHand.outs[0] === handRoot;
 }
@@ -124,10 +138,9 @@ template DrawHand(levels, initialHandSize) {
  * - `updatedDeck[size - 1] = 255`
  * - `updatedDeck[i] = deck[i]` for all other indexes
  */
-template RemoveIndex(levels, size) {
-    assert(size <= 2**levels);
+template RemoveIndex(capacity, size) {
+    assert(size <= capacity);
 
-    var capacity = 2**levels;
     var lastIndex = size - 1;
 
     signal input index;
