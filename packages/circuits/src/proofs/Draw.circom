@@ -85,7 +85,7 @@ template Draw(elementSize) {
     signal newHandInNum[elementSize*32];
     updateHand.index <== initialHandSize;
     updateHand.card <== drawCard.selectedCard;
-    updateHand.deck <== initialDeckInNum;
+    updateHand.deck <== initialHandInNum;
     newHandInNum <== updateHand.updatedDeck;
 
     // pack the updated hand into 256-bit elements
