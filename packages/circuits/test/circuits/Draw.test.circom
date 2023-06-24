@@ -2,4 +2,4 @@ pragma circom 2.0.0;
 
 include "../../src/proofs/Draw.circom";
 
-component main {public [deckRoot, newDeckRoot, handRoot, newHandRoot]} = Draw(2);
+component main {public [deckRoot, newDeckRoot, handRoot, newHandRoot, saltHash, publicRandom, initialHandSize, lastIndex]} = Draw(2);
