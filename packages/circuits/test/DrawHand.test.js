@@ -8,12 +8,14 @@ describe("Draw Hand Test", () => {
     let publicRandom = BigInt(5678); // block hash from smart contract
     let initialDeck = [], initialHand = [];
     let deckRoot, handRoot;
+    let deckSize = 64;
+    let initialLastIndex = 63;
 
     beforeAll(async () => {
         mimcsponge = await circomlib.buildMimcSponge();
 
         // initialize deck leaves and hand leaves
-        for (let i = 0; i < 64; i++) {
+        for (let i = 0; i < deckSize; i++) {
             initialDeck.push(BigInt(i));
             initialHand.push(BigInt(255));
         }
@@ -24,14 +26,13 @@ describe("Draw Hand Test", () => {
 
     it("Should correctly construct an initial hand proof", async () => {
         // assume user draws 7 cards
-        const maxDeckSize = 64;
         const cardCount = 7;
 
         // draw cards
         let deck = [...initialDeck];
         let hand = [...initialHand];
         const randomness = mimcsponge.F.toObject(mimcsponge.multiHash([salt, publicRandom]));
-        let lastIndex = maxDeckSize - 1;
+        let lastIndex = deckSize - 1;
         let drawnIndex;
         for (let i = 0; i < cardCount; i++) {
             drawnIndex = randomness % BigInt(lastIndex);
@@ -41,23 +42,26 @@ describe("Draw Hand Test", () => {
             lastIndex--;
         }
 
-        // construct merkle root        
-        handRoot = getMerkleRoot(hand, mimcsponge);
-        deckRoot = getMerkleRoot(deck, mimcsponge);
+        // construct root  
+        let newDeck = bytesPacking(deck);
+        let newHand = bytesPacking(hand);      
+        handRoot = mimcsponge.multiHash([...newHand, salt]);
+        deckRoot = mimcsponge.multiHash([...newDeck, salt]);
 
         // construct the circuit inputs
         const circuit = 'DrawHand.test';
         const circuitInputs = ff.utils.stringifyBigInts({
             // public inputs
-            initialDeck,
+            initialDeck: bytesPacking(initialDeck),
+            lastIndex: initialLastIndex, 
             deckRoot: mimcsponge.F.toObject(deckRoot),
             handRoot: mimcsponge.F.toObject(handRoot),
             saltHash: mimcsponge.F.toObject(mimcsponge.multiHash([salt])),
-            publicRandom,
+            publicRandom: publicRandom,
             // private inputs
-            salt,
-            deck,
-            hand
+            salt: salt,
+            deck: newDeck,
+            hand: newHand
         });
 
         // Generate the witness
@@ -65,19 +69,20 @@ describe("Draw Hand Test", () => {
     }) 
 })
 
-function getMerkleRoot(arr, mimcsponge) {
-    const levels = [[...arr]];
-    
-    // Compute the Merkle tree
-    while (levels[0].length > 1) {
-      const level = levels[0];
-      const nextLevel = [];
-      for (let i = 0; i < level.length; i += 2) {
-        const hash = mimcsponge.multiHash([level[i], level[i+1]]);
-        nextLevel.push(hash);
-      }
-      levels.unshift(nextLevel);
+function bytesPacking(arr) {
+    elements = [];
+    for (let i = 0; i < 2; i++) {
+        let bytes = "";
+        for (let j = 0; j < 32; j++) {
+            const byte = arr[i * 32 + j].toString(16);
+            if (byte.length < 2) {
+                bytes += "0" + byte;
+            } else {
+                bytes += byte;
+            }
+        }
+        bytes = "0x" + bytes;
+        elements.push(BigInt(bytes));
     }
-  
-    return levels[0][0];
+    return elements;
 }
