@@ -96,6 +96,8 @@ template RemoveCard(size) {
         // updatedDeck[i] = intermediateDeck[i]    otherwise
         updatedDeck[i] <== muxLastIndex[i].out[0];
     }
+
+    selectedCard <== accumulator[size];
 }
 
 template AddCard(size) {

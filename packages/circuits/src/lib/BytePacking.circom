@@ -2,6 +2,9 @@ pragma circom 2.0.0;
 
 include "../../node_modules/circomlib/circuits/bitify.circom";
 
+/// @dev when dealing with Num2Bits in circom, LSB is stored in index 0, MSB in last index
+/// @dev therefore when converting from bits to numbers (Bits2Num) and vice versa (Num2Bits)
+/// @dev we need to first reverse the order of the cards
 template UnpackCards(n) {
 
     signal input packedCards[n];
@@ -14,7 +17,7 @@ template UnpackCards(n) {
         unpackToBits[i] = Num2Bits(256);
         unpackToBits[i].in <== packedCards[i];
         for (var j = 0; j < 256; j++) {
-            cardInBits[j + i*256] <== unpackToBits[i].out[j];
+            cardInBits[j + (1-i)*256] <== unpackToBits[i].out[j];
         }
     }
 
@@ -25,7 +28,8 @@ template UnpackCards(n) {
         for (var j = 0; j < 8; j++) {
             convertToNum[i].in[j] <== cardInBits[j + i*8];
         }
-        unpackedCards[i] <== convertToNum[i].out;
+        // reverse the order of the numbers
+        unpackedCards[(n*32)-1-i] <== convertToNum[i].out;
     }
 }
 
@@ -39,7 +43,8 @@ template PackCards(n) {
     signal cardInBits[n*256]; // each packed card can hold 256 bits
     for (var i = 0; i < n*32; i++) {
         convertToBits[i] = Num2Bits(8);
-        convertToBits[i].in <== unpackedCards[i];
+        // reverse the order of the numbers
+        convertToBits[i].in <== unpackedCards[(n*32)-1-i];
         for (var j = 0; j < 8; j++) {
             cardInBits[j + i*8] <== convertToBits[i].out[j];
         }
@@ -50,7 +55,7 @@ template PackCards(n) {
     for (var i = 0; i < n; i++) {
         packToElements[i] = Bits2Num(256);
         for (var j = 0; j < 256; j++) {
-            packToElements[i].in[j] <== cardInBits[j + i*256];
+            packToElements[i].in[j] <== cardInBits[j + (1-i)*256];
         }
         packedCards[i] <== packToElements[i].out;
     }
