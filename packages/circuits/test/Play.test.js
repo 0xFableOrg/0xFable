@@ -2,47 +2,75 @@ const circomlib = require('circomlibjs');
 const ff = require('ffjavascript');
 const { callGenWitness } = require('circom-helper');
 
-describe("Play Cards Test", () => {
-    const circuit = 'Play.test';
+describe("Play Card Test", () => {
     let mimcsponge;
-    let handLeaf1, handLeaf2, handLeaf3, handLeaf4, handHash1, handHash2, handRoot;
+    let salt = BigInt(1234); // random private salt
+    let publicRandom = BigInt(5678); // block hash from smart contract
+    let initialHand = [];
+    let handSize = 64;
+    let initialHandSize = 20;
 
     beforeAll(async () => {
         mimcsponge = await circomlib.buildMimcSponge();
 
-        // a two levels merkle tree for the cards hand
-        /// @dev: empty leaf is 255
-        handLeaf1 = BigInt(1);
-        handLeaf2 = BigInt(2);
-        handLeaf3 = BigInt(3);
-        handLeaf4 = BigInt(4);
-        // second level hashes
-        handHash1 = mimcsponge.multiHash([handLeaf1, handLeaf2]);
-        handHash2 = mimcsponge.multiHash([handLeaf3, handLeaf4]);
-        // root hash
-        handRoot = mimcsponge.multiHash([handHash1, handHash2]);
+        // initialize deck leaves and hand leaves
+        for (let i = 0; i < initialHandSize; i++) {
+            initialHand.push(BigInt(i));
+        }
+        initialHand = [...initialHand, ...Array(handSize-initialHandSize).fill(BigInt(255))];
     });
 
-    // set longer timeout for test
-    jest.setTimeout(10000);
-    it("Should correctly draw a card", async () => {
-        // assume user plays card number 4
-        const newHandHash2 = mimcsponge.multiHash([handLeaf3, BigInt(255)]);
-        const newHandRoot = mimcsponge.multiHash([handHash1, newHandHash2]);
+    it("Should correctly construct a play proof", async () => {
+        // play card
+        let hand = [...initialHand];
+        const randomness = mimcsponge.F.toObject(mimcsponge.multiHash([salt, publicRandom]));
+        const lastIndex = initialHandSize - 1;
+        let drawnIndex = randomness % BigInt(lastIndex);
+        let selectedCard = hand[drawnIndex];
+        hand[drawnIndex] = hand[lastIndex];
+        hand[lastIndex] = BigInt(255);
+
+        // construct root  
+        initialHand = bytesPacking(initialHand);
+        let newHand = bytesPacking(hand);
+        let handRoot = mimcsponge.multiHash([...initialHand, salt]);
+        let newHandRoot = mimcsponge.multiHash([...newHand, salt]);
 
         // construct the circuit inputs
+        const circuit = 'Play.test';
         const circuitInputs = ff.utils.stringifyBigInts({
+            // public inputs
             handRoot: mimcsponge.F.toObject(handRoot),
             newHandRoot: mimcsponge.F.toObject(newHandRoot),
-            playedCardLeaf: BigInt(4),
-            playedCardIndex: BigInt(3),
-            playedCardHashPath: [handLeaf3, mimcsponge.F.toObject(handHash1)],
-            tailCardLeaf: BigInt(4),
-            tailCardIndex: BigInt(3),
-            tailCardHashPath: [handLeaf3, mimcsponge.F.toObject(handHash1)],
+            saltHash: mimcsponge.F.toObject(mimcsponge.multiHash([salt])),
+            publicRandom: publicRandom,
+            lastIndex: lastIndex,
+            playedCardLeaf: selectedCard,
+            // private inputs
+            salt: salt,
+            hand: initialHand,
+            newHand: newHand
         });
 
         // Generate the witness
         expect(await callGenWitness(circuit, circuitInputs)).toBeDefined();
     }) 
 })
+
+function bytesPacking(arr) {
+    elements = [];
+    for (let i = 0; i < 2; i++) {
+        let bytes = "";
+        for (let j = 0; j < 32; j++) {
+            const byte = arr[i * 32 + j].toString(16);
+            if (byte.length < 2) {
+                bytes += "0" + byte;
+            } else {
+                bytes += byte;
+            }
+        }
+        bytes = "0x" + bytes;
+        elements.push(BigInt(bytes));
+    }
+    return elements;
+}
