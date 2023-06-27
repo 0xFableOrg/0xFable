@@ -55,7 +55,7 @@ contract InventoryTest is Test {
         vm.startPrank(cardsCollection.airdrop());
         uint256 randomMint = cardsCollection.mint(player2, "Horrible Gremlin", "", "", 1, 1);
 
-        // add card `randomMint` to inventory._transferOwnership(newOwner);
+        // add card `randomMint` to inventory.
         changePrank(player2);
         inventory.addCard(player2, randomMint);
 
