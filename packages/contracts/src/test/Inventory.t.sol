@@ -1,17 +1,14 @@
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 pragma solidity ^0.8.0;
 
-import "../CardsCollection.sol";
-import "../Inventory.sol";
-import "../InventoryCardsCollection.sol";
-import "../Game.sol";
+import {CardsCollection} from "../CardsCollection.sol";
+import {DeckAirdrop} from "../DeckAirdrop.sol";
+import {Inventory} from "../Inventory.sol";
 
-import "forge-std/Test.sol";
-import "../deploy/Deploy.s.sol";
+import {Test} from "forge-std/Test.sol";
+import {Deploy} from "../deploy/Deploy.s.sol";
 
-import "openzeppelin/token/ERC721/utils/ERC721Holder.sol";
-
-contract InventoryTest is Test, ERC721Holder {
+contract InventoryTest is Test {
     Deploy private deployment;
     CardsCollection private cardsCollection;
     Inventory private inventory;
@@ -33,7 +30,7 @@ contract InventoryTest is Test, ERC721Holder {
         airdrop.claimAirdrop();
     }
 
-    // expect revert if player's deck contains a card with more than `MAX_CARD_COPY` copies
+    // expect revert if player's deck contains a card with more than `MAX_CARD_COPY` copies.
     function testCheckDeckExceedsMaxCopy() public {
         uint8 deckId = 0;
         uint256 randomCard = inventory.getDeck(player1, deckId)[2];
@@ -51,20 +48,20 @@ contract InventoryTest is Test, ERC721Holder {
         inventory.checkDeck(player1, deckId);
     }
 
-    // expect revert if player's deck contains a card they don't own
+    // expect revert if player's deck contains a card they don't own.
     function testCheckDeckOnlyInventoryCards() public {
         
-        // mint card `randomMint` to player2
+        // mint card `randomMint` to player2.
         vm.startPrank(cardsCollection.airdrop());
         uint256 randomMint = cardsCollection.mint(player2, "Horrible Gremlin", "", "", 1, 1);
 
-        // add card `randomMint` to inventory
+        // add card `randomMint` to inventory._transferOwnership(newOwner);
         changePrank(player2);
         inventory.addCard(player2, randomMint);
 
         uint8 deckId = 0;
 
-        // add card `randomMint` to player2's deck
+        // add card `randomMint` to player2's deck.
         changePrank(player1);
         inventory.addCardToDeck(player1, deckId, randomMint);
 

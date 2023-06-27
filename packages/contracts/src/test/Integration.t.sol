@@ -1,13 +1,14 @@
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 pragma solidity ^0.8.0;
 
-import "../CardsCollection.sol";
-import "../Inventory.sol";
-import "../InventoryCardsCollection.sol";
-import "../Game.sol";
+import {CardsCollection} from "../CardsCollection.sol";
+import {DeckAirdrop} from "../DeckAirdrop.sol";
+import {Inventory} from "../Inventory.sol";
+import {InventoryCardsCollection} from "../InventoryCardsCollection.sol";
+import {Game} from "../Game.sol";
 
-import "forge-std/Test.sol";
-import "../deploy/Deploy.s.sol";
+import {Test} from "forge-std/Test.sol";
+import {Deploy} from "../deploy/Deploy.s.sol";
 
 contract Integration is Test {
     Deploy private deployment;
