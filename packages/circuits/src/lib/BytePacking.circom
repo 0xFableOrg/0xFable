@@ -37,25 +37,22 @@ template PackCards(n) {
     signal input unpackedCards[n*31];
     signal output packedCards[n];
 
-    // convert numbers to bits, where each number takes 8 bits (1 byte)
-    component convertToBits[n*31];
-    signal cardInBits[n*248]; // each packed card can hold 248 bits (first 8 bits ignored)
-    for (var i = 0; i < n*31; i++) {
-        convertToBits[i] = Num2Bits(8);
-        // reverse the order of the numbers
-        convertToBits[i].in <== unpackedCards[(n*31)-1-i];
-        for (var j = 0; j < 8; j++) {
-            cardInBits[j + i*8] <== convertToBits[i].out[j];
-        }
-    }
-
-    // pack cards into elements, where each element hold 248 bits
-    component packToElements[n];
+    // pack cards into felt
+    component lt[n*31];
     for (var i = 0; i < n; i++) {
-        packToElements[i] = Bits2Num(248);
-        for (var j = 0; j < 248; j++) {
-            packToElements[i].in[j] <== cardInBits[j + (1-i)*248];
+        var sum = 0;
+        var mult = 1;
+        for (var j = 0; j < 31; j++) {
+            lt[(i*31)+j] = LessEqThan(8);
+            lt[(i*31)+j].in[0] <== unpackedCards[(i*31) + (30-j)];
+            lt[(i*31)+j].in[1] <== 255;
+            lt[(i*31)+j].out === 1;
+            sum += unpackedCards[(i*31) + (30-j)] * mult;
+            var mult4 = mult + mult + mult + mult;
+            var mult16 = mult4 + mult4 + mult4 + mult4;
+            var mult64 = mult16 + mult16 + mult16 + mult16;
+            mult = mult64 + mult64 + mult64 + mult64;
         }
-        packedCards[i] <== packToElements[i].out;
+        sum ==> packedCards[i];
     }
 }
