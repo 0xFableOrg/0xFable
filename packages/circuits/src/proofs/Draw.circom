@@ -6,7 +6,7 @@ include "../lib/BytePacking.circom";
 include "../../node_modules/circomlib/circuits/mimcsponge.circom";
 
 template Draw(elementSize) {
-    /// 21777 constraints
+    /// 21510 constraints
 
     // public inputs
     signal input deckRoot;
