@@ -25,7 +25,7 @@ include "../../node_modules/circomlib/circuits/mimcsponge.circom";
  *   (replacing them with cards from the back of the deck and shrinking the deck)
  * - `salt` is the player's secret salt
  *
- * 21193 Plonk constraints.
+ * 20785 Plonk constraints.
  */
 template DrawHand(elementSize, initialHandSize) {
 

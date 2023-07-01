@@ -6,7 +6,7 @@ include "../lib/BytePacking.circom";
 include "../../node_modules/circomlib/circuits/mimcsponge.circom";
 
 template Play(elementSize) {
-    /// 12594 constraints
+    /// 12448 constraints
 
     // public inputs
     signal input handRoot;
