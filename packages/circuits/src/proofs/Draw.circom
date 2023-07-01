@@ -57,17 +57,17 @@ template Draw(elementSize) {
 
     // unpack initial deck
     component unpackDeck = UnpackCards(elementSize);
-    signal initialDeckInNum[elementSize*32];
+    signal initialDeckInNum[elementSize*31];
     unpackDeck.packedCards <== deck;
     initialDeckInNum <== unpackDeck.unpackedCards;
 
     // unpack initial hand
     component unpackHand = UnpackCards(elementSize);
-    signal initialHandInNum[elementSize*32];
+    signal initialHandInNum[elementSize*31];
     unpackHand.packedCards <== hand;
     initialHandInNum <== unpackHand.unpackedCards;
 
-    component drawCard = RemoveCard(elementSize*32);
+    component drawCard = RemoveCard(elementSize*31);
 
     // update deck and hand
     drawCard.lastIndex <== lastIndex;
@@ -81,8 +81,8 @@ template Draw(elementSize) {
     }
 
     // add selected card to hand
-    component updateHand = AddCard(elementSize*32);
-    signal newHandInNum[elementSize*32];
+    component updateHand = AddCard(elementSize*31);
+    signal newHandInNum[elementSize*31];
     updateHand.index <== initialHandSize;
     updateHand.card <== drawCard.selectedCard;
     updateHand.deck <== initialHandInNum;

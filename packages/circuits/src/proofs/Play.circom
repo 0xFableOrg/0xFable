@@ -44,11 +44,11 @@ template Play(elementSize) {
 
     // unpack initial hand
     component unpackHand = UnpackCards(elementSize);
-    signal initialHandInNum[elementSize*32];
+    signal initialHandInNum[elementSize*31];
     unpackHand.packedCards <== hand;
     initialHandInNum <== unpackHand.unpackedCards;
 
-    component playCard = RemoveCard(elementSize*32);
+    component playCard = RemoveCard(elementSize*31);
 
     // update hand
     playCard.lastIndex <== lastIndex;

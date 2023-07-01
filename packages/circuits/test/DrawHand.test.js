@@ -9,8 +9,8 @@ describe("Draw Hand Test", () => {
     let publicRandom = BigInt(5678); // block hash from smart contract
     let initialDeck = [], initialHand = [];
     let deckRoot, handRoot;
-    let deckSize = 64;
-    let initialLastIndex = 63;
+    let deckSize = 62;
+    let initialLastIndex = 61;
 
     beforeAll(async () => {
         mimcsponge = await circomlib.buildMimcSponge();
