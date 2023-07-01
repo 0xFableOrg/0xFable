@@ -56,20 +56,20 @@ template DrawHand(elementSize, initialHandSize) {
 
     // unpack initial deck
     component unpackDeck = UnpackCards(elementSize);
-    signal initialDeckInNum[elementSize*32];
+    signal initialDeckInNum[elementSize*31];
     unpackDeck.packedCards <== initialDeck;
     initialDeckInNum <== unpackDeck.unpackedCards;
 
     component drawCards[initialHandSize];
 
     // This will contain the deck as one card is being drawn (swapped out for last card) at a time.
-    signal intermediateDecks[initialHandSize+1][elementSize*32];
-    signal drawnCards[elementSize*32];
+    signal intermediateDecks[initialHandSize+1][elementSize*31];
+    signal drawnCards[elementSize*31];
     intermediateDecks[0] <== initialDeckInNum;
 
     for (var i = 0; i < initialHandSize; i++) {
         var currentLastIndex = lastIndex - i;
-        drawCards[i] = RemoveCard(elementSize*32);
+        drawCards[i] = RemoveCard(elementSize*31);
 
         // update deck and hand
         drawCards[i].lastIndex <== currentLastIndex;
@@ -80,7 +80,7 @@ template DrawHand(elementSize, initialHandSize) {
     }
 
     // fill up drawnCards with 255 to reach a size of 2**levels
-    for (var i = initialHandSize; i < elementSize*32; i++) {
+    for (var i = initialHandSize; i < elementSize*31; i++) {
         drawnCards[i] <== 255;
     }
 

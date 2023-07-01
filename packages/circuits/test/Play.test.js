@@ -8,7 +8,7 @@ describe("Play Card Test", () => {
     let salt = BigInt(1234); // random private salt
     let publicRandom = BigInt(5678); // block hash from smart contract
     let initialHand = [];
-    let handSize = 64;
+    let handSize = 62;
     let initialHandSize = 20;
 
     beforeAll(async () => {
