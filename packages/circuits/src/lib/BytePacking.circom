@@ -1,5 +1,6 @@
 pragma circom 2.0.0;
 
+include "../../node_modules/circomlib/circuits/comparators.circom";
 include "../../node_modules/circomlib/circuits/bitify.circom";
 
 /// @dev when dealing with Num2Bits in circom, LSB is stored in index 0, MSB in last index
@@ -10,26 +11,24 @@ template UnpackCards(n) {
     signal input packedCards[n];
     signal output unpackedCards[n*31];
     
-    // unpack cards into bits
-    component unpackToBits[n];
-    signal cardInBits[n*248]; // each packed card can hold 248 bits (first 8 bits ignored)
+    // unpack cards into bytes
+    component lt[n*31];
     for (var i = 0; i < n; i++) {
-        unpackToBits[i] = Num2Bits(248);
-        unpackToBits[i].in <== packedCards[i];
-        for (var j = 0; j < 248; j++) {
-            cardInBits[j + (1-i)*248] <== unpackToBits[i].out[j];
+        var sum = 0;
+        var mult = 1;
+        for (var j = 0; j < 31; j++) {
+            unpackedCards[(i*31) + (30-j)] <-- (packedCards[i] >> (j*8)) & 255;
+            lt[(i*31)+j] = LessEqThan(8);
+            lt[(i*31)+j].in[0] <== unpackedCards[(i*31) + (30-j)];
+            lt[(i*31)+j].in[1] <== 255;
+            lt[(i*31)+j].out === 1;
+            sum += unpackedCards[(i*31) + (30-j)] * mult;
+            var mult4 = mult + mult + mult + mult;
+            var mult16 = mult4 + mult4 + mult4 + mult4;
+            var mult64 = mult16 + mult16 + mult16 + mult16;
+            mult = mult64 + mult64 + mult64 + mult64;
         }
-    }
-
-    // convert bits to numbers, where each number takes 8 bits (1 byte)
-    component convertToNum[n*31]; // each packed card can hold 31 numbers
-    for (var i = 0; i < n*31; i++) {
-        convertToNum[i] = Bits2Num(8);
-        for (var j = 0; j < 8; j++) {
-            convertToNum[i].in[j] <== cardInBits[j + i*8];
-        }
-        // reverse the order of the numbers
-        unpackedCards[(n*31)-1-i] <== convertToNum[i].out;
+        sum === packedCards[i];
     }
 }
 
