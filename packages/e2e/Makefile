@@ -18,6 +18,16 @@ chrome:
 	pnpm playwright test $(HEADED) --project=chromium
 .PHONY: chrome
 
+# Only run test on Firefox
+firefox:
+	pnpm playwright test $(HEADED) --project=firefox
+.PHONY: firefox
+
+# Only run test on Webkit
+webkit:
+	pnpm playwright test $(HEADED) --project=webkit
+.PHONY: webkit
+
 # Run tests on all browsers
 all-browsers:
 	pnpm playwright test $(HEADED)
