@@ -53,7 +53,7 @@ const filteredErrorCodes = [
   "UNPREDICTABLE_GAS_LIMIT",
 ]
 
-const filteredErrorMessages: string[] = [] // none right now
+const filteredErrorMessages: (string|RegExp)[] = []
 
 const filteredWarningMessages = [
   "Lit is in dev mode.",
@@ -70,6 +70,14 @@ const filteredInfoMessages = [
 
 // -------------------------------------------------------------------------------------------------
 
+function matchFilter(err: string, filter: string|RegExp): boolean {
+  return typeof filter === "string"
+    ? err.startsWith(filter)
+    : err.match(filter).length > 0
+}
+
+// -------------------------------------------------------------------------------------------------
+
 /**
  * Hooks {@link console.error} such that string errors starting with any of the strings in
  * {@link filteredErrorMessages} and object errors with a `code` property contained in {@link
@@ -79,11 +87,11 @@ const filteredInfoMessages = [
 function setupFilterErrorMessages() {
   const oldError = console.error["oldError"] ?? console.error
   console.error = (err) => {
-    const filteredMsg = typeof err === "string"
-      && filteredErrorMessages.some((msg) => err.startsWith(msg))
+    const filteredErr = typeof err === "string"
+      && filteredErrorMessages.some((filter) => matchFilter(err, filter))
     const filteredCode = filteredErrorCodes.includes(err?.code)
 
-    if (filteredMsg || filteredCode) {
+    if (filteredErr || filteredCode) {
       window["suppressedErrors"] ||= []
       window["suppressedErrors"].push(err)
     } else {
@@ -104,7 +112,7 @@ function setupFilterWarningMessages() {
   const oldWarn = console.warn["oldWarn"] ?? console.warn
   console.warn = (warning) => {
     const filteredMsg = typeof warning === "string"
-      && filteredWarningMessages.some((msg) => warning.startsWith(msg))
+      && filteredWarningMessages.some((filter) => matchFilter(warning, filter))
 
     if (filteredMsg) {
       window["suppressedWarnings"] ||= []
@@ -127,7 +135,7 @@ function setupFilterInfoMessages() {
   const oldInfo = console.info["oldInfo"] ?? console.info
   console.info = (info) => {
     const filteredMsg = typeof info === "string"
-      && filteredInfoMessages.some((msg) => info.startsWith(msg))
+      && filteredInfoMessages.some((filter) => matchFilter(info, filter))
 
     if (filteredMsg) {
       window["suppressedInfos"] ||= []
