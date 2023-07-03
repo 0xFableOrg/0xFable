@@ -16,7 +16,7 @@ export type UseContractSpecificWriteParams = {
   onSigned?: (data: { hash: Hash }) => void,
   onSuccess?: (data: TransactionReceipt) => void,
   onError?: (err: Error) => void,
-  setLoading?: (string) => void,
+  setLoading?: (label: string|null) => void,
   enabled?: boolean
 }
 
@@ -26,7 +26,7 @@ export function useGameWrite(params: UseContractSpecificWriteParams): UseWriteRe
   try {
     return useChainWrite({...params, contract: deployment.Game, abi: gameABI})
   } catch (e) {
-    return { write: null }
+    return { write: undefined }
   }
 }
 
@@ -36,7 +36,7 @@ export function useCardsCollectionWrite(params: UseContractSpecificWriteParams):
   try {
     return useChainWrite({...params, contract: deployment.CardsCollection, abi: cardsCollectionABI})
   } catch (e) {
-    return { write: null }
+    return { write: undefined }
   }
 }
 
@@ -46,7 +46,7 @@ export function useInventoryWrite(params: UseContractSpecificWriteParams): UseWr
   try {
     return useChainWrite({...params, contract: deployment.Inventory, abi: inventoryABI})
   } catch (e) {
-    return { write: null }
+    return { write: undefined }
   }
 }
 
@@ -56,7 +56,7 @@ export function useDeckAirdropWrite(params: UseContractSpecificWriteParams): Use
   try {
     return useChainWrite({...params, contract: deployment.DeckAirdrop, abi: deckAirdropABI})
   } catch (e) {
-    return { write: null }
+    return { write: undefined }
   }
 }
 // =================================================================================================

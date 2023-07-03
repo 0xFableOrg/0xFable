@@ -13,6 +13,11 @@ dev:
 	pnpm next dev
 .PHONY: dev
 
+# Runs linter (use make check instead which also checks typescript typing).
 lint:
-	pnpm next lint
+	pnpm next lint --max-warnings 0
 .PHONY: lint
+
+# Runs code quality checks.
+check: lint build
+.PHONY: check

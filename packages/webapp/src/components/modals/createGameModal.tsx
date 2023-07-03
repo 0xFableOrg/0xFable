@@ -42,7 +42,7 @@ const CreateGameModalContent = ({ ctrl }: { ctrl: ModalController }) => {
   const gameData = store.useGameData()
   const gameStatus = store.useGameStatus()
   const [ hasVisitedBoard ] = store.useHasVisitedBoard()
-  const [ loading, setLoading ] = useState<string>(null)
+  const [ loading, setLoading ] = useState<string|null>(null)
   const [ joinCompleted, setJoinCompleted ] = useState(false)
   const router = useRouter()
 
@@ -117,6 +117,8 @@ const CreateGameModalContent = ({ ctrl }: { ctrl: ModalController }) => {
     enabled: created && !started && !joined,
     setLoading,
     onSuccess() {
+      if (gameData === null) return // should never happen
+
       // This will capture the game data at the point where `join` was called, so we should check
       // for 1 instead of 0.
       // Assuming two players, if we're the last to join, we just need to wait for (1) the data
@@ -142,13 +144,14 @@ const CreateGameModalContent = ({ ctrl }: { ctrl: ModalController }) => {
   })
 
   const drawAndJoin = async () => {
+    if (gameID === null || gameData === null || playerAddress === null) return // should never happen
     setLoading("Drawing cards...")
     // TODO WIP
     const hand = await drawCards(gameID, playerAddress, gameData, 0)
     if (hand === ABORTED) {
       setLoading(null)
     } else {
-      join()
+      if (join !== undefined) join() // should always happen
     }
   }
 

@@ -62,7 +62,7 @@ export async function drawCards
     if (isStale(gameID, player))
       return ABORTED
   }
-  catch (e) {
+  catch (e: any) {
     console.log(e)
 
     // The action can be retried, by re-clicking "Join Game", so there's no need for some very

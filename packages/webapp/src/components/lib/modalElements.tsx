@@ -1,6 +1,9 @@
 // =================================================================================================
 
-export const ModalTitle = ({ children }) => {
+
+import { PropsWithChildren } from "react"
+
+export const ModalTitle = ({ children }: PropsWithChildren) => {
   return <h3 className="text-xl font-bold normal-case">{children}</h3>
 }
 
@@ -14,7 +17,7 @@ export const Spinner = () => {
 
 // -------------------------------------------------------------------------------------------------
 
-export const ModalMenuButton = ({ display, label }) => {
+export const ModalMenuButton = ({ display, label }: { display: () => void, label: string}) => {
   return <button
     onClick={display}
     className="hover:border-3 btn-lg btn btn-neutral border-2 border-green-900 text-2xl normal-case hover:scale-105 hover:border-green-800">

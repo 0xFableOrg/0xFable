@@ -64,7 +64,7 @@ export function throttledFetch
     // Throttle
     const timestamp = Date.now()
     if (timestamp - lastRequestTimestamp < throttlePeriod)
-      return null // there is a recent-ish refresh in flight
+      return THROTTLED // there is a recent-ish refresh in flight
     lastRequestTimestamp = timestamp
 
     let result: Result
@@ -83,7 +83,7 @@ export function throttledFetch
     }
 
     // Filter zombie updates
-    if (seqNum < lastCompletedNumberAfterFetch) return null
+    if (seqNum < lastCompletedNumberAfterFetch) return ZOMBIE
 
     return result
   }

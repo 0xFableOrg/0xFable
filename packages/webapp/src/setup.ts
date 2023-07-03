@@ -5,6 +5,9 @@
  * @module setup
  */
 
+// We're doing too much magic here.
+// @ts-nocheck
+
 import { setupStore } from "src/store/update"
 
 // =================================================================================================
@@ -32,9 +35,9 @@ export function setup() {
  * `console.log = replaceFunction(console, "log", (old) => (...args) => old("LOGGING: ", ...args))`
  */
 export function replaceFunction<T>
-    (obj: object, name: string, replacement: (old: T) => T): T {
+    (obj: any, name: string, replacement: (old: T) => T): T {
   const old = obj[name]["0xFable_oldFunction"] ?? obj[name]
-  const result = replacement(old)
+  const result = replacement(old) as any
   result["0xFable_oldFunction"] = old
   return result
 }
@@ -50,7 +53,7 @@ const filteredErrorCodes = [
   "UNPREDICTABLE_GAS_LIMIT",
 ]
 
-const filteredErrorMessages = [] // none right now
+const filteredErrorMessages: string[] = [] // none right now
 
 const filteredWarningMessages = [
   "Lit is in dev mode.",

@@ -13,7 +13,7 @@
  * The function supports single-line or multiline output (with indent size two), defaulting to
  * single-line.
  */
-export function format(obj, multiline = false, indent = 0) {
+export function format(obj: any, multiline = false, indent = 0) {
   const linePrefix =  multiline ? " ".repeat(indent + 2) : undefined
   const separator = multiline ? ",\n" : ", "
   const pairs = []
@@ -54,7 +54,7 @@ export function toString(obj: any) {
 /**
  * Shallowly compares two objects with depth 1 by checking the equality of their members.
  */
-export function shallowCompare(obj1: object, obj2: object): boolean {
+export function shallowCompare(obj1: any, obj2: any): boolean {
   const keys1 = Object.keys(obj1)
   const keys2 = Object.keys(obj2)
 

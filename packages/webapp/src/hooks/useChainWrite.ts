@@ -27,7 +27,7 @@ export type UseWriteParams = {
   onSuccess?: (data: TransactionReceipt) => void
   onSigned?: (data: { hash: Hash }) => void
   onError?: (err: Error) => void
-  setLoading?: (string) => void
+  setLoading?: (label: string|null) => void
   enabled?: boolean
   prepare?: boolean
 }
@@ -49,23 +49,24 @@ function completeParams(params: UseWriteParams): UseWriteParams {
   if (result.enabled === undefined) result.enabled = true
   if (result.prepare === undefined) result.prepare = false
 
-  if (result.setLoading) {
+  const setLoading = result.setLoading
+  if (setLoading) {
     const { onWrite, onSigned, onSuccess, onError } = params
 
     result.onWrite = () => {
-      result.setLoading("Waiting for signature...")
+      setLoading("Waiting for signature...")
       onWrite?.()
     }
     result.onSigned = (data) => {
-      result.setLoading("Waiting for on-chain inclusion...")
+      setLoading("Waiting for on-chain inclusion...")
       onSigned?.(data)
     }
     result.onSuccess = (data) => {
-      result.setLoading(null)
+      setLoading(null)
       onSuccess?.(data)
     }
     result.onError = (error) => {
-      result.setLoading(null)
+      setLoading(null)
       if (onError) onError(error)
       else {
         // It would be nice to combine these two, however, interpolating `error` or event

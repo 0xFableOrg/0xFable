@@ -45,7 +45,7 @@ clean:
 	forge clean
 .PHONY: clean
 
-check: lint-check format-check
+check: lint format-check
 .PHONY: check
 
 format-check:

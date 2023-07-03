@@ -14,7 +14,7 @@ import * as store from "src/store/atoms"
 // =================================================================================================
 
 /** Player address — the connected wallet address. */
-export function usePlayerAddress(): Address {
+export function usePlayerAddress(): Address|null {
   return useAtomValue(store.playerAddress)
 }
 
@@ -33,7 +33,7 @@ export function useGameID(): [bigint|null, (ID: bigint|null) => void] {
 // -------------------------------------------------------------------------------------------------
 
 /** The current state of the game. */
-export function useGameData(): FetchedGameData {
+export function useGameData(): FetchedGameData|null {
   return useAtomValue(store.gameData)
 }
 

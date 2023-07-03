@@ -18,7 +18,7 @@
     "allowJs": true,
     "checkJs": true,
     "skipLibCheck": true,
-    "strict": false,
+    "strict": true,
     "alwaysStrict": true,
     "forceConsistentCasingInFileNames": true,
     "noEmit": true,
@@ -36,7 +36,6 @@
     "**/*.tsx"
   ],
   "exclude": [
-    "node_modules",
-    "src/generated.ts"
+    //"node_modules"
   ]
 }

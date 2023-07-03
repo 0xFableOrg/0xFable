@@ -124,7 +124,7 @@ function handleEvent(name: string, args: GameEventArgs) {
       // the game data and the cards in parallel instead of waiting for the game data to indicate a
       // STARTED state to initiate fetching the cards.
 
-      const forceFetchCards = store.get(store.gameData).playersLeftToJoin <= 1
+      const forceFetchCards = (store.get(store.gameData)?.playersLeftToJoin || 0) <= 1
       void refreshGameData({ forceFetchCards })
       break
     }

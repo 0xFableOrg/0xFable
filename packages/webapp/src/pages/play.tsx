@@ -1,4 +1,3 @@
-import { useAtom } from "jotai"
 import { type NextPage } from "next"
 import { useEffect, useState } from "react"
 
@@ -16,13 +15,13 @@ const Play: NextPage = () => {
   const [ gameID ] = store.useGameID()
   const gameStatus = store.useGameStatus()
   const [ hasVisitedBoard, visitBoard ] = store.useHasVisitedBoard()
-  useEffect(() => visitBoard, [hasVisitedBoard])
-  const [ loading, setLoading ] = useState<string>(null)
+  useEffect(() => visitBoard, [visitBoard, hasVisitedBoard])
+  const [ loading, setLoading ] = useState<string|null>(null)
   const [ hideResults, setHideResults ] = useState(false)
   const [ concedeCompleted, setConcedeCompleted ] = useState(false)
   const hydrated = useIsHydrated()
 
-  const playerHand = []
+  const playerHand: bigint[] = []
 
   const ended = gameStatus === GameStatus.ENDED || concedeCompleted
 
