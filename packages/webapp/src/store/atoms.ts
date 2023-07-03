@@ -96,7 +96,7 @@ export const isGameCreator = atom ((get) => {
 /** True if we have have joined BUT are not the creator of the current game. */
 export const isGameJoiner = atom((get) => {
   const address = get(playerAddress)
-  return address != null && !get(isGameCreator) && get(gameData)?.players?.includes(address)
+  return !!(address != null && !get(isGameCreator) && get(gameData)?.players?.includes(address))
 })
 
 // =================================================================================================

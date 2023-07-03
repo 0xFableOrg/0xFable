@@ -118,7 +118,7 @@ function gameIDListener(ID: bigint|null) {
   console.log(`transitioning to game ID ${ID}`)
 
   // avoid using inconsistent data
-  store.set(store.gameData, null as FetchedGameData)
+  store.set(store.gameData, null)
   store.set(store.hasVisitedBoard, false)
 
   subscribeToGame(ID) // will unusubscribe if ID is null
@@ -178,6 +178,9 @@ export async function refreshGameData({ forceFetchCards = false } = {}) {
   if (gameID === null) {
     console.error("refreshGameData called with null ID")
     return
+  } else if (player === null) {
+    console.error("refreshGameData called with null player")
+    return
   }
 
   const shouldFetchCards = shouldUpdateCards() || forceFetchCards
@@ -220,9 +223,13 @@ export async function refreshGameData({ forceFetchCards = false } = {}) {
 
 /** Check whether the game ID, player, or game state (if defined) shifted underneath us. */
 export function isStale(gameID: bigint, player: Address, gameData?: FetchedGameData): boolean {
-  return store.get(store.gameID) !== gameID
-    || store.get(store.playerAddress) !== player
-    || (gameData !== undefined && store.get(store.gameData).lastBlockNum !== gameData.lastBlockNum)
+  const gameID2 = store.get(store.gameID)
+  const player2 = store.get(store.playerAddress)
+  const gameData2 = store.get(store.gameData)
+  return gameID2 !== gameID
+    || player2 !== player
+    || (gameData !== undefined
+        && (gameData2 === null || gameData2.lastBlockNum !== gameData.lastBlockNum))
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -246,6 +253,7 @@ export const STALE = Symbol("STALE")
 export async function asyncWithGameContext<T>(fn: () => Promise<T>): Promise<T | typeof STALE> {
   const gameID = store.get(store.gameID)
   const player = store.get(store.playerAddress)
+  if (gameID === null || player === null) return STALE // should never happen
 
   const result = await fn()
 
@@ -269,6 +277,7 @@ export async function asyncWithGameStateContext<T>(fn: () => Promise<T>): Promis
   const gameID = store.get(store.gameID)
   const player = store.get(store.playerAddress)
   const gameData = store.get(store.gameData)
+  if (gameID === null || player === null || gameData === null) return STALE // should never happen
 
   const result = await fn()
 

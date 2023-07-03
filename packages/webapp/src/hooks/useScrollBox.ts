@@ -14,6 +14,7 @@ function useScrollBox(scrollRef: any) {
   const [speed, setSpeed] = useState(0);
 
   const scrollWrapperCurrent = scrollRef.current;
+
   const handleLastScrollX = useCallback(
     throttle((screenX) => {
       setLastScrollX(screenX);

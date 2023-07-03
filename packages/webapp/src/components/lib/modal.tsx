@@ -69,7 +69,7 @@ const ModalInner = ({ ctrl, children }: { ctrl: ModalController, children: React
   ctrl.setState = setState
 
   const errorConfig = useErrorConfig()
-  const dialogRef = useRef(null)
+  const dialogRef = useRef(null as HTMLDialogElement|null)
 
   // If an errorConfig is set, the modal should be hidden.
   const displayed = state.displayed && (!errorConfig || state.displayedOnError)
@@ -87,14 +87,14 @@ const ModalInner = ({ ctrl, children }: { ctrl: ModalController, children: React
       ctrl.close()
   }
 
-  const dialogRefCallback = (dialog: HTMLDialogElement) => {
+  const dialogRefCallback = (dialog: HTMLDialogElement|null) => {
     if (dialog === null) return
     dialogRef.current = dialog
     dialog.addEventListener('cancel', dialogEscapeHandler)
-    if (displayed && dialog.attributes["open"] === undefined)
+    if (displayed && dialog.getAttribute("open") === null)
       // If the modal should be displayed but isn't.
       dialog.showModal()
-    if (!displayed && dialog.attributes["open"] !== undefined)
+    if (!displayed && dialog.getAttribute("open") !== null)
       // If the modal should be hidden but isn't.
       dialog.close()
   }
@@ -185,7 +185,9 @@ export type ModalState = {
  */
 export class ModalController {
   private state_: ModalState
+  // @ts-ignore
   private setLoaded_: (_: boolean) => void
+  // @ts-ignore
   private setState_: (_: ModalState) => void
 
   /** Returns a copy of the modal state. */
@@ -211,6 +213,7 @@ export class ModalController {
    * This is more reliable than the `state.loaded` because the modal can also unmount if its parent
    * unmount for example.
    */
+  // @ts-ignore
   isMounted: RefObject<boolean>
 
   /** Creates a new modal controller. A new modal controller must be created for every modal. */

@@ -20,8 +20,8 @@ export type Card = {
     URL: string
   }
   stats: {
-    attack: bigint
-    defense: bigint
+    attack: number
+    defense: number
   }
 }
 
@@ -169,8 +169,8 @@ export function currentPlayerAddress(gdata: FetchedGameData): Address {
 // -------------------------------------------------------------------------------------------------
 
 /** Returns the game status based on the game data. */
-export function getGameStatus(gdata: FetchedGameData, player: Address): GameStatus {
-  if (gdata == null || gdata.gameCreator == zeroAddress)
+export function getGameStatus(gdata: FetchedGameData|null, player: Address|null): GameStatus {
+  if (gdata === null || player === null || gdata.gameCreator === zeroAddress)
     return GameStatus.UNKNOWN
   else if (gdata.playersLeftToJoin == 0) {
     if (gdata.livePlayers.length <= 1)

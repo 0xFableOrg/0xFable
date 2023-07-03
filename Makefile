@@ -37,6 +37,7 @@ circuits:
 # Performs code-quality checks.
 check:
 	cd packages/contracts && make check
+	cd packages/webapp && make check
 .PHONY: check
 
 # ==================================================================================================

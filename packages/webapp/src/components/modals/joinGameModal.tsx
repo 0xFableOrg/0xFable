@@ -40,8 +40,8 @@ const JoinGameModalContent = ({ ctrl }: { ctrl: ModalController }) => {
   const [ gameID, setGameID ] = store.useGameID()
   const gameStatus = store.useGameStatus()
   const [ hasVisitedBoard ] = store.useHasVisitedBoard()
-  const [ inputGameID, setInputGameID ] = useState(null)
-  const [ loading, setLoading ] = useState<string>(null)
+  const [ inputGameID, setInputGameID ] = useState<string|null>(null)
+  const [ loading, setLoading ] = useState<string|null>(null)
   const router = useRouter()
 
   const joined  = gameStatus >= GameStatus.JOINED
@@ -77,7 +77,7 @@ const JoinGameModalContent = ({ ctrl }: { ctrl: ModalController }) => {
         HashOne, // proof
       ]
       : undefined,
-    enabled: inputGameID && !joined,
+    enabled: !!inputGameID && !joined,
     setLoading,
     onSuccess(data) {
       const event = decodeEventLog({
@@ -110,7 +110,7 @@ const JoinGameModalContent = ({ ctrl }: { ctrl: ModalController }) => {
     }
   })
 
-  function handleInputChangeBouncy(e) {
+  function handleInputChangeBouncy(e: React.ChangeEvent<HTMLInputElement>) {
     e.stopPropagation()
     if (isStringPositiveInteger(e.target.value))
       setInputGameID(e.target.value)

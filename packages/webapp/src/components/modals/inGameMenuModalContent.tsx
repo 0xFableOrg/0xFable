@@ -9,7 +9,7 @@ import { ModalTitle } from "src/components/lib/modalElements"
  *
  * @param {{concede}} concede - The function to call to concede the game.
  */
-export const InGameMenuModalContent = ({ concede }) => {
+export const InGameMenuModalContent = ({ concede }: { concede?: () => void }) => {
   return <>
     <ModalTitle>Game in progress!</ModalTitle>
     <div className="flex justify-center gap-4 mt-4">

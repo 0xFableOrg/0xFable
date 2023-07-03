@@ -4,6 +4,8 @@
  * @module utils/hash
  */
 
+// I hate typescript package management bullshit.
+// @ts-ignore
 import { buildMimcSponge } from "circomlibjs"
 
 // =================================================================================================

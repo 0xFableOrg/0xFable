@@ -10,7 +10,7 @@ import { Modal, useModalController } from "src/components/lib/modal"
  * player wishes to view the final state of the game board, after which he can still go back
  * to the menu through a button on the game board.
  */
-export const GameEndedModal = ({ closeCallback }) => {
+export const GameEndedModal = ({ closeCallback }: { closeCallback: () => void }) => {
   const ctrl = useModalController({ displayed: true, closeable: false })
   const router = useRouter()
   const [ , setGameID ] = useGameID()

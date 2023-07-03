@@ -6,7 +6,24 @@
 
 // =================================================================================================
 
-import { atom, type Atom, Getter, Setter, type WritableAtom } from "jotai"
+import { atom, type Atom, type Getter, type Setter, type WritableAtom } from "jotai"
+
+// =================================================================================================
+// Recreating (simplified) Jotai types
+
+/**
+ * Simplified version of the unexported Jotai `Read` type (parameter to some {@link atom}
+ * overloads).
+ */
+export type JotaiRead<Value> = (get: Getter) => Value
+
+
+/**
+ * Simplified version of the unexported Jotai `Write` type (parameter to some {@link atom}
+ * overloads), meant to work with {@link writeableAtom} and its {@link WAtom} return type.
+ */
+export type JotaiWrite<Value>
+  = (get: Getter, set: Setter, ...args: [Value]) => void
 
 // =================================================================================================
 
@@ -25,7 +42,7 @@ export type WAtom<Value> = WritableAtom<Value, [Value], void>
 // -------------------------------------------------------------------------------------------------
 
 /** Just an alias for the overload of {@link atom} that returns a {@link WAtom}. */
-export function writeableAtom<Value>(read, write): WAtom<Value> {
+export function writeableAtom<Value>(read: JotaiRead<Value>, write: JotaiWrite<Value>): WAtom<Value> {
   return atom(read, write)
 }
 

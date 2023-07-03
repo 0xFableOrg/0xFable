@@ -1,5 +1,9 @@
 # 0xFable Web App
 
+See the [Makefile](./Makefile) for the available command to build, check code standards, etc...
+
+The frontend is tested as part of the end-to-end tests [in the e2e package](../packages/e2e).
+
 ## Dependencies
 
 - `tailwindcss` — for styling, with peer dependencies `autoprefixer` and `postcss`

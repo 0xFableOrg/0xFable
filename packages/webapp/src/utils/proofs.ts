@@ -58,7 +58,7 @@ export async function verify(circuitName: string, publicSignals: readonly string
 // TESTING
 
 /** Testing function that generates a proof and verifies it. */
-export async function testProving (circuitName, inputs) {
+export async function testProving (circuitName: string, inputs: Record<string, bigint|string>) {
   const { proof, publicSignals } = await prove(circuitName, inputs)
   const success = await verify(circuitName, publicSignals, proof)
   console.log(success ? "Proof is valid" : "Proof is invalid")

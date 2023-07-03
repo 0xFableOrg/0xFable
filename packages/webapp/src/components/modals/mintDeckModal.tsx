@@ -21,7 +21,7 @@ export const MintDeckModal = ({ callback = () => {} }) => {
 // =================================================================================================
 
 const MintDeckModalContent = ({ ctrl, callback }: { ctrl: ModalController, callback: () => void}) => {
-  const [ loading, setLoading ] = useState<string>(null)
+  const [ loading, setLoading ] = useState<string|null>(null)
   const [ success, setSuccess ] = useState(false)
 
   const { write: claim } = useDeckAirdropWrite({

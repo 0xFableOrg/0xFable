@@ -64,7 +64,7 @@ export type Hash = `0x${string}`
  */
 export type AccountResult = {
   status: 'disconnected' | 'connecting' | 'connected' | 'reconnecting'
-  address: Address
+  address?: Address
 }
 
 // -------------------------------------------------------------------------------------------------

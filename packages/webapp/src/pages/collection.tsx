@@ -13,11 +13,14 @@ import { deployment } from "src/deployment"
 import { useInventoryCardsCollectionGetCollection } from "src/generated"
 import { useIsHydrated } from "src/hooks/useIsHydrated"
 import { Card } from "src/types"
+import { Address } from "src/chain"
 
 // NOTE(norswap & geniusgarlic): Just an example, when the game actually has effects & types,
 //   fetch those from the chain instead of hardcoding them here.
 
-const effects = ['Charge', 'Flight', 'Courage', 'Undying', 'Frenzy', 'Enlightened']
+type Effect = string
+
+const effects: Effect[] = ['Charge', 'Flight', 'Courage', 'Undying', 'Frenzy', 'Enlightened']
 const initialEffectMap = Object.assign({}, ...effects.map(name => ({[name]: false})))
 
 const types = ['Creature', 'Magic', 'Weapon']
@@ -27,7 +30,7 @@ const Collection = () => {
 
   const isHydrated = useIsHydrated()
   const { address } = useAccount()
-  const [ selectedCard, setSelectedCard ] = useState<Card>(null)
+  const [ selectedCard, setSelectedCard ] = useState<Card|null>(null)
   const [ searchInput, setSearchInput ] = useState('')
   const [ effectMap, setEffectMap ] = useState(initialEffectMap)
   const [ typeMap, setTypeMap ] = useState(initialTypeMap)
@@ -40,31 +43,35 @@ const Collection = () => {
 
   const { data: unfilteredCards, refetch } = useInventoryCardsCollectionGetCollection({
     address: deployment.InventoryCardsCollection,
-    args: [address]
-  }) as { data: Card[], refetch }
+    args: [address as Address] // TODO not ideal but safe in practice
+  }) as {
+    // make the wagmi type soup understandable, there are many more fields in reality
+    data: readonly Card[],
+    refetch: () => Promise<{ data?: readonly Card[], error: Error|null }>
+  }
 
   const cards: Card[] = (unfilteredCards || []).filter(card => {
     // TODO(norswap): it would look like this if the card had effects & types
     // const cardEffects = card.stats.effects || []
     // const cardTypes = card.stats.types || []
-    const cardEffects = []
-    const cardTypes = []
+    const cardEffects: Effect[] = []
+    const cardTypes: Effect[] = []
     return activeEffects.every(effect => cardEffects.includes(effect))
       && activeTypes.every(type => cardTypes.includes(type))
       && card.lore.name.toLowerCase().includes(searchInput.toLowerCase())
   })
 
-  const handleInputChangeBouncy = (event) => {
+  const handleInputChangeBouncy = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchInput(event.target.value);
   }
   const handleInputChange = useMemo(() => debounce(handleInputChangeBouncy, 300), [])
 
-  const handleEffectClick = (effectIndex) => {
+  const handleEffectClick = (effectIndex: number) => {
     const effect = effects[effectIndex]
     setEffectMap({...effectMap, [effect]: !effectMap[effect]})
   }
 
-  const handleTypeClick = (typeIndex) => {
+  const handleTypeClick = (typeIndex: number) => {
     const type = types[typeIndex]
     setTypeMap({...typeMap, [type]: !typeMap[type]})
   }
