@@ -35,7 +35,7 @@ const { publicClient: wagmiPublicClient } =
 /** Wagmi's configuration, to be passed to the React WagmiConfig provider. */
 export const wagmiConfig = createConfig({
   autoConnect: true,
-  connectors: w3mConnectors({ projectId: walletConnectProjectID, version: 1, chains }),
+  connectors: w3mConnectors({ projectId: walletConnectProjectID, chains }),
   publicClient: wagmiPublicClient
 })
 
