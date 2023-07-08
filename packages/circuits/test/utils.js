@@ -7,9 +7,9 @@ module.exports = {
             for (let j = 0; j < 31; j++) {
                 const byte = arr[i * 31 + j].toString(16);
                 if (byte.length < 2) {
-                    bytes += "0" + byte;
+                    bytes = "0" + byte + bytes;
                 } else {
-                    bytes += byte;
+                    bytes = byte + bytes;
                 }
             }
             bytes = "0x00" + bytes;
