@@ -4,8 +4,7 @@ include "../../node_modules/circomlib/circuits/comparators.circom";
 include "../../node_modules/circomlib/circuits/bitify.circom";
 
 /// @dev when dealing with Num2Bits in circom, LSB is stored in index 0, MSB in last index
-/// @dev therefore when converting from bits to numbers (Bits2Num) and vice versa (Num2Bits)
-/// @dev we need to first reverse the order of the cards
+/// @dev we use little endian when packing the cards
 template UnpackCards(n) {
 
     signal input packedCards[n];
@@ -16,13 +15,17 @@ template UnpackCards(n) {
     for (var i = 0; i < n; i++) {
         var sum = 0;
         var mult = 1;
+        var currentIndex;
         for (var j = 0; j < 31; j++) {
-            unpackedCards[(i*31)+j] <-- (packedCards[i] >> (j*8)) & 255;
-            lt[(i*31)+j] = LessEqThan(8);
-            lt[(i*31)+j].in[0] <== unpackedCards[(i*31)+j];
-            lt[(i*31)+j].in[1] <== 255;
-            lt[(i*31)+j].out === 1;
-            sum += unpackedCards[(i*31)+j] * mult;
+            currentIndex = (i*31)+j;
+            unpackedCards[currentIndex] <-- (packedCards[i] >> (j*8)) & 255;
+            lt[currentIndex] = LessEqThan(8);
+            lt[currentIndex].in[0] <== unpackedCards[currentIndex];
+            // Avoid comparison with 256, which is too high for 8 bits.
+            // 255 will be unusable (used as the null value).
+            lt[currentIndex].in[1] <== 255;
+            lt[currentIndex].out === 1;
+            sum += unpackedCards[currentIndex] * mult;
             var mult4 = mult + mult + mult + mult;
             var mult16 = mult4 + mult4 + mult4 + mult4;
             var mult64 = mult16 + mult16 + mult16 + mult16;
@@ -42,12 +45,16 @@ template PackCards(n) {
     for (var i = 0; i < n; i++) {
         var sum = 0;
         var mult = 1;
+        var currentIndex;
         for (var j = 0; j < 31; j++) {
-            lt[(i*31)+j] = LessEqThan(8);
-            lt[(i*31)+j].in[0] <== unpackedCards[(i*31)+j];
-            lt[(i*31)+j].in[1] <== 255;
-            lt[(i*31)+j].out === 1;
-            sum += unpackedCards[(i*31)+j] * mult;
+            currentIndex = (i*31)+j;
+            lt[currentIndex] = LessEqThan(8);
+            lt[currentIndex].in[0] <== unpackedCards[currentIndex];
+            // Avoid comparison with 256, which is too high for 8 bits.
+            // 255 will be unusable (used as the null value).
+            lt[currentIndex].in[1] <== 255;
+            lt[currentIndex].out === 1;
+            sum += unpackedCards[currentIndex] * mult;
             var mult4 = mult + mult + mult + mult;
             var mult16 = mult4 + mult4 + mult4 + mult4;
             var mult64 = mult16 + mult16 + mult16 + mult16;
