@@ -17,12 +17,12 @@ template UnpackCards(n) {
         var sum = 0;
         var mult = 1;
         for (var j = 0; j < 31; j++) {
-            unpackedCards[(i*31) + (30-j)] <-- (packedCards[i] >> (j*8)) & 255;
+            unpackedCards[(i*31)+j] <-- (packedCards[i] >> (j*8)) & 255;
             lt[(i*31)+j] = LessEqThan(8);
-            lt[(i*31)+j].in[0] <== unpackedCards[(i*31) + (30-j)];
+            lt[(i*31)+j].in[0] <== unpackedCards[(i*31)+j];
             lt[(i*31)+j].in[1] <== 255;
             lt[(i*31)+j].out === 1;
-            sum += unpackedCards[(i*31) + (30-j)] * mult;
+            sum += unpackedCards[(i*31)+j] * mult;
             var mult4 = mult + mult + mult + mult;
             var mult16 = mult4 + mult4 + mult4 + mult4;
             var mult64 = mult16 + mult16 + mult16 + mult16;
@@ -44,10 +44,10 @@ template PackCards(n) {
         var mult = 1;
         for (var j = 0; j < 31; j++) {
             lt[(i*31)+j] = LessEqThan(8);
-            lt[(i*31)+j].in[0] <== unpackedCards[(i*31) + (30-j)];
+            lt[(i*31)+j].in[0] <== unpackedCards[(i*31)+j];
             lt[(i*31)+j].in[1] <== 255;
             lt[(i*31)+j].out === 1;
-            sum += unpackedCards[(i*31) + (30-j)] * mult;
+            sum += unpackedCards[(i*31)+j] * mult;
             var mult4 = mult + mult + mult + mult;
             var mult16 = mult4 + mult4 + mult4 + mult4;
             var mult64 = mult16 + mult16 + mult16 + mult16;
