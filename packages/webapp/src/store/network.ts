@@ -22,7 +22,6 @@ import { Address } from "src/chain"
 export const fetchGameData:
     (gameID: bigint, shouldFetchCards: boolean) => Promise<Fetched<FetchedGameData>> =
   throttledFetch(async (gameID: bigint, shouldFetchCards: boolean) => {
-    // TODO try throwing an exception from here
     return readContract({
       address: deployment.Game,
       abi: gameABI,
