@@ -29,9 +29,9 @@ webkit:
 .PHONY: webkit
 
 # Run tests on all browsers
-all-browsers:
-	pnpm playwright test $(HEADED)
-.PHONY: playwright
+# Used to be `pnpm playwright test $(HEADED)` but this makes the tests flaky (don't know why).
+all: chrome firefox webkit
+.PHONY: all
 
 # Use UI mode (potentially useful for debugging)
 ui:

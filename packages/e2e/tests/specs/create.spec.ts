@@ -81,11 +81,6 @@ Test("create & join", async () => {
   await sharedPage.getByRole("button", { name: "Create Game", exact: true }).click()
   await expect(sharedPage.getByRole("heading", { name: "Waiting for signature..." })).toBeVisible()
 
-  // NOTE(norswap): tests are broken here, or on any use of `confirmTransaction` really.
-  //   Interestingly, adding the `sharedPage.pause` makes it work, but then it fails on some
-  //   subsequent `confirmTransaction` call (though maybe not the very next one?)
-
-  await sharedPage.pause()
   await metamask.confirmTransaction()
 
   // wait for on-chain inclusion
@@ -99,7 +94,6 @@ Test("create & join", async () => {
   await expect(sharedPage.getByRole("heading", { name: "Game Created" })).toBeVisible()
   await sharedPage.getByRole("button", { name: "Join Game" }).click()
   await expect(sharedPage.getByRole("heading", { name: "Waiting for signature..." })).toBeVisible()
-  await sharedPage.pause()
   await metamask.confirmTransaction()
 
   // wait for on-chain inclusion
