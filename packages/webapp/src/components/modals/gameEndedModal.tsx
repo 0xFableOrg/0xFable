@@ -2,7 +2,7 @@ import { useRouter } from "next/router"
 import { useCallback } from "react"
 
 import { ModalTitle } from "src/components/lib/modalElements"
-import { useGameID } from "src/store/hooks"
+import { useGameData, useGameID } from "src/store/hooks"
 import { Modal, useModalController } from "src/components/lib/modal"
 
 /**
@@ -14,6 +14,7 @@ export const GameEndedModal = ({ closeCallback }: { closeCallback: () => void })
   const ctrl = useModalController({ displayed: true, closeable: false })
   const router = useRouter()
   const [ , setGameID ] = useGameID()
+  const gameData = useGameData()
 
   const exitToMenu = useCallback(() => {
     setGameID(null)
@@ -27,7 +28,7 @@ export const GameEndedModal = ({ closeCallback }: { closeCallback: () => void })
 
   return <Modal ctrl={ctrl}>
     <ModalTitle>Game Ended</ModalTitle>
-    <p className="py-4 font-mono">In the future, we ought to say who won :)</p>
+    <p className="py-4 font-mono">Winner: {gameData?.players[gameData.livePlayers[0]]}</p>
     <div className="flex justify-center gap-4">
       <button className="btn" onClick={exitToMenu}>
         Exit to Menu
