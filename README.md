@@ -21,7 +21,7 @@ Tooling required:
     - `corepack pnpm install`
 - [Circom](https://docs.circom.io/getting-started/installation/)
   - Needed to build circuits package
-  - Test with version 2.1.4
+  - Tested with version 2.1.4
 
 Run contract tests for basic sanity testing:
 
@@ -48,11 +48,8 @@ This will do the following from a single terminal (using run-pty):
 - Run the NextJS dev command (web server + live reload)
 - Deploy the contracts to the local node
 - Build the zk circuits (this make take a while, especially the first time when you'll need to
-  <<<<<<< HEAD
-  download the 300MB trusted setup file). Make sure you have [circom](https://docs.circom.io/getting-started/installation/) installed.
-  =======
-  download the 300MB trusted setup file)
-  > > > > > > > 678545a (Add package manager to package.json)
+  download the 300MB trusted setup file). Make sure you have
+  [circom](https://docs.circom.io/getting-started/installation/) installed.
 
 After that, you can visit the app at http://localhost:3000/ (if that port is already occupied,
 NextJS might affect another one).

@@ -86,10 +86,10 @@ update:
 
 # Updates all packages to their latest version (even if they do not match the version specifier!).
 # It will also update the version specifiers to point to the new version.
-update-deps-latest:
+update-latest:
 	pnpm update -r --latest
 	@echo "If the lockfileVersion changed, please update 'packageManager' in package.json!"
-.PHONY: update-deps-latest
+.PHONY: update-latest
 
 # In case you accidentally pollute the node_modules directories
 # (e.g. by running npm instead of pnpm)

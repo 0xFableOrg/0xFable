@@ -68,12 +68,18 @@ const nextConfig = {
     // Having this would enable parsing hook names in the React DevTools.
     // config.devtool = "cheap-module-source-map"
     return config
-  }
+  },
+  // This hack makes it possible to use the Jotai devtools
+  // Sources:
+  //   https://github.com/jotaijs/jotai-devtools/issues/47
+  //   https://github.com/martpie/next-transpile-modules/releases/tag/the-end
+  transpilePackages: ['jotai-devtools']
 }
 
-// This hack makes it possible to use the Jotai devtools
-// Source: https://github.com/jotaijs/jotai-devtools/issues/47
-const withTranspileModules = require("next-transpile-modules")([
-  "jotai-devtools",
-])
-export default withTranspileModules(nextConfig)
+// // This hack makes it possible to use the Jotai devtools
+// // Source: https://github.com/jotaijs/jotai-devtools/issues/47
+// const withTranspileModules = require("next-transpile-modules")([
+//   "jotai-devtools",
+// ])
+// export default withTranspileModules(nextConfig)
+export default nextConfig
