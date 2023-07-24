@@ -18,30 +18,36 @@ contract Integration is Test {
     Game private game;
     DeckAirdrop private airdrop;
 
-    bytes32 private constant salt = bytes32(uint256(4269));
     address private constant player1 = 0x00000000000000000000000000000000DeaDBeef;
     address private constant player2 = 0x00000000000000000000000000000000deAdBAbE;
 
     // Placeholder for all hand roots.
-    bytes32 private constant HAND_ROOT = 
+    bytes32 private constant HAND_ROOT =
         bytes32(uint256(1167599355309313438987124081993443230371736953958095893438648826994677577159));
+
     // Placeholder for all deck roots.
-    bytes32 private constant DECK_ROOT = 
+    bytes32 private constant DECK_ROOT =
         bytes32(uint256(19109610845475038736354839752971502755972005872701840193667937795583479074137));
-    // Placeholder for committed salt
-    uint256 private constant COMMITTED_SALT = 
-        10644022205700269842939357604110603061463166818082702766765548366499887869490; // preimage is 42
-    // Placeholder for all proofs.
-    bytes private constant PROOF = bytes("proof");
+
+    // Placeholder for the salt hash (hash of salt 42)
+    uint256 private constant SALT_HASH = 10644022205700269842939357604110603061463166818082702766765548366499887869490;
+
+    // Placeholder for join data
+    bytes private constant JOIN_DATA = bytes("");
+
+    // Deck ID (we always use deck 0 for all players)
+    uint8 private constant DECK_ID = 0;
 
     uint8 private constant NONE = 255;
 
     // =============================================================================================
 
-    function generateProof() public pure returns(uint256[24] memory proof) {
+    // Initial hand proof for player1, but also used as a stand-in for other proofs that we are not
+    // checking.
+    function generateProof() public pure returns (uint256[24] memory proof) {
         // NOTE: We need the proof in memory, not in storage, so we can't use the `proof` variable
         proof = [
-            uint256(0x22006d88bd4e10d883049ad04bb664927923a5d812d2168157962e2aab09c57e), 
+            uint256(0x22006d88bd4e10d883049ad04bb664927923a5d812d2168157962e2aab09c57e),
             uint256(0x15084daf6e655066adf20c4115be89c892ee6c02be4fb46c68312a850ae20037),
             uint256(0x12850ede4337f205f39cd5c985b8bc42603702d51cc0f18b7e3a462b077a9246),
             uint256(0x19b4df2f6c63b1b8f2f1bfe984357a9130122adf880f70128299d230f612f179),
@@ -87,23 +93,30 @@ contract Integration is Test {
 
     function testGame() public {
         uint256 gameID = 1;
-        // TODO
-        //game.createGame(2, game.allowAnyPlayerAndDeck);
         game.createGame(2);
+
+        // IDs don't start at 1 because the deploy script currently airdrops some addresses, might change.
         inventory.getDeck(player2, 0); // player1 has card id of 49-72 inclusive
         inventory.getDeck(player2, 0); // player2 has card id of 73-96 inclusive
-        // ids are not starting at 1 because the deploy script currently airdrops some addresses, might change
-        vm.prank(address(0));
-        game.toggleCheckProof(); // check zk proof for first player
-        vm.startPrank(player1);
-        game.commitSalt(COMMITTED_SALT);
-        game.joinGame(gameID, 0, bytes(""), HAND_ROOT, DECK_ROOT, generateProof());
-        vm.stopPrank();
+
+        // check zk proof for first player
+        // TODO remove when we toggle Game.checkProof to true
         vm.prank(address(0));
         game.toggleCheckProof();
+
+        vm.startPrank(player1);
+        game.joinGame(gameID, DECK_ID, SALT_HASH, JOIN_DATA);
+        game.drawInitialHand(gameID, HAND_ROOT, DECK_ROOT, generateProof());
+        vm.stopPrank();
+
+        // stop checking zk proofs
+        vm.prank(address(0));
+        game.toggleCheckProof();
+
         vm.startPrank(player2);
-        game.commitSalt(COMMITTED_SALT);
-        game.joinGame(gameID, 0, bytes(""), HAND_ROOT, DECK_ROOT, generateProof());
+        game.joinGame(gameID, DECK_ID, SALT_HASH, JOIN_DATA);
+        // invalid proof but we're not checking it
+        game.drawInitialHand(gameID, HAND_ROOT, DECK_ROOT, generateProof());
         vm.stopPrank();
 
         Game.PlayerData memory pdata;
@@ -113,7 +126,7 @@ contract Integration is Test {
         vm.startPrank(player1);
 
         // play Horrible Gremlin (0)
-        game.playCard(gameID, HAND_ROOT, 0, PROOF);
+        game.playCard(gameID, HAND_ROOT, 0, generateProof());
         pdata = game.playerData(gameID, player1);
         assertEq(pdata.battlefield, 1);
 
@@ -134,8 +147,8 @@ contract Integration is Test {
         assertEq(pdata.health, 19);
 
         // draw card then play Fire Fighter
-        game.drawCard(gameID, HAND_ROOT, DECK_ROOT, PROOF);
-        game.playCard(gameID, HAND_ROOT, 8, PROOF);
+        game.drawCard(gameID, HAND_ROOT, DECK_ROOT, generateProof());
+        game.playCard(gameID, HAND_ROOT, 8, generateProof());
         pdata = game.playerData(gameID, player2);
         assertEq(pdata.battlefield, 1 << 8);
 
@@ -147,8 +160,8 @@ contract Integration is Test {
         changePrank(player1);
 
         // draw card then play Wise Elf (4)
-        game.drawCard(gameID, HAND_ROOT, DECK_ROOT, PROOF);
-        game.playCard(gameID, HAND_ROOT, 4, PROOF);
+        game.drawCard(gameID, HAND_ROOT, DECK_ROOT, generateProof());
+        game.playCard(gameID, HAND_ROOT, 4, generateProof());
         pdata = game.playerData(gameID, player1);
         assertEq(pdata.battlefield, (1 << 4) + 1);
 
@@ -171,8 +184,8 @@ contract Integration is Test {
         assertEq(pdata.graveyard, 0);
 
         // draw card then play Mana Fiend (16)
-        game.drawCard(gameID, HAND_ROOT, DECK_ROOT, PROOF);
-        game.playCard(gameID, HAND_ROOT, 16, PROOF);
+        game.drawCard(gameID, HAND_ROOT, DECK_ROOT, generateProof());
+        game.playCard(gameID, HAND_ROOT, 16, generateProof());
 
         // attack with Fire Fighter (8)
         size1array[0] = 8;
@@ -192,8 +205,8 @@ contract Integration is Test {
         assertEq(pdata.graveyard, 1);
 
         // draw card then play Goblin Queen (20)
-        game.drawCard(gameID, HAND_ROOT, DECK_ROOT, PROOF);
-        game.playCard(gameID, HAND_ROOT, 20, PROOF);
+        game.drawCard(gameID, HAND_ROOT, DECK_ROOT, generateProof());
+        game.playCard(gameID, HAND_ROOT, 20, generateProof());
 
         // attack with both Wise Elf (4) and Goblin Queen (20)
         size2array[0] = 4;
