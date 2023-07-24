@@ -14,11 +14,24 @@ contract Game {
     // =============================================================================================
     // ERRORS
 
+    // TODO This is an error from the inventory contract, but we need to reproduce it here
+    //      so that it is included in the ABI, which allows the frontend to parse the error.
+    //      We need to figure out a way to systematically import all errors that we may revert with
+    //      from other contracts.
+    // Using an unknown deck ID.
+    error DeckDoesNotExist(address player, uint8 deckID);
+
     // The game doesn't exist or has already ended.
     error NoGameNoLife();
 
+    // The game hasn't started yet (at least one player hasn't joined or drawn his initial hand).
+    error FalseStart();
+
     // Trying to take an action when it's not your turn.
     error WrongPlayer();
+
+    // Player is trying to take a game action but hasn't drawn his initial hand yet.
+    error PlayerHasntDrawn();
 
     // Trying to take a game action that is not allowed right now.
     error WrongStep();
@@ -26,14 +39,23 @@ contract Game {
     // Trying to start a game with fewer than 2 people.
     error YoullNeverPlayAlone();
 
+    // Trying to create a game while already being in one.
+    error OvereagerCreator();
+
     // Game creators didn't supply the same number of decks than the number of players.
     error WrongNumberOfDecks();
 
     // Trying to join or decline a game that you already joined.
     error AlreadyJoined();
 
+    // Trying to draw an initial hand again.
+    error AlreadyDrew();
+
     // Trying to cancel a game you didn't create.
     error OvereagerCanceller();
+
+    // Trying to join a full game (total number of players reached).
+    error GameIsFull();
 
     // Trying to cancel or join a game that has already started.
     error GameAlreadyStarted();
@@ -77,12 +99,6 @@ contract Game {
     // Trying to defend with an attacker (on the battlefield at the given index).
     error DefenderAttacking(uint8 index);
 
-    // Players cannot commit salt more than once
-    error SaltAlreadyCommitted(uint256 salt);
-
-    // Players cannot start game without committing a salt
-    error SaltNotCommitted();
-
     // ZK proof generated is incorrect
     error InvalidProof();
 
@@ -103,7 +119,14 @@ contract Game {
     // A player joined the game.
     event PlayerJoined(uint256 indexed gameID, address player);
 
-    // The game started (all players specified at the game creation joined).
+    // A player drew his initial hand.
+    event PlayerDrewHand(uint256 indexed gameID, address player);
+
+    // All players joined (total number of players reached).
+    // A game can be cancelled by its creator up until this point.
+    event FullHouse(uint256 indexed gameID);
+
+    // The game started (all players joined + drew their initial hands).
     event GameStarted(uint256 indexed gameID);
 
     // A player drew a card.
@@ -139,6 +162,8 @@ contract Game {
     // =============================================================================================
     // CONSTANTS
 
+    uint8 private constant INITIAL_HAND_SIZE = 7;
+
     uint16 private constant STARTING_HEALTH = 20;
 
     // Marks the absence of index inside an index array.
@@ -149,6 +174,7 @@ contract Game {
 
     // Action that can be taken in the game.
     enum GameStep {
+        UNINITIALIZED,
         DRAW,
         PLAY,
         ATTACK,
@@ -162,7 +188,11 @@ contract Game {
         uint8 deckStart;
         uint8 deckEnd;
         uint8 handSize;
+        // Hash of a secret salt value that the players uses to generate the hand and deck roots.
+        uint256 saltHash;
+        // A hash of the content of the player's hand + the player's secret salt.
         bytes32 handRoot;
+        // A hash of the content of the player's deck + the player's secret salt.
         bytes32 deckRoot;
         // Bitfield of cards in the player's battlefield, for each bit: 1 if the card at the same
         // index as the bit in `GameData.cards` is on the battlefield, 0 otherwise.
@@ -215,9 +245,9 @@ contract Game {
     // Game IDs are attributed sequentially. Reserve 0 to stipulate absence of game.
     uint256 private nextID = 1;
 
-    // Boolean to indicate whether we should check zk proof
+    // Boolean to indicate whether we should check zk proof.
+    // TODO set to true by default, can be disabled in test via the `toggleProof` function
     bool private checkProof = false;
-    ///@dev this should be set to true in production
 
     // Maps game IDs to game data.
     mapping(uint256 => GameData) public gameData;
@@ -225,16 +255,12 @@ contract Game {
     // Maps players to the game they're currently in.
     mapping(address => uint256) public inGame;
 
-    // Maps players to their committed salt.
-    mapping(address => uint256) public salts;
-
     // The inventory containing the cards that will be used in this game.
     Inventory public inventory;
 
     // The NFT collection that contains all admissible cards for use  in this game.
     CardsCollection public cardsCollection;
 
-    // Draw card and play card verifiers.
     DrawVerifier public drawVerifier;
     PlayVerifier public playVerifier;
     DrawHandVerifier public drawHandVerifier;
@@ -267,6 +293,9 @@ contract Game {
         if (gdata.lastBlockNum == 0) {
             revert NoGameNoLife();
         }
+        if (gdata.currentStep == GameStep.UNINITIALIZED) {
+            revert FalseStart();
+        }
         if (gdata.players[gdata.currentPlayer] != msg.sender) {
             revert WrongPlayer();
         }
@@ -278,7 +307,7 @@ contract Game {
             return;
         }
 
-        // TODO: Should we explicitly prevent multiple actions on the same turn?
+        // TODO: Should we explicitly prevent multiple actions on the same block?
         //       In principle, they will either fail (can't get randomness because it will depend on
         //       the current block's hash) or succeed without hurdle (e.g. player 2 defending in the
         //       same block as player 1 attacking, because someone crafted a bot that is able to
@@ -347,7 +376,7 @@ contract Game {
             players: gdata.players,
             playerData: pData,
             lastBlockNum: gdata.lastBlockNum,
-            publicRandomness: getPublicRandomness(gameID),
+            publicRandomness: getPubRandomnessForBlock(gdata.lastBlockNum),
             playersLeftToJoin: gdata.playersLeftToJoin,
             livePlayers: gdata.livePlayers,
             currentPlayer: gdata.currentPlayer,
@@ -374,8 +403,16 @@ contract Game {
     // ---------------------------------------------------------------------------------------------
 
     // Returns the current public randomness for the game — used to draw cards.
-    function getPublicRandomness(uint256 gameID) public view returns (uint256) {
+    function getPublicRandomness(uint256 gameID) external view returns (uint256) {
         return uint256(blockhash(gameData[gameID].lastBlockNum));
+    }
+
+    // ---------------------------------------------------------------------------------------------
+
+    // Returns the current public randomness for the game based on its lastBlockNum value — used to
+    // draw cards.
+    function getPubRandomnessForBlock(uint256 lastBlockNum) internal view returns (uint256) {
+        return uint256(blockhash(lastBlockNum));
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -384,6 +421,13 @@ contract Game {
     function playerDeck(uint256 gameID, address player) public view exists(gameID) returns (uint256[] memory) {
         GameData storage gdata = gameData[gameID];
         PlayerData storage pdata = gdata.playerData[player];
+        return playerDeck(gdata, pdata);
+    }
+
+    // ---------------------------------------------------------------------------------------------
+
+    // Returns the given player's deck listing.
+    function playerDeck(GameData storage gdata, PlayerData storage pdata) internal view returns (uint256[] memory) {
         uint256[] memory deck = new uint256[](pdata.deckEnd - pdata.deckStart);
         for (uint256 i = 0; i < deck.length; ++i) {
             deck[i] = gdata.cards[pdata.deckStart + i];
@@ -422,6 +466,10 @@ contract Game {
             gameID = nextID++;
         }
 
+        if (inGame[msg.sender] != 0) {
+            revert OvereagerCreator();
+        }
+
         if (numberOfPlayers < 2) {
             revert YoullNeverPlayAlone();
         }
@@ -429,9 +477,7 @@ contract Game {
         GameData storage gdata = gameData[gameID];
         gdata.gameCreator = msg.sender;
         gdata.playersLeftToJoin = numberOfPlayers;
-        // TODO: Interesting edge case: currently multiple players cannot join in the same block.
         gdata.lastBlockNum = block.number;
-        gdata.currentStep = GameStep.PLAY;
 
         // TODO
         // gdata.joinCheck = joinCheck;
@@ -482,7 +528,6 @@ contract Game {
     // ---------------------------------------------------------------------------------------------
 
     // TODO(LATER): Clear data for games that were created but never started.
-    //   - Probably need to map a user to the games they started and enforce some housekeeping.
     //   - Could let anybody do it - it's beneficial because of gas rebates.
     //   - Just track game created but not started per creation block and enforce a timeout.
 
@@ -498,6 +543,9 @@ contract Game {
             revert GameAlreadyStarted();
         }
         deleteGame(gdata, gameID);
+        for (uint256 i = 0; i < gdata.players.length; ++i) {
+            delete inGame[gdata.players[i]];
+        }
         gdata.lastBlockNum = block.number;
     }
 
@@ -511,9 +559,9 @@ contract Game {
     // The player's deck is cards[pdata.deckStart:pdata.deckEnd].
     function checkInitialHandProof(
         PlayerData storage pdata,
-        uint256[2] memory packedCards,
+        uint256[2] memory packedDeck,
         uint256 randomness,
-        uint256 committedSalt,
+        uint256 saltHash,
         uint256[24] memory proof
     ) internal view {
         if (address(drawVerifier) == address(0)) return;
@@ -521,12 +569,12 @@ contract Game {
         // construct circuit public signals
         uint256[7] memory pubSignals;
 
-        pubSignals[0] = packedCards[0];
-        pubSignals[1] = packedCards[1];
+        pubSignals[0] = packedDeck[0];
+        pubSignals[1] = packedDeck[1];
         pubSignals[2] = pdata.deckEnd - pdata.deckStart - 1; // last index
         pubSignals[3] = uint256(pdata.deckRoot);
         pubSignals[4] = uint256(pdata.handRoot);
-        pubSignals[5] = committedSalt;
+        pubSignals[5] = saltHash;
         pubSignals[6] = randomness;
 
         /// @dev currently bypass check for testing
@@ -537,20 +585,26 @@ contract Game {
         }
     }
 
-    // Helper function to pack cards into field elements.
-    function bytePacking(uint256[] memory deck) internal pure returns (uint256[2] memory packedCards) {
-        // pad the cards to 62 cards (255 for null value)
-        // 31 cards is packed into one single field element
-        uint256[] memory cards = new uint256[](62);
-        // TODO: we assume deck length is less than 62 (since MAX_DECK_SIZE is 40)
+    // ---------------------------------------------------------------------------------------------
+
+    // Packs the deck into two field elements, each containing at most 31 cards.
+    function packDeck(uint256[] memory deck) internal view returns (uint256[2] memory) {
+        // Pad the deck up to 62 cards with 255 representing a null value.
+        // 31 cards are packed per field element (that's the number of bytes a field element can hold).
+        uint256 maxDeckSize = inventory.MAX_DECK_SIZE();
+        uint256[] memory cards = new uint256[](maxDeckSize);
         // but would be nice to have an additional check
         for (uint256 i = 0; i < deck.length; i++) {
             cards[i] = deck[i];
         }
-        for (uint256 i = deck.length; i < 62; i++) {
+        for (uint256 i = deck.length; i < maxDeckSize; i++) {
             cards[i] = 255;
         }
-        for (uint256 i = 0; i < 2; i++) {
+
+        uint256[2] memory packedCards;
+        uint256 numFields = (maxDeckSize + 30) / 31;
+        require(numFields == packedCards.length, "wrong number of fields");
+        for (uint256 i = 0; i < numFields; i++) {
             bytes memory packedCardsInBytes = new bytes(32);
             for (uint256 j = 0; j < 31; j++) {
                 bytes1 card = bytes1(uint8(cards[i * 31 + j]));
@@ -558,83 +612,123 @@ contract Game {
             }
             packedCards[i] = uint256(bytes32(packedCardsInBytes));
         }
+        return packedCards;
     }
 
     // ---------------------------------------------------------------------------------------------
 
-    // Function for player to commit a salt before the game starts.
-    function commitSalt(uint256 salt) external {
-        if (salts[msg.sender] != 0) {
-            revert SaltAlreadyCommitted(salts[msg.sender]);
-        }
-        salts[msg.sender] = salt;
-    }
-
-    // ---------------------------------------------------------------------------------------------
-
-    // Joins a game that you a player is included in but hasn't joined yet. Calling this function
-    // means you agree with the deck listing that was reported by the `createGame` function.
+    // Joins a game that the player can participate in, but hasn't joined yet.
+    // The player must be allowed to join according to `gdata.joinCheck`, to which the `data`
+    // parameter is passed. (This check is ignored for now — any player can join any game.)
     //
-    // The data field is ignored for now (we allow any player to join any game).
-    function joinGame(
-        uint256 gameID,
-        uint8 deckID,
-        bytes calldata data,
-        bytes32 handRoot,
-        bytes32 deckRoot,
-        uint256[24] memory proof
-    ) external {
+    // This function specifies the deck to use to use as well a the hash of a secret salt value
+    // used in zero-knowledge proofs.
+    //
+    // To start the game, the player must call `drawInitialHand`.
+    function joinGame(uint256 gameID, uint8 deckID, uint256 saltHash, bytes calldata data) external exists(gameID) {
         GameData storage gdata = gameData[gameID];
         PlayerData storage pdata = gdata.playerData[msg.sender];
-        if (pdata.handRoot != 0) {
+
+        if (pdata.saltHash != 0) {
             revert AlreadyJoined();
         }
-
-        if (salts[msg.sender] == 0) {
-            revert SaltNotCommitted();
-        }
-
         if (gdata.playersLeftToJoin == 0) {
-            revert GameAlreadyStarted();
+            revert GameIsFull();
         }
         if (!gdata.joinCheck(gameID, msg.sender, deckID, data)) {
             revert NotAllowedToJoin();
         }
-        gdata.livePlayers.push(uint8(gdata.players.length));
+
+        // Update gdata.players, but not gdata.livePlayers, which is used to determine if the
+        // game is ready to start (all players have joined & drawn their initial hand).
         gdata.players.push(msg.sender);
+
+        // Crucial: we don't let the player draw when he joins, because otherwise he could pick his
+        // salt such that he draws a good hand. So the salt commitment must come *before* an update
+        // to the randomness value (derived from the block num).
+        //
+        // Note that while there are ways to join + draw at the same time (e.g. salt == signature of
+        // randomness, verified in a snark), it's generally indesirable because it lets players
+        // simulate their hands before commiting to join a game. If they have multiple accounts,
+        // they could chose the most advantageous one to join a game.
+
+        gdata.lastBlockNum = block.number;
 
         // Add the player's cards to `gdata.cards`.
         uint256[] storage cards = gdata.cards;
         pdata.deckStart = uint8(cards.length);
         inventory.checkDeck(msg.sender, deckID);
         uint256[] memory deck = inventory.getDeck(msg.sender, deckID);
-        uint256[2] memory packedCards = bytePacking(deck);
 
         for (uint256 i = 0; i < deck.length; i++) {
             cards.push(deck[i]);
         }
         pdata.deckEnd = uint8(cards.length);
 
+        pdata.saltHash = saltHash;
         pdata.health = STARTING_HEALTH;
-        pdata.handRoot = handRoot;
-        pdata.deckRoot = deckRoot;
-        pdata.handSize = 7; // draw 7 cards at the start of the game
-
-        uint256 randomness = uint256(getPublicRandomness(gameID));
-        uint256 committedSalt = salts[msg.sender];
-        checkInitialHandProof(pdata, packedCards, randomness, committedSalt, proof);
 
         inGame[msg.sender] = gameID;
         emit PlayerJoined(gameID, msg.sender);
-
         if (--gdata.playersLeftToJoin == 0) {
+            emit FullHouse(gameID);
+        }
+    }
+
+    // ---------------------------------------------------------------------------------------------
+
+    // Supplies commitments to the player's initial hand, and deck after drawing this hand, as well
+    // as a zero-knowledge proof that the correct cards were drawn and the correct commitment was
+    // generated given on-chain randomness and the player's secret salt.
+    //
+    // This can be called after joining the game, and must be called by all players before the game
+    // can start.
+    function drawInitialHand(uint256 gameID, bytes32 handRoot, bytes32 deckRoot, uint256[24] memory proof)
+        external
+        exists(gameID)
+    {
+        GameData storage gdata = gameData[gameID];
+        PlayerData storage pdata = gdata.playerData[msg.sender];
+
+        if (pdata.saltHash == 0) {
+            revert PlayerNotInGame();
+        }
+        if (pdata.handRoot != 0) {
+            revert AlreadyDrew();
+        }
+
+        pdata.handRoot = handRoot;
+        pdata.deckRoot = deckRoot;
+        pdata.handSize = INITIAL_HAND_SIZE;
+
+        uint256 randomness = getPubRandomnessForBlock(gdata.lastBlockNum);
+        uint256[2] memory packedDeck = packDeck(playerDeck(gdata, pdata));
+        checkInitialHandProof(pdata, packedDeck, randomness, pdata.saltHash, proof);
+
+        // Add the player to the list of live players.
+        // Note that this loop is cheaper than passing the index to the function, as calldata is
+        // expensive on layer 2 rollups.
+        for (uint256 i = 0; i < gdata.players.length; i++) {
+            if (gdata.players[i] == msg.sender) {
+                gdata.livePlayers.push(uint8(i));
+                break;
+                // There will always be a match because we checked that the player is in the game.
+            }
+        }
+
+        emit PlayerDrewHand(gameID, msg.sender);
+
+        // NOTE: We're not updating gdata.lastBlockNum until the game starts. This means that all
+        // players must join within a 256-block window or they won't be able to get the blockhash to
+        // generate the randomness.
+        // TODO: implement timeouts in general
+
+        if (gdata.playersLeftToJoin == 0 && gdata.livePlayers.length == gdata.livePlayers.length) {
             // Start the game!
             gdata.currentPlayer = uint8(randomness % gdata.players.length);
             gdata.currentStep = GameStep.PLAY; // first player doesn't draw
             gdata.lastBlockNum = block.number;
             emit GameStarted(gameID);
-
-            // TODO(LATER) let the game creator reorder the players, and choose the first player
         }
     }
 
@@ -708,9 +802,9 @@ contract Game {
         PlayerData storage pdata,
         bytes32 handRoot,
         bytes32 deckRoot,
-        uint256 committedSalt,
+        uint256 saltHash,
         uint256 randomness,
-        bytes calldata proof
+        uint256[24] memory proof
     ) internal view {
         if (address(drawVerifier) == address(0)) return;
 
@@ -719,15 +813,13 @@ contract Game {
         pubSignals[1] = uint256(deckRoot);
         pubSignals[2] = uint256(pdata.handRoot);
         pubSignals[3] = uint256(handRoot);
-        pubSignals[4] = committedSalt;
+        pubSignals[4] = saltHash;
         pubSignals[5] = randomness;
         pubSignals[6] = pdata.handSize;
         pubSignals[7] = pdata.deckEnd - pdata.deckStart; // last index
 
-        /// @dev currently bypass check for testing
         if (checkProof) {
-            uint256[24] memory _proof = abi.decode(proof, (uint256[24]));
-            if (!drawVerifier.verifyProof(_proof, pubSignals)) {
+            if (!drawVerifier.verifyProof(proof, pubSignals)) {
                 revert InvalidProof();
             }
         }
@@ -736,15 +828,14 @@ contract Game {
     // ---------------------------------------------------------------------------------------------
 
     // Submit updated hand and deck roots after having drawn a card from the deck.
-    function drawCard(uint256 gameID, bytes32 handRoot, bytes32 deckRoot, bytes calldata proof)
+    function drawCard(uint256 gameID, bytes32 handRoot, bytes32 deckRoot, uint256[24] memory proof)
         external
         step(gameID, GameStep.DRAW)
     {
         GameData storage gdata = gameData[gameID];
         PlayerData storage pdata = gdata.playerData[msg.sender];
-        uint256 randomness = uint256(blockhash(gdata.lastBlockNum));
-        uint256 committedSalt = salts[msg.sender];
-        checkDrawProof(pdata, handRoot, deckRoot, committedSalt, randomness, proof);
+        uint256 randomness = getPubRandomnessForBlock(gdata.lastBlockNum);
+        checkDrawProof(pdata, handRoot, deckRoot, pdata.saltHash, randomness, proof);
         pdata.handRoot = handRoot;
         pdata.deckRoot = deckRoot;
         pdata.handSize++;
@@ -762,29 +853,27 @@ contract Game {
     // ---------------------------------------------------------------------------------------------
 
     // Check that `card` was contained within `pdata.handRoot` and that `handRoot` is a correctly
-    // updated version of `pdata.handRoot`, without card, removed using fast array removal.
+    // updated version of `pdata.handRoot`, without `card`, removed using fast array removal.
     function checkPlayProof(
-        PlayerData storage pdata, 
+        PlayerData storage pdata,
         bytes32 handRoot,
-        uint256 committedSalt,
-        uint256 randomness, 
-        uint256 card, 
-        bytes calldata proof
+        uint256 saltHash,
+        uint256 randomness,
+        uint256 card,
+        uint256[24] memory proof
     ) internal view {
         if (address(playVerifier) == address(0)) return;
 
         uint256[6] memory pubSignals;
         pubSignals[0] = uint256(pdata.handRoot);
         pubSignals[1] = uint256(handRoot);
-        pubSignals[2] = committedSalt;
+        pubSignals[2] = saltHash;
         pubSignals[3] = randomness;
         pubSignals[4] = pdata.handSize - 1; // last index
         pubSignals[5] = card;
 
-        /// @dev currently bypass check for testing
         if (checkProof) {
-            uint256[24] memory _proof = abi.decode(proof, (uint256[24]));
-            if (!playVerifier.verifyProof(_proof, pubSignals)) {
+            if (!playVerifier.verifyProof(proof, pubSignals)) {
                 revert InvalidProof();
             }
         }
@@ -793,7 +882,7 @@ contract Game {
     // ---------------------------------------------------------------------------------------------
 
     // Play the given card (index into `gameData.cards`).
-    function playCard(uint256 gameID, bytes32 handRoot, uint8 cardIndex, bytes calldata proof)
+    function playCard(uint256 gameID, bytes32 handRoot, uint8 cardIndex, uint256[24] memory proof)
         external
         step(gameID, GameStep.PLAY)
     {
@@ -803,9 +892,8 @@ contract Game {
             revert CardIndexTooHigh();
         }
         uint256 card = gdata.cards[cardIndex];
-        uint256 committedSalt = salts[msg.sender];
-        uint256 randomness = uint256(blockhash(gdata.lastBlockNum));
-        checkPlayProof(pdata, handRoot, committedSalt, randomness, card, proof);
+        uint256 randomness = getPubRandomnessForBlock(gdata.lastBlockNum);
+        checkPlayProof(pdata, handRoot, pdata.saltHash, randomness, card, proof);
         pdata.handRoot = handRoot;
         pdata.handSize--;
         pdata.battlefield |= 1 << cardIndex;
@@ -935,9 +1023,13 @@ contract Game {
 
     // ---------------------------------------------------------------------------------------------
 
-    // TODO: Placeholder function - to be removed in production
+    // Toggles whether to check proofs or not. Meant to be used in testing (to disable error
+    // checking). This is enforced by restricting the caller to be the 0 address, which can only
+    // be impersonated in a test environment.
     function toggleCheckProof() external {
         require(msg.sender == address(0));
         checkProof = !checkProof;
     }
+
+    // ---------------------------------------------------------------------------------------------
 }

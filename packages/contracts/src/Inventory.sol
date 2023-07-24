@@ -52,13 +52,13 @@ contract Inventory is Ownable {
     // CONSTANTS
 
     // Max number of decks that each player can have.
-    uint256 private constant MAX_DECKS = 256;
+    uint256 public constant MAX_DECKS = 256;
 
     // Min number of cards in a deck.
-    uint256 private constant MIN_DECK_SIZE = 10;
+    uint256 public constant MIN_DECK_SIZE = 10;
 
     // Max number of cards in a deck.
-    uint256 private constant MAX_DECK_SIZE = 40;
+    uint256 public constant MAX_DECK_SIZE = 62;
 
     // =============================================================================================
     // TYPES
