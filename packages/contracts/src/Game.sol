@@ -161,6 +161,7 @@ contract Game {
         uint16 health;
         uint8 deckStart;
         uint8 deckEnd;
+        uint8 handSize;
         bytes32 handRoot;
         bytes32 deckRoot;
         // Bitfield of cards in the player's battlefield, for each bit: 1 if the card at the same
@@ -518,12 +519,14 @@ contract Game {
         if (address(drawVerifier) == address(0)) return;
 
         // construct circuit public signals
-        uint256[68] memory pubSignals;
-        // TODO copy deck in slots 0-63
-        pubSignals[64] = uint256(initialDeckRoot);
-        pubSignals[65] = uint256(pdata.handRoot); // TODO should be supplied as argument
-        pubSignals[66] = committedSalt;
-        pubSignals[67] = randomness;
+        uint256[7] memory pubSignals;
+        pubSignals[0] = 0; // TODO: first field element
+        pubSignals[1] = 0; // TODO: second field element
+        pubSignals[2] = pdata.deckEnd; // last index
+        pubSignals[3] = uint256(initialDeckRoot);
+        pubSignals[4] = uint256(pdata.handRoot); // TODO should be supplied as argument
+        pubSignals[5] = committedSalt;
+        pubSignals[6] = randomness;
 
         /// @dev currently bypass check for testing
         if (checkProof) {
@@ -595,6 +598,7 @@ contract Game {
         pdata.handRoot = handRoot;
         bytes32 initialDeckRoot = pdata.deckRoot;
         pdata.deckRoot = deckRoot;
+        pdata.handSize = 7; // draw 7 cards at the start of the game
 
         uint256 randomness = uint256(getPublicRandomness(gameID));
         uint256 committedSalt = uint256(salts[msg.sender]);
@@ -684,18 +688,21 @@ contract Game {
         PlayerData storage pdata,
         bytes32 handRoot,
         bytes32 deckRoot,
-        uint256, /*randomness*/
+        bytes32 committedSalt,
+        uint256 randomness,
         bytes calldata proof
     ) internal view {
         if (address(drawVerifier) == address(0)) return;
 
-        uint256[4] memory pubSignals;
+        uint256[8] memory pubSignals;
         pubSignals[0] = uint256(pdata.deckRoot);
         pubSignals[1] = uint256(deckRoot);
         pubSignals[2] = uint256(pdata.handRoot);
         pubSignals[3] = uint256(handRoot);
-        // TODO
-        // pubSignals[4] = randomness;
+        pubSignals[4] = uint256(committedSalt);
+        pubSignals[5] = randomness;
+        pubSignals[6] = pdata.handSize;
+        pubSignals[7] = pdata.deckEnd - pdata.deckStart; // last index
 
         /// @dev currently bypass check for testing
         if (checkProof) {
@@ -716,9 +723,11 @@ contract Game {
         GameData storage gdata = gameData[gameID];
         PlayerData storage pdata = gdata.playerData[msg.sender];
         uint256 randomness = uint256(blockhash(gdata.lastBlockNum));
-        checkDrawProof(pdata, handRoot, deckRoot, randomness, proof);
+        bytes32 committedSalt = salts[msg.sender];
+        checkDrawProof(pdata, handRoot, deckRoot, committedSalt, randomness, proof);
         pdata.handRoot = handRoot;
         pdata.deckRoot = deckRoot;
+        pdata.handSize++;
         emit CardDrawn(gameID, gdata.currentPlayer);
 
         // TODO(LATER) if you can't draw you lose the game!
@@ -734,16 +743,23 @@ contract Game {
 
     // Check that `card` was contained within `pdata.handRoot` and that `handRoot` is a correctly
     // updated version of `pdata.handRoot`, without card, removed using fast array removal.
-    function checkPlayProof(PlayerData storage pdata, bytes32 handRoot, uint256 card, bytes calldata proof)
-        internal
-        view
-    {
+    function checkPlayProof(
+        PlayerData storage pdata, 
+        bytes32 handRoot,
+        bytes32 committedSalt,
+        uint256 randomness, 
+        uint256 card, 
+        bytes calldata proof
+    ) internal view {
         if (address(playVerifier) == address(0)) return;
 
-        uint256[3] memory pubSignals;
+        uint256[6] memory pubSignals;
         pubSignals[0] = uint256(pdata.handRoot);
         pubSignals[1] = uint256(handRoot);
-        pubSignals[2] = card;
+        pubSignals[2] = uint256(committedSalt);
+        pubSignals[3] = randomness;
+        pubSignals[4] = pdata.handSize - 1; // last index
+        pubSignals[5] = card;
 
         /// @dev currently bypass check for testing
         if (checkProof) {
@@ -767,8 +783,11 @@ contract Game {
             revert CardIndexTooHigh();
         }
         uint256 card = gdata.cards[cardIndex];
-        checkPlayProof(pdata, handRoot, card, proof);
+        bytes32 committedSalt = salts[msg.sender];
+        uint256 randomness = uint256(blockhash(gdata.lastBlockNum));
+        checkPlayProof(pdata, handRoot, committedSalt, randomness, card, proof);
         pdata.handRoot = handRoot;
+        pdata.handSize--;
         pdata.battlefield |= 1 << cardIndex;
         emit CardPlayed(gameID, gdata.currentPlayer, card);
     }
