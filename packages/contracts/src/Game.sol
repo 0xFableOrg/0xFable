@@ -78,7 +78,7 @@ contract Game {
     error DefenderAttacking(uint8 index);
 
     // Players cannot commit salt more than once
-    error SaltAlreadyCommitted(bytes32 salt);
+    error SaltAlreadyCommitted(uint256 salt);
 
     // Players cannot start game without committing a salt
     error SaltNotCommitted();
@@ -226,7 +226,7 @@ contract Game {
     mapping(address => uint256) public inGame;
 
     // Maps players to their committed salt.
-    mapping(address => bytes32) public salts;
+    mapping(address => uint256) public salts;
 
     // The inventory containing the cards that will be used in this game.
     Inventory public inventory;
@@ -514,7 +514,7 @@ contract Game {
         uint256[2] memory packedCards,
         uint256 randomness,
         uint256 committedSalt,
-        bytes calldata proof
+        uint256[24] memory proof
     ) internal view {
         if (address(drawVerifier) == address(0)) return;
 
@@ -531,8 +531,7 @@ contract Game {
 
         /// @dev currently bypass check for testing
         if (checkProof) {
-            uint256[24] memory _proof = abi.decode(proof, (uint256[24]));
-            if (!drawHandVerifier.verifyProof(_proof, pubSignals)) {
+            if (!drawHandVerifier.verifyProof(proof, pubSignals)) {
                 revert InvalidProof();
             }
         }
@@ -564,7 +563,7 @@ contract Game {
     // ---------------------------------------------------------------------------------------------
 
     // Function for player to commit a salt before the game starts.
-    function commitSalt(bytes32 salt) external {
+    function commitSalt(uint256 salt) external {
         if (salts[msg.sender] != 0) {
             revert SaltAlreadyCommitted(salts[msg.sender]);
         }
@@ -583,7 +582,7 @@ contract Game {
         bytes calldata data,
         bytes32 handRoot,
         bytes32 deckRoot,
-        bytes calldata proof
+        uint256[24] memory proof
     ) external {
         GameData storage gdata = gameData[gameID];
         PlayerData storage pdata = gdata.playerData[msg.sender];
@@ -622,7 +621,7 @@ contract Game {
         pdata.handSize = 7; // draw 7 cards at the start of the game
 
         uint256 randomness = uint256(getPublicRandomness(gameID));
-        uint256 committedSalt = uint256(salts[msg.sender]);
+        uint256 committedSalt = salts[msg.sender];
         checkInitialHandProof(pdata, packedCards, randomness, committedSalt, proof);
 
         inGame[msg.sender] = gameID;
@@ -709,7 +708,7 @@ contract Game {
         PlayerData storage pdata,
         bytes32 handRoot,
         bytes32 deckRoot,
-        bytes32 committedSalt,
+        uint256 committedSalt,
         uint256 randomness,
         bytes calldata proof
     ) internal view {
@@ -720,7 +719,7 @@ contract Game {
         pubSignals[1] = uint256(deckRoot);
         pubSignals[2] = uint256(pdata.handRoot);
         pubSignals[3] = uint256(handRoot);
-        pubSignals[4] = uint256(committedSalt);
+        pubSignals[4] = committedSalt;
         pubSignals[5] = randomness;
         pubSignals[6] = pdata.handSize;
         pubSignals[7] = pdata.deckEnd - pdata.deckStart; // last index
@@ -744,7 +743,7 @@ contract Game {
         GameData storage gdata = gameData[gameID];
         PlayerData storage pdata = gdata.playerData[msg.sender];
         uint256 randomness = uint256(blockhash(gdata.lastBlockNum));
-        bytes32 committedSalt = salts[msg.sender];
+        uint256 committedSalt = salts[msg.sender];
         checkDrawProof(pdata, handRoot, deckRoot, committedSalt, randomness, proof);
         pdata.handRoot = handRoot;
         pdata.deckRoot = deckRoot;
@@ -767,7 +766,7 @@ contract Game {
     function checkPlayProof(
         PlayerData storage pdata, 
         bytes32 handRoot,
-        bytes32 committedSalt,
+        uint256 committedSalt,
         uint256 randomness, 
         uint256 card, 
         bytes calldata proof
@@ -777,7 +776,7 @@ contract Game {
         uint256[6] memory pubSignals;
         pubSignals[0] = uint256(pdata.handRoot);
         pubSignals[1] = uint256(handRoot);
-        pubSignals[2] = uint256(committedSalt);
+        pubSignals[2] = committedSalt;
         pubSignals[3] = randomness;
         pubSignals[4] = pdata.handSize - 1; // last index
         pubSignals[5] = card;
@@ -804,7 +803,7 @@ contract Game {
             revert CardIndexTooHigh();
         }
         uint256 card = gdata.cards[cardIndex];
-        bytes32 committedSalt = salts[msg.sender];
+        uint256 committedSalt = salts[msg.sender];
         uint256 randomness = uint256(blockhash(gdata.lastBlockNum));
         checkPlayProof(pdata, handRoot, committedSalt, randomness, card, proof);
         pdata.handRoot = handRoot;
