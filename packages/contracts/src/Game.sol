@@ -511,7 +511,7 @@ contract Game {
     // The player's deck is cards[pdata.deckStart:pdata.deckEnd].
     function checkInitialHandProof(
         PlayerData storage pdata,
-        bytes32 initialDeckRoot,
+        uint256[2] memory packedCards,
         uint256 randomness,
         uint256 committedSalt,
         bytes calldata proof
@@ -520,11 +520,12 @@ contract Game {
 
         // construct circuit public signals
         uint256[7] memory pubSignals;
-        pubSignals[0] = 0; // TODO: first field element
-        pubSignals[1] = 0; // TODO: second field element
-        pubSignals[2] = pdata.deckEnd; // last index
-        pubSignals[3] = uint256(initialDeckRoot);
-        pubSignals[4] = uint256(pdata.handRoot); // TODO should be supplied as argument
+
+        pubSignals[0] = packedCards[0];
+        pubSignals[1] = packedCards[1];
+        pubSignals[2] = pdata.deckEnd - pdata.deckStart - 1; // last index
+        pubSignals[3] = uint256(pdata.deckRoot);
+        pubSignals[4] = uint256(pdata.handRoot);
         pubSignals[5] = committedSalt;
         pubSignals[6] = randomness;
 
@@ -534,6 +535,29 @@ contract Game {
             if (!drawHandVerifier.verifyProof(_proof, pubSignals)) {
                 revert InvalidProof();
             }
+        }
+    }
+
+    // Helper function to pack cards into field elements.
+    function bytePacking(uint256[] memory deck) internal pure returns (uint256[2] memory packedCards) {
+        // pad the cards to 62 cards (255 for null value)
+        // 31 cards is packed into one single field element
+        uint256[] memory cards = new uint256[](62);
+        // TODO: we assume deck length is less than 62 (since MAX_DECK_SIZE is 40)
+        // but would be nice to have an additional check
+        for (uint256 i = 0; i < deck.length; i++) {
+            cards[i] = deck[i];
+        }
+        for (uint256 i = deck.length; i < 62; i++) {
+            cards[i] = 255;
+        }
+        for (uint256 i = 0; i < 2; i++) {
+            bytes memory packedCardsInBytes = new bytes(32);
+            for (uint256 j = 0; j < 31; j++) {
+                bytes1 card = bytes1(uint8(cards[i * 31 + j]));
+                packedCardsInBytes[31 - j] = card;
+            }
+            packedCards[i] = uint256(bytes32(packedCardsInBytes));
         }
     }
 
@@ -588,6 +612,7 @@ contract Game {
         pdata.deckStart = uint8(cards.length);
         inventory.checkDeck(msg.sender, deckID);
         uint256[] memory deck = inventory.getDeck(msg.sender, deckID);
+        uint256[2] memory packedCards = bytePacking(deck);
 
         for (uint256 i = 0; i < deck.length; i++) {
             cards.push(deck[i]);
@@ -596,13 +621,12 @@ contract Game {
 
         pdata.health = STARTING_HEALTH;
         pdata.handRoot = handRoot;
-        bytes32 initialDeckRoot = pdata.deckRoot;
         pdata.deckRoot = deckRoot;
         pdata.handSize = 7; // draw 7 cards at the start of the game
 
         uint256 randomness = uint256(getPublicRandomness(gameID));
         uint256 committedSalt = uint256(salts[msg.sender]);
-        checkInitialHandProof(pdata, initialDeckRoot, randomness, committedSalt, proof);
+        checkInitialHandProof(pdata, packedCards, randomness, committedSalt, proof);
 
         inGame[msg.sender] = gameID;
         emit PlayerJoined(gameID, msg.sender);

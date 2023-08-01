@@ -9,6 +9,7 @@ import {Game} from "../Game.sol";
 
 import {Test} from "forge-std/Test.sol";
 import {Deploy} from "../deploy/Deploy.s.sol";
+import "forge-std/console.sol";
 
 contract Integration is Test {
     Deploy private deployment;
@@ -57,7 +58,8 @@ contract Integration is Test {
         // TODO
         //game.createGame(2, game.allowAnyPlayerAndDeck);
         game.createGame(2);
-        inventory.getDeck(player1, 0);
+        inventory.getDeck(player2, 0); // player1 has card id of 49-72 inclusive
+        inventory.getDeck(player2, 0); // player2 has card id of 73-96 inclusive
         vm.startPrank(player1);
         game.commitSalt(COMMITTED_SALT);
         game.joinGame(gameID, 0, bytes(""), HAND_ROOT, DECK_ROOT, PROOF);
