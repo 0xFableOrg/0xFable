@@ -591,9 +591,6 @@ contract Game {
             revert AlreadyJoined();
         }
 
-        // TODO just for testing
-        salts[msg.sender] = bytes32(uint256(42));
-
         if (salts[msg.sender] == 0) {
             revert SaltNotCommitted();
         }
