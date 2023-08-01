@@ -1,7 +1,8 @@
 const snarkjs = require("snarkjs");
 const fs = require("fs");
 
-async function run(circuitName, inputs) {
+async function run(circuitName, inputFilename) {
+  const inputs = JSON.parse(fs.readFileSync(inputFilename));
   const { proof, publicSignals } = await snarkjs.plonk.fullProve(inputs,
     `out/${circuitName}_js/${circuitName}.wasm`,
     `out/${circuitName}.zkey`);
@@ -20,6 +21,6 @@ async function run(circuitName, inputs) {
   }
 }
 
-run("Cards", {a: 10, b: 21}).then(() => {
+run("DrawHand", "input.json").then(() => {
   process.exit(0);
 });

@@ -2,7 +2,7 @@
 # VARIABLES
 
 # List of powersOfTau trusted setup files here: https://github.com/iden3/snarkjs/blob/master/README.md
-SETUP_FILE=powersOfTau28_hez_final_19.ptau
+SETUP_FILE=powersOfTau28_hez_final_18.ptau
 SNARKJS="./node_modules/.bin/snarkjs"
 
 # For a few commands that return info about circuits.
@@ -66,7 +66,8 @@ install-test-deps:
 	out/%.proof.json trusted_setup/%.ptau
 
 # Build verifier contracts & all other outputs.
-all: out/DrawVerifier.sol out/DrawHandVerifier.sol out/PlayVerifier.sol
+all: out/Draw.vkey.json out/DrawHand.vkey.json out/Play.vkey.json \
+	out/DrawVerifier.sol out/DrawHandVerifier.sol out/PlayVerifier.sol
 .PHONY: build
 
 test-server:
