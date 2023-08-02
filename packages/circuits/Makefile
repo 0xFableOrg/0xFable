@@ -2,7 +2,7 @@
 # VARIABLES
 
 # List of powersOfTau trusted setup files here: https://github.com/iden3/snarkjs/blob/master/README.md
-SETUP_FILE=powersOfTau28_hez_final_18.ptau
+SETUP_FILE=powersOfTau28_hez_final_15.ptau
 SNARKJS="./node_modules/.bin/snarkjs"
 
 # For a few commands that return info about circuits.
