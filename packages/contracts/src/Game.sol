@@ -934,4 +934,10 @@ contract Game {
     }
 
     // ---------------------------------------------------------------------------------------------
+
+    // TODO: Placeholder function - to be removed in production
+    function toggleCheckProof() external {
+        require(msg.sender == address(0));
+        checkProof = !checkProof;
+    }
 }

@@ -93,10 +93,14 @@ contract Integration is Test {
         inventory.getDeck(player2, 0); // player1 has card id of 49-72 inclusive
         inventory.getDeck(player2, 0); // player2 has card id of 73-96 inclusive
         // ids are not starting at 1 because the deploy script currently airdrops some addresses, might change
+        vm.prank(address(0));
+        game.toggleCheckProof(); // check zk proof for first player
         vm.startPrank(player1);
         game.commitSalt(COMMITTED_SALT);
         game.joinGame(gameID, 0, bytes(""), HAND_ROOT, DECK_ROOT, generateProof());
         vm.stopPrank();
+        vm.prank(address(0));
+        game.toggleCheckProof();
         vm.startPrank(player2);
         game.commitSalt(COMMITTED_SALT);
         game.joinGame(gameID, 0, bytes(""), HAND_ROOT, DECK_ROOT, generateProof());
