@@ -1,14 +1,13 @@
 /**
- * A set of game-specific types, and functions to derive data from those types.
+ * A set of types for data kept in the store and data derived thereof.
  *
  * @module types
  */
 
 import { Address, Hash } from "src/chain"
-import { zeroAddress } from "viem"
 
 // =================================================================================================
-// TYPES
+// GAME-SPECIFIC TYPES
 
 // -------------------------------------------------------------------------------------------------
 
@@ -27,17 +26,8 @@ export type Card = {
 
 // -------------------------------------------------------------------------------------------------
 
-export enum GameStatus {
-  UNKNOWN,
-  CREATED,
-  JOINED,
-  STARTED,
-  ENDED
-}
-
-// -------------------------------------------------------------------------------------------------
-
 export enum GameStep {
+  UNINITIALIZED,
   DRAW,
   PLAY,
   ATTACK,
@@ -83,18 +73,22 @@ export type FetchedGameData = {
 
 // -------------------------------------------------------------------------------------------------
 
-/** All the cards that will be used in the game. */
-export type GameCards = {
-  gameID: bigint
-  /**
-   * All the cards that will be used in the game, as represented on-chain, i.e. as a concatenation
-   * of all the (initial) players' decks.
-   */
-  cards: readonly bigint[]
-  /**
-   * Same as `cards`, but split into (initial) player decks.
-   */
-  decks: readonly bigint[][]
+/**
+ * Represent major phases of the game setup and breakdown, relative to the current player.
+ */
+export enum GameStatus {
+  /** Default value, for use with missing game data. */
+  UNKNOWN,
+  /** The game has been created, but the player hasn't joined yet. */
+  CREATED,
+  /** The player joined the game. */
+  JOINED,
+  /** The player has drawn their initial hand. */
+  HAND_DRAWN,
+  /** The game has started (all players have drawn their initial hand. */
+  STARTED,
+  /** The game has ended (only one player left standing). */
+  ENDED
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -108,14 +102,16 @@ export type GameCards = {
 export type PrivateInfo = {
   /** The player's secret salt, necessary to hide information. */
   salt: bigint
+  /** MimcHash of {@link salt}. */
+  saltHash: Hash
   /** The player's current hand. */
-  hand: bigint[]
+  hand: readonly bigint[]
   /** The player's current deck ordering. */
-  deck: bigint[]
+  deck: readonly bigint[]
   /** Merkle root of {@link hand}. */
-  handRoot: bigint
+  handRoot: Hash
   /** Merkle root of {@link deck}. */
-  deckRoot: bigint
+  deckRoot: Hash
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -145,43 +141,19 @@ export type GameBoard = {
   battlefield: bigint[][]
 }
 
+// =================================================================================================
+// UI-RELATED TYPES
+
 // -------------------------------------------------------------------------------------------------
 
 /** This configure the global error modal to display an error message. */
 export type ErrorConfig = {
   title: string
   message: string
-  onClose?: () => void
   buttons: readonly {
     text: string
     onClick: () => void
   }[]
-}
-
-// =================================================================================================
-// DERIVED DATA
-
-/** Returns the address of the current player according to the passed game data. */
-export function currentPlayerAddress(gdata: FetchedGameData): Address {
-  return gdata.players[gdata.currentPlayer]
-}
-
-// -------------------------------------------------------------------------------------------------
-
-/** Returns the game status based on the game data. */
-export function getGameStatus(gdata: FetchedGameData|null, player: Address|null): GameStatus {
-  if (gdata === null || player === null || gdata.gameCreator === zeroAddress)
-    return GameStatus.UNKNOWN
-  else if (gdata.playersLeftToJoin == 0) {
-    if (gdata.livePlayers.length <= 1)
-      return GameStatus.ENDED
-    else
-      return GameStatus.STARTED
-  } else if (gdata.players.includes(player)) {
-    return GameStatus.JOINED
-  } else {
-    return GameStatus.CREATED
-  }
 }
 
 // =================================================================================================
