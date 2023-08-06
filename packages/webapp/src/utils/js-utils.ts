@@ -67,6 +67,35 @@ export function shallowCompare(obj1: any, obj2: any): boolean {
 
   return true
 }
+
+// -------------------------------------------------------------------------------------------------
+
+/**
+ * Converts the bigint to a hex string. The string does *not* start with 0x.
+ *
+ * If `extendTo` is specified, the string is padded with leading zeros to reach the given BYTE
+ * length (meaning the actual string length is twice as big). Otherwise, the string is padded with a
+ * leading zero if needed to give it even string length (i.e. no half bytes).
+ */
+export function bigintToHexString(n: bigint, extendTo?: number): string {
+  const str = n.toString(16)
+  return extendTo !== undefined
+    ? str.padStart(extendTo * 2, "0")
+    : str.length % 2 === 1
+      ? "0" + str
+      : str
+}
+
+// -------------------------------------------------------------------------------------------------
+
+/**
+ * Converts a byte array to a hex string. The string does *not* start with 0x, and has length
+ * `2 * array.length`.
+ */
+export function bytesToHexString(array: Uint8Array): string {
+  return Array.from(array).map(byte => byte.toString(16).padStart(2, "0")).join("")
+}
+
 // -------------------------------------------------------------------------------------------------
 
 /**
@@ -75,7 +104,7 @@ export function shallowCompare(obj1: any, obj2: any): boolean {
 export function parseBigInt(value: string|number|bigint|Uint8Array): bigint {
   if (typeof value === "bigint") return value
   if (value instanceof Uint8Array)
-    return BigInt("0x" + Array.from(value).map(byte => byte.toString(16).padStart(2, "0")).join(""))
+    return BigInt("0x" + bytesToHexString(value))
   return BigInt(value).valueOf()
 }
 
@@ -119,6 +148,15 @@ export function formatTimestamp(timestamp: number) {
 /** Async function that waits for the given number of milliseconds. */
 export async function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+// -------------------------------------------------------------------------------------------------
+
+/** Returns a random 256-bit unsigned integer using {@link crypto.getRandomValues}. */
+export function randomUint256(): bigint {
+  const bytes = new Uint8Array(32)
+  crypto.getRandomValues(bytes)
+  return parseBigInt(bytes)
 }
 
 // =================================================================================================

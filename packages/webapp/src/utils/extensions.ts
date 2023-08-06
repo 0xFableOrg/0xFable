@@ -10,8 +10,8 @@ export {}
 
 declare global {
   interface Array<T> {
-    last(): T;
-    setLast(item: T): void;
+    last(): T
+    setLast(item: T): void
   }
 }
 
