@@ -6,10 +6,12 @@
  *
  * @module store/hooks
  */
-import { Address } from "src/chain"
-import { ErrorConfig, FetchedGameData, GameStatus } from "src/types"
+
 import { useAtom, useAtomValue } from "jotai"
+
+import { Address } from "src/chain"
 import * as store from "src/store/atoms"
+import { ErrorConfig, FetchedGameData, GameStatus, PrivateInfo } from "src/types"
 
 // =================================================================================================
 
@@ -76,6 +78,26 @@ export function useIsGameCreator(): boolean {
 /** True if we have have joined BUT are not the creator of the current game. */
 export function useIsGameJoiner(): boolean {
   return useAtomValue(store.isGameJoiner)
+}
+
+// -------------------------------------------------------------------------------------------------
+
+/**
+ * True if all players have joined the game (they may not have drawn hands yet), at which point the
+ * game creator can no longer cancel the game.
+ */
+export function useAllPlayersJoined(): boolean {
+  return useAtomValue(store.allPlayersJoined)
+}
+
+// -------------------------------------------------------------------------------------------------
+
+/** Returns the private information pertaining to the current game. */
+export function usePrivateInfo(gameID: bigint|null, playerAddress: Address|null): PrivateInfo|null {
+  const privateInfoStore = useAtomValue(store.privateInfoStore)
+  return gameID === null || playerAddress === null
+    ? null
+    : privateInfoStore[gameID.toString()][playerAddress]
 }
 
 // =================================================================================================
