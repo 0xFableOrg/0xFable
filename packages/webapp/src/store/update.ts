@@ -6,16 +6,16 @@
 
 // =================================================================================================
 
+
 import { getAccount, getNetwork, watchAccount, watchNetwork } from "wagmi/actions"
 
+import { AccountResult, Address, chains, NetworkResult } from "src/chain"
 import { subscribeToGame } from "src/store/subscriptions"
-import { type FetchedGameData, GameStatus } from "src/types"
-import { AccountResult, chains, NetworkResult } from "src/chain"
-import { formatTimestamp } from "src/utils/js-utils"
 import * as store from "src/store/atoms"
-import { Address } from "wagmi"
 import * as net from "src/store/network"
 import { THROTTLED, ZOMBIE } from "src/utils/throttled-fetch"
+import { formatTimestamp } from "src/utils/js-utils"
+import { GameStatus } from "src/types"
 
 // =================================================================================================
 // INITIALIZATION
@@ -30,7 +30,7 @@ export function setupStore() {
   if (setupHasRun) return
   setupHasRun = true
 
-  // Whenever the connect wallet address changes, update the player address.
+  // Whenever the connected wallet address changes, update the player address.
   watchAccount(updatePlayerAddress)
 
   // Make sure to clear game data if we switch to an unsupported network.
@@ -60,10 +60,11 @@ export function setupStore() {
  */
 function updatePlayerAddress(result: AccountResult) {
   const oldAddress = store.get(store.playerAddress)
-  // normalize to null (never undefined)
-  const newAddress = result.status === 'disconnected' ? null : (result.address || null)
+  const newAddress = result.status === 'disconnected' || !isNetworkValid()
+    ? null
+    : (result.address || null) // undefined --> null
 
-  if (oldAddress !== newAddress && isNetworkValid()) {
+  if (oldAddress !== newAddress) {
     console.log(`player address changed from ${oldAddress} to ${newAddress}`)
     store.set(store.playerAddress, newAddress)
 
@@ -94,10 +95,18 @@ function isNetworkValid(network: NetworkResult = getNetwork()) {
  * network is unsupported.
  */
 function updateNetwork(result: NetworkResult) {
-  console.log(`network changed to chain with ID ${result.chain?.id}`)
-  if (!isNetworkValid(result)) {
+  if (result.chain === undefined)
+    console.log("disconnected from network")
+  else
+    console.log(`network changed to chain with ID ${result.chain?.id}`)
+
+  if (!isNetworkValid(result))
     store.set(store.gameID, null) // resets all game data
-  }
+
+  // Update player address, setting it or clearing it depending on whether the network is supported.
+  // Note the account listener won't fire by itself because the address (wagmi-level) didn't change,
+  // but our invariant is that is that playerAddress === null if not connected to a supported chain.
+  updatePlayerAddress(getAccount())
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -122,20 +131,14 @@ function gameIDListener(ID: bigint|null) {
   store.set(store.hasVisitedBoard, false)
 
   subscribeToGame(ID) // will unusubscribe if ID is null
-  if (ID !== null)
-    // We might be jumping into an in-progress game, so fetch cards.
-    void refreshGameData({ forceFetchCards: true })
+  if (ID === null) return // no need to refresh data
+
+  // We might be jumping into an in-progress game, so fetch cards.
+  void refreshGameData({ forceFetchCards: true })
 }
 
 // =================================================================================================
 // REFRESH GAME DATA
-
-// -------------------------------------------------------------------------------------------------
-
-/** If the game has started and we don't have the cards yet, we need to fetch them. */
-function shouldUpdateCards(): boolean {
-  return store.get(store.gameStatus) >= GameStatus.STARTED && store.get(store.gameCards) === null
-}
 
 // -------------------------------------------------------------------------------------------------
 
@@ -164,16 +167,13 @@ function isStaleVerbose(ID: bigint, player: Address): boolean {
  * Triggers a refresh of the game data, setting the {@link store.gameData} atom. If the game ID or
  * the player changes the while the refresh is in flight, the refresh is ignored.
  *
- * If necessary ({@link shouldUpdateCards} returns true), also fetches the cards and updates the
- * {@link store.gameCards} atom accordingly.
- *
- * @param forceFetchCards forces fetching the cards even though {@link shouldUpdateCards} initially
- * returns false. This is useful when we know that the new game data will move us to a state where
- * we should update the cards.
+ * If necessary (game not yet started or {@link forceFetchCards} set to true), also fetches the
+ * cards.
  */
 export async function refreshGameData({ forceFetchCards = false } = {}) {
   const gameID = store.get(store.gameID)
   const player = store.get(store.playerAddress)
+  const status = store.get(store.gameStatus)
 
   if (gameID === null) {
     console.error("refreshGameData called with null ID")
@@ -183,7 +183,8 @@ export async function refreshGameData({ forceFetchCards = false } = {}) {
     return
   }
 
-  const shouldFetchCards = shouldUpdateCards() || forceFetchCards
+  // Always fetch cards before game is created (easier), but never after as they won't change.
+  const shouldFetchCards = status < GameStatus.CREATED || forceFetchCards
 
   const gameData = await net.fetchGameData(gameID, shouldFetchCards)
 
@@ -199,12 +200,6 @@ export async function refreshGameData({ forceFetchCards = false } = {}) {
 
   store.set(store.gameData, gameData)
 
-  if (shouldFetchCards) {
-    const cards = gameData.cards
-    const decks = gameData.playerData.map(pdata => cards.slice(pdata.deckStart, pdata.deckEnd))
-    store.set(store.gameCards, {gameID, cards, decks})
-  }
-
   const timestamp = Date.now()
   console.groupCollapsed(
     "updated game data " +
@@ -214,77 +209,6 @@ export async function refreshGameData({ forceFetchCards = false } = {}) {
   console.groupEnd()
 
   return gameData
-}
-
-// =================================================================================================
-// STALENESS CHECKS
-
-// -------------------------------------------------------------------------------------------------
-
-/** Check whether the game ID, player, or game state (if defined) shifted underneath us. */
-export function isStale(gameID: bigint, player: Address, gameData?: FetchedGameData): boolean {
-  const gameID2 = store.get(store.gameID)
-  const player2 = store.get(store.playerAddress)
-  const gameData2 = store.get(store.gameData)
-  return gameID2 !== gameID
-    || player2 !== player
-    || (gameData !== undefined
-        && (gameData2 === null || gameData2.lastBlockNum !== gameData.lastBlockNum))
-}
-
-// -------------------------------------------------------------------------------------------------
-
-/**
- * This symbol is returned by {@link asyncWithGameContext} and {@link asyncWithGameStateContext}
- * when the state shifts underneath the asynchronous call.
- */
-export const STALE = Symbol("STALE")
-
-// -------------------------------------------------------------------------------------------------
-
-/**
- * This function calls `fn`, asynchronously returning its result, but only if the current game ID
- * and player address haven't shifted underneath the call (which would mean we disconnected or
- * switched to a completely different game). Otherwise, it returns {@link STALE}.
- *
- * Unlike {@link asyncWithGameStateContext}, this function does not check if the game state itself
- * changed.
- */
-export async function asyncWithGameContext<T>(fn: () => Promise<T>): Promise<T | typeof STALE> {
-  const gameID = store.get(store.gameID)
-  const player = store.get(store.playerAddress)
-  if (gameID === null || player === null) return STALE // should never happen
-
-  const result = await fn()
-
-  if (isStale(gameID, player))
-    return STALE
-
-  return result
-}
-
-// -------------------------------------------------------------------------------------------------
-
-/**
- * This function calls `fn`, asynchronously returning its result, but only if the current game ID,
- * player address and last block number for the game (hence, the game data in general) info haven't
- * shifted underneath the call. Otherwise, it returns {@link STALE}.
- *
- * If you only want to check that the game & player didn't change, use {@link asyncWithGameContext}
- * instead.
- */
-export async function asyncWithGameStateContext<T>(fn: () => Promise<T>): Promise<T | typeof STALE> {
-  const gameID = store.get(store.gameID)
-  const player = store.get(store.playerAddress)
-  const gameData = store.get(store.gameData)
-  if (gameID === null || player === null || gameData === null) return STALE // should never happen
-
-  const result = await fn()
-
-  if (isStale(gameID, player, gameData))
-    return STALE
-
-  return result
 }
 
 // =================================================================================================
