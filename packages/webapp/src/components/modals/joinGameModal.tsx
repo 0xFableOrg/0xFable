@@ -1,18 +1,18 @@
 import debounce from "lodash/debounce"
 import { useRouter } from "next/router"
 import { useEffect, useMemo, useState } from "react"
-import { ModalMenuButton, ModalTitle } from "src/components/lib/modalElements"
+import { ModalMenuButton, ModalTitle, Spinner } from "src/components/lib/modalElements"
 import { InGameMenuModalContent } from "src/components/modals/inGameMenuModalContent"
 
 import { useGameWrite } from "src/hooks/useFableWrite"
 import * as store from "src/store/hooks"
-import { GameStatus } from "src/types"
 import { isStringPositiveInteger } from "src/utils/js-utils"
 import { parseBigIntOrNull } from "src/utils/js-utils"
 import { Modal, ModalController, useModalController } from "src/components/lib/modal"
 import { LoadingModalContent } from "src/components/lib/loadingModal"
-import { decodeEventLog } from "viem"
-import { gameABI } from "src/generated"
+import { joinGame, reportInconsistentGameState } from "src/actions"
+import { setError } from "src/store/actions"
+import { GameStatus } from "src/types"
 
 // =================================================================================================
 
@@ -38,13 +38,16 @@ export const JoinGameModal = () => {
 
 const JoinGameModalContent = ({ ctrl }: { ctrl: ModalController }) => {
   const [ gameID, setGameID ] = store.useGameID()
+  const playerAddress = store.usePlayerAddress()
   const gameStatus = store.useGameStatus()
   const [ hasVisitedBoard ] = store.useHasVisitedBoard()
   const [ inputGameID, setInputGameID ] = useState<string|null>(null)
   const [ loading, setLoading ] = useState<string|null>(null)
+  const [ drawCompleted, setDrawCompleted ] = useState(false)
   const router = useRouter()
 
-  const joined  = gameStatus >= GameStatus.JOINED
+  // Decompose in boolean to help sharing code.
+  const joined  = gameStatus >= GameStatus.HAND_DRAWN || drawCompleted
   const started = gameStatus >= GameStatus.STARTED
 
   // Load game board game once upon game start.
@@ -62,42 +65,29 @@ const JoinGameModalContent = ({ ctrl }: { ctrl: ModalController }) => {
   //   game ID. This is fine. Alternatively, we could validate the input game ID and enable the hook
   //   only when the ID is valid.
 
-  // Temporary, we do use 0x0 to signal the absence of a root, so we need to use a different value.
-  const HashOne = "0x0000000000000000000000000000000000000000000000000000000000000001"
+  const join = async () => {
+    if (inputGameID === null || playerAddress === null)
+      return reportInconsistentGameState("Not tracking a game or player disconnected.")
 
-  const { write: join } = useGameWrite({
-    functionName: "joinGame",
-    args: inputGameID
-      ? [
-        parseBigIntOrNull(inputGameID),
-        0, // deckID
-        HashOne, // data for callback
-        HashOne, // hand root
-        HashOne, // deck root
-        HashOne, // proof
-      ]
-      : undefined,
-    enabled: !!inputGameID && !joined,
-    setLoading,
-    onSuccess(data) {
-      const event = decodeEventLog({
-        abi: gameABI,
-        data: data.logs[0].data,
-        topics: data.logs[0]["topics"]
+    const parsedGameID = parseBigIntOrNull(inputGameID) as bigint
+    if (parsedGameID === null)
+      return setError({
+        title: "Game ID must be a plain number",
+        message: "",
+        buttons: [{ text: "OK", onClick: () => setError(null) }]
       })
-      setGameID(event.args["gameID"])
+
+    const success = await joinGame({
+      gameID: parsedGameID,
+      playerAddress,
+      setLoading
+    })
+
+    if (success) {
+      setDrawCompleted(true)
       setLoading("Waiting for other player...")
-    },
-    onError(err) {
-      const errData = (err as any)?.error?.data?.data
-      if (errData && (errData as string).startsWith("0xb32dfa71")) {
-        // TODO generify this + report to user
-        console.log("deck does not exist")
-      } else {
-        console.log(`error in joinGame: ${err}`)
-      }
     }
-  })
+  }
 
   const { write: concede } = useGameWrite({
     functionName: "concedeGame",
@@ -125,21 +115,27 @@ const JoinGameModalContent = ({ ctrl }: { ctrl: ModalController }) => {
   if (started) return <InGameMenuModalContent concede={concede} />
 
   return <>
-    <ModalTitle>Joining Game...</ModalTitle>
-    <p className="py-4">Enter the game ID you want to join.</p>
-    <input
-      type="number"
-      placeholder="Game ID"
-      min={0}
-      onChange={handleInputChange}
-      className="input input-bordered input-primary mr-2 w-full max-w-xs text-white placeholder-gray-500"
-    />
-    <button
-      className="btn"
-      disabled={!inputGameID || !join}
-      onClick={join}>
-      Join Game
-    </button>
+    {joined && <>
+      <ModalTitle>Waiting for other player...</ModalTitle>
+      <Spinner />
+    </>}
+    {!joined && <>
+      <ModalTitle>Joining Game...</ModalTitle>
+      <p className="py-4">Enter the game ID you want to join.</p>
+      <input
+        type="number"
+        placeholder="Game ID"
+        min={0}
+        onChange={handleInputChange}
+        className="input input-bordered input-primary mr-2 w-full max-w-xs text-white placeholder-gray-500"
+      />
+      <button
+        className="btn"
+        disabled={!inputGameID || !join}
+        onClick={join}>
+        Join Game
+      </button>
+    </>}
   </>
 }
 
