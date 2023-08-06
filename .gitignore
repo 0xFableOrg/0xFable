@@ -24,6 +24,7 @@ packages/webapp/src/generated.ts
 # Webapp outputs
 packages/webapp/.next
 packages/webapp/next-env.d.ts
+packages/webapp/tsconfig.tsbuildinfo
 
 # Circuits outputs
 packages/circuits/build
