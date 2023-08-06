@@ -23,6 +23,10 @@ export function setup() {
   setupFilterWarningMessages()
   setupFilterInfoMessages()
 
+  // Only in dev mode, because that's where the annoying messages occur for now.
+  if (process.env.NODE_ENV === "development")
+    setupFilterLogMessages()
+
   setupBigintSerialization()
 
   setupStore()
@@ -68,6 +72,10 @@ const filteredInfoMessages = [
   "Unsuccessful attempt at preloading some images"
 ]
 
+const filteredLogMessages = [
+  "[HMR] connected"
+]
+
 // -------------------------------------------------------------------------------------------------
 
 function matchFilter(err: string, filter: string|RegExp): boolean {
@@ -85,20 +93,18 @@ function matchFilter(err: string, filter: string|RegExp): boolean {
  * window.suppressedErrors}.
  */
 function setupFilterErrorMessages() {
-  const oldError = console.error["oldError"] ?? console.error
-  console.error = (err) => {
-    const filteredErr = typeof err === "string"
-      && filteredErrorMessages.some((filter) => matchFilter(err, filter))
-    const filteredCode = filteredErrorCodes.includes(err?.code)
+  console.error = replaceFunction(console, "error", (oldFunction) => (arg) => {
+    const filteredErr = typeof arg === "string"
+      && filteredErrorMessages.some((filter) => matchFilter(arg, filter))
+    const filteredCode = filteredErrorCodes.includes(arg?.code)
 
     if (filteredErr || filteredCode) {
       window["suppressedErrors"] ||= []
-      window["suppressedErrors"].push(err)
+      window["suppressedErrors"].push(arg)
     } else {
-      oldError(err)
+      oldFunction(arg)
     }
-  }
-  console.error["oldError"] = oldError
+  })
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -109,19 +115,17 @@ function setupFilterErrorMessages() {
  * window.suppressedWarnings}.
  */
 function setupFilterWarningMessages() {
-  const oldWarn = console.warn["oldWarn"] ?? console.warn
-  console.warn = (warning) => {
-    const filteredMsg = typeof warning === "string"
-      && filteredWarningMessages.some((filter) => matchFilter(warning, filter))
+  console.warn = replaceFunction(console, "warn", (oldFunction) => (arg) => {
+    const filteredMsg = typeof arg === "string"
+      && filteredWarningMessages.some((filter) => matchFilter(arg, filter))
 
     if (filteredMsg) {
       window["suppressedWarnings"] ||= []
-      window["suppressedWarnings"].push(warning)
+      window["suppressedWarnings"].push(arg)
     } else {
-      oldWarn(warning)
+      oldFunction(arg)
     }
-  }
-  console.warn["oldWarn"] = oldWarn
+  })
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -132,19 +136,38 @@ function setupFilterWarningMessages() {
  * window.suppressedInfos}.
  */
 function setupFilterInfoMessages() {
-  const oldInfo = console.info["oldInfo"] ?? console.info
-  console.info = (info) => {
-    const filteredMsg = typeof info === "string"
-      && filteredInfoMessages.some((filter) => matchFilter(info, filter))
+  console.info = replaceFunction(console, "info", (oldFunction) => (arg) => {
+    const filteredMsg = typeof arg === "string"
+      && filteredInfoMessages.some((filter) => matchFilter(arg, filter))
 
     if (filteredMsg) {
       window["suppressedInfos"] ||= []
-      window["suppressedInfos"].push(info)
+      window["suppressedInfos"].push(arg)
     } else {
-      oldInfo(info)
+      oldFunction(arg)
     }
-  }
-  console.info["oldInfo"] = oldInfo
+  })
+}
+
+// -------------------------------------------------------------------------------------------------
+
+/**
+ * Hooks {@link console.log} such that string infos starting with any of the strings in {@link
+  * filteredLogMessages} will be filtered out. Instead they will be stored in {@link
+  * window.suppressedLogs}.
+ */
+function setupFilterLogMessages() {
+  console.log = replaceFunction(console, "log", (oldFunction) => (arg) => {
+    const filteredMsg = typeof arg === "string"
+      && filteredLogMessages.some((filter) => matchFilter(arg, filter))
+
+    if (filteredMsg) {
+      window["suppressedLogs"] ||= []
+      window["suppressedLogs"].push(arg)
+    } else {
+      oldFunction(arg)
+    }
+  })
 }
 
 // =================================================================================================
