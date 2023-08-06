@@ -37,6 +37,7 @@ const MyApp: AppType = ({ Component, pageProps }) => {
         ethereumClient={web3ModalEthereumClient}
       />
 
+      {/* Global error modal for errors that don't have obvious in-flow resolutions. */}
       {errorConfig && <GlobalErrorModal config={errorConfig} />}
     </>
   )

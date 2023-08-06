@@ -45,11 +45,6 @@ export const gameData = atom(null as FetchedGameData|null)
 
 // -------------------------------------------------------------------------------------------------
 
-/** The listing of cards used in the current game. */
-export const gameCards = atom(null as GameCards|null)
-
-// -------------------------------------------------------------------------------------------------
-
 /**
  * Whether the user visited the game board for the current game.
  * This useful for managing state transitions in the game creation and joining flow.
@@ -85,6 +80,14 @@ export const gameStatus = atom((get) => getGameStatus(get(gameData), get(playerA
 
 // -------------------------------------------------------------------------------------------------
 
+/**
+ * True if all players have joined the game (they may not have drawn hands yet), at which point the
+ * game creator can no longer cancel the game.
+ */
+export const allPlayersJoined = atom((get) => get(gameData)?.playersLeftToJoin === 0)
+
+// -------------------------------------------------------------------------------------------------
+
 /** True if we have created the current game. */
 export const isGameCreator = atom ((get) => {
   const address = get(playerAddress)
@@ -105,12 +108,12 @@ export const isGameJoiner = atom((get) => {
 playerAddress.debugLabel    = "playerAddress"
 gameID.debugLabel           = "gameID"
 gameData.debugLabel         = "gameData"
-gameCards.debugLabel        = "gameCards"
 hasVisitedBoard.debugLabel  = "hasVisitedBoard"
 gameStatus.debugLabel       = "gameStatus"
 privateInfoStore.debugLabel = "privateInfoStore"
 errorConfig.debugLabel      = "errorConfig"
 gameStatus.debugLabel       = "gameStatus"
+allPlayersJoined.debugLabel = "allPlayersJoined"
 isGameCreator.debugLabel    = "isGameCreator"
 isGameJoiner.debugLabel     = "isGameJoiner"
 
