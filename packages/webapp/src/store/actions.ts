@@ -5,115 +5,119 @@
  */
 
 import { Address } from "src/chain"
-import { fetchDeck } from "src/store/network"
-import { merkleize, mimcHash } from "src/utils/hashing"
-import "utils/extensions"
 import * as store from "src/store/atoms"
-// import { testProving } from "src/utils/proofs"
-import { isStale } from "src/store/update"
-import { FetchedGameData } from "src/types"
+import { ErrorConfig, FetchedGameData, PrivateInfo } from "src/types"
+import { bigintToHexString, randomUint256 } from "src/utils/js-utils"
+
+import "src/utils/extensions"
+import { mimcHash } from "src/utils/hashing"
 
 const get = store.get
 const set = store.set
 
 // =================================================================================================
-// CONSTANTS
+// SET GAME ID
 
-/** Size of the initial hand. */
-const initialHandSize = 5
+/** Sets the game ID in the store. */
+export function setGameID(gameID: bigint) {
+  set(store.gameID, gameID)
+}
 
-/** Maximum size of a deck. */
-const maxHandSize = 64
-
-/** Maximum size of a hand (same as the deck = no limit). */
-const maxDeckSize = 64
-
-// NOTE: Reducing the max hand size to 16 would probably reduce the DrawHand circuit proving time.
-//       It would require enforcing the max hand size in the Game contract, though.
-
-// ========================e=========================================================================
-// DRAW CARDS
-
-/** Returned by {@link drawCards} when the operation was aborted because of an error. */
-export const ABORTED = Symbol("ABORTED")
-
-// -------------------------------------------------------------------------------------------------
+// =================================================================================================
+// WAIT FOR UPDATE
 
 /**
- * Generates the initial hand for a player, drawn from the deck with the given ID.
+ * Wait for the game data to be updated to the given block number (or beyond), resolving to the game
+ * data. If the game is set to null at any point (indicating some kind of reset in the game state),
+ * or if the timeout is reached, the promise resolves to null instead.
  *
- * This will return {@link ABORTED} if the game state shifts from underneath this function,
- * or if failing to fetch the deck from the blockchain (setting a global error in the latter case).
+ * Note that some operations (e.g. `drawInitialHand`) do not update the `lastBlockNum` field of the
+ * game data and as such `waitForUpdate` is not suitable for use with these operations.
  */
-export async function drawCards
-    (gameID: bigint, player: Address, gameData: FetchedGameData, deckID: number)
-    : Promise<readonly bigint[] | typeof ABORTED> {
+export async function waitForUpdate(blockNum: bigint, timeout: number = 15)
+    : Promise<FetchedGameData|null> {
 
-  if (isStale(gameID, player, gameData))
-    return ABORTED // could theoretically happen
+  return new Promise<FetchedGameData|null>((resolve, _reject) => {
 
-  // TODO: This will need to be generated in advance and sent on-chain.
-  const salt = 42n
-  const randomness = mimcHash([salt, gameData.publicRandomness])
+    const unsubAndResolve = (result: FetchedGameData|null) => {
+      unsub()
+      resolve(result)
+    }
 
-  let deckResult
-  try {
-    deckResult = await fetchDeck(player, deckID)
-    if (isStale(gameID, player))
-      return ABORTED
-  }
-  catch (e: any) {
-    console.log(e)
-
-    // The action can be retried, by re-clicking "Join Game", so there's no need for some very
-    // involved recovery here.
-
-    set(store.errorConfig, {
-      title: "Could not fetch deck",
-      message: e.message,
-      buttons: [{ text: "Dismiss", onClick: () => set(store.errorConfig, null) }]
+    // Subscribe to the game data, resolve when receiving a state that satisfies blockNum req.
+    const unsub = store.store.sub(store.gameData, () => {
+      const gameData = store.get(store.gameData)
+      if (gameData === null || gameData.lastBlockNum >= blockNum)
+        unsubAndResolve(gameData)
     })
-    return ABORTED
-  }
 
-  // draw cards and update deck
-  const deck = [... deckResult]
-  const hand = []
-  for (let i = 0; i < initialHandSize; i++) {
-    const cardIndex = Number(randomness % BigInt(deck.length))
-    hand.push(deck[cardIndex])
-    deck[cardIndex] = deck.last()
-    deck.pop()
-  }
+    // Maybe the game data is already up to date.
+    const gameData = store.get(store.gameData)
+    if (gameData !== null && gameData.lastBlockNum >= blockNum)
+      return unsubAndResolve(gameData)
 
-  const extendedHand = [...hand]
-  for (let i = hand.length; i < maxHandSize; i++)
-    extendedHand.push(255n)
+    // Initiate timeout.
+    setTimeout(() => unsubAndResolve(null), timeout * 1000)
+  })
+}
 
-  // NOTE: These will be replaced by single hash calls, which should only take a fraction of a
-  // second, so it will not be necessary to delegate this to a worker thread.
-  const handRoot = merkleize(maxHandSize, extendedHand)
-  const deckRoot = merkleize(maxDeckSize, deck)
+// =================================================================================================
+// TRIGGER/CLEAR ERROR
 
-  // TODO validate proofs — the setup has been tested, no we just need the actual production proofs
-  // TODO this will need to run in a worker thread, not to hogg the main thread
-  // await testProving("MerkleHand", { root: handRoot, leaves: extendedHand })
-  // NOTE: MerkleHand is a circuit defined as:
-  //       component main { public [root, leaves] } = CheckMerkleRoot(6);
+/** Triggers the display a global UI error, or clears the error if `null` is passed. */
+export function setError(error: ErrorConfig|null) {
+  console.log(`setting error modal: ${JSON.stringify(error)}`)
+  set(store.errorConfig, error)
+}
 
-  if (isStale(gameID, player))
-    return ABORTED
+// =================================================================================================
+// SET PRIVATE INFO
 
+/**
+ * Sets the private information specific to the given game and player in the preivate info store.
+ */
+export function setPrivateInfo(gameID: bigint, player: Address, privateInfo: PrivateInfo) {
+  const privateInfoStore = get(store.privateInfoStore)
+  const strID = gameID.toString()
   set(store.privateInfoStore, {
-    ... get(store.privateInfoStore),
-    [gameID.toString()]: {
-      [player]: { salt, hand, deck, handRoot, deckRoot }
+    ... privateInfoStore,
+    [strID]: {
+      ... privateInfoStore[strID],
+      [player]: privateInfo
     }
   })
+}
 
-  console.log("drew initial hand: ", hand)
+// =================================================================================================
+// GET/INIT PRIVATE INFO
 
-  return hand
+/**
+ * Returns the private information specific to the given game and player, initializing it if
+ * it doesn't exist yet. Meant to be called when joining a game.
+ */
+export function getOrInitPrivateInfo(gameID: bigint, playerAddress: Address): PrivateInfo {
+
+  const privateInfoStore = store.get(store.privateInfoStore)
+  let privateInfo = privateInfoStore[gameID.toString()]?.[playerAddress]
+
+  if (privateInfo !== undefined)
+    return privateInfo
+
+  // The player's secret salt, necessary to hide information.
+  const salt = randomUint256()
+
+  privateInfo = {
+    salt,
+    saltHash: `0x${bigintToHexString(mimcHash([salt]), 32)}`,
+    // dummy values
+    hand: [],
+    deck: [],
+    handRoot: `0x0`,
+    deckRoot: `0x0`
+  }
+
+  setPrivateInfo(gameID, playerAddress, privateInfo)
+  return privateInfo
 }
 
 // =================================================================================================

@@ -2,15 +2,15 @@ import { useRouter } from "next/router"
 import { useEffect, useState } from "react"
 import { decodeEventLog } from "viem"
 
+import { LoadingModalContent } from "src/components/lib/loadingModal"
 import { Modal, ModalController, useModalController } from "src/components/lib/modal"
 import { ModalMenuButton, ModalTitle, Spinner } from "src/components/lib/modalElements"
 import { InGameMenuModalContent } from "src/components/modals/inGameMenuModalContent"
 import { gameABI } from "src/generated"
 import { useGameWrite } from "src/hooks/useFableWrite"
 import * as store from "src/store/hooks"
+import { joinGame, reportInconsistentGameState } from "src/actions"
 import { GameStatus } from "src/types"
-import { LoadingModalContent } from "src/components/lib/loadingModal"
-import { ABORTED, drawCards } from "src/store/actions"
 
 // =================================================================================================
 
@@ -39,25 +39,17 @@ const CreateGameModalContent = ({ ctrl }: { ctrl: ModalController }) => {
 
   const playerAddress = store.usePlayerAddress()
   const [ gameID, setGameID ] = store.useGameID()
-  const gameData = store.useGameData()
   const gameStatus = store.useGameStatus()
+  const allPlayersJoined = store.useAllPlayersJoined()
   const [ hasVisitedBoard ] = store.useHasVisitedBoard()
   const [ loading, setLoading ] = useState<string|null>(null)
-  const [ joinCompleted, setJoinCompleted ] = useState(false)
+  const [ drawCompleted, setDrawCompleted ] = useState(false)
   const router = useRouter()
 
+  // Decompose in boolean to help sharing code.
   const created = gameStatus >= GameStatus.CREATED
-  const joined  = gameStatus >= GameStatus.JOINED || joinCompleted
+  const joined  = gameStatus >= GameStatus.HAND_DRAWN || drawCompleted
   const started = gameStatus >= GameStatus.STARTED
-
-  // Relevant combinations:
-  // - !created (UNKNOWN)
-  // - created && !started && !joined (CREATED)
-  // - created && !started && joined (JOINED)
-  // - started (STARTED)
-
-  // The reason to decompose the status into boolean is it helps with sharing code in the layout
-  // logic. Cancelling a game can also be done in CREATED or JOINED state.
 
   // If the game is created, the modal can't be closed in the normal way, same if loading.
   useEffect(() => {
@@ -70,7 +62,6 @@ const CreateGameModalContent = ({ ctrl }: { ctrl: ModalController }) => {
     if (!hasVisitedBoard && started)
       void router.push("/play")
   }, [hasVisitedBoard, router, started])
-
 
   // -----------------------------------------------------------------------------------------------
   // NOTE(norswap): This is how to compute the encoding of the joincheck callback, however, ethers
@@ -99,60 +90,20 @@ const CreateGameModalContent = ({ ctrl }: { ctrl: ModalController }) => {
     }
   })
 
-  // Temporary, we do use 0x0 to signal the absence of a root, so we need to use a different value.
-  const HashOne = "0x0000000000000000000000000000000000000000000000000000000000000001"
+  const join = async () => {
+    if (gameID === null || playerAddress === null)
+      return reportInconsistentGameState("Not tracking a game or player disconnected.")
 
-  const { write: join } = useGameWrite({
-    functionName: "joinGame",
-    args: gameID !== null
-      ? [
-        gameID,
-        0, // deckID
-        HashOne, // data for callback
-        HashOne, // hand root
-        HashOne, // deck root
-        HashOne, // proof
-      ]
-      : undefined,
-    enabled: created && !started && !joined,
-    setLoading,
-    onSuccess() {
-      if (gameData === null) return // should never happen
+    const success = await joinGame({
+      gameID,
+      playerAddress,
+      setLoading
+    })
 
-      // This will capture the game data at the point where `join` was called, so we should check
-      // for 1 instead of 0.
-      // Assuming two players, if we're the last to join, we just need to wait for (1) the data
-      // refresh and (2) loading of the play page. Not displaying a loading modal would just show
-      // the old screen, which is janky (feels like our join didnt work).
-      // The alternative is an optimistic update of the game status & data.
-      if (gameData.playersLeftToJoin <= 1)
-        setLoading("Loading game...")
-      else
-        // Optimistically transition to the next modal state as we know the tx succeeded, and the
-        // game data refresh will follow.
-        setJoinCompleted(true)
-    },
-    onError(err) {
-      const errData = (err as any)?.error?.data?.data
-      if (errData && (errData as string).startsWith("0xb32dfa71")) {
-        // TODO generify this + report to user
-        console.log("deck does not exist")
-      } else {
-        console.log(`error in joinGame: ${err}`)
-      }
-    }
-  })
-
-  const drawAndJoin = async () => {
-    if (gameID === null || gameData === null || playerAddress === null) return // should never happen
-    setLoading("Drawing cards...")
-    // TODO WIP
-    const hand = await drawCards(gameID, playerAddress, gameData, 0)
-    if (hand === ABORTED) {
-      setLoading(null)
-    } else {
-      if (join !== undefined) join() // should always happen
-    }
+    if (success)
+      // Optimistically transition to the next modal state as we know the tx succeeded, and the
+      // game data refresh will follow.
+      setDrawCompleted(true)
   }
 
   const { write: cancel } = useGameWrite({
@@ -203,7 +154,7 @@ const CreateGameModalContent = ({ ctrl }: { ctrl: ModalController }) => {
       {`${gameID}`}
     </p>
     {!joined && <div className="flex justify-center gap-4">
-      <button className="btn" disabled={!join} onClick={drawAndJoin}>
+      <button className="btn" onClick={join}>
         Join Game
       </button>
       <button className="btn" disabled={!cancel} onClick={cancel}>
@@ -212,9 +163,9 @@ const CreateGameModalContent = ({ ctrl }: { ctrl: ModalController }) => {
     </div>}
     {joined && <div className="flex flex-col justify-center gap-4 items-center">
       <Spinner />
-      <button className="btn" disabled={!cancel} onClick={cancel}>
-        Cancel Game
-      </button>
+      {!allPlayersJoined && <button className="btn" disabled={!cancel} onClick={cancel}>
+          Cancel Game
+        </button>}
     </div>}
   </>
 
