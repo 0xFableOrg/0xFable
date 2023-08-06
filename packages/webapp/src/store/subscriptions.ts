@@ -31,6 +31,7 @@ const eventNames = [
   'PlayerDefended',
   'PlayerPassed',
   'PlayerJoined',
+  'PlayerDrewHand',
   'GameStarted',
   'PlayerConceded',
   'Champion',
@@ -119,17 +120,15 @@ function handleEvent(name: string, args: GameEventArgs) {
     } case 'PlayerJoined': {
       const { _player } = args
       // Refetch game data to get up to date player list and update the status.
-
-      // If the last player joined, we need to fetch the cards. This optimization allows us to fetch
-      // the game data and the cards in parallel instead of waiting for the game data to indicate a
-      // STARTED state to initiate fetching the cards.
-
-      const forceFetchCards = (store.get(store.gameData)?.playersLeftToJoin || 0) <= 1
-      void refreshGameData({ forceFetchCards })
+      void refreshGameData()
+      break
+    }
+    case 'PlayerDrewHand': {
+      void refreshGameData()
       break
     }
     case 'GameStarted': {
-      // No need to refetch game data, game started is triggered by a player joining, which
+      // No need to refetch game data, game started is triggered by a player drawing his hand, which
       // refreshes the game data.
       break
     }
