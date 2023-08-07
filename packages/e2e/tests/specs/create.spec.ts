@@ -95,15 +95,17 @@ Test("create & join", async () => {
   await sharedPage.getByRole("button", { name: "Join Game" }).click()
   await expect(sharedPage.getByRole("heading", { name: "Waiting for signature..." })).toBeVisible()
   await metamask.confirmTransaction()
+  await expect(sharedPage.getByRole("heading", { name: "Waiting for signature..." })).toBeVisible()
+  await metamask.confirmTransaction()
 
   // wait for on-chain inclusion
   await expect(sharedPage.getByRole("heading", { name: "Waiting for other player..." })).toBeVisible()
 })
 
-// TODO
-//    It would be great if we could figure out how to have two browser windows using two
-//    separately configured Metamask accounts. In the meantime, adding a second account and
-//    switching between them seems like the way to go.
+// NOTE
+//    It's currently not possible to have two browser windows using two separately configured
+//    Metamask accounts. In the meantime, adding a second account and switching between them is
+//    the way to go.
 
 Test("connect from other address", async () => {
   // Normally `switchToAccount` will do this, but somehow the createAccount throws a wrench in the
@@ -121,6 +123,9 @@ Test("join from other address", async () => {
   const gameID = await getGameID()
   await sharedPage.getByPlaceholder('Game ID').fill(Number(gameID).toString())
   await sharedPage.getByRole('button', { name: 'Join Game' }).click()
+  await expect(sharedPage.getByRole("heading", { name: "Waiting for signature..." })).toBeVisible()
+  await metamask.confirmTransaction()
+  await expect(sharedPage.getByRole("heading", { name: "Waiting for signature..." })).toBeVisible()
   await metamask.confirmTransaction()
   await expect(sharedPage.getByRole('button', { name: 'CONCEDE' })).toBeEnabled()
 })
