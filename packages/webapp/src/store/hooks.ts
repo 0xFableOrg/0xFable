@@ -11,7 +11,7 @@ import { useAtom, useAtomValue } from "jotai"
 
 import { Address } from "src/chain"
 import * as store from "src/store/atoms"
-import { ErrorConfig, FetchedGameData, GameStatus, PrivateInfo } from "src/types"
+import { ErrorConfig, FetchedGameData, GameStatus, PrivateInfo } from "src/store/types"
 
 // =================================================================================================
 

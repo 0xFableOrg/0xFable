@@ -8,7 +8,7 @@
 import { zeroAddress } from "viem"
 
 import { Address } from "src/chain"
-import { FetchedGameData, GameStatus, GameStep } from "src/types"
+import { FetchedGameData, GameStatus, GameStep } from "src/store/types"
 
 // =================================================================================================
 

@@ -12,7 +12,7 @@ import { Modal, ModalController, useModalController } from "src/components/lib/m
 import { LoadingModalContent } from "src/components/lib/loadingModal"
 import { joinGame, reportInconsistentGameState } from "src/actions"
 import { setError } from "src/store/actions"
-import { GameStatus } from "src/types"
+import { GameStatus } from "src/store/types"
 
 // =================================================================================================
 

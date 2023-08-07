@@ -33,7 +33,7 @@ import {
   getGameStatus, getPlayerData,
   getPrivateInfo
 } from "src/store/read"
-import { FetchedGameData, GameStatus, PrivateInfo } from "src/types"
+import { FetchedGameData, GameStatus, PrivateInfo } from "src/store/types"
 
 // =================================================================================================
 

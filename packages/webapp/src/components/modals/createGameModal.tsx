@@ -10,7 +10,7 @@ import { gameABI } from "src/generated"
 import { useGameWrite } from "src/hooks/useFableWrite"
 import * as store from "src/store/hooks"
 import { joinGame, reportInconsistentGameState } from "src/actions"
-import { GameStatus } from "src/types"
+import { GameStatus } from "src/store/types"
 
 // =================================================================================================
 

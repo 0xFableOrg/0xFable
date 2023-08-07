@@ -7,7 +7,7 @@ import { LoadingModal } from "src/components/lib/loadingModal"
 import { Navbar } from "src/components/navbar"
 import { useGameWrite } from "src/hooks/useFableWrite"
 import * as store from "src/store/hooks"
-import { GameStatus } from "src/types"
+import { GameStatus } from "src/store/types"
 import { useModalController } from "src/components/lib/modal"
 import { useIsHydrated } from "src/hooks/useIsHydrated"
 
