@@ -10,7 +10,7 @@
 import { atom, getDefaultStore } from "jotai"
 import { Address } from "src/chain"
 import { atomWithStorage } from "jotai/utils"
-import { ErrorConfig, FetchedGameData, PrivateInfoStore } from "src/types"
+import { ErrorConfig, FetchedGameData, PrivateInfoStore } from "src/store/types"
 import { getGameStatus } from "src/game/status"
 
 // =================================================================================================

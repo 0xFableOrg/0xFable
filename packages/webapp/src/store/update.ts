@@ -15,7 +15,7 @@ import * as store from "src/store/atoms"
 import * as net from "src/store/network"
 import { THROTTLED, ZOMBIE } from "src/utils/throttled-fetch"
 import { formatTimestamp } from "src/utils/js-utils"
-import { GameStatus } from "src/types"
+import { GameStatus } from "src/store/types"
 
 // =================================================================================================
 // INITIALIZATION

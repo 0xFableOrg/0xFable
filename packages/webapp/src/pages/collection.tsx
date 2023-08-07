@@ -12,7 +12,7 @@ import { Navbar } from "src/components/navbar"
 import { deployment } from "src/deployment"
 import { useInventoryCardsCollectionGetCollection } from "src/generated"
 import { useIsHydrated } from "src/hooks/useIsHydrated"
-import { Card } from "src/types"
+import { Card } from "src/store/types"
 import { Address } from "src/chain"
 
 // NOTE(norswap & geniusgarlic): Just an example, when the game actually has effects & types,

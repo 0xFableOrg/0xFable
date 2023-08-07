@@ -6,7 +6,7 @@
 
 import { Address } from "src/chain"
 import * as store from "src/store/atoms"
-import { ErrorConfig, FetchedGameData, PrivateInfo } from "src/types"
+import { ErrorConfig, FetchedGameData, PrivateInfo } from "src/store/types"
 import { randomUint256 } from "src/utils/js-utils"
 
 import "src/utils/extensions"

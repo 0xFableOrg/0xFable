@@ -1,6 +1,6 @@
 import { ModalTitle } from "src/components/lib/modalElements"
 import { Modal, useModalController } from "src/components/lib/modal"
-import { ErrorConfig } from "src/types"
+import { ErrorConfig } from "src/store/types"
 
 /**
  * A modal displayed globally (setup in _app.tsx) whenever the errorConfig state is set to non-null.
