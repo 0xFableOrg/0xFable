@@ -65,10 +65,23 @@ install-test-deps:
 .PRECIOUS: out/%.r1cs out/%.wasm out/%.sym out/%.zkey out/%.vkey.json out/%.wtns out/%.public.json \
 	out/%.proof.json trusted_setup/%.ptau
 
-# Build verifier contracts & all other outputs.
-all: out/Draw.vkey.json out/DrawHand.vkey.json out/Play.vkey.json \
-	out/DrawVerifier.sol out/DrawHandVerifier.sol out/PlayVerifier.sol
-.PHONY: build
+all:
+	CIRCUIT=Draw make build
+	CIRCUIT=DrawHand make build
+	CIRCUIT=Play make build
+.PHONY: all
+
+install-all:
+	CIRCUIT=Draw make install
+	CIRCUIT=DrawHand make install
+	CIRCUIT=Play make install
+.PHONY: install-all
+
+reinstall-all:
+	CIRCUIT=Draw make reinstall
+	CIRCUIT=DrawHand make reinstall
+	CIRCUIT=Play make reinstall
+.PHONY: reinstall-all
 
 test-server:
 	node circom.config.js > out/circom.config.json
