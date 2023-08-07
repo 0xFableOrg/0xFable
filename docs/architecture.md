@@ -10,6 +10,9 @@
 - [Private Information](#private-information)
 - [Zero-Knowledge Circuits](#zero-knowledge-circuits)
 - [Frontend](#frontend)
+  - [Store Structure](#store-structure)
+  - [State Synchronization](#state-synchronization)
+  - [Source Layout](#source-layout)
 
 ## Introduction
 
@@ -23,11 +26,11 @@ If you've never encountered a TCG before, [here's a commentary-less video of Hea
 gameplay](https://www.youtube.com/watch?v=hUi0eFuTi-g), so you can get a feel for it.
 
 In all these games, two players face off, each coming to the game with their own deck of cards that
-they have constructed (or selected) in advance. They draw cards from their decks into their hands
-(that the opponent can't see), and play cards from their hands into play (or "into the
-battlefield"). Typically, some of these cards are creatures which can attack the opponent's creature
-or the opponent's health points directly. It's common for players to have health points, and for
-them to lose when their health points reach 0.
+they have constructed in advance (or selected in case they use a premade deck). They draw cards from
+their decks into their hands (that the opponent can't see), and play cards from their hands into
+play (or "into the battlefield"). Typically, some of these cards are creatures which can attack the
+opponent's creature or the opponent's health points directly. It's common for players to have health
+points, and for them to lose when their health points reach 0.
 
 ## Gameplay
 
@@ -49,8 +52,9 @@ be useful to let a third party create games, e.g., for tournaments. Nevertheless
 assumes the game creator is a player that will join the game.
 
 Once both players have joined the game, it starts automatically (currently the first joining player
-goes first, this can be changed in the future). As part of joining, each player has drawn an initial
-hand of cards, which will be rendered on the UI.
+goes first, this can be changed in the future). Joining involves two transactions (for essential
+technical reaons, see later), one to join, and one draw the initial hand of cards. Once this is done
+for every player, the UI is rendered, showing the player's hand and the game board.
 
 Let's assume player A goes first. Here is how A's turn goes:
 
@@ -66,7 +70,7 @@ In summary, the possible sequences of actions for A in the first turn are:
 - play card, then attack
 - attack
 
-Then it is B's turn. If A has attacked, B must defend. Defending consists of selecting up to a
+Then it is B's turn. If A has attacked, B must defend. Defending consists of selecting up to one
 defending creature for each attacking creature. So the "payload" of a defense is a (possibly empty)
 set of pairs, where each pair consists of an attacking creature and a defending creature.
 
@@ -135,13 +139,13 @@ marketplace like OpenSea, but the purchase would fail because the card is curren
 
 An alternative solution that we have implemented is to require players to stake their cards in a
 special contract in order to use them in a game. This special contract is `Inventory.sol`. Whenever
-a player transfers a card to the inventory, a "ghost" version of the card is minted in
-`InventoryCardsCollection.sol`. This enables the UI (and other contracts / frontends) to use the
-usual NFT tools to determine the cards a player owns (which comprises both its regular cards and the
-cards staked in the inventory).
+a player transfers a card to the inventory, a "ghost" version of the card is minted (owned by th
+player) in `InventoryCardsCollection.sol`. This enables the UI (and other contracts / frontends) to
+use the usual NFT tools to determine the cards a player owns, which comprises both its regular cards
+and the cards staked in the inventory.
 
-The inventory contract does not allow players to stake/unstake cards to/from the inventory while
-they are participating in a game. (TODO: This is not implemented yet!)
+The inventory contract does not allow players to removed cards from the inventory while they are
+participating in a game. (TODO: This is not implemented yet!)
 
 Beyond solving this issue, the inventory contract also manages deck listings. Players can use any
 card they own to create a deck that can be used in a game. The same card can be used in multiple
@@ -189,9 +193,9 @@ Note that there isn't a perfect 1-1 mapping between these two things. When the `
 `PASS` are both valid actions for the player to take, respectively bypassing the option to play a
 card and both the option to play a card and attack. (Refer to the section on gameplay for details.)
 
-Transition the `currentPlayer` and `currentStep` is done via the `step` modifier. This modifier is
-applied to every function that represents a game action. It must be given the step that the player
-tries to take. The modifier then checks that the step is valid given `currentStep` and
+Transitioning the `currentPlayer` and `currentStep` is done via the `step` modifier. This modifier
+is applied to every function that represents a game action. It must be given the step that the
+player tries to take. The modifier then checks that the step is valid given `currentStep` and
 `currentPlayer`, returns to the function, then transitions the game state to the next step, which
 may depend on the action the current player picked. For instance, the next step might be `DEFEND` or
 `DRAW`, depending on whether the current player attacked or passed.
@@ -213,7 +217,7 @@ in the game data with the latest block number. The next action that requires ran
 use the blockhash of the block with the given number as a random value.
 
 Is that value truly random? Well, the block producer can "reroll" it as often as they like. So if
-the block producer colludes with a player, they can iterate on the blockhash (by adding a bogus
+the block producer colludes with a player, they can iterate on the blockhash (e.g. by adding a bogus
 transaction and iterating the gas limit) until they find a random number that will advantage the
 player.
 
@@ -235,13 +239,13 @@ The above scheme gives us property (1), because the randomness is derived from t
 we assume cannot be known in advance. We, however, do not have property (2), because the opponent can
 see the blockhash as well as we can.
 
-The fix is easy however: at the start of the game, every player picks a value, and they commit to it
-on-chain (by sending its hash). Thereafter, anytime a player needs a private random value, they
-simply mix the blockhash with the value they committed to. Verifying that the correct value was used
-can be done easily inside a zero-knowledge proof: the hash of the value is a public input, and the
-value is a private input, the proof verifies `hashFunc(value) == hash`.
+The fix is easy however: at the start of the game, every player picks a value which we call "salt",
+and they commit to it on-chain (by sending its hash). Thereafter, anytime a player needs a private
+random value, they simply mix the blockhash with the salt they committed to. Verifying that the
+correct salt was used can be done easily inside a zero-knowledge proof: the hash of the salt is a
+public input, and the value is a private input, the proof verifies `hashFunc(value) == hash`.
 
-TODO: we haven't implemented the above commitment to a value yet
+TODO: explain that this requires two trasnactions
 
 ## Private Information
 
@@ -249,63 +253,67 @@ In the game, players' hands are hidden from other players. This is made possible
 random values" explained in the previous section, which allows us to privately draw cards from our
 deck in a way that is verifiable, without revealing the cards to the opponent.
 
-What's missing is a way to "commit" to the cards we drew. For this, we can create a [Merkle
-tree](https://en.wikipedia.org/wiki/Merkle_tree) where the cards in our hand are the roots of the
-tree. We can then commit to the Merkle root on-chain.
+What's missing is a way to "commit" to the cards we drew. For this, we simply concatenate the
+identifiers for all the cards in our hand, and produce a hash of the concantenation. That hash can
+be used to commit to the hand on-chain.
 
-This is not yet perfect: the opponent could "brute force" the Merkle root by trying to Merkleize
-every single possible hand (for a 5-cards hand drawn from a 60-cards, that's very tractable [5.5
-million possibilities](https://norswap.com/combinatorics/)), and therefore still figure out which
-cards we drew.
+(You might wonder why we're not using a [Merkle root](https://en.wikipedia.org/wiki/Merkle_tree)
+here. Constructing a Merkle tree require log(n) hash operations, which are very expensive to prove
+in a zk circuit. Additionally, our cards can be represented by a single byte, meaning we can pack
+them in a small number of field elements, making the single hash operation relatively cheap.)
 
-Simple fix: mix the Merkle root with our secret value (the same we used for randomness).
+This is not yet perfect: the opponent could "brute force" the hash by trying to hash every single
+possible hand (for a 5-cards hand drawn from a 60-cards, that's very tractable [5.5 million
+possibilities](https://norswap.com/combinatorics/)), and therefore figure out which card we drew (or
+otherwise have in our hand at any given time).
 
-TODO: we haven't implemented this mixing yet either
+The fix is simple: add the secret salt (the same we used for randomness) to the concatenation before
+hashing.
 
-But why post the Merkle root on chain in the first place? These are necessary to verify our
-zero-knowledge proofs. In particular, our current system contains three zero-knowledge proofs:
+We use one hash for the hand, but also one for the deck, as we'll explain later. By analogy to
+Merkle roots, our code calls these hashes commiting to a set of cards "roots".
+
+But why post hashes on chain in the first place? These are necessary to verify our zero-knowledge
+proofs. In particular, our current system contains three zero-knowledge proofs:
 
 1. proof of drawing the initial hand
 2. proof of drawing an additional card
 3. proof of playing a card from your hand.
 
 To prove we played something from our hand, the chain needs to have some notion of what our hand is!
-This is why we need something derived from the cards in the hand: in this case the mixed Merkle
-root.
+This is why we need something derived from the cards in the hand: in this case the hand root.
 
-What proof 1 and 2 do then, is prove that we are correctly updating this value. Proof 1 by setting
-its initial value, and proof 2 by proving that we are drawing the correct random card, adding it to
-Merkle tree, and providing the correct mixed Merkle root to the contracts for this new Merkle tree.
+What proof 1 and 2 do then, is prove that we are correctly updating the hand root. Proof 1 by
+setting its initial value, and proof 2 by proving that we are drawing the correct random card,
+adding it to the hand, and providing the correct hash to the contracts for this new hand.
 
-But the hand is not the only Merkle root we need to maintain. We also need to maintain a Merkle root
-for our deck!
+But the hand is not the only hash we need to maintain. We also need to maintain a hash for our deck!
 
-The reason has to do with how cards are drawn. Say my  random value is `r`. I will add the card
-`deck[r % deck.length]` to my hand. But now this cards has left my deck and cannot be drawn again!
-We enforce this by modifying the deck: we set `deck[r % deck.length] = deck.last` and then delete
-`deck.last` the last item of the deck. Next time, we can use the same method but with a shorter
-`deck.length` to draw a new card.
+The reason has to do with how cards are drawn. Say the private random value is `r`. I will add the
+card `deck[r % deck.length]` to my hand. But now this card has left my deck and cannot be drawn
+again! We enforce this by modifying the deck: we set `deck[r % deck.length] = deck.last` and then
+delete `deck.last`, the last item of the deck. Next time, we can use the same method but with a
+shorter `deck.length` to draw a new card.
 
 Same as before, to prove we did this correctly, the contract needs to have a commitment to our
 current deck, and the opponent cannot know the cards left in the deck (or he would know exactly what
-we drew). Therefore, we need another Merkle tree.
+we drew). Therefore, we need another hash.
 
-In the contracts, the Merkle roots are represented by the `handRoot` and `deckRoot` fields in the
-player data.
+In the contracts, the hashes are represented by the `handRoot` and `deckRoot` fields in the player
+data.
 
-In fact, all three proofs must show a correct update of some root(s). For proof 3 (playing a card),
+In fact, all three proofs must show a correct update of some hash(es). For proof 3 (playing a card),
 we are taking a card out of our hand and so must update that root accordingly!
 
-Also note that proof 1 creates the commitments, but we can know that these are correct because the
-initial deck listing of every player is public information.
+Also note that proof 1 initializes the commitments, but we can prove that these are correct because
+the initial deck listing of every player is public information.
 
 (In the future, we might want secret deck listings. Then we could replace those with commitments,
-though we would also need new zero-knowledge proofs to show that a deck satisfies all the constraints
-the game imposes on them.)
+though we would also need new zero-knowledge proofs to show that a deck satisfies all the
+constraints the game imposes on them.)
 
 Confused? Here's [another explanation](https://twitter.com/norswap/status/1590489878726205440) I
-wrote a while ago that might help you. You won't find any other explanation, because as far as I
-know nobody else has done something like this?
+wrote a while ago that might help you.
 
 There is, however, at least another method to achieve the same result, which is known as "mental
 poker". There are clear advantages, but also some drawbacks (mostly, more
@@ -317,19 +325,17 @@ issue](https://github.com/norswap/0xFable/issues/42).
 The circuits are written using Circom. The three proofs outlined in the previous section are
 respectively implemented by the circuit files:
 
-1. `DrawHand.circom`
-2. `Draw.circom`
-3. `Play.circom`
+1. `proofs/DrawHand.circom`
+2. `proofs/Draw.circom`
+3. `proofs/Play.circom`
 
 If you want to get more familiar with Circom, I highly recommend [this Circom course from
 0xParc](http://learn.0xparc.org/circom/).
 
-You may also notice the `Draw6`, `Initial67`, and `Play4` circuits. These take the circuits template
-defined in the above file and instantiate them as circuits with concrete parameters. In particular,
-they set an initial hand size, as well as maximum hand and deck sizes (7 cards in the initial hand,
-16 cards max for the hand, 64 cards max for the deck currently).
-
-!! The circuits are still undergoing some development at the moment.
+You may also notice identically named files in the `instantiated` directory. These take the circuits
+template defined in the `proofs` directory and instantiate them as circuits with concrete
+parameters. In particular, they set an initial hand size, as well as maximum hand and deck sizes
+(currently: 7 cards in the initial hand, 64 cards max for the both the hand and the deck).
 
 When compiling each circuit, Circom generates a prover (WebAssembly code, used in the frontend) and
 a verifier (Solidity code, used in the contracts).
@@ -341,14 +347,14 @@ update the hand and deck roots.
 
 Incidentally, this means that if the zero-knowledge circuits are under development, or broken, or we
 don't generate the proofs yet, we can still test the game by just bypassing the proof verification.
-That's exactly what we do at the time of writing!
 
-Let's dive into each of the three circuits work. [This will need to change
-soon](https://github.com/norswap/0xFable/issues/50) because this current approach is not practical
-(the proving time is too high and the "proving key" that needs to be imported by the client is much
-too big).
+Let's dive into each of the three circuits work.
+
+TODO: These explanations are outdated and refer to the old version of the circuits.
 
 ### `DrawHand.circom`
+
+TODO: outdated!
 
 This circuit starts by computing the randomness from the private random value (which must be
 verified against the on-chain commitment) and the public randomness.
@@ -384,6 +390,8 @@ we drew.
 
 ### `Draw.circom`
 
+TODO: outdated!
+
 This circuit is responsible for drawing a single card. (Note that we could iterate this logic to
 implement `DrawHand`, but the resulting circuit would be much larger than the one we have now.)
 
@@ -406,6 +414,8 @@ One thing that this circuit needs to do, but doesn't curently, is derive the ran
 from. This should be done in exactly the same way as in the `DrawHand` proof.
 
 ### `Play.circom`
+
+TODO: outdated!
 
 This proof is very similar to the draw proof, except it doesn't involve the deck.
 
@@ -430,7 +440,7 @@ We're investigating changing many parts of that stack:
   simplifies syncing the frontend with the blockchain
 - [using ConnectKit instead of Web3Modal for wallet interaction](https://github.com/norswap/0xFable/issues/18)
 
-(Crucially no decisions have been arrested on any of those things.)
+(Crucially, no final decisions have been made on any of those things.)
 
 ### Store Structure
 
@@ -439,20 +449,19 @@ interaction is structured. This mostly happens in the `store` module, which is s
 follows:
 
 - `atoms.ts` — This defines the atoms that actually store the state. These atoms *should not* be
-  read direclty from React, instead hooks from `hooks.ts` should be used.
-- `hooks.ts` — React hooks that abstract over the atoms in `atom.ts`. Having this layer helps keeps
-  things clean and will make it easier to migrate to another state management library later if
-  needed.
+  read directly. Instead, use `hooks.ts` to read them from React, and functions from `read.ts` and
+  `actions.ts` to read or write the store.
+- `hooks.ts`, `read.ts`, `actions.ts` — These define React hooks and function that abstract over the
+  store, which will let us swap the store management library in the future if required.
 - `network.ts` — Defines functions to fetch blockchain data, taking care of various things such as
   retries, throttling, filtering zombies (i.e., a request completing after a more recent one
-  completed for the same data) and error-handling (todo!). These functions are used by `update.ts`
-  and `actions.ts`.
-- `actions.ts` — Actions that can be called from the frontend to perform a mix of blockchain
-  interaction and local state updates. (See important notes about this below.)
+  completed for the same data). These functions are used by `update.ts` or called directly by
+  the implementation of user-defined actions (`actions` directory).
 - `update.ts` — Responsible to refresh/synchronize the local state with the blockchain state. (See
   important notes about this below.)
 - `subscriptions.ts` — Manages event subscriptions. Currently, we simply use them to trigger an
   update to the game data via `update.ts`.
+- `store.ts` — types for data kept in the store.
 
 ### State Synchronization
 
@@ -481,31 +490,27 @@ These optimistic updates can be triggered once the player initiates an action, o
 event from our chain subscriptions (normally we'd have to wait an extra roundtrip to the blockchain
 to fetch the new state in both of these cases).
 
-### Actions and Chain Interaction
+### Source Layout
 
-The `actions.ts` is meant to represent user actions that change the state. These actions will be of
-two natures:
+Beyond the `store` directory, the `src` directory of the `webapp` package includes the following
+directories: 
 
-1. change the local state
-2. change the blockchain state (reflected locally)
+- `actions` — Implements the logic of user-initiated actions which bring together game logic, store
+  updates, the UI, and network/blockchain interaction.
+- `components` — React component implementations.
+  - Components under `components/lib` are meant to be easily reusable by other projects!
+- `hooks` — Custom React hook implementations (in addition to the hooks in `store/hooks.ts`).
+- `pages` — Next.js pages, representing different URLs in the app.
+- `styles` — CSS customizations.
+- `utils` — Generic utilities that could be reused in other projects and don't fit neatly in the
+  other categories. 
 
-The first action mostly has to do with private data: for instance drawing our initial hand is an
-action that modifies the local state, but not the blockchain state — because the hand is private.
+As well as top-level files:
 
-Of course, we'll need to commit to the hand on-chain, but that can be considered as a separate
-action. The key idea here is that the drawn hand cannot be derived from on-chain data via
-`update.ts`.
-
-The second kind of action basically calls an on-chain function, and its completion will trigger an
-update via `update.ts`. Currently, these are not implement in `action.ts` at all, but instead rely
-on wagmi hooks wrapped in custom logic implemented in `hooks/useChainWrite.ts` and
-`hooks/useFableWrite.ts`.
-
-I'm not sure these things should be managed as hooks at all, so they might move to `actions.ts` in
-the future.
-
-Wagmi is very convenient, but it's hard to understand the intricacies of what it does. Understanding
-its behaviour with respect to React and blockchain interaction (retries? timeouts? caching?)
-requires to understand tanstack-query (a library used by Wagmi) and how Wagmi configures it (which
-is not documented, you need to read the code). I think it's possible to build a simpler and more
-transparent abstraction instead and diminish our dependencies on Wagmi.
+- `chain.ts` — Values, logic and types related to chain interop.
+- `constants.ts` — Global constants that don't belong somewhere else.
+- `deployment.ts` — Imports and re-exports deployment information from the `contracts` package (i.e.
+  the addresses at which to find the deployed contracts).
+- `generated.ts` — Contracts ABI, generated by wagmi's CLI component in the `contracts` package.
+- `setup.ts` — Misc setup code to be run at app startup time. Mostly focused on monkey patching for
+  now, notably to filter error messages and enable bigint serialization.
