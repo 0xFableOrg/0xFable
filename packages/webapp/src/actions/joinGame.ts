@@ -14,7 +14,7 @@ import {
   InconsistentGameStateError
 } from "src/actions/errors"
 import { contractWriteThrowing } from "src/actions/libContractWrite"
-import { Address, Hash } from "src/chain"
+import { Address } from "src/chain"
 import { deployment } from "src/deployment"
 import { drawInitialHand } from "src/game/drawInitialHand"
 import { isGameReadyToStart } from "src/game/status"
@@ -42,6 +42,13 @@ import { FetchedGameData, GameStatus, PrivateInfo } from "src/types"
  * the contracts.
  */
 const HashOne = "0x0000000000000000000000000000000000000000000000000000000000000001"
+
+// -------------------------------------------------------------------------------------------------
+
+/**
+ * Temporary stand-in value for proofs.
+ */
+const FakeProof: readonly bigint[] = Array(24).fill(1n)
 
 // =================================================================================================
 
@@ -188,7 +195,7 @@ async function doDrawInitialHandTransaction(args: JoinGameArgs, privateInfo: Pri
         args.gameID,
         privateInfo.handRoot,
         privateInfo.deckRoot,
-        HashOne, // proof
+        FakeProof as any, // proof
       ],
       setLoading: args.setLoading,
     })))
