@@ -103,7 +103,7 @@ export type PrivateInfo = {
   /** The player's secret salt, necessary to hide information. */
   salt: bigint
   /** MimcHash of {@link salt}. */
-  saltHash: Hash
+  saltHash: bigint
   /** The player's current hand. */
   hand: readonly bigint[]
   /** The player's current deck ordering. */
