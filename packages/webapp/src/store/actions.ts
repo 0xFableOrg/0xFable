@@ -7,7 +7,7 @@
 import { Address } from "src/chain"
 import * as store from "src/store/atoms"
 import { ErrorConfig, FetchedGameData, PrivateInfo } from "src/types"
-import { bigintToHexString, randomUint256 } from "src/utils/js-utils"
+import { randomUint256 } from "src/utils/js-utils"
 
 import "src/utils/extensions"
 import { mimcHash } from "src/utils/hashing"
@@ -108,7 +108,7 @@ export function getOrInitPrivateInfo(gameID: bigint, playerAddress: Address): Pr
 
   privateInfo = {
     salt,
-    saltHash: `0x${bigintToHexString(mimcHash([salt]), 32)}`,
+    saltHash: mimcHash([salt]),
     // dummy values
     hand: [],
     deck: [],

@@ -128,9 +128,8 @@ async function joinGameImpl(args: JoinGameArgs): Promise<boolean> {
  * Sends the `joinGame` transaction, then waits for the game data to be updated in response.
  * @throws {StaleError} if the store shifts underneath the transaction.
  */
-async function doJoinGameTransaction(args: JoinGameArgs, saltHash: Hash) {
+async function doJoinGameTransaction(args: JoinGameArgs, saltHash: bigint) {
 
-  // function joinGame(uint256 gameID, uint8 deckID, bytes32 saltHash, bytes calldata data)
   const result = checkFresh(await freshWrap(
     contractWriteThrowing({
       contract: deployment.Game,
