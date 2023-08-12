@@ -1032,4 +1032,12 @@ contract Game {
     }
 
     // ---------------------------------------------------------------------------------------------
+
+    // Returns true if a `player` is currently in an active game
+    // This works because players cannot participate in multiple games simultaneously
+    function playerActive(address player) external view returns(bool){
+        return inGame[player] != 0;
+    }
+
+    // ---------------------------------------------------------------------------------------------
 }
