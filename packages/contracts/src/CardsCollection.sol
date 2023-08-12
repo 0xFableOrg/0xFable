@@ -22,6 +22,7 @@ struct Card {
     uint256 id;
     Lore lore;
     Stats stats;
+    uint32 cardTypeID;
 }
 
 error Unauthorized();
@@ -36,6 +37,7 @@ contract CardsCollection is ERC721, Ownable {
 
     mapping(uint256 => Lore) public lore;
     mapping(uint256 => Stats) private stats_;
+    mapping(uint256 => uint32) public cardType;
 
     // Airdrop manager.
     address public airdrop;
@@ -69,6 +71,8 @@ contract CardsCollection is ERC721, Ownable {
         _safeMint(to, tokenID, "");
         stats_[tokenID] = Stats(attack, defense);
         lore[tokenID] = Lore(name, flavor, URL);
+        // NOTE(nonso): `tokenID` serves as a placeholder for the cardType ID
+        cardType[tokenID] = uint32(tokenID);
     }
 
     function stats(uint256 card) external view returns (Stats memory) {
@@ -81,6 +85,10 @@ contract CardsCollection is ERC721, Ownable {
     }
 
     function getCard(uint256 card) external view returns (Card memory) {
-        return Card(card, lore[card], stats_[card]);
+        return Card(card, lore[card], stats_[card], cardType[card]);
+    }
+ 
+    function getCardType(uint256 card) external view returns(uint32){
+        return cardType[card];
     }
 }
