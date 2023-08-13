@@ -53,7 +53,7 @@ assumes the game creator is a player that will join the game.
 
 Once both players have joined the game, it starts automatically (currently the first joining player
 goes first, this can be changed in the future). Joining involves two transactions (for essential
-technical reaons, see later), one to join, and one draw the initial hand of cards. Once this is done
+technical reasons, see later), one to join, and one to draw the initial hand of cards. Once this is done
 for every player, the UI is rendered, showing the player's hand and the game board.
 
 Let's assume player A goes first. Here is how A's turn goes:
@@ -139,7 +139,7 @@ marketplace like OpenSea, but the purchase would fail because the card is curren
 
 An alternative solution that we have implemented is to require players to stake their cards in a
 special contract in order to use them in a game. This special contract is `Inventory.sol`. Whenever
-a player transfers a card to the inventory, a "ghost" version of the card is minted (owned by th
+a player transfers a card to the inventory, a "ghost" version of the card is minted (owned by the
 player) in `InventoryCardsCollection.sol`. This enables the UI (and other contracts / frontends) to
 use the usual NFT tools to determine the cards a player owns, which comprises both its regular cards
 and the cards staked in the inventory.
@@ -227,7 +227,7 @@ blockchains that have something like Ethereum's PREVRANDAO, this is an even bett
 probably a good thing to implement inside a custom rollup implementation.
 
 (Side note: verifiable randomness (VRF) oracles are another solutions, but they're only really
-practical insofar that they don't add latency to the game, which is the case because the work via
+practical insofar that they don't add latency to the game, which is the case because they work via
 request & response, and so require to wait for one extra block.)
 
 Note that "randomness" is not the only important property here. We also need (1) to ensure players
@@ -245,7 +245,7 @@ random value, they simply mix the blockhash with the salt they committed to. Ver
 correct salt was used can be done easily inside a zero-knowledge proof: the hash of the salt is a
 public input, and the value is a private input, the proof verifies `hashFunc(value) == hash`.
 
-TODO: explain that this requires two trasnactions
+TODO: explain that this requires two transactions
 
 ## Private Information
 
@@ -254,11 +254,11 @@ random values" explained in the previous section, which allows us to privately d
 deck in a way that is verifiable, without revealing the cards to the opponent.
 
 What's missing is a way to "commit" to the cards we drew. For this, we simply concatenate the
-identifiers for all the cards in our hand, and produce a hash of the concantenation. That hash can
+identifiers for all the cards in our hand, and produce a hash of the concatenation. That hash can
 be used to commit to the hand on-chain.
 
 (You might wonder why we're not using a [Merkle root](https://en.wikipedia.org/wiki/Merkle_tree)
-here. Constructing a Merkle tree require log(n) hash operations, which are very expensive to prove
+here. Constructing a Merkle tree requires log(n) hash operations, which are very expensive to prove
 in a zk circuit. Additionally, our cards can be represented by a single byte, meaning we can pack
 them in a small number of field elements, making the single hash operation relatively cheap.)
 
@@ -271,7 +271,7 @@ The fix is simple: add the secret salt (the same we used for randomness) to the 
 hashing.
 
 We use one hash for the hand, but also one for the deck, as we'll explain later. By analogy to
-Merkle roots, our code calls these hashes commiting to a set of cards "roots".
+Merkle roots, our code calls these hashes committing to a set of cards "roots".
 
 But why post hashes on chain in the first place? These are necessary to verify our zero-knowledge
 proofs. In particular, our current system contains three zero-knowledge proofs:
@@ -335,7 +335,7 @@ If you want to get more familiar with Circom, I highly recommend [this Circom co
 You may also notice identically named files in the `instantiated` directory. These take the circuits
 template defined in the `proofs` directory and instantiate them as circuits with concrete
 parameters. In particular, they set an initial hand size, as well as maximum hand and deck sizes
-(currently: 7 cards in the initial hand, 64 cards max for the both the hand and the deck).
+(currently: 7 cards in the initial hand, 64 cards max for both the hand and the deck).
 
 When compiling each circuit, Circom generates a prover (WebAssembly code, used in the frontend) and
 a verifier (Solidity code, used in the contracts).
@@ -382,7 +382,7 @@ lot of constraints, even when using zk-friendly hash function (we use MiMCSponge
 with the circomlib implementation and the Circom Plonk backend is a faster than Poseidon, another
 such hash function). When we rewrite the circuits, we will instead hash all the cards in a single
 hashing operation. We can further minimize the operations to be done by packing the cards in a small
-number of field elements ("signals"), since every card is a number betweeen 0 and 255.
+number of field elements ("signals"), since every card is a number between 0 and 255.
 
 Also note that we currently don't salt the Merkle roots (in any contract) but we need to do so in
 the future, otherwise it will be possible for opponents to brute force the hashes to figure out what
@@ -477,7 +477,7 @@ fetched by calling the `fetchGameState` view function from `Game.sol`.
 This is the main role of `update.ts`: ensure all the atoms are updated correctly with respect to
 this data.
 
-But `update.ts` also ensures we do not end in mixed or abherrant state. For instance, it resets the
+But `update.ts` also ensures we do not end in mixed or aberrant state. For instance, it resets the
 state if we switch the wallet address or the blockchain network. The key mandate is that at any time
 that the state can be read (e.g. by React hooks) or written (e.g. by actions), the state presented
 should be fully consistent.
