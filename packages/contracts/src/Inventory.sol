@@ -170,7 +170,7 @@ contract Inventory is Ownable {
 
     // Transfers a card of the sender to the inventory, mints a soulbound inventory card to the
     // sender in return.
-    function addCard(address player, uint256 cardID) external delegated(player) notInGame(player) {
+    function addCard(address player, uint256 cardID) external delegated(player) {
         originalCardsCollection.transferFrom(player, address(this), cardID);
         inventoryCardsCollection.mint(player, cardID);
         emit CardAdded(player, cardID);
@@ -223,9 +223,9 @@ contract Inventory is Ownable {
     // ---------------------------------------------------------------------------------------------
 
     // Remove the given deck for the sender, leaving the deck at the given ID empty.
-    function removeDeck(address player, uint8 deckID) 
-        external 
-        delegated(player) 
+    function removeDeck(address player, uint8 deckID)
+        external
+        delegated(player)
         exists(player, deckID)
         notInGame(player)
     {
@@ -304,18 +304,16 @@ contract Inventory is Ownable {
         }
 
         // Sort cards according to type.
-        uint256[] memory sortedCards = Utils.sort(
-            getCardType(deck.cards)
-        );
+        uint256[] memory sortedCards = Utils.sort(getCardTypes(deck.cards));
 
         uint256 cardCopies;
         uint256 prevCardType;
         for (uint256 i = 0; i < deckLength; ++i) {
             uint256 cardType = sortedCards[i];
-            if (cardType == prevCardType){ 
+            if (cardType == prevCardType) {
                 cardCopies++;
                 // check that each card does not exceed its maximum amount of copies.
-                if (cardCopies > MAX_CARD_COPY){
+                if (cardCopies > MAX_CARD_COPY) {
                     revert CardExceedsMaxCopy(cardType);
                 }
             } else {
@@ -348,11 +346,11 @@ contract Inventory is Ownable {
 
     // ---------------------------------------------------------------------------------------------
 
-    function getCardType(uint256[] memory cardIDArr) public view returns(uint256[] memory){
+    function getCardTypes(uint256[] memory cardIDArr) public view returns (uint256[] memory) {
         uint256 len = cardIDArr.length;
         uint256[] memory cardTypeArr = new uint256[](len);
-        for(uint256 i = 0; i < len; i++){
-            cardTypeArr[i] = uint256(originalCardsCollection.getCardType(cardIDArr[i]));
+        for (uint256 i = 0; i < len; i++) {
+            cardTypeArr[i] = uint256(originalCardsCollection.cardType(cardIDArr[i]));
         }
         return cardTypeArr;
     }
