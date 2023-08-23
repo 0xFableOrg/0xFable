@@ -87,8 +87,4 @@ contract CardsCollection is ERC721, Ownable {
     function getCard(uint256 card) external view returns (Card memory) {
         return Card(card, lore[card], stats_[card], cardType[card]);
     }
- 
-    function getCardType(uint256 card) external view returns(uint32){
-        return cardType[card];
-    }
 }

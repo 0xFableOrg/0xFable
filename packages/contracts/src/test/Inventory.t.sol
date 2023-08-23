@@ -35,22 +35,19 @@ contract InventoryTest is Test {
         uint8 deckId = 0;
         uint256 randomCard = inventory.getDeck(player1, deckId)[2];
 
-        // increase card `randomCard` copy to 4
+        // increase card `randomCard` copies to 4
         vm.startPrank(player1);
         inventory.addCardToDeck(player1, deckId, randomCard);
         inventory.addCardToDeck(player1, deckId, randomCard);
         inventory.addCardToDeck(player1, deckId, randomCard);
 
-        vm.expectRevert(
-            abi.encodeWithSelector(Inventory.CardExceedsMaxCopy.selector, randomCard)
-        );
+        vm.expectRevert(abi.encodeWithSelector(Inventory.CardExceedsMaxCopy.selector, randomCard));
 
         inventory.checkDeck(player1, deckId);
     }
 
     // expect revert if player's deck contains a card they don't own.
     function testCheckDeckOnlyInventoryCards() public {
-        
         // mint card `randomMint` to player2.
         vm.startPrank(cardsCollection.airdrop());
         uint256 randomMint = cardsCollection.mint(player2, "Horrible Gremlin", "", "", 1, 1);
@@ -61,13 +58,11 @@ contract InventoryTest is Test {
 
         uint8 deckId = 0;
 
-        // add card `randomMint` to player2's deck.
+        // add card `randomMint` to player1's deck.
         changePrank(player1);
         inventory.addCardToDeck(player1, deckId, randomMint);
 
-        vm.expectRevert(
-            abi.encodeWithSelector(Inventory.CardNotInInventory.selector, randomMint)
-        );
+        vm.expectRevert(abi.encodeWithSelector(Inventory.CardNotInInventory.selector, randomMint));
 
         inventory.checkDeck(player1, deckId);
     }
