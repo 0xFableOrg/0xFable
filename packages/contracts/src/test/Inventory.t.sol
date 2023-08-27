@@ -52,18 +52,27 @@ contract InventoryTest is Test {
         vm.startPrank(cardsCollection.airdrop());
         uint256 randomMint = cardsCollection.mint(player2, "Horrible Gremlin", "", "", 1, 1);
 
-        // add card `randomMint` to inventory.
-        changePrank(player2);
-        inventory.addCard(player2, randomMint);
-
         uint8 deckId = 0;
 
-        // add card `randomMint` to player1's deck.
+        // scenario 1: Add Non-Inventory card to deck.
+        // player1 adds a card that has has not being staked in the inventory to its deck
         changePrank(player1);
+        // add card `randomMint` to inventory.
         inventory.addCardToDeck(player1, deckId, randomMint);
+        vm.expectRevert("ERC721: invalid token ID");
+        inventory.checkDeck(player1, deckId);
 
+        // scenario 2: Add Inventory card to deck.
+        // player1 adds a card that has being staked in the inventory to their deck but
+        // they don't own it.
+        changePrank(player2);
+        // add card `randomMint` to inventory.
+        inventory.addCard(player2, randomMint);
+
+        changePrank(player1);
+        // add card `randomMint` to player1's deck.
+        inventory.addCardToDeck(player1, deckId, randomMint);
         vm.expectRevert(abi.encodeWithSelector(Inventory.CardNotInInventory.selector, randomMint));
-
         inventory.checkDeck(player1, deckId);
     }
 }
