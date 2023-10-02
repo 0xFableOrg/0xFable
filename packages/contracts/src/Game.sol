@@ -603,7 +603,7 @@ contract Game {
 
         uint256[2] memory packedCards;
         uint256 numFields = (maxDeckSize + 30) / 31;
-        require(numFields == packedCards.length, "wrong number of fields");
+        assert(numFields == packedCards.length);
         for (uint256 i = 0; i < numFields; i++) {
             bytes memory packedCardsInBytes = new bytes(32);
             for (uint256 j = 0; j < 31; j++) {
@@ -1027,7 +1027,7 @@ contract Game {
     // checking). This is enforced by restricting the caller to be the 0 address, which can only
     // be impersonated in a test environment.
     function toggleCheckProof() external {
-        require(msg.sender == address(0));
+        assert(msg.sender == address(0));
         checkProof = !checkProof;
     }
 

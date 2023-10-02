@@ -11,7 +11,7 @@ import {PlonkVerifier as DrawHandVerifier} from "../verifiers/DrawHandVerifier.s
 import {PlonkVerifier as PlayVerifier} from "../verifiers/PlayVerifier.sol";
 
 import {Script, console2} from "forge-std/Script.sol";
-import {Multicall3} from "multicall/Multicall3.sol";
+// import {Multicall3} from "multicall/Multicall3.sol";
 
 contract Deploy is Script {
     bytes32 private constant salt = bytes32(uint256(4269));
