@@ -4,7 +4,7 @@
   "private": "true",
   "type": "module",
   "devDependencies": {
-    "@playwright/test": "^1.36.1",
+    "@playwright/test": "^1.38.1",
     "@synthetixio/synpress": "^3.7.1",
     "@types/node": "^20.8.0",
     "viem": "^1.14.0"
