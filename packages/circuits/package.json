@@ -6,11 +6,11 @@
   "dependencies": {
     "circomlib": "^2.0.5",
     "circomlibjs": "^0.1.7",
-    "ffjavascript": "^0.2.59",
-    "snarkjs": "^0.7.0",
-    "viem": "^1.5.3"
+    "ffjavascript": "^0.2.60",
+    "snarkjs": "^0.7.1",
+    "viem": "^1.14.0"
   },
   "devDependencies": {
-    "jest": "^29.6.1"
+    "jest": "^29.7.0"
   }
 }
