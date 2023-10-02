@@ -12,8 +12,8 @@
     "@web3modal/ethereum": "^2.7.0",
     "@web3modal/react": "^2.7.0",
     "circomlibjs": "^0.1.7",
-    "jotai": "^2.2.2",
-    "jotai-devtools": "^0.6.0",
+    "jotai": "^2.4.3",
+    "jotai-devtools": "^0.6.3",
     "lodash": "^4.17.21",
     "next": "^13.4.10",
     "next-transpile-modules": "^10.0.0",
@@ -24,8 +24,8 @@
     "wagmi": "^1.4.2"
   },
   "devDependencies": {
-    "@swc-jotai/debug-label": "^0.0.10",
-    "@swc-jotai/react-refresh": "^0.0.8",
+    "@swc-jotai/debug-label": "^0.1.0",
+    "@swc-jotai/react-refresh": "^0.1.0",
     "@types/eslint": "^8.44.0",
     "@types/lodash": "^4.14.195",
     "@types/node": "^20.4.2",
