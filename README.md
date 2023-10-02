@@ -8,24 +8,22 @@ See also the README files of the various subpackages:
 
 ## Installation
 
-Tooling required:
-
-- Make
-- [Foundry](https://github.com/foundry-rs/foundry)
-  - Last `foundryup`: 16 May 2023
-- Node.js & [PNPM](https://pnpm.io/) (`npm install -g pnpm`)
-  - Tested with Node v20.1.0
-  - The appropriate pnpm version is listed under the "packageManager key in [`package.json`](./package.json)
-  - If you have any issues while installing dependencies with pnpm you can try to use `corepack` to make sure you use correct version of pnpm.
-    - `corepack enable`
-    - `corepack pnpm install`
-- [Circom](https://docs.circom.io/getting-started/installation/)
-  - Needed to build circuits package
-  - Tested with version 2.1.4
-
-Run contract tests for basic sanity testing:
-
-- `(cd packages/contracts && make test)`
+1. Install pre-requisite tooling:
+   - Make
+   - [Foundry](https://github.com/foundry-rs/foundry)
+     - Last `foundryup`: 16 May 2023
+   - Node.js & [PNPM](https://pnpm.io/) (`npm install -g pnpm`)
+     - Tested with Node v20.1.0
+     - The appropriate pnpm version is listed under the "packageManager key in [`package.json`](./package.json)
+     - If you have any issues while installing dependencies with pnpm you can try to use `corepack` to make sure you use correct version of pnpm.
+       - `corepack enable`
+       - `corepack pnpm install`
+   - [Circom](https://docs.circom.io/getting-started/installation/)
+     - Needed to build circuits package
+     - Tested with version 2.1.4
+2. **Run `make setup`**
+3. Run contract tests for basic sanity testing:
+   - `(cd packages/contracts && make test)`
 
 ## IDEs
 

@@ -31,7 +31,7 @@ deploy:
 
 # Build the zero-knowledge circuits.
 circuits:
-	cd packages/circuits && make all
+	cd packages/circuits && make install-all
 .PHONY: circuits
 
 # Performs code-quality checks.
