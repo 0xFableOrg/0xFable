@@ -26,3 +26,12 @@ MyComponent.whyDidYouRender = {
 It can also be [customized][wdyr-custom] to learn about higher-level hooks.
 
 [wdyr-custom]: https://github.com/welldone-software/why-did-you-render
+
+For improving the dev/debug experience with Jotai, you can use:
+
+- [Jotai Devtools] — enables debug React hooks that display an UI to track atom values.
+- [Jotai SWC Extensions] — enable adding debug labels to atoms (show up in React devtools), and
+  preserving atom values when using React refresh (hot reloading).
+
+[Jotai Devtools]: https://jotai.org/docs/tools/devtools
+[Jotai SWC Extensions]: https://jotai.org/docs/tools/swc
