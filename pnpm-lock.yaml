@@ -9,8 +9,8 @@ importers:
   .:
     devDependencies:
       run-pty:
-        specifier: ^4.0.3
-        version: 4.0.3
+        specifier: ^4.1.0
+        version: 4.1.0
 
   packages/circuits:
     dependencies:
@@ -47,8 +47,8 @@ importers:
         specifier: github:foundry-rs/forge-std#e8a047e3f40f13fa37af6fe14e6e06283d9a060e
         version: github.com/foundry-rs/forge-std/e8a047e3f40f13fa37af6fe14e6e06283d9a060e
       solhint:
-        specifier: ^3.4.1
-        version: 3.4.1
+        specifier: ^3.6.2
+        version: 3.6.2
 
   packages/e2e:
     devDependencies:
@@ -10478,8 +10478,8 @@ packages:
       thenify-all: 1.6.0
     dev: true
 
-  /nan@2.17.0:
-    resolution: {integrity: sha512-2ZTgtl0nJsO0KQCjEpxcIr5D+Yv90plTitZt9JBfQvVJDS5seMl3FOvsh3+9CoYWXf/1l5OaZzzF6nDm4cagaQ==}
+  /nan@2.18.0:
+    resolution: {integrity: sha512-W7tfG7vMOGtD30sHoZSSc/JVYiyDPEyQVso/Zz+/uQd0B0L46gtC+pHha5FFMRpil6fm/AoEcRWyOVi4+E/f8w==}
     dev: true
 
   /nanoassert@2.0.0:
@@ -10633,11 +10633,11 @@ packages:
       process-on-spawn: 1.0.0
     dev: true
 
-  /node-pty@0.10.1:
-    resolution: {integrity: sha512-JTdtUS0Im/yRsWJSx7yiW9rtpfmxqxolrtnyKwPLI+6XqTAPW/O2MjS8FYL4I5TsMbH2lVgDb2VMjp+9LoQGNg==}
+  /node-pty@1.0.0:
+    resolution: {integrity: sha512-wtBMWWS7dFZm/VgqElrTvtfMq4GzJ6+edFI0Y0zyzygUSZMgZdraDUMUhCIvkjhJjme15qWmbyJbtAx4ot4uZA==}
     requiresBuild: true
     dependencies:
-      nan: 2.17.0
+      nan: 2.18.0
     dev: true
 
   /node-releases@2.0.13:
@@ -11941,11 +11941,11 @@ packages:
       queue-microtask: 1.2.3
     dev: true
 
-  /run-pty@4.0.3:
-    resolution: {integrity: sha512-O8IWhjhChwLq7psyZZDY+Pv/CSEM7DLBXqUqEVWKMXGR18s2o2ma4IEanKWSSLBULNCpHn3n9RYvybc+7IaBig==}
+  /run-pty@4.1.0:
+    resolution: {integrity: sha512-Sl0b143FW+4sYX+WQksnE7hcxMgqTDrKntd091x5s+HG36K37mL3INgjK8RasH3YqFQQYTXQX7bmUjgdUoTklQ==}
     hasBin: true
     dependencies:
-      node-pty: 0.10.1
+      node-pty: 1.0.0
       tiny-decoders: 7.0.1
     dev: true
 
@@ -12262,8 +12262,8 @@ packages:
       websocket-driver: 0.7.4
     dev: true
 
-  /solhint@3.4.1:
-    resolution: {integrity: sha512-pzZn2RlZhws1XwvLPVSsxfHrwsteFf5eySOhpAytzXwKQYbTCJV6z8EevYDiSVKMpWrvbKpEtJ055CuEmzp4Xg==}
+  /solhint@3.6.2:
+    resolution: {integrity: sha512-85EeLbmkcPwD+3JR7aEMKsVC9YrRSxd4qkXuMzrlf7+z2Eqdfm1wHWq1ffTuo5aDhoZxp2I9yF3QkxZOxOL7aQ==}
     hasBin: true
     dependencies:
       '@solidity-parser/parser': 0.16.1
@@ -12279,7 +12279,7 @@ packages:
       js-yaml: 4.1.0
       lodash: 4.17.21
       pluralize: 8.0.0
-      semver: 6.3.1
+      semver: 7.5.4
       strip-ansi: 6.0.1
       table: 6.8.1
       text-table: 0.2.0
