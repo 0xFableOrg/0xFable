@@ -68,11 +68,10 @@ template DrawHand(elementSize, initialHandSize) {
     intermediateDecks[0] <== initialDeckInNum;
 
     for (var i = 0; i < initialHandSize; i++) {
-        var currentLastIndex = lastIndex - i;
         drawCards[i] = RemoveCard(elementSize*31);
 
         // update deck and hand
-        drawCards[i].lastIndex <== currentLastIndex;
+        drawCards[i].lastIndex <== lastIndex - i;
         drawCards[i].randomness <== randomness.outs[0];
         drawCards[i].deck <== intermediateDecks[i];
         intermediateDecks[i+1] <== drawCards[i].updatedDeck;
