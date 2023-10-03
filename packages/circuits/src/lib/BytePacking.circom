@@ -19,10 +19,10 @@ template UnpackCards(n) {
         for (var j = 0; j < 31; j++) {
             currentIndex = (i*31)+j;
             unpackedCards[currentIndex] <-- (packedCards[i] >> (j*8)) & 255;
+            // We use LessEqThan rather than LessThan (which has fewer constraints) because we want
+            // to avoid comparison with 256, which is too high for 8 bits.
             lt[currentIndex] = LessEqThan(8);
             lt[currentIndex].in[0] <== unpackedCards[currentIndex];
-            // Avoid comparison with 256, which is too high for 8 bits.
-            // 255 will be unusable (used as the null value).
             lt[currentIndex].in[1] <== 255;
             lt[currentIndex].out === 1;
             sum += unpackedCards[currentIndex] * mult;
@@ -48,10 +48,10 @@ template PackCards(n) {
         var currentIndex;
         for (var j = 0; j < 31; j++) {
             currentIndex = (i*31)+j;
+            // We use LessEqThan rather than LessThan (which has fewer constraints) because we want
+            // to avoid comparison with 256, which is too high for 8 bits.
             lt[currentIndex] = LessEqThan(8);
             lt[currentIndex].in[0] <== unpackedCards[currentIndex];
-            // Avoid comparison with 256, which is too high for 8 bits.
-            // 255 will be unusable (used as the null value).
             lt[currentIndex].in[1] <== 255;
             lt[currentIndex].out === 1;
             sum += unpackedCards[currentIndex] * mult;
