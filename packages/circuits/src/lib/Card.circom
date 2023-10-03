@@ -32,11 +32,10 @@ template RemoveCard(size) {
     signal output updatedDeck[size];
 
     // pick out a random card — we need to do the dance to prove the modulus
-    signal index;
-    signal divisor;
-    index <-- randomness % lastIndex;
-    divisor <-- randomness \ lastIndex;
-    randomness === divisor * lastIndex + index;
+    signal numCards <-- lastIndex + 1;
+    signal index <-- randomness % numCards;
+    signal divisor <-- randomness \ numCards;
+    randomness === divisor * numCards + index;
 
     // loop through the deck to get the last card
     component isEqualToLastIndex[size];
