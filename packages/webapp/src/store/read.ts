@@ -70,8 +70,8 @@ export function currentPlayerAddress(): Address|null {
 // -------------------------------------------------------------------------------------------------
 
 /**
- * Returns the player data for the given player if available (the player is in the game and we're
- * tracking a game), or null.
+ * Returns the player data for the given player if available (the player has joined the game we're
+ * tracking / whose data we've passed in), or null.
  */
 export function getPlayerData(gdata: FetchedGameData|null = getGameData(), player: Address)
     : PlayerData | null {
@@ -80,6 +80,20 @@ export function getPlayerData(gdata: FetchedGameData|null = getGameData(), playe
   const index = gdata.players.indexOf(player)
   if (index < 0) return null
   return gdata.playerData[index] ?? null
+}
+
+// -------------------------------------------------------------------------------------------------
+
+/**
+ * Returns the player's deck if available (the player has joined the game we're tracking / whose
+ * data we've passed in), or null.
+ */
+export function getDeck(gdata: FetchedGameData|null = getGameData(), player: Address): bigint[]|null {
+  if (gdata === null) return null
+  const pdata = getPlayerData(gdata, player)
+  if (pdata === null) return null
+
+  return gdata.cards.slice(pdata.deckStart, pdata.deckEnd)
 }
 
 // =================================================================================================
