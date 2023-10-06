@@ -9,8 +9,7 @@ import { decodeEventLog } from "viem"
 
 import {
   defaultErrorHandling,
-  DISMISS_BUTTON,
-  FableTimeoutError,
+  FableRequestTimeout,
   InconsistentGameStateError
 } from "src/actions/errors"
 import { contractWriteThrowing } from "src/actions/libContractWrite"
@@ -20,20 +19,24 @@ import { drawInitialHand } from "src/game/drawInitialHand"
 import { isGameReadyToStart } from "src/game/status"
 import { gameABI } from "src/generated"
 import {
-  getOrInitPrivateInfo, setError,
-  setGameID, setPrivateInfo,
+  getOrInitPrivateInfo,
+  setGameID,
+  setPrivateInfo,
   waitForUpdate
 } from "src/store/actions"
-import { fetchDeck } from "src/store/network"
 import {
   checkFresh,
-  freshWrap,
+  freshWrap, getDeck,
   getGameData,
   getGameID,
-  getGameStatus, getPlayerData,
+  getGameStatus,
+  getPlayerData,
   getPrivateInfo
 } from "src/store/read"
-import { FetchedGameData, GameStatus, PrivateInfo } from "src/store/types"
+import { FetchedGameData, GameStatus, PlayerData, PrivateInfo } from "src/store/types"
+import { ProofOutput, proveInWorker } from "src/utils/zkproofs"
+import { NUM_CARDS_FOR_PROOF } from "src/game/constants"
+import { packCards } from "src/game/fableProofs"
 
 // =================================================================================================
 
@@ -46,16 +49,24 @@ const HashOne = "0x0000000000000000000000000000000000000000000000000000000000000
 // -------------------------------------------------------------------------------------------------
 
 /**
- * Temporary stand-in value for proofs.
+ * Whether to generate proofs, can be turned to false for debugging (in which case the corresponding
+ * switch (`checkProofs = false`) must be set on the contract side).
  */
-const FakeProof: readonly bigint[] = Array(24).fill(1n)
+const generateProofs = true
+
+// -------------------------------------------------------------------------------------------------
+
+/**
+ * Stand-in value for proofs, used when {@link generateProofs} is false.
+ */
+const fakeProof: readonly bigint[] = Array(24).fill(1n)
 
 // =================================================================================================
 
 export type JoinGameArgs = {
   gameID: bigint
   playerAddress: Address
-  setLoading: (label: string|null) => void
+  setLoading: (label: string | null) => void
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -65,22 +76,14 @@ export type JoinGameArgs = {
  *
  * Handles both the game creator joining, as well as a player that isn't currently associated
  * to any game.
+ *
+ * Returns `true` if the player successfully joined the game, `false` otherwise.
  */
 export async function joinGame(args: JoinGameArgs): Promise<boolean> {
   try {
     return await joinGameImpl(args)
   } catch (err) {
     args.setLoading(null)
-
-    if (err instanceof FetchDeckError) {
-      setError({
-        title: "Could not fetch deck",
-        message: err.cause.toString(),
-        buttons: [DISMISS_BUTTON]
-      })
-      return false
-    }
-
     return defaultErrorHandling("joinGame", err)
   }
 }
@@ -92,18 +95,21 @@ async function joinGameImpl(args: JoinGameArgs): Promise<boolean> {
   const gameID = getGameID()
   const gameStatus = getGameStatus()
 
+  if (gameID !== null && gameID !== args.gameID)
+    throw new InconsistentGameStateError("Trying to join a game while in a different game.")
+
   if (gameStatus >= GameStatus.HAND_DRAWN) // works with UNKNOWN
     // We already drew, no need to display an error, this is a stale call,
     // and most likely we're in an aberrant state anwyay.
     return false
 
-  let privateInfo: PrivateInfo|null = getOrInitPrivateInfo(args.gameID, args.playerAddress)
+  let privateInfo: PrivateInfo | null = getOrInitPrivateInfo(args.gameID, args.playerAddress)
 
   // TODO
-  //    Should initiate proof generation now, should that it proceeds in the background while
-  //    sending the joining transactions.
+  //    If someone else has alreaady joined, we can initiate the proof now, so that it proceeds
+  //    in the background while sending the joinGame transaction.
 
-  if (gameStatus < GameStatus.JOINED) {
+  if (gameStatus < GameStatus.JOINED) { // we can skip the join step if already performed
     const promise = doJoinGameTransaction(args, privateInfo.saltHash)
     if (gameID === null)
       await promise // gameID starts null and the call will set it
@@ -111,21 +117,43 @@ async function joinGameImpl(args: JoinGameArgs): Promise<boolean> {
       checkFresh(await freshWrap(promise))
   }
 
-  const gameData = getGameData()
-  if (gameData === null) // should be impossible due to checkFresh
-    throw new InconsistentGameStateError("Missing game data.")
-
   args.setLoading("Drawing cards...")
 
+  const gameData = getGameData()
+  if (gameData === null) // should be impossible due to checkFresh usage
+    throw new InconsistentGameStateError("Missing game data.")
+
   privateInfo = getPrivateInfo(args.gameID, args.playerAddress)
-  if (privateInfo === null) // should be impossible due to checkFresh
+  if (privateInfo === null) // should be impossible due to checkFresh usage
     throw new InconsistentGameStateError("Missing private info.")
 
-  privateInfo = checkFresh(await freshWrap(
-    drawCards(args.gameID, args.playerAddress, gameData, privateInfo, 0 /* deckID */)))
+  const playerData = getPlayerData(gameData, args.playerAddress)
+  if (playerData === null)
+    throw new InconsistentGameStateError("Missing player data.")
 
-  // Skip checkFresh: no more store access after this.
-  await doDrawInitialHandTransaction(args, privateInfo)
+  const deck = getDeck(gameData, args.playerAddress)
+  if (deck === null) // should be impossible due to checkFresh usage
+    throw new InconsistentGameStateError("Missing player deck.")
+
+  const handDeckInfo = drawInitialHand(
+    deck, playerData.deckStart, privateInfo.salt, gameData.publicRandomness)
+
+  privateInfo = {
+    salt: privateInfo.salt,
+    saltHash: privateInfo.saltHash,
+    ...handDeckInfo
+  }
+
+  setPrivateInfo(args.gameID, args.playerAddress, privateInfo)
+
+  console.log(`drew initial hand: ${handDeckInfo.hand}`)
+  args.setLoading("Generating draw proof — may take a minute ...")
+
+  const { proof } = generateProofs
+    ? await generateDrawInitialHandProof(deck, privateInfo, gameData, playerData)
+    : { proof: fakeProof }
+
+  await doDrawInitialHandTransaction(args, privateInfo, proof)
   return true
 }
 
@@ -133,6 +161,7 @@ async function joinGameImpl(args: JoinGameArgs): Promise<boolean> {
 
 /**
  * Sends the `joinGame` transaction, then waits for the game data to be updated in response.
+ *
  * @throws {StaleError} if the store shifts underneath the transaction.
  */
 async function doJoinGameTransaction(args: JoinGameArgs, saltHash: bigint) {
@@ -146,7 +175,7 @@ async function doJoinGameTransaction(args: JoinGameArgs, saltHash: bigint) {
         args.gameID,
         0, // deckID
         saltHash,
-        HashOne, // data for join-check callback
+        HashOne // data for join-check callback
       ],
       setLoading: args.setLoading
     })))
@@ -170,11 +199,53 @@ async function doJoinGameTransaction(args: JoinGameArgs, saltHash: bigint) {
   if (gameData === null)
     // Null can also be returned if the game data was cleared, but this should be caught by
     // checkFresh, and an exception thrown.
-    throw new FableTimeoutError("Timed out waiting for up to date game data.")
+    throw new FableRequestTimeout("Timed out waiting for up to date game data.")
+}
 
-  // NOTE: Drawing could be done optimistically, though we'll always need a check that the order
-  // is indeed what we believed or we risk having the wrong card indexes if a player joined
-  // after we started the draw simulation.
+// -------------------------------------------------------------------------------------------------
+
+async function generateDrawInitialHandProof(
+    deck: bigint[],
+    privateInfo: PrivateInfo,
+    gameData: FetchedGameData,
+    playerData: PlayerData)
+    : Promise<ProofOutput> {
+
+  // Generate the proof in a web worker and resolve the promise.
+
+  const initialDeckOrdering = new Uint8Array(NUM_CARDS_FOR_PROOF)
+
+  // initialDeckOrdering = [deckStart .. deckStart + deck.length] + pad with 255
+  for (let i = 0; i < deck.length; i++) initialDeckOrdering[i] = playerData.deckStart + i
+  for (let i = deck.length; i < initialDeckOrdering.length; i++) initialDeckOrdering[i] = 255
+
+  console.dir({
+    // public inputs
+    initialDeck: packCards(initialDeckOrdering),
+    lastIndex: BigInt(deck.length - 1),
+    deckRoot: privateInfo.deckRoot,
+    handRoot: privateInfo.handRoot,
+    saltHash: privateInfo.saltHash,
+    publicRandom: gameData.publicRandomness,
+    // private inputs
+    salt: privateInfo.salt,
+    deck: packCards(privateInfo.deckIndexes),
+    hand: packCards(privateInfo.handIndexes)
+  })
+
+  return proveInWorker("DrawHand", {
+    // public inputs
+    initialDeck: packCards(initialDeckOrdering),
+    lastIndex: BigInt(deck.length - 1),
+    deckRoot: privateInfo.deckRoot,
+    handRoot: privateInfo.handRoot,
+    saltHash: privateInfo.saltHash,
+    publicRandom: gameData.publicRandomness,
+    // private inputs
+    salt: privateInfo.salt,
+    deck: packCards(privateInfo.deckIndexes),
+    hand: packCards(privateInfo.handIndexes)
+  })
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -183,7 +254,8 @@ async function doJoinGameTransaction(args: JoinGameArgs, saltHash: bigint) {
  * Sends the `drawInitialHand` transaction, then sets the loading state to "Loading game..." if
  * the game is ready to start.
  */
-async function doDrawInitialHandTransaction(args: JoinGameArgs, privateInfo: PrivateInfo) {
+async function doDrawInitialHandTransaction
+    (args: JoinGameArgs, privateInfo: PrivateInfo, _proof: bigint[]) {
 
   // function drawInitialHand(uint256 gameID, bytes32 handRoot, bytes32 deckRoot, bytes calldata proof)
   const result = checkFresh(await freshWrap(
@@ -195,9 +267,9 @@ async function doDrawInitialHandTransaction(args: JoinGameArgs, privateInfo: Pri
         args.gameID,
         privateInfo.handRoot,
         privateInfo.deckRoot,
-        FakeProof as any, // proof
+        fakeProof as any // proof
       ],
-      setLoading: args.setLoading,
+      setLoading: args.setLoading
     })))
 
   const gameData = getGameData()
@@ -211,76 +283,6 @@ async function doDrawInitialHandTransaction(args: JoinGameArgs, privateInfo: Pri
   if (isGameReadyToStart(gameData, result.receipt.blockNumber))
     // NOTE: possible stale component site
     args.setLoading("Loading game...")
-}
-
-// -------------------------------------------------------------------------------------------------
-
-/**
- * Fetches the player's deck, then computes the initial hand and deck state for the player, as well
- * as their respective commitments, and store them in the private info store.
- *
- * @returns the updated private info
- * @throws {FetchDeckError} if the deck could not be fetched
- */
-export async function drawCards
-    (gameID: bigint, player: Address, gameData: FetchedGameData,
-     privateInfo: PrivateInfo, deckID: number)
-    : Promise<PrivateInfo>{
-
-  const deck = [... checkFresh(await freshWrap(wrappedFetchDeck(player, deckID)))]
-
-  // NOTE: No need to update the game data or the private info here.
-  // They couldn't possibly have change.
-
-  const playerData = getPlayerData(gameData, player)
-  if (playerData === null) throw new InconsistentGameStateError("Missing player data.")
-
-  const handDeckInfo = drawInitialHand(
-      deck, playerData.deckStart, privateInfo.salt, gameData.publicRandomness)
-
-  console.log(`drew initial hand: ${handDeckInfo.hand}`)
-
-  // TODO validate proofs — the setup has been tested, no we just need the actual production proofs
-  // TODO this will need to run in a worker thread, not to hogg the main thread
-  // checkFresh(await freshWrap(
-  //   testProving("MerkleHand", { root: handRoot, leaves: extendedHand })))
-  // NOTE: MerkleHand is a circuit defined as:
-  //       component main { public [root, leaves] } = CheckMerkleRoot(6);
-
-  const newPrivateInfo = {
-    salt: privateInfo.salt,
-    saltHash: privateInfo.saltHash,
-    ...handDeckInfo,
-  }
-
-  setPrivateInfo(gameID, player, newPrivateInfo)
-  return newPrivateInfo
-}
-
-// -------------------------------------------------------------------------------------------------
-
-/**
- * Wraps an error thrown by {@link fetchDeck}.
- */
-class FetchDeckError extends Error {
-  cause: any
-  constructor(cause: any) {
-    super(`Failed to fetch deck: ${cause}`)
-    this.cause = cause
-  }
-}
-
-// -------------------------------------------------------------------------------------------------
-
-/**
- * Calls {@link fetchDeck}, wrapping any thrown error in a {@link FetchDeckError}.
- */
-async function wrappedFetchDeck(player: Address, deckID: number): Promise<readonly bigint[]> {
-  try {
-    return await fetchDeck(player, deckID)
-  } catch (err) {
-    throw new FetchDeckError(err)
-  }
 }
 
 // =================================================================================================

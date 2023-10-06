@@ -15,6 +15,8 @@ import { GIT_ISSUES } from "src/constants"
 import { setError } from "src/store/actions"
 
 import { StaleError } from "src/store/read"
+import { TimeoutError } from "src/utils/errors"
+import { ProofError, ProofTimeoutError } from "src/utils/zkproofs/proofs"
 
 // =================================================================================================
 // ERRORS
@@ -22,9 +24,9 @@ import { StaleError } from "src/store/read"
 // -------------------------------------------------------------------------------------------------
 
 /**
- * Thrown when an operation (usually a network request) times out.
+ * Thrown when an network request times out.
  */
-export class FableTimeoutError extends Error {
+export class FableRequestTimeout extends TimeoutError {
   constructor(msg: string) {
     super(msg)
   }
@@ -65,12 +67,32 @@ export function defaultErrorHandling(actionName: string, err: unknown): false {
   if (err instanceof StaleError)
     return false
 
-  if (err instanceof FableTimeoutError) {
+  if (err instanceof FableRequestTimeout) {
     setError({
       title: "Request timed out.",
       message: (err as Error).message + " Please try again.",
       buttons: [DISMISS_BUTTON]
     })
+    return false
+  }
+
+  if (err instanceof ProofTimeoutError) {
+    setError({
+      title: "ZK proof timed out.",
+      message: "Please try again.",
+      buttons: [DISMISS_BUTTON]
+    })
+    return false
+  }
+
+  if (err instanceof ProofError) {
+    setError({
+      title: "Could not generate ZK proof.",
+      message: "Please reload page and try again.",
+      buttons: [RELOAD_BUTTON, DISMISS_BUTTON]
+    })
+    // This is most likely gibberish, but you never known.
+    console.error(err.cause)
     return false
   }
 
