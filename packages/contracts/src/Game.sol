@@ -247,7 +247,7 @@ contract Game {
 
     // Boolean to indicate whether we should check zk proof.
     // TODO set to true by default, can be disabled in test via the `toggleProof` function
-    bool private checkProof = false;
+    bool private checkProofs = false;
 
     // Maps game IDs to game data.
     mapping(uint256 => GameData) public gameData;
@@ -578,7 +578,7 @@ contract Game {
         pubSignals[6] = randomness;
 
         /// @dev currently bypass check for testing
-        if (checkProof) {
+        if (checkProofs) {
             if (!drawHandVerifier.verifyProof(proof, pubSignals)) {
                 revert InvalidProof();
             }
@@ -818,7 +818,7 @@ contract Game {
         pubSignals[6] = pdata.handSize;
         pubSignals[7] = pdata.deckEnd - pdata.deckStart; // last index
 
-        if (checkProof) {
+        if (checkProofs) {
             if (!drawVerifier.verifyProof(proof, pubSignals)) {
                 revert InvalidProof();
             }
@@ -872,7 +872,7 @@ contract Game {
         pubSignals[4] = pdata.handSize - 1; // last index
         pubSignals[5] = card;
 
-        if (checkProof) {
+        if (checkProofs) {
             if (!playVerifier.verifyProof(proof, pubSignals)) {
                 revert InvalidProof();
             }
@@ -1026,9 +1026,9 @@ contract Game {
     // Toggles whether to check proofs or not. Meant to be used in testing (to disable error
     // checking). This is enforced by restricting the caller to be the 0 address, which can only
     // be impersonated in a test environment.
-    function toggleCheckProof() external {
+    function toggleCheckProofs() external {
         assert(msg.sender == address(0));
-        checkProof = !checkProof;
+        checkProofs = !checkProofs;
     }
 
     // ---------------------------------------------------------------------------------------------

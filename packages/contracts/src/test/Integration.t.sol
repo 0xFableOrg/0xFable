@@ -102,7 +102,7 @@ contract Integration is Test {
         // check zk proof for first player
         // TODO remove when we toggle Game.checkProof to true
         vm.prank(address(0));
-        game.toggleCheckProof();
+        game.toggleCheckProofs();
 
         vm.startPrank(player1);
         game.joinGame(gameID, DECK_ID, SALT_HASH, JOIN_DATA);
@@ -111,7 +111,7 @@ contract Integration is Test {
 
         // stop checking zk proofs
         vm.prank(address(0));
-        game.toggleCheckProof();
+        game.toggleCheckProofs();
 
         vm.startPrank(player2);
         game.joinGame(gameID, DECK_ID, SALT_HASH, JOIN_DATA);
