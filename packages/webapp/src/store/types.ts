@@ -106,11 +106,25 @@ export type PrivateInfo = {
   saltHash: bigint
   /** The player's current hand. */
   hand: readonly bigint[]
-  /** The player's current deck ordering. */
+  /** The player's current deck. */
   deck: readonly bigint[]
-  /** Merkle root of {@link hand}. */
+  /**
+   * The player's current's hand ordering (indexes into the game's card array ({@link
+   * FetchedGameData.cards}). Used for proofs.
+   */
+  handIndexes: Uint8Array
+  /**
+   * The player's current's deck ordering (indexes into the game's card array ({@link
+   * FetchedGameData.cards}). Used for proofs.
+   */
+  deckIndexes: Uint8Array
+  /**
+   * Hash of {@link handIndexes}, packed over a few field elements, in conjnction with {@link hash}.
+   */
   handRoot: Hash
-  /** Merkle root of {@link deck}. */
+  /**
+   * Hash of {@link deckIndexes}, packed over a few field elements, in conjnction with {@link hash}.
+   */
   deckRoot: Hash
 }
 
