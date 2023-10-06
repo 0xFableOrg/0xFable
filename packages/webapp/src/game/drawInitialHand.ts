@@ -20,12 +20,13 @@ import { bigintToHexString, parseBigInt } from "src/utils/js-utils"
  * suitable for updating the player's private info.
  */
 export function drawInitialHand
-    (deck: bigint[], deckStartIndex: number, salt: bigint, publicRandomness: bigint)
+    (initialDeck: readonly bigint[], deckStartIndex: number, salt: bigint, publicRandomness: bigint)
     : Omit<PrivateInfo, "salt" | "saltHash"> {
 
   const randomness = mimcHash([salt, publicRandomness])
 
   // draw cards and update deck
+  const deck = [...initialDeck]
   const hand = []
   const deckIndexes = new Uint8Array(MAX_DECK_SIZE)
   const handIndexes = new Uint8Array(MAX_HAND_SIZE)
@@ -51,9 +52,9 @@ export function drawInitialHand
 
   // Pack the deck and hand indexes into 31-byte chunks.
   for (let i = 0; i * 31 < MAX_DECK_SIZE; i++)
-    deckRootInputs.push(parseBigInt(deckIndexes.slice(i * 31, (i + 1) * 31)))
+    deckRootInputs.push(parseBigInt(deckIndexes.slice(i * 31, (i + 1) * 31), "little"))
   for (let i = 0; i * 31 < MAX_HAND_SIZE; i++)
-    handRootInputs.push(parseBigInt(handIndexes.slice(i * 31, (i + 1) * 31)))
+    handRootInputs.push(parseBigInt(handIndexes.slice(i * 31, (i + 1) * 31), "little"))
 
   deckRootInputs.push(salt)
   handRootInputs.push(salt)
@@ -61,7 +62,7 @@ export function drawInitialHand
   const deckRoot: Hash = `0x${bigintToHexString(mimcHash(deckRootInputs), 32)}`
   const handRoot: Hash = `0x${bigintToHexString(mimcHash(handRootInputs), 32)}`
 
-  return { hand, deck, deckRoot, handRoot }
+  return { hand, deck, handIndexes, deckIndexes, deckRoot, handRoot }
 }
 
 // =================================================================================================
