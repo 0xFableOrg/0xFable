@@ -7,7 +7,7 @@
 import { Hash } from "src/chain"
 import { mimcHash } from "src/utils/hashing"
 import { PrivateInfo } from "src/store/types"
-import { INITIAL_HAND_SIZE, MAX_DECK_SIZE, MAX_HAND_SIZE } from "src/game/constants"
+import { FELT_SIZE, INITIAL_HAND_SIZE, MAX_DECK_SIZE, MAX_HAND_SIZE } from "src/game/constants"
 import { bigintToHexString, parseBigInt } from "src/utils/js-utils"
 
 // =================================================================================================
@@ -50,11 +50,13 @@ export function drawInitialHand
   const deckRootInputs = []
   const handRootInputs = []
 
-  // Pack the deck and hand indexes into 31-byte chunks.
-  for (let i = 0; i * 31 < MAX_DECK_SIZE; i++)
-    deckRootInputs.push(parseBigInt(deckIndexes.slice(i * 31, (i + 1) * 31), "little"))
-  for (let i = 0; i * 31 < MAX_HAND_SIZE; i++)
-    handRootInputs.push(parseBigInt(handIndexes.slice(i * 31, (i + 1) * 31), "little"))
+  // Pack the deck and hand indexes into FELT_SIZE-byte chunks.
+  for (let i = 0; i * FELT_SIZE < MAX_DECK_SIZE; i++)
+    deckRootInputs.push(parseBigInt(
+      deckIndexes.slice(i * FELT_SIZE, (i + 1) * FELT_SIZE), "little"))
+  for (let i = 0; i * FELT_SIZE < MAX_HAND_SIZE; i++)
+    handRootInputs.push(parseBigInt(
+      handIndexes.slice(i * FELT_SIZE, (i + 1) * FELT_SIZE), "little"))
 
   deckRootInputs.push(salt)
   handRootInputs.push(salt)

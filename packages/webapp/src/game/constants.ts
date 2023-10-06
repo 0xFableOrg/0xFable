@@ -18,6 +18,8 @@ export const MAX_DECK_SIZE = 62
 /**
  * Size of a field element in bytes, in the field used by our chosen ZK scheme. In our case, we use
  * Circom/snarkjs' implementation of Plonk with the BN128 (aka BN254, alt_bn_128) curve.
+ *
+ * This should always be lower or equal to 32, to fit in a uint256 EVM word.
  */
 export const FELT_SIZE = 31
 
