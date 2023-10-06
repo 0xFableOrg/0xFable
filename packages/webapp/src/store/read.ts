@@ -120,6 +120,16 @@ export class StaleError extends Error {
 // -------------------------------------------------------------------------------------------------
 
 /**
+ * If {@link isStale} returns true, throws a {@link StaleError}.
+ */
+export function checkStale(gameID: bigint | null, player: Address, gameData?: FetchedGameData) {
+  if (isStale(gameID, player, gameData))
+    throw new StaleError()
+}
+
+// -------------------------------------------------------------------------------------------------
+
+/**
  * Returns a function that returns the result of the promise, but only after checking that the game
  * ID and game state did not change since the call to `freshWrap` was initiated. For clarity, you
  * should use {@checkWrap} to run the function (i.e. `checkFresh(await
