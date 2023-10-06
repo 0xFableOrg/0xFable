@@ -183,8 +183,8 @@ export async function refreshGameData({ forceFetchCards = false } = {}) {
     return
   }
 
-  // Always fetch cards before game is created (easier), but never after as they won't change.
-  const shouldFetchCards = status < GameStatus.CREATED || forceFetchCards
+  // Always fetch cards before game is started (easier), but never after as they won't change.
+  const shouldFetchCards = status < GameStatus.STARTED || forceFetchCards
 
   const gameData = await net.fetchGameData(gameID, shouldFetchCards)
 
