@@ -15,4 +15,28 @@ export const MAX_HAND_SIZE = 62
 /** Maximum size of a hand (same as the deck = no limit). */
 export const MAX_DECK_SIZE = 62
 
+/**
+ * Size of a field element in bytes, in the field used by our chosen ZK scheme. In our case, we use
+ * Circom/snarkjs' implementation of Plonk with the BN128 (aka BN254, alt_bn_128) curve.
+ */
+export const FELT_SIZE = 31
+
+/**
+ * Number of field elements needed to represent a deck or a hand.
+ *
+ * This means that the maximum technical limit of deck and hand size is `NUM_FELTS_FOR_CARDS *
+ * FELT_SIZE`.
+ */
+export const NUM_FELTS_FOR_CARDS = 2
+
+/**
+ * The number of cards to provide for proofs over a deck or a hand,
+ * equal to `NUM_FELTS_FOR_CARDS * FELT_SIZE`.
+ */
+export const NUM_CARDS_FOR_PROOF = NUM_FELTS_FOR_CARDS * FELT_SIZE
+
+// NOTE: If we were willing to restrict the number of cards in a hand more strictly, we could use
+// use only one field elements for hands. We would need separate set of constants to handle both
+// cases.
+
 // =================================================================================================

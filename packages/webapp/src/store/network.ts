@@ -33,8 +33,9 @@ export const fetchGameData:
 // -------------------------------------------------------------------------------------------------
 
 /**
- * Fetches the deck with the given ID for the given player. This is only called once at the start of
- * a game, and so doesn't need to handle throttling and zombies.
+ * Fetches the deck with the given ID for the given player.
+ *
+ * Never called at the moment. Doesn't handle throttling and zombies.
  */
 export async function fetchDeck(player: Address, deckID: number): Promise<readonly bigint[]> {
   return readContract({
