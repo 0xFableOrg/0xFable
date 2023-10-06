@@ -99,12 +99,26 @@ export function bytesToHexString(array: Uint8Array): string {
 // -------------------------------------------------------------------------------------------------
 
 /**
- * Parses a bigint-compatible value into a bigint.
+ * Parses a bigint-compatible value into a bigint. Note that strings are interpreted as decimal
+ * numbers if not preceded by "0x" and hexadecimal numbers if they are.
+ *
+ * Supports both big and little-endianness when used in conjuction with an Uint8Array, otherwise
+ * assumes big-endianness (normal "written" representation: high-order bytes on the left / start of
+ * arrays).
  */
-export function parseBigInt(value: string|number|bigint|Uint8Array): bigint {
-  if (typeof value === "bigint") return value
-  if (value instanceof Uint8Array)
+export function parseBigInt
+    (value: string|number|bigint|Uint8Array, endianness: "big"|"little" = "big"): bigint {
+
+  if (value instanceof Uint8Array) {
+    if (endianness == "little")
+      value = value.reverse()
     return BigInt("0x" + bytesToHexString(value))
+  }
+
+  if (endianness == "little")
+    throw new Error("little-endianness only supported with Uint8Array argument")
+
+  if (typeof value === "bigint") return value
   return BigInt(value).valueOf()
 }
 
