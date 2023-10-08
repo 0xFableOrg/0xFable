@@ -60,6 +60,9 @@ contract Game {
     // Trying to cancel or join a game that has already started.
     error GameAlreadyStarted();
 
+    // Trying to do actions in a game that has already ended.
+    error GameAlreadyEnded();
+
     // ZK proof didn't verify.
     error WrongProof();
 
@@ -182,7 +185,8 @@ contract Game {
         PLAY,
         ATTACK,
         DEFEND,
-        PASS
+        PASS,
+        ENDED
     }
 
     // Per-player game data.
@@ -306,6 +310,9 @@ contract Game {
         }
         if (gdata.currentStep == GameStep.UNINITIALIZED) {
             revert FalseStart();
+        }
+        if (gdata.currentStep == GameStep.ENDED) {
+            revert GameAlreadyEnded();
         }
         if (gdata.players[gdata.currentPlayer] != msg.sender) {
             revert WrongPlayer();
@@ -811,6 +818,7 @@ contract Game {
             address winner = gdata.players[gdata.livePlayers[0]];
             delete inGame[winner];
             deleteGame(gdata, gameID);
+            gdata.currentStep = GameStep.ENDED;
             emit Champion(gameID, winner);
         }
     }
