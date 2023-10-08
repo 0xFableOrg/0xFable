@@ -102,6 +102,9 @@ contract Game {
     // ZK proof generated is incorrect
     error InvalidProof();
 
+    // Should only revert with this error if the implementation is erroneous.
+    error ImplementationError();
+
     // =============================================================================================
     // EVENTS
 
@@ -185,6 +188,7 @@ contract Game {
     // Per-player game data.
     struct PlayerData {
         uint16 health;
+        bool defeated;
         uint8 deckStart;
         uint8 deckEnd;
         uint8 handSize;
@@ -294,6 +298,9 @@ contract Game {
 
         GameData storage gdata = gameData[gameID];
 
+        // Store this now so that we can check if the current player was defeated after the action.
+        uint8 currentPlayer = gdata.currentPlayer;
+
         if (gdata.lastBlockNum == 0) {
             revert NoGameNoLife();
         }
@@ -332,20 +339,41 @@ contract Game {
 
         _;
 
-        if (requestedStep == GameStep.DRAW) {
-            gdata.currentStep = GameStep.PLAY;
-        } else if (requestedStep == GameStep.PLAY) {
-            gdata.currentStep = GameStep.ATTACK;
-        } else if (requestedStep == GameStep.ATTACK) {
-            gdata.currentStep = GameStep.DEFEND;
-            gdata.currentPlayer = uint8((gdata.currentPlayer + 1) % gdata.players.length);
-        } else if (requestedStep == GameStep.DEFEND) {
-            gdata.currentStep = GameStep.DRAW; // enum wraparound
-        } else if (requestedStep == GameStep.PASS) {
-            gdata.currentStep = GameStep.DRAW;
-            gdata.currentPlayer = uint8((gdata.currentPlayer + 1) % gdata.players.length);
+        if (!gdata.playerData[gdata.players[currentPlayer]].defeated) {
+            // If the current player was defeated, we already shifted `gdata.currentPlayer` and
+            // `gdata.currentStep` in the `playerDefeated` function, so this is uneccessary.
+
+            if (requestedStep == GameStep.DRAW) {
+                gdata.currentStep = GameStep.PLAY;
+            } else if (requestedStep == GameStep.PLAY) {
+                gdata.currentStep = GameStep.ATTACK;
+            } else if (requestedStep == GameStep.ATTACK) {
+                gdata.currentStep = GameStep.DEFEND;
+                gdata.currentPlayer = nextPlayer(gdata);
+            } else if (requestedStep == GameStep.DEFEND) {
+                gdata.currentStep = GameStep.DRAW; // enum wraparound
+            } else if (requestedStep == GameStep.PASS) {
+                gdata.currentStep = GameStep.DRAW;
+                gdata.currentPlayer = nextPlayer(gdata);
+            }
         }
+
         gdata.lastBlockNum = block.number;
+    }
+
+    // ---------------------------------------------------------------------------------------------
+
+    // Returns the next player in the game (index in `gdata.players`). This relies on
+    // `gdata.currentPlayer` pointing to a player whose index is still present in
+    // `gdata.livePlayers`.
+    function nextPlayer(GameData storage gdata) internal view returns (uint8) {
+        uint8 currentPlayer = gdata.currentPlayer;
+        for (uint256 i = 0; i < gdata.livePlayers.length; ++i) {
+            if (gdata.livePlayers[i] == currentPlayer) {
+                return gdata.livePlayers[(i + 1) % gdata.livePlayers.length];
+            }
+        }
+        revert ImplementationError();
     }
 
     // =============================================================================================
@@ -806,6 +834,13 @@ contract Game {
     function playerDefeated(uint256 gameID, address player) internal {
         GameData storage gdata = gameData[gameID];
 
+        if (gdata.players[gdata.currentPlayer] == player) {
+            // If the current player was defeated, shift next step and player.
+            // We need to do this before we remove the current player from `gdata.livePlayers`.
+            gdata.currentPlayer = nextPlayer(gdata);
+            gdata.currentStep = GameStep.DRAW;
+        }
+
         // TODO: Move this out to a library, turn it to a uint8[32] bespoke data type that stores length in first slot?
         //       This would enable to perform this in a single shift once the player is found.
         // Remove the player from the livePlayers array.
@@ -822,8 +857,12 @@ contract Game {
         }
         livePlayers.pop();
 
-        if (gdata.playerData[msg.sender].health == 0) {
-            // If health is not zero, the player conceded, and a different event is emitted for that.
+        PlayerData storage pdata = gdata.playerData[player];
+        pdata.defeated = true;
+
+        if (pdata.health == 0) {
+            // If health is not zero, the player conceded or timed out,
+            // and different events are emitted for that.
             emit PlayerDefeated(gameID, player);
         }
 
