@@ -20,13 +20,14 @@ import { Address } from "src/chain"
  * Returns null in case of throttling or zombie.
  */
 export const fetchGameData:
-    (gameID: bigint, shouldFetchCards: boolean) => Promise<Fetched<FetchedGameData>> =
-  throttledFetch(async (gameID: bigint, shouldFetchCards: boolean) => {
+    (gameID: bigint, player: Address, shouldFetchCards: boolean)
+    => Promise<Fetched<FetchedGameData>> =
+  throttledFetch(async (gameID: bigint, player: Address, shouldFetchCards: boolean) => {
     return readContract({
       address: deployment.Game,
       abi: gameABI,
       functionName: "fetchGameData",
-      args: [gameID, shouldFetchCards]
+      args: [gameID, player, shouldFetchCards]
     })
   })
 

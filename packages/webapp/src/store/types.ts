@@ -41,6 +41,9 @@ export type PlayerData = {
   health: number
   deckStart: number
   deckEnd: number
+  handSize: number
+  joinBlockNum: bigint
+  saltHash: bigint
   handRoot: Hash
   deckRoot: Hash
   // Bitfield of cards in the player's battlefield, for each bit: 1 if the card at the same
