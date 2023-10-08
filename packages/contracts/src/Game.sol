@@ -188,6 +188,10 @@ contract Game {
         uint8 deckStart;
         uint8 deckEnd;
         uint8 handSize;
+        // The block number at which the player's joinGame transaction landed.
+        // NOTE: Since this is only used at the start of the game, it could be packed into another
+        //       uint256 value (e.g. battlefield).
+        uint256 joinBlockNum;
         // Hash of a secret salt value that the players uses to generate the hand and deck roots.
         uint256 saltHash;
         // A hash of the content of the player's hand + the player's secret salt.
@@ -364,19 +368,52 @@ contract Game {
 
     // Returns a subset of `GameData` members, excluding non-readable members (mapping, function),
     // and the cards array that never changes. Use `getCards()` to read them instead.
-    function fetchGameData(uint256 gameID, bool fetchCards) external view returns (FetchedGameData memory) {
+    function fetchGameData(uint256 gameID, address player, bool fetchCards)
+        external
+        view
+        returns (FetchedGameData memory)
+    {
         GameData storage gdata = gameData[gameID];
         PlayerData[] memory pData = new PlayerData[](gdata.players.length);
         for (uint8 i = 0; i < gdata.players.length; ++i) {
             pData[i] = gdata.playerData[gdata.players[i]];
         }
+
+        // When the player is specified, they're in the game and their hand hasn't been drawn yet,
+        // we set the publicRandomness based on the block at which their joinGame transaction was
+        // received. This enables all players to draw their hands and generate the zk proof locally,
+        // without incurring race conditions between players.
+        //
+        // This is currently the only time in the game when player can perform concurrent
+        // randomness-dependent actions.
+
+        uint256 publicRandomness;
+        if (player != address(0)) {
+            // player specified
+            PlayerData storage pdata = gdata.playerData[player];
+            if (pdata.saltHash != 0 && pdata.handRoot == 0) {
+                // player in the game & hand not drawn yet
+                publicRandomness = getPubRandomnessForBlock(pdata.joinBlockNum);
+            }
+        }
+        if (publicRandomness == 0) {
+            publicRandomness = getPubRandomnessForBlock(gdata.lastBlockNum);
+        }
+
+        // Note that if the publicRandomness is still 0 at this point, it means the game is timed
+        // out. If the game was ongoing, this will allow the other player to claim victory (the
+        // player whose turn it was can still concede, in order to end the game and be able to join
+        // another one). If the game wasn't started yet, anyone can now cancel the game.
+
+        // TODO: implement the above paragraph
+
         return FetchedGameData({
             gameID: gameID,
             gameCreator: gdata.gameCreator,
             players: gdata.players,
             playerData: pData,
             lastBlockNum: gdata.lastBlockNum,
-            publicRandomness: getPubRandomnessForBlock(gdata.lastBlockNum),
+            publicRandomness: publicRandomness,
             playersLeftToJoin: gdata.playersLeftToJoin,
             livePlayers: gdata.livePlayers,
             currentPlayer: gdata.currentPlayer,
@@ -652,6 +689,8 @@ contract Game {
         // simulate their hands before commiting to join a game. If they have multiple accounts,
         // they could chose the most advantageous one to join a game.
 
+        pdata.joinBlockNum = block.number;
+        // NOTE: This could be removed, its only effect at this stage is pushing back the timeout.
         gdata.lastBlockNum = block.number;
 
         // Add the player's cards to `gdata.cards`.

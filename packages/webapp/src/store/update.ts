@@ -186,7 +186,7 @@ export async function refreshGameData({ forceFetchCards = false } = {}) {
   // Always fetch cards before game is started (easier), but never after as they won't change.
   const shouldFetchCards = status < GameStatus.STARTED || forceFetchCards
 
-  const gameData = await net.fetchGameData(gameID, shouldFetchCards)
+  const gameData = await net.fetchGameData(gameID, player, shouldFetchCards)
 
   if (gameData === ZOMBIE || gameData == THROTTLED || isStaleVerbose(gameID, player))
     // Either game changed (stale), or there should be a request in flight that will give us the
