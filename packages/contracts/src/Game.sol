@@ -57,8 +57,10 @@ contract Game {
     // Trying to join a full game (total number of players reached).
     error GameIsFull();
 
-    // Trying to cancel or join a game that has already started.
-    error GameAlreadyStarted();
+    // Trying to cancel or join a game where all the players have already joined.
+    // (We don't use the term "started", which we reserve for when all players have drawn their
+    // initial hand.)
+    error GameAlreadyLocked();
 
     // Trying to do actions in a game that has already ended.
     error GameAlreadyEnded();
@@ -105,6 +107,9 @@ contract Game {
     // ZK proof generated is incorrect
     error InvalidProof();
 
+    // Trying to boot a timed out player when the timeout hasn't elapsed yet.
+    error GameNotTimedOut();
+
     // Should only revert with this error if the implementation is erroneous.
     error ImplementationError();
 
@@ -119,8 +124,15 @@ contract Game {
     // The player took to long to submit an action and lost as a consequence.
     event PlayerTimedOut(uint256 indexed gameID, address indexed player);
 
+    // Not all players joined and drew their hands within the time limit, the game is cancelled
+    // as a consequence.
+    event MissingPlayers(uint256 indexed gameID);
+
     // A game was created by the given creator.
     event GameCreated(uint256 gameID, address indexed creator);
+
+    // The game was cancelled by its creator.
+    event GameCancelled(uint256 indexed gameID);
 
     // A player joined the game.
     event PlayerJoined(uint256 indexed gameID, address player);
@@ -320,8 +332,9 @@ contract Game {
         if (block.number > 256 && gdata.lastBlockNum < block.number - 256) {
             // TODO(LATER): This is the max timeout, make shorter + implement a chess clock.
             // Action timed out: the player loses.
-            concedeGame(gameID);
-            emit PlayerTimedOut(gameID, msg.sender);
+            address timedOutPlayer = gdata.players[gdata.currentPlayer];
+            emit PlayerTimedOut(gameID, timedOutPlayer);
+            playerDefeated(gameID, timedOutPlayer);
             return;
         }
 
@@ -436,11 +449,8 @@ contract Game {
         }
 
         // Note that if the publicRandomness is still 0 at this point, it means the game is timed
-        // out. If the game was ongoing, this will allow the other player to claim victory (the
-        // player whose turn it was can still concede, in order to end the game and be able to join
-        // another one). If the game wasn't started yet, anyone can now cancel the game.
-
-        // TODO: implement the above paragraph
+        // out. This allows anyone to call the `timeout()` function to boot the timed out player
+        // from the game, or cancel the game if not everyone joined and drew yet.
 
         return FetchedGameData({
             gameID: gameID,
@@ -605,15 +615,21 @@ contract Game {
 
     // ---------------------------------------------------------------------------------------------
 
-    // Cancel a game you created, before it is started.
+    // Cancel a game you created, before all players have joined.
     function cancelGame(uint256 gameID) external {
         GameData storage gdata = gameData[gameID];
         if (gdata.gameCreator != msg.sender) {
             revert OvereagerCanceller();
         }
         if (gdata.playersLeftToJoin == 0) {
-            revert GameAlreadyStarted();
+            revert GameAlreadyLocked();
         }
+        endGameBeforeStart(gameID, gdata);
+    }
+
+    // ---------------------------------------------------------------------------------------------
+
+    function endGameBeforeStart(uint256 gameID, GameData storage gdata) internal {
         deleteGame(gdata, gameID);
         for (uint256 i = 0; i < gdata.players.length; ++i) {
             delete inGame[gdata.players[i]];
@@ -794,8 +810,7 @@ contract Game {
 
         // NOTE: We're not updating gdata.lastBlockNum until the game starts. This means that all
         // players must join within a 256-block window or they won't be able to get the blockhash to
-        // generate the randomness.
-        // TODO: implement timeouts in general
+        // generate the randomness. In that case, anybody can call `timeout()` to cancel the game.
 
         if (gdata.playersLeftToJoin == 0 && gdata.livePlayers.length == gdata.livePlayers.length) {
             // Start the game!
@@ -832,9 +847,36 @@ contract Game {
             revert PlayerNotInGame();
         }
 
-        playerDefeated(gameID, msg.sender);
         emit PlayerConceded(gameID, msg.sender);
+        playerDefeated(gameID, msg.sender);
         gdata.lastBlockNum = block.number;
+    }
+
+    // ---------------------------------------------------------------------------------------------
+
+    // Anybody can call this function to make a player that timed out (did not take an action within
+    // the time limit) lose, or to cancel a game where not all the players joined within the time
+    // limit.
+    //
+    // Note that in the first scenario, the timed out player will lose anyway if he tries to take an
+    // action.
+    function timeout(uint256 gameID) external exists(gameID) {
+        GameData storage gdata = gameData[gameID];
+        if (gdata.lastBlockNum > block.number - 256) {
+            revert GameNotTimedOut();
+        }
+        if (gdata.currentStep == GameStep.ENDED) {
+            revert GameAlreadyEnded();
+        }
+        if (gdata.currentStep == GameStep.UNINITIALIZED) {
+            emit MissingPlayers(gameID);
+            endGameBeforeStart(gameID, gdata);
+        } else {
+            address timedOutPlayer = gdata.players[gdata.currentPlayer];
+            emit PlayerTimedOut(gameID, timedOutPlayer);
+            playerDefeated(gameID, timedOutPlayer);
+            gdata.lastBlockNum = block.number;
+        }
     }
 
     // ---------------------------------------------------------------------------------------------
