@@ -1,13 +1,14 @@
 import { useEffect, useState } from "react"
 
-import Hand from "src/components/hand"
-import { GameEndedModal } from "src/components/modals/gameEndedModal"
-import { LoadingModal } from "src/components/lib/loadingModal"
-import { Navbar } from "src/components/navbar"
-import { useGameWrite } from "src/hooks/useFableWrite"
-import * as store from "src/store/hooks"
-import { GameStatus } from "src/store/types"
-import { useModalController } from "src/components/lib/modal"
+import Hand from "src/components/hand";
+import { LoadingModal } from "src/components/lib/loadingModal";
+import { useModalController } from "src/components/lib/modal";
+import { GameEndedModal } from "src/components/modals/gameEndedModal";
+import { Navbar } from "src/components/navbar";
+import { useGameWrite } from "src/hooks/useFableWrite";
+import * as store from "src/store/hooks";
+import { getPrivateInfo } from "src/store/read";
+import { GameStatus, PrivateInfo } from "src/store/types";
 import { FablePage } from "src/pages/_app"
 
 const Play: FablePage = ({ isHydrated }) => {
@@ -18,10 +19,16 @@ const Play: FablePage = ({ isHydrated }) => {
   const [ loading, setLoading ] = useState<string|null>(null)
   const [ hideResults, setHideResults ] = useState(false)
   const [ concedeCompleted, setConcedeCompleted ] = useState(false)
+  const playerAddress = store.usePlayerAddress()
 
-  const playerHand: bigint[] = []
+  const privateInfo: PrivateInfo | null = getPrivateInfo(
+    gameID as bigint,
+    playerAddress as `0x${string}`
+  );
 
-  const ended = gameStatus === GameStatus.ENDED || concedeCompleted
+  const playerHand: bigint[] = privateInfo?.deck as bigint[];
+
+  const ended = gameStatus === GameStatus.ENDED || concedeCompleted;
 
   const { write: concede } = useGameWrite({
     functionName: "concedeGame",
@@ -30,10 +37,10 @@ const Play: FablePage = ({ isHydrated }) => {
     setLoading,
     // Optimistically update the UX, as we know the transaction succeeded and the data refresh
     // will follow.
-    onSuccess: () => setConcedeCompleted(true)
-  })
+    onSuccess: () => setConcedeCompleted(true),
+  });
 
-  const ctrl = useModalController({ displayed: true, closeable: false })
+  const ctrl = useModalController({ displayed: true, closeable: false });
 
   // TODO: if there is no game ID, should redirect away from this page
   // TODO: the navbar connector should show bad chain if it's a bad chain
@@ -44,16 +51,20 @@ const Play: FablePage = ({ isHydrated }) => {
 
   return (
     <>
-      {loading && <LoadingModal ctrl={ctrl} loading={loading} setLoading={setLoading} />}
+      {loading && (
+        <LoadingModal ctrl={ctrl} loading={loading} setLoading={setLoading} />
+      )}
 
-      {ended && !hideResults && <GameEndedModal closeCallback={() => setHideResults(true)} />}
+      {ended && !hideResults && (
+        <GameEndedModal closeCallback={() => setHideResults(true)} />
+      )}
 
       <main className="flex min-h-screen flex-col">
         <Navbar />
 
         <Hand
           cards={playerHand}
-          className="mt-500 absolute z-[100] translate-y-1/2 transition-all duration-500 ease-in-out hover:translate-y-0"
+          className="absolute left-0 right-0 mx-auto z-[100] translate-y-1/2 transition-all duration-500 rounded-xl ease-in-out hover:translate-y-0"
         />
         <div className="grid-col-1 relative mx-6 mb-6 grid grow grid-rows-[6]">
           <div className="border-b-1 relative row-span-6 rounded-xl rounded-b-none border bg-base-300 shadow-inner">
@@ -64,33 +75,37 @@ const Play: FablePage = ({ isHydrated }) => {
             </div> */}
           </div>
 
+          {!ended && (
+            <>
+              <button className="btn-warning btn-lg btn absolute right-96 bottom-1/2 z-50 translate-y-1/2 rounded-lg border-[.1rem] border-base-300 font-mono hover:scale-105">
+                DRAW
+              </button>
 
-          {!ended && <>
-            <button
-              className="btn-warning btn-lg btn absolute right-96 bottom-1/2 z-50 translate-y-1/2 rounded-lg border-[.1rem] border-base-300 font-mono hover:scale-105">
-              DRAW
-            </button>
+              <button className="btn-warning btn-lg btn absolute right-48 bottom-1/2 z-50 translate-y-1/2 rounded-lg border-[.1rem] border-base-300 font-mono hover:scale-105">
+                END TURN
+              </button>
 
-            <button
-              className="btn-warning btn-lg btn absolute right-48 bottom-1/2 z-50 translate-y-1/2 rounded-lg border-[.1rem] border-base-300 font-mono hover:scale-105">
-              END TURN
-            </button>
-
-            <button
-              className="btn-warning btn-lg btn absolute right-4 bottom-1/2 z-50 translate-y-1/2 rounded-lg border-[.1rem] border-base-300 font-mono hover:scale-105"
-              disabled={!concede} onClick={concede}>
-              CONCEDE
-            </button>
-          </>}
+              <button
+                className="btn-warning btn-lg btn absolute right-4 bottom-1/2 z-50 translate-y-1/2 rounded-lg border-[.1rem] border-base-300 font-mono hover:scale-105"
+                disabled={!concede}
+                onClick={concede}
+              >
+                CONCEDE
+              </button>
+            </>
+          )}
 
           {/* TODO avoid the bump by grouping buttons in a container that is translated, then no need for the translation here and the important */}
-          {ended && <>
-            <button
-              className=" btn-warning btn-lg btn absolute right-4 bottom-1/2 z-50 !translate-y-1/2 rounded-lg border-[.1rem] border-base-300 font-mono hover:scale-105"
-              onClick={() => setHideResults(false)}>
-              SEE RESULTS & EXIT
-            </button>
-          </>}
+          {ended && (
+            <>
+              <button
+                className=" btn-warning btn-lg btn absolute right-4 bottom-1/2 z-50 !translate-y-1/2 rounded-lg border-[.1rem] border-base-300 font-mono hover:scale-105"
+                onClick={() => setHideResults(false)}
+              >
+                SEE RESULTS & EXIT
+              </button>
+            </>
+          )}
 
           <div className="relative row-span-6 rounded-xl rounded-t-none border border-t-0 bg-base-300 shadow-inner">
             <p className="z-0 m-2 font-mono font-bold"> ⚔️ p1 address </p>
@@ -102,7 +117,7 @@ const Play: FablePage = ({ isHydrated }) => {
         </div>
       </main>
     </>
-  )
-}
+  );
+};
 
 export default Play;
