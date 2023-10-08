@@ -7,6 +7,7 @@ import { JoinGameModal } from "src/components/modals/joinGameModal"
 import { MintDeckModal } from "src/components/modals/mintDeckModal"
 import { useIsHydrated } from "src/hooks/useIsHydrated"
 import { chains } from "src/chain"
+import { createAccount } from "src/utils/acounts"
 
 const Home = () => {
   const isHydrated = useIsHydrated()
@@ -37,6 +38,14 @@ const Home = () => {
               }}
             >
               Connect Wallet
+            </button>
+            <button
+              className="btn-lg btn border-2 border-yellow-500 normal-case hover:scale-105 hover:border-yellow-400"
+              onClick={async () => {
+                await createAccount();
+              }}
+            >
+              Create Burner Wallet
             </button>
           </div>
         }
