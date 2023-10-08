@@ -20,16 +20,18 @@ export function getGameStatus(gdata: FetchedGameData|null, player: Address|null)
   if (gdata === null || player === null || gdata.gameCreator === zeroAddress)
     return GameStatus.UNKNOWN
 
-  if (gdata.playersLeftToJoin === 0 && gdata.currentStep != GameStep.UNINITIALIZED)
-    return gdata.livePlayers.length <= 1
-      ? GameStatus.ENDED
-      : GameStatus.STARTED
+  if (gdata.currentStep === GameStep.UNINITIALIZED)
+    if (!gdata.players.includes(player))
+      return GameStatus.CREATED
+    else if (gdata.livePlayers.includes(gdata.players.indexOf(player)))
+      return GameStatus.HAND_DRAWN
+    else
+      return GameStatus.JOINED
 
-  return gdata.players.includes(player)
-    ? gdata.livePlayers.includes(gdata.players.indexOf(player))
-      ? GameStatus.HAND_DRAWN
-      : GameStatus.JOINED
-    : GameStatus.CREATED
+  if (gdata.currentStep === GameStep.ENDED)
+    return GameStatus.ENDED
+  else
+    return GameStatus.STARTED
 }
 
 // -------------------------------------------------------------------------------------------------
