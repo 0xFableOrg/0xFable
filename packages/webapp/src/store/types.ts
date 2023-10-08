@@ -39,6 +39,7 @@ export enum GameStep {
 
 export type PlayerData = {
   health: number
+  defeated: boolean
   deckStart: number
   deckEnd: number
   handSize: number
