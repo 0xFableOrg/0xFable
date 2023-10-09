@@ -10,6 +10,7 @@ import * as store from "src/store/hooks";
 import { getPrivateInfo } from "src/store/read";
 import { GameStatus, PrivateInfo } from "src/store/types";
 import { FablePage } from "src/pages/_app"
+import { Address } from "viem";
 
 const Play: FablePage = ({ isHydrated }) => {
   const [ gameID ] = store.useGameID()
@@ -21,12 +22,14 @@ const Play: FablePage = ({ isHydrated }) => {
   const [ concedeCompleted, setConcedeCompleted ] = useState(false)
   const playerAddress = store.usePlayerAddress()
 
-  const privateInfo: PrivateInfo | null = getPrivateInfo(
-    gameID as bigint,
-    playerAddress as `0x${string}`
-  );
+  let privateInfo: PrivateInfo | null = null;
+  if (gameID) {
+    privateInfo = getPrivateInfo(gameID as bigint, playerAddress as Address);
+  }
 
-  const playerHand: bigint[] = privateInfo?.deck as bigint[];
+  const playerHand: bigint[] | null = privateInfo
+    ? (privateInfo?.deck as bigint[])
+    : null;
 
   const ended = gameStatus === GameStatus.ENDED || concedeCompleted;
 

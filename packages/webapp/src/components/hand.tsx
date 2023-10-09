@@ -7,7 +7,7 @@ const Hand = ({
   cards,
   className,
 }: {
-  cards: bigint[];
+  cards?: bigint[] | null;
   className?: string;
 }) => {
   const [isFocused, setIsFocused] = useState<boolean>(false);
@@ -17,16 +17,18 @@ const Hand = ({
   const { isDragging, showLeftArrow, scrollLeft, showRightArrow, scrollRight } =
     useScrollBox(scrollWrapperRef);
 
-  for (let i = 0; i < cards?.length; i++) {
-    hand.push(
-      <div key={i}>
-        <Card
-          id={i}
-          className="transitional-all duration-200 hover:scale-[100%] hover:border-yellow-500"
-          hover={isFocused}
-        />
-      </div>
-    );
+  if (cards && cards.length > 0) {
+    for (let i = 0; i < cards?.length; i++) {
+      hand.push(
+        <div key={i}>
+          <Card
+            id={i}
+            className="transitional-all duration-200 hover:scale-[100%] hover:border-yellow-500"
+            hover={isFocused}
+          />
+        </div>
+      );
+    }
   }
 
   return (
