@@ -5,35 +5,45 @@
  */
 
 import {
+    createPublicClient,
     createWalletClient,
     http,
     getContract,
     concat,
     encodeFunctionData,
-    toHex
 } from 'viem'
-import { mainnet } from 'viem/chains'
+import { localhost } from 'viem/chains'
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts'
-import { simpleAccountFactoryAbi, simpleAccountAbi } from 'src/utils/abis.ts'
+import {
+    simpleAccountFactoryAbi,
+    simpleAccountAbi,
+    paymasterAbi
+} from 'src/utils/abis'
 
 interface UserOperation {
-    sender: string
-    nonce: BigNumberish
-    initCode: BytesLike
-    callData: BytesLike
-    callGasLimit: BigNumberish
-    verificationGasLimit: BigNumberish
-    preVerificationGas: BigNumberish
-    maxFeePerGas: BigNumberish
-    maxPriorityFeePerGas: BigNumberish
-    paymasterAndData: BytesLike
-    signature: BytesLike
+    sender: `0x${string}`
+    nonce: number
+    initCode: `0x${string}`
+    callData: `0x${string}`
+    callGasLimit: number
+    verificationGasLimit: number
+    preVerificationGas: number
+    maxFeePerGas: number
+    maxPriorityFeePerGas: number
+    paymasterAndData: `0x${string}`
+    signature: `0x${string}`
 }
+
+const publicClient = createPublicClient({
+    chain: localhost,
+    transport: http()
+})
 
 const paymasterAddress = process.env.PAYMASTER_ADDRESS as `0x${string}`
 const paymaster = getContract({
     address: paymasterAddress,
-    abi: paymasterAbi
+    abi: paymasterAbi,
+    publicClient
 })
 
 export async function createAccount() {
@@ -49,9 +59,9 @@ export async function createAccount() {
     const account = privateKeyToAccount(privateKey)
 
     // TODO: change chain
-    const client = createWalletClient({
+    const walletClient = createWalletClient({
         account,
-        chain: mainnet,
+        chain: localhost,
         transport: http()
     })
 
@@ -59,19 +69,20 @@ export async function createAccount() {
     const simpleAccountFactoryAddress = process.env.SIMPLE_ACCOUNT_FACTORY_ADDRESS as `0x${string}`
     const simpleAccountFactory = getContract({
         address: simpleAccountFactoryAddress,
-        abi: simpleAccountFactoryAbi
+        abi: simpleAccountFactoryAbi,
+        publicClient
     })
     const initCode = concat([
         simpleAccountFactoryAddress,
         encodeFunctionData({
-            simpleAccountFactoryAbi,
+            abi: simpleAccountFactoryAbi,
             functionName: 'createAccount',
             args: [account.address, 0]
         }) // set salt as 0
     ])
 
     // Generate calldata to execute a transaction
-    const simpleAccountAddress = await simpleAccountFactory.read.getAddress(account.address, 0)
+    const simpleAccountAddress = await simpleAccountFactory.read.getAddress([account.address, 0]) as `0x${string}`
     const simpleAccount = getContract({
         address: simpleAccountAddress,
         abi: simpleAccountAbi
@@ -80,7 +91,7 @@ export async function createAccount() {
     const value = 0
     const data = "0x68656c6c6f" // "hello" encoded to utf-8 bytes
     const callData =  encodeFunctionData({
-        simpleAccountAbi,
+        abi: simpleAccountAbi,
         functionName: 'execute',
         args: [to, value, data]
     })
@@ -88,20 +99,20 @@ export async function createAccount() {
     // Construct UserOp
     let userOp: UserOperation = {
         sender: simpleAccountAddress,
-        nonce: Number(await paymaster.read.senderNonce(simpleAccountAddress)),
+        nonce: Number(await paymaster.read.senderNonce([simpleAccountAddress])),
         initCode: initCode,
         callData: callData,
-        callGasLimit: toHex(3_000_000), // hardcode it for now at a high value,
-        verificationGasLimit: toHex(3_000_000), // hardcode it for now at a high value,
-        preVerificationGas: toHex(2_000_000), // hardcode it for now at a high value,
-        maxFeePerGas: toHex(2e9),
-        maxPriorityFeePerGas: toHex(1e9),
+        callGasLimit: 3_000_000, // hardcode it for now at a high value,
+        verificationGasLimit: 3_000_000, // hardcode it for now at a high value,
+        preVerificationGas: 2_000_000, // hardcode it for now at a high value,
+        maxFeePerGas: 2e9,
+        maxPriorityFeePerGas: 1e9,
         paymasterAndData: concat([
             paymasterAddress,
-            '0x' + '00'.repeat(64),
-            '0x' + '00'.repeat(65)
-        ]),
-        signature: '0x' + '00'.repeat(65)
+            `0x${'00'.repeat(64)}`,
+            `0x${'00'.repeat(65)}`
+        ]) as `0x${string}`,
+        signature: '0x' + '00'.repeat(65) as `0x${string}`
     }
 
     // TODO: submit UserOp to bundler endpoint
