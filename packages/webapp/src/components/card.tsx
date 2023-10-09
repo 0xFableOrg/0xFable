@@ -108,7 +108,6 @@ export const Card = ({
           ? "shadow-2xl z-[50] flex h-[33rem] max-w-[24rem] scale-[65%] cursor-pointer flex-col items-center justify-evenly rounded-lg border-4 bg-gray-900 p-5 transform translateY-[-50%]"
           : "flex flex-col space-y-1 max-w-[200px]"
       }`}
-      onMouseDown={(e) => e.preventDefault()}
       onClick={
         () => {
           setIsDetailsVisible(!isDetailsVisible);
