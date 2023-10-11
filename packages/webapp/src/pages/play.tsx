@@ -1,16 +1,16 @@
 import { useEffect, useState } from "react"
 
-import Hand from "src/components/hand";
-import { LoadingModal } from "src/components/lib/loadingModal";
-import { useModalController } from "src/components/lib/modal";
-import { GameEndedModal } from "src/components/modals/gameEndedModal";
-import { Navbar } from "src/components/navbar";
-import { useGameWrite } from "src/hooks/useFableWrite";
-import * as store from "src/store/hooks";
-import { getPrivateInfo } from "src/store/read";
-import { GameStatus, PrivateInfo } from "src/store/types";
+import Hand from "src/components/hand"
+import { LoadingModal } from "src/components/lib/loadingModal"
+import { useModalController } from "src/components/lib/modal"
+import { GameEndedModal } from "src/components/modals/gameEndedModal"
+import { Navbar } from "src/components/navbar"
+import { useGameWrite } from "src/hooks/useFableWrite"
+import * as store from "src/store/hooks"
+import { getPrivateInfo } from "src/store/read"
+import { GameStatus, PrivateInfo } from "src/store/types"
 import { FablePage } from "src/pages/_app"
-import { Address } from "viem";
+import { Address } from "viem"
 
 const Play: FablePage = ({ isHydrated }) => {
   const [ gameID ] = store.useGameID()
@@ -22,16 +22,16 @@ const Play: FablePage = ({ isHydrated }) => {
   const [ concedeCompleted, setConcedeCompleted ] = useState(false)
   const playerAddress = store.usePlayerAddress()
 
-  let privateInfo: PrivateInfo | null = null;
+  let privateInfo: PrivateInfo | null = null
   if (gameID) {
-    privateInfo = getPrivateInfo(gameID as bigint, playerAddress as Address);
+    privateInfo = getPrivateInfo(gameID as bigint, playerAddress as Address)
   }
 
   const playerHand: bigint[] | null = privateInfo
     ? (privateInfo?.deck as bigint[])
-    : null;
+    : null
 
-  const ended = gameStatus === GameStatus.ENDED || concedeCompleted;
+  const ended = gameStatus === GameStatus.ENDED || concedeCompleted
 
   const { write: concede } = useGameWrite({
     functionName: "concedeGame",
@@ -41,9 +41,9 @@ const Play: FablePage = ({ isHydrated }) => {
     // Optimistically update the UX, as we know the transaction succeeded and the data refresh
     // will follow.
     onSuccess: () => setConcedeCompleted(true),
-  });
+  })
 
-  const ctrl = useModalController({ displayed: true, closeable: false });
+  const ctrl = useModalController({ displayed: true, closeable: false })
 
   // TODO: if there is no game ID, should redirect away from this page
   // TODO: the navbar connector should show bad chain if it's a bad chain
@@ -102,7 +102,7 @@ const Play: FablePage = ({ isHydrated }) => {
           {ended && (
             <>
               <button
-                className=" btn-warning btn-lg btn absolute right-4 bottom-1/2 z-50 !translate-y-1/2 rounded-lg border-[.1rem] border-base-300 font-mono hover:scale-105"
+                className="btn-warning btn-lg btn absolute right-4 bottom-1/2 z-50 !translate-y-1/2 rounded-lg border-[.1rem] border-base-300 font-mono hover:scale-105"
                 onClick={() => setHideResults(false)}
               >
                 SEE RESULTS & EXIT

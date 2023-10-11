@@ -1,21 +1,21 @@
-import { useRef, useState } from "react";
-import { AiOutlineLeft, AiOutlineRight } from "react-icons/ai";
-import useScrollBox from "../hooks/useScrollBox";
-import { Card } from "./card";
+import { useRef, useState } from "react"
+import { AiOutlineLeft, AiOutlineRight } from "react-icons/ai"
+import useScrollBox from "../hooks/useScrollBox"
+import { Card } from "./card"
 
 const Hand = ({
   cards,
   className,
 }: {
-  cards?: bigint[] | null;
-  className?: string;
+  cards?: bigint[] | null
+  className?: string
 }) => {
-  const [isFocused, setIsFocused] = useState<boolean>(false);
+  const [isFocused, setIsFocused] = useState<boolean>(false)
 
   const hand: any = [];
   const scrollWrapperRef = useRef<any>();
   const { isDragging, showLeftArrow, scrollLeft, showRightArrow, scrollRight } =
-    useScrollBox(scrollWrapperRef);
+    useScrollBox(scrollWrapperRef)
 
   if (cards && cards.length > 0) {
     for (let i = 0; i < cards?.length; i++) {
@@ -27,7 +27,7 @@ const Hand = ({
             handHovered={isFocused}
           />
         </div>
-      );
+      )
     }
   }
 

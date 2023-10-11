@@ -1,5 +1,5 @@
-import { useState } from "react";
-import Image from "next/image";
+import { useState } from "react"
+import Image from "next/image"
 
 // quick fix for hackathon
 const cards = [
@@ -94,13 +94,13 @@ export const Card = ({
   className,
   handHovered,
 }: {
-  id: number;
-  className?: string;
-  handHovered?: boolean;
+  id: number
+  className?: string
+  handHovered?: boolean
 }) => {
   // const [ , addToBoard ] = useAtom(store.addToBoard)
-  const [isDetailsVisible, setIsDetailsVisible] = useState<boolean>(false);
-  const [cardHover, setCardHover] = useState<boolean>(false);
+  const [isDetailsVisible, setIsDetailsVisible] = useState<boolean>(false)
+  const [cardHover, setCardHover] = useState<boolean>(false)
   return (
     <div
       className={`${className} transition-all ease-in-out duration-300 ${
@@ -122,8 +122,8 @@ export const Card = ({
           isDetailsVisible
             ? "font-serif overflow-hidden text-2xl font-bold text-slate-200 text-left text-clip max-w-[320px] select-none"
             : handHovered
-              ? "font-serif text-[14px] font-bold text-slate-200 text-left truncate select-none"
-              : "hidden"
+            ? "font-serif text-[14px] font-bold text-slate-200 text-left truncate select-none"
+            : "hidden"
         }
       >
         {cards[id]?.name}
