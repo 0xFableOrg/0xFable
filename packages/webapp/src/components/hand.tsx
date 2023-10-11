@@ -12,9 +12,9 @@ const Hand = ({
 }) => {
   const [isFocused, setIsFocused] = useState<boolean>(false)
 
-  const hand: any = [];
-  const scrollWrapperRef = useRef<any>();
-  const { isDragging, showLeftArrow, scrollLeft, showRightArrow, scrollRight } =
+  const hand: any = []
+  const scrollWrapperRef = useRef<any>()
+  const { showLeftArrow, scrollLeft, showRightArrow, scrollRight } =
     useScrollBox(scrollWrapperRef)
 
   if (cards && cards.length > 0) {
@@ -35,10 +35,10 @@ const Hand = ({
     <div
       className={`${className} flex flex-row items-center justify-evenly absolute bottom-0 z-[100] w-[95%]`}
       onMouseEnter={() => {
-        setIsFocused(true);
+        setIsFocused(true)
       }}
       onMouseLeave={() => {
-        setIsFocused(false);
+        setIsFocused(false)
       }}
     >
       {showLeftArrow && isFocused && (
@@ -53,7 +53,7 @@ const Hand = ({
         <div
           className="overflow-x-scroll no-scrollbar"
           ref={scrollWrapperRef}
-          style={{ pointerEvents: isDragging ? "none" : undefined }}
+          // style={{ pointerEvents: isDragging ? "none" : undefined }}
         >
           <div className="relative flex w-max">
             <div className="flex flex-row items-end justify-center space-x-4 px-2">
@@ -71,7 +71,7 @@ const Hand = ({
         </div>
       )}
     </div>
-  );
-};
+  )
+}
 
-export default Hand;
+export default Hand

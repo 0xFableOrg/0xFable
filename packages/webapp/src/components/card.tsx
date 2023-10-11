@@ -87,7 +87,7 @@ const cards = [
     defense: 1,
     image: "/card_art/0.jpg",
   },
-];
+]
 
 export const Card = ({
   id,
@@ -109,12 +109,12 @@ export const Card = ({
           : "flex flex-col space-y-1 max-w-[200px]"
       }`}
       onClick={() => {
-        setIsDetailsVisible(!isDetailsVisible);
+        setIsDetailsVisible(!isDetailsVisible)
       }}
       onMouseEnter={() => setCardHover(true)}
       onMouseLeave={() => {
-        setIsDetailsVisible(false);
-        setCardHover(false);
+        setIsDetailsVisible(false)
+        setCardHover(false)
       }}
     >
       <span
@@ -152,5 +152,5 @@ export const Card = ({
         </>
       )}
     </div>
-  );
-};
+  )
+}
