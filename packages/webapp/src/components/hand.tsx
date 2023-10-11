@@ -24,7 +24,7 @@ const Hand = ({
           <Card
             id={i}
             className="transitional-all duration-200 hover:scale-[100%] hover:border-yellow-500"
-            hover={isFocused}
+            handHovered={isFocused}
           />
         </div>
       );
@@ -51,7 +51,7 @@ const Hand = ({
       )}
       <div className={`relative w-[90%] overflow-x-hidden overflow-y-visible`}>
         <div
-          className="overflow-x-scroll"
+          className="overflow-x-scroll no-scrollbar"
           ref={scrollWrapperRef}
           style={{ pointerEvents: isDragging ? "none" : undefined }}
         >
