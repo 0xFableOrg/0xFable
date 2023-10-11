@@ -120,7 +120,7 @@ const Play: FablePage = ({ isHydrated }) => {
         </div>
       </main>
     </>
-  );
-};
+  )
+}
 
-export default Play;
+export default Play
