@@ -1,5 +1,10 @@
 /**
- * TODO
+ * Enables generating a zk proof in a dedicated web worker.
+ *
+ * This needs to be split from {@link module:utils/zkproofs/proofs} because of dependencies issue.
+ * See the comment in `index.ts` for explanations.
+ *
+ * Import this from {@link module:utils/zkproofs} instead.
  */
 
 import { isProofOutput, ProofOutput, ProofTimeoutError } from "src/utils/zkproofs/proofs"

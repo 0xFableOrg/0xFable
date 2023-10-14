@@ -1,7 +1,5 @@
 /**
  * Utilities to deal with Circom proofs.
- *
- * @module utils/proofs
  */
 
 import { formatTimestamp } from "src/utils/js-utils"
