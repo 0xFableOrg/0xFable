@@ -62,7 +62,7 @@ format:
 
 # The 1337 chain id matches chain.localhost in RainbowKit & "Localhost 8545" in MetaMask.
 anvil:
-	anvil --chain-id 1337
+	anvil --chain-id 1337 --code-size-limit 30000
 .PHONY: anvil
 
 # Dumps function, event and error selectors to out/selectors.txt
