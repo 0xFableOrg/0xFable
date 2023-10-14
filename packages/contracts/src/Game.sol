@@ -812,7 +812,7 @@ contract Game {
         // players must join within a 256-block window or they won't be able to get the blockhash to
         // generate the randomness. In that case, anybody can call `timeout()` to cancel the game.
 
-        if (gdata.playersLeftToJoin == 0 && gdata.livePlayers.length == gdata.livePlayers.length) {
+        if (gdata.playersLeftToJoin == 0 && gdata.players.length == gdata.livePlayers.length) {
             // Start the game!
             gdata.currentPlayer = uint8(randomness % gdata.players.length);
             gdata.currentStep = GameStep.PLAY; // first player doesn't draw
