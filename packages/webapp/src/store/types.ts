@@ -49,7 +49,7 @@ export type PlayerData = {
   handRoot: Hash
   deckRoot: Hash
   // Bitfield of cards in the player's battlefield, for each bit: 1 if the card at the same
-  // index as the bit in `GameData.cards` is on the battlefield, 0 otherwise.
+  // index as the bit in `FetchedGameDataWithCards.cards` if on the battlefield, 0 otherwise.
   battlefield: bigint
   // Bitfield of cards in the player's graveyard (same thing as `battlefield`).
   graveyard: bigint
@@ -70,11 +70,9 @@ export type FetchedGameData = {
   currentPlayer: number
   currentStep: GameStep
   attackingPlayer: Address
-  /**
-   * Array of cards involved in the game, only included if requested, otherwise empty.
-   */
-  cards: readonly bigint[]
 }
+
+export type FetchedGameDataWithCards = FetchedGameData & { cards: readonly bigint[] }
 
 // -------------------------------------------------------------------------------------------------
 
@@ -115,12 +113,12 @@ export type PrivateInfo = {
   deck: readonly bigint[]
   /**
    * The player's current's hand ordering (indexes into the game's card array ({@link
-   * FetchedGameData.cards}). Used for proofs.
+   * FetchedGameDataWithCards.cards}). Used for proofs.
    */
   handIndexes: Uint8Array
   /**
    * The player's current's deck ordering (indexes into the game's card array ({@link
-   * FetchedGameData.cards}). Used for proofs.
+   * FetchedGameDataWithCards.cards}). Used for proofs.
    */
   deckIndexes: Uint8Array
   /**

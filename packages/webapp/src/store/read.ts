@@ -39,6 +39,13 @@ export function getGameData(): FetchedGameData|null {
 
 // -------------------------------------------------------------------------------------------------
 
+/** All cards that may be used in the game. */
+export function getCards(): readonly bigint[]|null {
+  return store.get(store.cards)
+}
+
+// -------------------------------------------------------------------------------------------------
+
 /** The current game status (CREATED, JOINED, STARTED, etc). */
 export function getGameStatus(): GameStatus {
   return store.get(store.gameStatus)
@@ -88,12 +95,17 @@ export function getPlayerData(gdata: FetchedGameData|null = getGameData(), playe
  * Returns the player's deck if available (the player has joined the game we're tracking / whose
  * data we've passed in), or null.
  */
-export function getDeck(gdata: FetchedGameData|null = getGameData(), player: Address): bigint[]|null {
-  if (gdata === null) return null
+export function getDeck(
+    gdata: FetchedGameData|null = getGameData(),
+    cards: readonly bigint[]|null = getCards(),
+    player: Address)
+    : bigint[]|null {
+
+  if (gdata === null || cards === null) return null
   const pdata = getPlayerData(gdata, player)
   if (pdata === null) return null
 
-  return gdata.cards.slice(pdata.deckStart, pdata.deckEnd)
+  return cards.slice(pdata.deckStart, pdata.deckEnd)
 }
 
 // =================================================================================================

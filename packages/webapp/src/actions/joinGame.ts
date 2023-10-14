@@ -26,7 +26,7 @@ import {
 } from "src/store/actions"
 import {
   checkFresh,
-  freshWrap, getDeck,
+  freshWrap, getCards, getDeck,
   getGameData,
   getGameID,
   getGameStatus,
@@ -120,6 +120,7 @@ async function joinGameImpl(args: JoinGameArgs): Promise<boolean> {
   args.setLoading("Drawing cards...")
 
   const gameData = getGameData()
+  const cards = getCards()
   if (gameData === null) // should be impossible due to checkFresh usage
     throw new InconsistentGameStateError("Missing game data.")
 
@@ -131,7 +132,7 @@ async function joinGameImpl(args: JoinGameArgs): Promise<boolean> {
   if (playerData === null)
     throw new InconsistentGameStateError("Missing player data.")
 
-  const deck = getDeck(gameData, args.playerAddress)
+  const deck = getDeck(gameData, cards, args.playerAddress)
   if (deck === null) // should be impossible due to checkFresh usage
     throw new InconsistentGameStateError("Missing player deck.")
 

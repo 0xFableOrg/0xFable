@@ -47,6 +47,16 @@ export const gameData = atom(null as FetchedGameData|null)
 // -------------------------------------------------------------------------------------------------
 
 /**
+ * The cards currently in the game.
+ *
+ * This is updated atomically with {@link gameData}, when necessary, so it both are always null
+ * at the same time.
+ */
+export const cards = atom(null as readonly bigint[]|null)
+
+// -------------------------------------------------------------------------------------------------
+
+/**
  * Whether the user visited the game board for the current game.
  * This useful for managing state transitions in the game creation and joining flow.
  */
@@ -109,6 +119,7 @@ export const isGameJoiner = atom((get) => {
 playerAddress.debugLabel    = "playerAddress"
 gameID.debugLabel           = "gameID"
 gameData.debugLabel         = "gameData"
+cards.debugLabel            = "cards"
 hasVisitedBoard.debugLabel  = "hasVisitedBoard"
 gameStatus.debugLabel       = "gameStatus"
 privateInfoStore.debugLabel = "privateInfoStore"
