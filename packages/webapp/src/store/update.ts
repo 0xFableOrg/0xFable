@@ -128,13 +128,14 @@ function gameIDListener(ID: bigint|null) {
 
   // avoid using inconsistent data
   store.set(store.gameData, null)
+  store.set(store.cards, null)
   store.set(store.hasVisitedBoard, false)
 
   subscribeToGame(ID) // will unusubscribe if ID is null
   if (ID === null) return // no need to refresh data
 
   // We might be jumping into an in-progress game, so fetch cards.
-  void refreshGameData({ forceFetchCards: true })
+  void refreshGameData()
 }
 
 // =================================================================================================
@@ -164,13 +165,13 @@ function isStaleVerbose(ID: bigint, player: Address): boolean {
 // -------------------------------------------------------------------------------------------------
 
 /**
- * Triggers a refresh of the game data, setting the {@link store.gameData} atom. If the game ID or
- * the player changes the while the refresh is in flight, the refresh is ignored.
+ * Triggers a refresh of the game data, setting the {@link store.gameData} and {@link store.cards}
+ * atoms. If the game ID or the player changes the while the refresh is in flight, the refresh is
+ * ignored.
  *
- * If necessary (game not yet started or {@link forceFetchCards} set to true), also fetches the
- * cards.
+ * If necessary, also fetches the cards.
  */
-export async function refreshGameData({ forceFetchCards = false } = {}) {
+export async function refreshGameData() {
   const gameID = store.get(store.gameID)
   const player = store.get(store.playerAddress)
   const status = store.get(store.gameStatus)
@@ -183,8 +184,10 @@ export async function refreshGameData({ forceFetchCards = false } = {}) {
     return
   }
 
-  // Always fetch cards before game is started (easier), but never after as they won't change.
-  const shouldFetchCards = status < GameStatus.STARTED || forceFetchCards
+  // Always fetch cards before game is started (easier). Don't fetch after, as they won't change,
+  // but fetch is missing (e.g. browser refresh).
+  const cards = store.get(store.cards)
+  const shouldFetchCards = status < GameStatus.STARTED || cards === null
 
   const gameData = await net.fetchGameData(gameID, player, shouldFetchCards)
 
@@ -199,6 +202,8 @@ export async function refreshGameData({ forceFetchCards = false } = {}) {
     return oldGameData
 
   store.set(store.gameData, gameData)
+  if (gameData.cards.length > 0)
+    store.set(store.cards, gameData.cards)
 
   const timestamp = Date.now()
   console.groupCollapsed(

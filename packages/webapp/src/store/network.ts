@@ -10,7 +10,7 @@ import { readContract } from "wagmi/actions"
 import { gameABI, inventoryABI } from "src/generated"
 import { deployment } from "src/deployment"
 import { type Fetched, throttledFetch } from "src/utils/throttled-fetch"
-import { FetchedGameData } from "src/store/types"
+import { type FetchedGameDataWithCards } from "src/store/types"
 import { Address } from "src/chain"
 
 // =================================================================================================
@@ -21,7 +21,7 @@ import { Address } from "src/chain"
  */
 export const fetchGameData:
     (gameID: bigint, player: Address, shouldFetchCards: boolean)
-    => Promise<Fetched<FetchedGameData>> =
+    => Promise<Fetched<FetchedGameDataWithCards>> =
   throttledFetch(async (gameID: bigint, player: Address, shouldFetchCards: boolean) => {
     return readContract({
       address: deployment.Game,
