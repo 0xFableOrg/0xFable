@@ -1,7 +1,7 @@
 /**
  * Utilities to deal with Circom proofs.
  *
- * @module utils/proofs
+ * @module utils/zkproofs
  */
 
 // Note: we've needed to split proveInWorker off from proofs.ts, because the worker scripts

@@ -2,8 +2,6 @@
  * Worker script for computing zero-knowledge proofs from actions.
  *
  * Used from {@link proveInWorker}.
- *
- * @module actions/proofWorker
  */
 
 import { prove, type ProofInputs } from "src/utils/zkproofs/proofs"
