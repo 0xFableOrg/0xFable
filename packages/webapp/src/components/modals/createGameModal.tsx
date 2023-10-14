@@ -18,7 +18,7 @@ export const CreateGameModal = () => {
   const isGameCreator = store.useIsGameCreator()
   const ctrl = useModalController({ loaded: isGameCreator })
 
-  // Otherwise if we're on the home page and we're the game creator, this modal should be displayed.
+  // If we're on the home page and we're the game creator, this modal should be displayed.
   // An explicit intervention is necessary because the state might update while the modal is closed.
   useEffect(() => {
     if (isGameCreator && !ctrl.displayed)
