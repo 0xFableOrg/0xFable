@@ -65,16 +65,37 @@ function useScrollBox(scrollRef: any) {
     []
   )
 
+  const handleScroll = (e: WheelEvent) => {
+    if (scrollRef.current) {
+      // Adjust the scrollLeft property based on the deltaY value
+      scrollRef.current.scrollLeft += e.deltaY
+    }
+  }
+
+  const handleResize = () => {
+    setShowLeftArrow(true)
+    setShowRightArrow(true)
+  }
+
   useEffect(() => {
     if (scrollRef.current) {
       checkArrowsVisibility()
+
+      window.addEventListener("resize", handleResize)
+
       const scrollWrapper = scrollRef.current
       if (scrollWrapper) {
         scrollWrapper.addEventListener("scroll", checkArrowsVisibility)
+        scrollWrapper.addEventListener("wheel", handleScroll)
       }
+
+      // Cleanup function
       return () => {
+        window.removeEventListener("resize", handleResize)
+
         if (scrollWrapper) {
           scrollWrapper.removeEventListener("scroll", checkArrowsVisibility)
+          scrollWrapper.removeEventListener("wheel", handleScroll)
         }
       }
     }
