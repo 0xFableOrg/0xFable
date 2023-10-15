@@ -271,7 +271,7 @@ contract Game {
 
     // Boolean to indicate whether we should check zk proof.
     // TODO set to true by default, can be disabled in test via the `toggleProof` function
-    bool private checkProofs = false;
+    bool private checkProofs = true;
 
     // Maps game IDs to game data.
     mapping(uint256 => GameData) public gameData;
@@ -647,11 +647,10 @@ contract Game {
     // The player's deck is cards[pdata.deckStart:pdata.deckEnd].
     function checkInitialHandProof(
         PlayerData storage pdata,
-        uint256[2] memory packedDeck,
         uint256 randomness,
         uint256 saltHash,
         uint256[24] memory proof
-    ) internal view {
+    ) internal /*view*/ {
         if (address(drawVerifier) == address(0)) return;
 
         // - The proof requires a deck packed onto two field elements.
@@ -695,14 +694,24 @@ contract Game {
         pubSignals[5] = saltHash;
         pubSignals[6] = randomness;
 
+        // TODO debug code and events
+
+        // weirder formulation than this to avoid "stack too deep"
+        // emit DebugProof(inGame[msg.sender], msg.sender, packedDeck, randomness, saltHash, proof, uint8(deckLength - 1), pdata.deckRoot, pdata.handRoot);
+        emit DebugProof(inGame[msg.sender], msg.sender, packedDeck, randomness, saltHash, uint8(deckLength - 1), bytes32(pubSignals[3]), bytes32(pubSignals[4]), proof);
+
         /// @dev currently bypass check for testing
         if (checkProofs) {
             if (!drawHandVerifier.verifyProof(proof, pubSignals)) {
-                revert InvalidProof();
+                emit ProofFailed(inGame[msg.sender]);
+                // revert InvalidProof();
             }
         }
     }
 
+    // A player was defeated by an ennemy attack.
+    event DebugProof(uint256 indexed gameID, address player, uint256[2] packedDeck, uint256 randomness, uint256 saltHash, uint8 lastIndex, bytes32 deckRoot, bytes32 handRoot, uint256[24] proof);
+    event ProofFailed(uint256 indexed gameID);
 
     // ---------------------------------------------------------------------------------------------
 

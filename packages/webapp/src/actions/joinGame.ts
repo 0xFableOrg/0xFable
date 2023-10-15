@@ -34,7 +34,7 @@ import {
   getPrivateInfo
 } from "src/store/read"
 import { FetchedGameData, GameStatus, PlayerData, PrivateInfo } from "src/store/types"
-import { ProofOutput, proveInWorker } from "src/utils/zkproofs"
+import { ProofOutput, proveInWorker, verify } from "src/utils/zkproofs"
 import { NUM_CARDS_FOR_PROOF } from "src/game/constants"
 import { packCards } from "src/game/fableProofs"
 
@@ -105,9 +105,10 @@ async function joinGameImpl(args: JoinGameArgs): Promise<boolean> {
 
   let privateInfo: PrivateInfo | null = getOrInitPrivateInfo(args.gameID, args.playerAddress)
 
-  // TODO
-  //    If someone else has alreaady joined, we can initiate the proof now, so that it proceeds
-  //    in the background while sending the joinGame transaction.
+  // NOTE: If we used the creation block for randomness, we could already drawing cards and start
+  // generating the proof now. The reason why we don't is that this lets players simulate their
+  // hands before joining, which lets them select which games to join. If the creator participates,
+  // it lets him create and cancel many games to find one that will advantage him.
 
   if (gameStatus < GameStatus.JOINED) { // we can skip the join step if already performed
     const promise = doJoinGameTransaction(args, privateInfo.saltHash)
@@ -220,6 +221,8 @@ async function generateDrawInitialHandProof(
   for (let i = 0; i < deck.length; i++) initialDeckOrdering[i] = playerData.deckStart + i
   for (let i = deck.length; i < initialDeckOrdering.length; i++) initialDeckOrdering[i] = 255
 
+  // TODO start debug code
+
   console.dir({
     // public inputs
     initialDeck: packCards(initialDeckOrdering),
@@ -234,7 +237,9 @@ async function generateDrawInitialHandProof(
     hand: packCards(privateInfo.handIndexes)
   })
 
-  return proveInWorker("DrawHand", {
+  // TODO end debug code
+
+  const out = await proveInWorker("DrawHand", {
     // public inputs
     initialDeck: packCards(initialDeckOrdering),
     lastIndex: BigInt(deck.length - 1),
@@ -247,6 +252,24 @@ async function generateDrawInitialHandProof(
     deck: packCards(privateInfo.deckIndexes),
     hand: packCards(privateInfo.handIndexes)
   })
+
+  // TODO start debug code
+
+  const reconstructedSignals = [
+    packCards(initialDeckOrdering)[0].toString(),
+    packCards(initialDeckOrdering)[1].toString(),
+    (deck.length - 1).toString(),
+    BigInt(privateInfo.deckRoot).toString(),
+    BigInt(privateInfo.handRoot).toString(),
+    privateInfo.saltHash.toString(),
+    gameData.publicRandomness.toString()
+  ]
+
+  console.log(`verify: ${await verify("DrawHand", reconstructedSignals, out._proof)}`)
+
+  // TODO end debug code
+
+  return out
 }
 
 // -------------------------------------------------------------------------------------------------

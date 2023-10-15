@@ -16,6 +16,9 @@ export type ProofInputs = Record<string, bigint|bigint[]|string>
 
 export type ProofOutput = {
   proof: readonly bigint[]
+  // TODO: remove debug fields
+  _proof: any
+  publicSignals: readonly string[]
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -68,10 +71,13 @@ export async function prove
 
     // Clean this fucking mess up.
     return { proof: calldata
-        .slice(1).split("]", 1)[0] // keep '"proofItem1", "proofItem2", ...'
-        .split(",")
-        // trim() is necessary, they added ONE extra space between the first two items
-        .map((it: string) => BigInt(it.trim().slice(1, -1))) // [ proofItem1, proofItem2, ... ]
+      .slice(1).split("]", 1)[0] // keep '"proofItem1", "proofItem2", ...'
+      .split(",")
+      // trim() is necessary, they added ONE extra space between the first two items
+      .map((it: string) => BigInt(it.trim().slice(1, -1))), // [ proofItem1, proofItem2, ... ]
+      // TODO: remove debug fields
+      _proof: proof,
+      publicSignals
     }
 
     // NOTE: We could have copied the ordering of proof items from the `exportSolidityCallData`

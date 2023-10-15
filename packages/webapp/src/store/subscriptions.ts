@@ -39,6 +39,8 @@ const eventNames = [
   'Champion',
   'PlayerDefeated',
   'MissingPlayers',
+  'DebugProof',
+  'ProofFailed'
 ]
 
 // -------------------------------------------------------------------------------------------------
