@@ -654,12 +654,42 @@ contract Game {
     ) internal view {
         if (address(drawVerifier) == address(0)) return;
 
+        // - The proof requires a deck packed onto two field elements.
+        // - We obtain it by write the index of each card in the `gdata.cards` array to a byte
+        //   of the field elements.
+        // - A field element (felt) can hold 31 bytes, so we pack 31 cards per field element.
+        // - We pad the rest of the bytes with 255, representing the absence of cards.
+        // - The cards are written in little-endian order (first card = low-order byte), with the
+        //   first 31 bytes packed into the first field element.
+        //  - Because we're using the initial deck ordering for this proof, the indexes are
+        //    sequential: [pdata.deckStart, pdata.deckEnd).
+
+        uint256 maxDeckSize = inventory.MAX_DECK_SIZE();
+        assert(maxDeckSize <= 62);
+        uint256 deckStart = pdata.deckStart;
+        uint256 deckEnd = pdata.deckEnd;
+        uint256 deckLength = deckEnd - deckStart;
+        uint256[2] memory packedDeck;
+
+        for (uint256 i = 0; i < deckLength; ++i) {
+            uint256 feltIndex = i / 31; // [0, 30] in 0, [31, 61] in 1
+            uint256 byteIndex = i % 31;
+            // packedDeck[feltIndex][byteIndex] = deckStart + i;
+            packedDeck[feltIndex] |= (deckStart + i) << (8 * byteIndex);
+        }
+        for (uint256 i = deckLength; i < maxDeckSize; ++i) {
+            uint256 feltIndex = i / 31; // [0, 30] in 0, [31, 61] in 1
+            uint256 byteIndex = i % 31;
+            // packedDeck[feltIndex][byteIndex] = 255;
+            packedDeck[feltIndex] |= 255 << (8 * byteIndex);
+        }
+
         // construct circuit public signals
         uint256[7] memory pubSignals;
 
         pubSignals[0] = packedDeck[0];
         pubSignals[1] = packedDeck[1];
-        pubSignals[2] = pdata.deckEnd - pdata.deckStart - 1; // last index
+        pubSignals[2] = deckLength - 1; // last index
         pubSignals[3] = uint256(pdata.deckRoot);
         pubSignals[4] = uint256(pdata.handRoot);
         pubSignals[5] = saltHash;
@@ -673,35 +703,6 @@ contract Game {
         }
     }
 
-    // ---------------------------------------------------------------------------------------------
-
-    // Packs the deck into two field elements, each containing at most 31 cards.
-    function packDeck(uint256[] memory deck) internal view returns (uint256[2] memory) {
-        // Pad the deck up to 62 cards with 255 representing a null value.
-        // 31 cards are packed per field element (that's the number of bytes a field element can hold).
-        uint256 maxDeckSize = inventory.MAX_DECK_SIZE();
-        uint256[] memory cards = new uint256[](maxDeckSize);
-        // but would be nice to have an additional check
-        for (uint256 i = 0; i < deck.length; i++) {
-            cards[i] = deck[i];
-        }
-        for (uint256 i = deck.length; i < maxDeckSize; i++) {
-            cards[i] = 255;
-        }
-
-        uint256[2] memory packedCards;
-        uint256 numFields = (maxDeckSize + 30) / 31;
-        assert(numFields == packedCards.length);
-        for (uint256 i = 0; i < numFields; i++) {
-            bytes memory packedCardsInBytes = new bytes(32);
-            for (uint256 j = 0; j < 31; j++) {
-                bytes1 card = bytes1(uint8(cards[i * 31 + j]));
-                packedCardsInBytes[31 - j] = card;
-            }
-            packedCards[i] = uint256(bytes32(packedCardsInBytes));
-        }
-        return packedCards;
-    }
 
     // ---------------------------------------------------------------------------------------------
 
@@ -792,8 +793,7 @@ contract Game {
         pdata.handSize = INITIAL_HAND_SIZE;
 
         uint256 randomness = getPubRandomnessForBlock(gdata.lastBlockNum);
-        uint256[2] memory packedDeck = packDeck(playerDeck(gdata, pdata));
-        checkInitialHandProof(pdata, packedDeck, randomness, pdata.saltHash, proof);
+        checkInitialHandProof(pdata, randomness, pdata.saltHash, proof);
 
         // Add the player to the list of live players.
         // Note that this loop is cheaper than passing the index to the function, as calldata is
