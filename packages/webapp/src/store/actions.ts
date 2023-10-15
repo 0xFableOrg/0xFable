@@ -11,6 +11,7 @@ import { randomUint256 } from "src/utils/js-utils"
 
 import "src/utils/extensions"
 import { mimcHash } from "src/utils/hashing"
+import { PROOF_FIELD_PRIME } from "src/game/constants"
 
 const get = store.get
 const set = store.set
@@ -104,7 +105,7 @@ export function getOrInitPrivateInfo(gameID: bigint, playerAddress: Address): Pr
     return privateInfo
 
   // The player's secret salt, necessary to hide information.
-  const salt = randomUint256()
+  const salt = randomUint256() % PROOF_FIELD_PRIME
 
   privateInfo = {
     salt,

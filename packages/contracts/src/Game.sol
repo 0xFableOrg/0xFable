@@ -290,6 +290,14 @@ contract Game {
     DrawHandVerifier public drawHandVerifier;
 
     // =============================================================================================
+    // CONSTANTS
+
+    // The prime that bounds the field used by our proof scheme of choice.
+    // Currently, this is for Plonk.
+    uint256 constant private PROOF_FIELD_PRIME =
+        21888242871839275222246405745257275088696311157297823662689037894645226208583;
+
+    // =============================================================================================
     // MODIFIERS
 
     // Check that the game exists (has been created and is not finished).
@@ -486,7 +494,7 @@ contract Game {
 
     // Returns the current public randomness for the game — used to draw cards.
     function getPublicRandomness(uint256 gameID) external view returns (uint256) {
-        return uint256(blockhash(gameData[gameID].lastBlockNum));
+        return uint256(blockhash(gameData[gameID].lastBlockNum)) % PROOF_FIELD_PRIME;
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -494,7 +502,7 @@ contract Game {
     // Returns the current public randomness for the game based on its lastBlockNum value — used to
     // draw cards.
     function getPubRandomnessForBlock(uint256 lastBlockNum) internal view returns (uint256) {
-        return uint256(blockhash(lastBlockNum));
+        return uint256(blockhash(lastBlockNum)) % PROOF_FIELD_PRIME;
     }
 
     // ---------------------------------------------------------------------------------------------

@@ -22,6 +22,7 @@ import { getGameStatus } from "src/game/status"
 import { contractWriteThrowing } from "src/actions/libContractWrite"
 import { deployment } from "src/deployment"
 import { gameABI } from "src/generated"
+import { PROOF_FIELD_PRIME } from "src/game/constants"
 
 // =================================================================================================
 // INITIALIZATION
@@ -279,7 +280,7 @@ export async function refreshGameData() {
       // Note that this will also works when the publicRandomness is separate for players drawing
       // their hands: in the case where we're on the very last block, `gameData.lastBlockNum ===
       // playerData.joinBlockNum`.
-      gameData.publicRandomness = parseBigInt(lastGameBlock.hash)
+      gameData.publicRandomness = parseBigInt(lastGameBlock.hash) % PROOF_FIELD_PRIME
     }
   }
 
