@@ -1,4 +1,4 @@
-import { useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { AiOutlineLeft, AiOutlineRight } from "react-icons/ai"
 import useScrollBox from "../hooks/useScrollBox"
 import { Card } from "./card"
@@ -31,9 +31,19 @@ const Hand = ({
     }
   }
 
+  useEffect(() => {
+    const handleResize = () => {
+      setIsFocused(true)
+    }
+    window.addEventListener("resize", handleResize)
+    return () => {
+      window.removeEventListener("resize", handleResize)
+    }
+  }, [])
+
   return (
     <div
-      className={`${className} flex flex-row items-center justify-evenly absolute bottom-0 z-[100] w-[95%]`}
+      className={`${className} flex flex-row items-center justify-evenly bottom-0 w-[95%] space-x-2`}
       onMouseEnter={() => {
         setIsFocused(true)
       }}
@@ -50,11 +60,7 @@ const Hand = ({
         </div>
       )}
       <div className={`relative w-[90%] overflow-x-hidden overflow-y-visible`}>
-        <div
-          className="overflow-x-scroll no-scrollbar"
-          ref={scrollWrapperRef}
-          // style={{ pointerEvents: isDragging ? "none" : undefined }}
-        >
+        <div className="overflow-x-scroll no-scrollbar" ref={scrollWrapperRef}>
           <div className="relative flex w-max">
             <div className="flex flex-row items-end justify-center space-x-4 px-2">
               {hand}
