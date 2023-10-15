@@ -15,15 +15,13 @@ export type ProofInputs = Record<string, bigint|bigint[]|string>
 // -------------------------------------------------------------------------------------------------
 
 export type ProofOutput = {
-  // Bigints in (decimal) string form.
-  publicSignals: readonly string[]
-  proof: any
+  proof: readonly bigint[]
 }
 
 // -------------------------------------------------------------------------------------------------
 
 export function isProofOutput(value: any): value is ProofOutput {
-  return value !== undefined && value.publicSignals !== undefined && value.proof !== undefined
+  return value !== undefined && value.proof !== undefined
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -53,7 +51,7 @@ export async function prove
   console.log(`start proving (at ${formatTimestamp(timestampStart)})`)
 
   try {
-    const out = await snarkjs.plonk.fullProve(inputs,
+    const { publicSignals, proof } = await snarkjs.plonk.fullProve(inputs,
       `${self.origin}/proofs/${circuitName}.wasm`,
       `${self.origin}/proofs/${circuitName}.zkey`)
 
@@ -62,9 +60,23 @@ export async function prove
       `time: ${(timestampEnd - timestampStart) / 1000}s)`)
 
     // NOTE: proof can be verified with
-    //       `verify(circuitName, out.publicSignals, out.proof)`
+    //       `verify(circuitName, publicSignals, proof)`
 
-    return out
+    // Probably because they were high, the snarkjs author decided to return a string here,
+    // formatted as '["proofItem1", "proofItem2", ...]["publicSignal1", "publicSignal2", ...]'.
+    const calldata = await snarkjs.plonk.exportSolidityCallData(proof, publicSignals)
+
+    // Clean this fucking mess up.
+    return { proof: calldata
+        .slice(1).split("]", 1)[0] // keep '"proofItem1", "proofItem2", ...'
+        .split(",")
+        // trim() is necessary, they added ONE extra space between the first two items
+        .map((it: string) => BigInt(it.trim().slice(1, -1))) // [ proofItem1, proofItem2, ... ]
+    }
+
+    // NOTE: We could have copied the ordering of proof items from the `exportSolidityCallData`
+    // function and read them from the `proof` object directly. The risk is we need to change the
+    // code if the ordering changes (but now we need to change the code if the formatting changes).
   }
   catch (error) {
     const timestampEnd = Date.now()

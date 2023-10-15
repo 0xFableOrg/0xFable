@@ -256,7 +256,7 @@ async function generateDrawInitialHandProof(
  * the game is ready to start.
  */
 async function doDrawInitialHandTransaction
-    (args: JoinGameArgs, privateInfo: PrivateInfo, _proof: bigint[]) {
+    (args: JoinGameArgs, privateInfo: PrivateInfo, proof: readonly bigint[]) {
 
   // function drawInitialHand(uint256 gameID, bytes32 handRoot, bytes32 deckRoot, bytes calldata proof)
   const result = checkFresh(await freshWrap(
@@ -268,7 +268,7 @@ async function doDrawInitialHandTransaction
         args.gameID,
         privateInfo.handRoot,
         privateInfo.deckRoot,
-        fakeProof as any // proof
+        proof as any, // coerce because signature wants precise length
       ],
       setLoading: args.setLoading
     })))
