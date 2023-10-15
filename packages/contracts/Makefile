@@ -76,6 +76,7 @@ deploy: build
 		--fork-url $(RPC_$(CONFIG)) \
 		--private-key $(PRIVATE_KEY_$(CONFIG)) \
 		--broadcast \
+		--non-interactive \
 		| grep "address " > out/deployment.txt
 	@cat out/deployment.txt
 	@node scripts/extract_contract_addresses_abis.js \
