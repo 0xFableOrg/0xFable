@@ -64,9 +64,7 @@ export const hasVisitedBoard = atom(false)
 
 // -------------------------------------------------------------------------------------------------
 
-// TODO persist this to browser storage!
-//   - needs provision for pruning this when game are completed
-//   - ... or do not even exist because we're running on a local devnet
+// TODO prune this when games are completed (and later, enable deep pruning of old games)
 
 /**
  * Store {@link PrivateInfo} in local storage, keyed by gameID (stringified) and player.
@@ -74,7 +72,7 @@ export const hasVisitedBoard = atom(false)
  * This information cannot be derived from on-chain data, it's therefore important to persist it
  * to browser storage in order to survive page reloads.
  */
-export const privateInfoStore = atom({} as PrivateInfoStore)
+export const privateInfoStore = atomWithStorage("0xFable::privateInfoStore", {} as PrivateInfoStore)
 
 // -------------------------------------------------------------------------------------------------
 
