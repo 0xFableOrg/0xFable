@@ -99,11 +99,6 @@ contract Integration is Test {
         inventory.getDeck(player2, 0); // player1 has card id of 49-72 inclusive
         inventory.getDeck(player2, 0); // player2 has card id of 73-96 inclusive
 
-        // check zk proof for first player
-        // TODO remove when we toggle Game.checkProof to true
-        vm.prank(address(0));
-        game.toggleCheckProofs();
-
         vm.startPrank(player1);
         game.joinGame(gameID, DECK_ID, SALT_HASH, JOIN_DATA);
         game.drawInitialHand(gameID, HAND_ROOT, DECK_ROOT, generateProof());

@@ -271,7 +271,7 @@ contract Game {
 
     // Boolean to indicate whether we should check zk proof.
     // TODO set to true by default, can be disabled in test via the `toggleProof` function
-    bool private checkProofs = false;
+    bool private checkProofs = true;
 
     // Maps game IDs to game data.
     mapping(uint256 => GameData) public gameData;
