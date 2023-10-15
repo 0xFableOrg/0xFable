@@ -67,12 +67,7 @@ export async function prove
     const calldata = await snarkjs.plonk.exportSolidityCallData(proof, publicSignals)
 
     // Clean this fucking mess up.
-    return { proof: calldata
-        .slice(1).split("]", 1)[0] // keep '"proofItem1", "proofItem2", ...'
-        .split(",")
-        // trim() is necessary, they added ONE extra space between the first two items
-        .map((it: string) => BigInt(it.trim().slice(1, -1))) // [ proofItem1, proofItem2, ... ]
-    }
+    return { proof: JSON.parse(calldata.split("][", 1)[0] + "]").map(BigInt) }
 
     // NOTE: We could have copied the ordering of proof items from the `exportSolidityCallData`
     // function and read them from the `proof` object directly. The risk is we need to change the
