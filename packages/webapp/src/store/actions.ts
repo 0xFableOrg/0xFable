@@ -123,3 +123,17 @@ export function getOrInitPrivateInfo(gameID: bigint, playerAddress: Address): Pr
 }
 
 // =================================================================================================
+// QUIT GAME
+
+/**
+ * Stop tracking the current game and reset all of its non-private data (the private data is kept
+ * because it can't be recovered from the chain).
+ */
+export function quitGame() {
+  set(store.gameID, null)
+  set(store.gameData, null)
+  set(store.cards, null)
+  set(store.hasVisitedBoard, false)
+}
+
+// =================================================================================================

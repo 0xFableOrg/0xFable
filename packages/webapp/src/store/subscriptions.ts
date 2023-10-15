@@ -19,6 +19,8 @@ import { gameABI } from "src/generated"
 import * as store from "src/store/atoms"
 import { refreshGameData } from "src/store/update"
 import { format } from "src/utils/js-utils"
+import { quitGame, setError } from "src/store/actions"
+import { DISMISS_BUTTON } from "src/actions/errors"
 
 // =================================================================================================
 // SUBSCRIPTION MANAGEMENT
@@ -35,7 +37,8 @@ const eventNames = [
   'GameStarted',
   'PlayerConceded',
   'Champion',
-  'PlayerDefeated'
+  'PlayerDefeated',
+  'MissingPlayers',
 ]
 
 // -------------------------------------------------------------------------------------------------
@@ -143,6 +146,18 @@ function handleEvent(name: string, args: GameEventArgs) {
     case 'Champion': {
       // No need to refetch game data, a player winning is triggered by a player conceding or being
       // defeating, which refreshes the game data.
+      break
+    }
+    case 'MissingPlayers': {
+      // TODO: temporary message, need to do better flow handling for these scenarios
+      // TODO: might also be good to close the createGame modal after this
+      setError({
+        title: "Missing players",
+        message: "Some players didn't join within the time limit, " +
+          "the game got cancelled as a result.",
+        buttons: [DISMISS_BUTTON]
+      })
+      quitGame()
       break
     }
   }
