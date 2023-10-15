@@ -97,7 +97,7 @@ function gameEventListener(name: string, logs: readonly GameEventLog[]) {
 // -------------------------------------------------------------------------------------------------
 
 function handleEvent(name: string, args: GameEventArgs) {
-  console.log(`event fired ${name}(${format(args)})`)
+  console.log(`event fired ${name}(${format(args, true)})`)
 
   const ID = store.get(store.gameID)
 
