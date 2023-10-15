@@ -7,15 +7,21 @@
 // =================================================================================================
 
 
-import { getAccount, getNetwork, watchAccount, watchNetwork } from "wagmi/actions"
+import { getAccount, getNetwork, getPublicClient, watchAccount, watchNetwork } from "wagmi/actions"
 
 import { AccountResult, Address, chains, NetworkResult } from "src/chain"
 import { subscribeToGame } from "src/store/subscriptions"
 import * as store from "src/store/atoms"
 import * as net from "src/store/network"
 import { THROTTLED, ZOMBIE } from "src/utils/throttled-fetch"
-import { formatTimestamp } from "src/utils/js-utils"
-import { GameStatus } from "src/store/types"
+import { formatTimestamp, parseBigInt } from "src/utils/js-utils"
+import { FetchedGameData, GameStatus, PrivateInfoStore } from "src/store/types"
+import { getBlock } from "viem/actions"
+import { setError } from "src/store/actions"
+import { getGameStatus } from "src/game/status"
+import { contractWriteThrowing } from "src/actions/libContractWrite"
+import { deployment } from "src/deployment"
+import { gameABI } from "src/generated"
 
 // =================================================================================================
 // INITIALIZATION
@@ -174,7 +180,7 @@ function isStaleVerbose(ID: bigint, player: Address): boolean {
 export async function refreshGameData() {
   const gameID = store.get(store.gameID)
   const player = store.get(store.playerAddress)
-  const status = store.get(store.gameStatus)
+  let status = store.get(store.gameStatus)
 
   if (gameID === null) {
     console.error("refreshGameData called with null ID")
@@ -200,6 +206,82 @@ export async function refreshGameData() {
   if (oldGameData !== null && oldGameData.lastBlockNum >= gameData.lastBlockNum)
     // We already have more or as recent data, no need to trigger a store update.
     return oldGameData
+
+  status = getGameStatus(gameData, player)
+
+  if (gameData.publicRandomness === 0n && status !== GameStatus.ENDED) {
+    const block = await getBlock(getPublicClient())
+
+    // This could be due to:
+    // 1. The block used being used for the randomness being the last block. eth_call RPC calls
+    //    are seemingly ran with the last block number, meaning the blockhash is unavailable.
+    // 2.
+
+    if (gameData.lastBlockNum < block.number - 256n) {
+      // The block used for randomness is too old (> 256 blocks in the past), meaning the game
+      // is timed out.
+
+      const status = getGameStatus(gameData, player)
+      const currentPlayer = gameData.players[gameData.currentPlayer]
+
+      // TODO these things throw exception which we do not handle
+
+      const sendTimeout = async () => {
+        // TODO: this has no loading indicators while the game is cancelling
+        await contractWriteThrowing({
+          contract: deployment.Game,
+          abi: gameABI,
+          functionName: "timeout",
+          args: [gameID]
+        })
+        setError(null)
+      }
+
+      if (status === GameStatus.STARTED) {
+        if (currentPlayer === player) {
+          setError({
+            title: "Time out",
+            message: "You didn't take an action within the time limit, and lost as a result.",
+            buttons: [{ text: "Leave Game", onClick: sendTimeout }]})
+        } else {
+          setError({
+            title: "Your opponent timed out",
+            message: "Your opponent didn't take an action within the time limit, " +
+              "and you won as a result.",
+            buttons: [{ text: "Claim Victory", onClick: sendTimeout }]})}
+      } else {
+        // The game hasn't started yet, but some player didn't join.
+        if (status === GameStatus.HAND_DRAWN) {
+          // We've done our part, it's some other player that didn't join.
+          setError({
+            title: "Missing players",
+            message: "Some players didn't join within the time limit, " +
+              "the game got cancelled as a result.",
+            buttons: [{ text: "Leave Game", onClick: sendTimeout }]})
+        } else {
+          setError({
+            title: "Time out",
+            message: "You couldn't join the game within the time limit, " +
+              "the game got cancelled as a result.",
+            buttons: [{
+              text: "Leave Game",
+              onClick: sendTimeout}]})
+        }
+      }
+    } else {
+      // The `eth_call` RPC call executes in the context of the last block, so it's likely that
+      // `gameData.lastBlockNum` is the very last block and onchain its blockhash is not available.
+
+      const lastGameBlock = block.number === gameData.lastBlockNum
+        ? block
+        : await getBlock(getPublicClient(), { blockNumber: gameData.lastBlockNum })
+
+      // Note that this will also works when the publicRandomness is separate for players drawing
+      // their hands: in the case where we're on the very last block, `gameData.lastBlockNum ===
+      // playerData.joinBlockNum`.
+      gameData.publicRandomness = parseBigInt(lastGameBlock.hash)
+    }
+  }
 
   store.set(store.gameData, gameData)
   if (gameData.cards.length > 0)
