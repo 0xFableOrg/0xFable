@@ -34,7 +34,7 @@ import {
   getPrivateInfo
 } from "src/store/read"
 import { FetchedGameData, GameStatus, PlayerData, PrivateInfo } from "src/store/types"
-import { ProofOutput, proveInWorker, verify } from "src/utils/zkproofs"
+import { ProofOutput, proveInWorker } from "src/utils/zkproofs"
 import { NUM_CARDS_FOR_PROOF } from "src/game/constants"
 import { packCards } from "src/game/fableProofs"
 
