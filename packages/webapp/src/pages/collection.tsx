@@ -11,9 +11,9 @@ import { MintDeckModal } from "src/components/modals/mintDeckModal"
 import { Navbar } from "src/components/navbar"
 import { deployment } from "src/deployment"
 import { useInventoryCardsCollectionGetCollection } from "src/generated"
-import { useIsHydrated } from "src/hooks/useIsHydrated"
 import { Card } from "src/store/types"
 import { Address } from "src/chain"
+import { FablePage } from "src/pages/_app"
 
 // NOTE(norswap & geniusgarlic): Just an example, when the game actually has effects & types,
 //   fetch those from the chain instead of hardcoding them here.
@@ -26,9 +26,8 @@ const initialEffectMap = Object.assign({}, ...effects.map(name => ({[name]: fals
 const types = ['Creature', 'Magic', 'Weapon']
 const initialTypeMap = Object.assign({}, ...types.map(name => ({[name]: false})))
 
-const Collection = () => {
+const Collection: FablePage = ({ isHydrated }) => {
 
-  const isHydrated = useIsHydrated()
   const { address } = useAccount()
   const [ selectedCard, setSelectedCard ] = useState<Card|null>(null)
   const [ searchInput, setSearchInput ] = useState('')

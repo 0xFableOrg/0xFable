@@ -1,4 +1,3 @@
-import { type NextPage } from "next"
 import { useEffect, useState } from "react"
 
 import Hand from "src/components/hand"
@@ -9,9 +8,9 @@ import { useGameWrite } from "src/hooks/useFableWrite"
 import * as store from "src/store/hooks"
 import { GameStatus } from "src/store/types"
 import { useModalController } from "src/components/lib/modal"
-import { useIsHydrated } from "src/hooks/useIsHydrated"
+import { FablePage } from "src/pages/_app"
 
-const Play: NextPage = () => {
+const Play: FablePage = ({ isHydrated }) => {
   const [ gameID ] = store.useGameID()
   const gameStatus = store.useGameStatus()
   const [ hasVisitedBoard, visitBoard ] = store.useHasVisitedBoard()
@@ -19,7 +18,6 @@ const Play: NextPage = () => {
   const [ loading, setLoading ] = useState<string|null>(null)
   const [ hideResults, setHideResults ] = useState(false)
   const [ concedeCompleted, setConcedeCompleted ] = useState(false)
-  const hydrated = useIsHydrated()
 
   const playerHand: bigint[] = []
 
@@ -42,7 +40,7 @@ const Play: NextPage = () => {
 
   // -----------------------------------------------------------------------------------------------
 
-  if (!hydrated) return <></>
+  if (!isHydrated) return <></>
 
   return (
     <>
