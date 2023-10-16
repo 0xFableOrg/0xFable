@@ -5,11 +5,10 @@ import { useWeb3Modal, Web3Button, Web3NetworkSwitch } from "@web3modal/react"
 import { CreateGameModal } from "src/components/modals/createGameModal"
 import { JoinGameModal } from "src/components/modals/joinGameModal"
 import { MintDeckModal } from "src/components/modals/mintDeckModal"
-import { useIsHydrated } from "src/hooks/useIsHydrated"
 import { chains } from "src/chain"
+import { FablePage } from "src/pages/_app"
 
-const Home = () => {
-  const isHydrated = useIsHydrated()
+const Home: FablePage = ({ isHydrated }) => {
   const { address } = useAccount()
   const { open } = useWeb3Modal()
   const { chain: usedChain } = useNetwork()

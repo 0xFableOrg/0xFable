@@ -10,6 +10,8 @@ import { useErrorConfig } from "src/store/hooks"
 import { setup } from "src/setup"
 
 import "src/styles/globals.css"
+import { useIsHydrated } from "src/hooks/useIsHydrated"
+import { NextPage } from "next"
 
 // =================================================================================================
 // SETUP (global hooks & customization)
@@ -18,8 +20,18 @@ setup()
 
 // =================================================================================================
 
+/**
+ * Make pages in the app conform to this type.
+ * See [@link useIsHydrated] for more info on the meaning of the `isHydrated` prop.
+ */
+export type FablePage = NextPage<{ isHydrated: boolean }>
+
+// =================================================================================================
+
 const MyApp: AppType = ({ Component, pageProps }) => {
   const errorConfig = useErrorConfig()
+  const isHydrated = useIsHydrated()
+
   return (
     <>
       <Head>
@@ -29,7 +41,7 @@ const MyApp: AppType = ({ Component, pageProps }) => {
 
       <WagmiConfig config={wagmiConfig}>
         {jotaiDebug()}
-        <Component {...pageProps} />
+        <Component { ...pageProps } isHydrated={isHydrated} />
       </WagmiConfig>
 
       <Web3Modal
@@ -38,7 +50,7 @@ const MyApp: AppType = ({ Component, pageProps }) => {
       />
 
       {/* Global error modal for errors that don't have obvious in-flow resolutions. */}
-      {errorConfig && <GlobalErrorModal config={errorConfig} />}
+      {isHydrated && errorConfig && <GlobalErrorModal config={errorConfig} />}
     </>
   )
 }
