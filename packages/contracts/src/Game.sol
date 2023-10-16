@@ -294,7 +294,7 @@ contract Game {
 
     // The prime that bounds the field used by our proof scheme of choice.
     // Currently, this is for Plonk.
-    uint256 constant private PROOF_FIELD_PRIME =
+    uint256 private constant PROOF_FIELD_PRIME =
         21888242871839275222246405745257275088696311157297823662689037894645226208583;
 
     // =============================================================================================
@@ -709,7 +709,6 @@ contract Game {
             }
         }
     }
-
 
     // ---------------------------------------------------------------------------------------------
 
