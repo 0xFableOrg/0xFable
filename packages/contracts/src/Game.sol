@@ -294,7 +294,7 @@ contract Game {
 
     // The prime that bounds the field used by our proof scheme of choice.
     // Currently, this is for Plonk.
-    uint256 private constant PROOF_FIELD_PRIME =
+    uint256 private constant PROOF_CURVE_ORDER =
         21888242871839275222246405745257275088548364400416034343698204186575808495617;
 
     // =============================================================================================
@@ -493,10 +493,10 @@ contract Game {
             PlayerData storage pdata = gdata.playerData[player];
             if (pdata.saltHash != 0 && pdata.handRoot == 0) {
                 // player in the game & hand not drawn yet
-                return uint256(blockhash(pdata.joinBlockNum)) % PROOF_FIELD_PRIME;
+                return uint256(blockhash(pdata.joinBlockNum)) % PROOF_CURVE_ORDER;
             }
         }
-        return uint256(blockhash(gdata.lastBlockNum)) % PROOF_FIELD_PRIME;
+        return uint256(blockhash(gdata.lastBlockNum)) % PROOF_CURVE_ORDER;
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -504,7 +504,7 @@ contract Game {
     // Slightly more efficient internal version of `getPublicRandomness` for use when drawing
     // the initial hand.
     function getPubRandomnessForInitialHand(uint256 joinBlockNum) internal view returns (uint256) {
-        return uint256(blockhash(joinBlockNum)) % PROOF_FIELD_PRIME;
+        return uint256(blockhash(joinBlockNum)) % PROOF_CURVE_ORDER;
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -512,7 +512,7 @@ contract Game {
     // Slightly more efficient internal version of `getPublicRandomness` for use after the game
     // has started.
     function getPubRandomness(uint256 lastBlockNum) internal view returns (uint256) {
-        return uint256(blockhash(lastBlockNum)) % PROOF_FIELD_PRIME;
+        return uint256(blockhash(lastBlockNum)) % PROOF_CURVE_ORDER;
     }
     // ---------------------------------------------------------------------------------------------
 
