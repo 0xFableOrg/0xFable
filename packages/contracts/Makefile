@@ -60,7 +60,12 @@ format:
 	forge fmt src/*.sol src/test/*.sol src/deploy/*.sol
 .PHONY: format
 
-# The 1337 chain id matches chain.localhost in RainbowKit & "Localhost 8545" in MetaMask.
+# The 1337 chain id matches "localhost" in Wagmi & "Localhost 8545" in MetaMask.
+#
+# Note that (for now) the block time specification is crucial here and needs to be << the proof
+# generation time, otherwise the simulation of that tx will be made as though it was in the block
+# where the public randomness is supposed to be derived from, which will yield a 0 blockhash and
+# random value.
 anvil:
 	anvil --chain-id 1337 --code-size-limit 30000 --block-time 2
 .PHONY: anvil
