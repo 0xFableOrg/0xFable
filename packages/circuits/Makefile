@@ -15,10 +15,20 @@ C ?= Cards
 # - https://zkiap.com/snarkjs
 # - https://github.com/iden3/snarkjs#readme
 
+# Main Commands:
+# CIRCUIT=DrawHand make build
+# CIRCUIT=DrawHand make rebuild
+# CIRCUIT=DrawHand make install
+# CIRCUIT=DrawHand make reinstall
+# make build-all
+# make install-all
+# make reinstall-all
+# make clean
+
 # Makefile Cheat Sheet:
 # $@ = target
 # $< = first pre-requisite
-# $^ = all pre-requisites with space between them
+# $^ = all pre-requisites with a space between them
 # $* = stem (what is matched by % in the target)
 
 # Circuit Files Cheat Sheet:
@@ -65,7 +75,7 @@ install-test-deps:
 .PRECIOUS: out/%.r1cs out/%.wasm out/%.sym out/%.zkey out/%.vkey.json out/%.wtns out/%.public.json \
 	out/%.proof.json trusted_setup/%.ptau
 
-all:
+build-all:
 	CIRCUIT=Draw make build
 	CIRCUIT=DrawHand make build
 	CIRCUIT=Play make build
