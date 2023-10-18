@@ -19,6 +19,10 @@ export function format(obj: any, multiline = false, indent = 0) {
   const pairs = []
 
   for (const key in obj) {
+    // not obj.hasOwnProperty: https://eslint.org/docs/latest/rules/no-prototype-builtins
+    if (!Object.prototype.hasOwnProperty.call(obj, key))
+      continue
+
     const value = obj[key]
     let pair = multiline ? `${linePrefix}${key}: ` : `${key}: `
 
