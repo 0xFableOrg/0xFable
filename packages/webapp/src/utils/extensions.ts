@@ -15,12 +15,18 @@ declare global {
   }
 }
 
-Array.prototype.last = function() {
-  return this[this.length - 1]
-}
+Object.defineProperty(Array.prototype, "last", {
+  enumerable: false,
+  value: function() {
+    return this[this.length - 1]
+  }
+})
 
-Array.prototype.setLast = function(item) {
-  this[this.length - 1] = item
-}
+Object.defineProperty(Array.prototype, "setLast", {
+  enumerable: false,
+  value: function(item: any) {
+    this[this.length - 1] = item
+  }
+})
 
 // =================================================================================================
