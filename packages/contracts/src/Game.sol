@@ -435,38 +435,13 @@ contract Game {
             pData[i] = gdata.playerData[gdata.players[i]];
         }
 
-        // When the player is specified, they're in the game and their hand hasn't been drawn yet,
-        // we set the publicRandomness based on the block at which their joinGame transaction was
-        // received. This enables all players to draw their hands and generate the zk proof locally,
-        // without incurring race conditions between players.
-        //
-        // This is currently the only time in the game when player can perform concurrent
-        // randomness-dependent actions.
-
-        uint256 publicRandomness;
-        if (player != address(0)) {
-            // player specified
-            PlayerData storage pdata = gdata.playerData[player];
-            if (pdata.saltHash != 0 && pdata.handRoot == 0) {
-                // player in the game & hand not drawn yet
-                publicRandomness = getPubRandomnessForBlock(pdata.joinBlockNum);
-            }
-        }
-        if (publicRandomness == 0) {
-            publicRandomness = getPubRandomnessForBlock(gdata.lastBlockNum);
-        }
-
-        // Note that if the publicRandomness is still 0 at this point, it means the game is timed
-        // out. This allows anyone to call the `timeout()` function to boot the timed out player
-        // from the game, or cancel the game if not everyone joined and drew yet.
-
         return FetchedGameData({
             gameID: gameID,
             gameCreator: gdata.gameCreator,
             players: gdata.players,
             playerData: pData,
             lastBlockNum: gdata.lastBlockNum,
-            publicRandomness: publicRandomness,
+            publicRandomness: getPublicRandomness(gameID, player),
             playersLeftToJoin: gdata.playersLeftToJoin,
             livePlayers: gdata.livePlayers,
             currentPlayer: gdata.currentPlayer,
@@ -492,19 +467,53 @@ contract Game {
 
     // ---------------------------------------------------------------------------------------------
 
-    // Returns the current public randomness for the game — used to draw cards.
-    function getPublicRandomness(uint256 gameID) external view returns (uint256) {
-        return uint256(blockhash(gameData[gameID].lastBlockNum)) % PROOF_FIELD_PRIME;
+    // Returns the current public randomness for the game & player (if specified) — used to draw
+    // cards.
+    //
+    // Note: the frontend never calls this directly, but via `fetchGameData(...)`. It may also
+    // compute this value itself, which it needs to do when `gdata.lastBlockNum` is the last block
+    // (and `pdata.lastBlockNum` can't be used or is the same), in which case the corresponding
+    // blockhash will evaluate to 0 (stupid, but that's how nodes do it).
+    //
+    // This can also return 0 in case of a timeout. In this scenario, anyone can call the
+    // `timeout()` function to boot the timed out player from the game, or cancel the game if not
+    // everyone joined and drew the initial hand yet.
+    function getPublicRandomness(uint256 gameID, address player) public view returns (uint256) {
+
+        // When the player is specified, they're in the game and their hand hasn't been drawn yet,
+        // we set the publicRandomness based on the block at which their joinGame transaction was
+        // received. This enables all players to draw their hands and generate the zk proof locally,
+        // without incurring race conditions between players.
+        //
+        // This is currently the only time in the game when player can perform concurrent
+        // randomness-dependent actions.
+
+        GameData storage gdata = gameData[gameID];
+        if (player != address(0)) { // player specified
+            PlayerData storage pdata = gdata.playerData[player];
+            if (pdata.saltHash != 0 && pdata.handRoot == 0) {
+                // player in the game & hand not drawn yet
+                return uint256(blockhash(pdata.joinBlockNum)) % PROOF_FIELD_PRIME;
+            }
+        }
+        return uint256(blockhash(gdata.lastBlockNum)) % PROOF_FIELD_PRIME;
     }
 
     // ---------------------------------------------------------------------------------------------
 
-    // Returns the current public randomness for the game based on its lastBlockNum value — used to
-    // draw cards.
-    function getPubRandomnessForBlock(uint256 lastBlockNum) internal view returns (uint256) {
-        return uint256(blockhash(lastBlockNum)) % PROOF_FIELD_PRIME;
+    // Slightly more efficient internal version of `getPublicRandomness` for use when drawing
+    // the initial hand.
+    function getPubRandomnessForInitialHand(uint256 joinBlockNum) internal view returns (uint256) {
+        return uint256(blockhash(joinBlockNum)) % PROOF_FIELD_PRIME;
     }
 
+    // ---------------------------------------------------------------------------------------------
+
+    // Slightly more efficient internal version of `getPublicRandomness` for use after the game
+    // has started.
+    function getPubRandomness(uint256 lastBlockNum) internal view returns (uint256) {
+        return uint256(blockhash(lastBlockNum)) % PROOF_FIELD_PRIME;
+    }
     // ---------------------------------------------------------------------------------------------
 
     // Returns the given player's deck listing.
@@ -702,7 +711,6 @@ contract Game {
         pubSignals[5] = saltHash;
         pubSignals[6] = randomness;
 
-        /// @dev currently bypass check for testing
         if (checkProofs) {
             if (!drawHandVerifier.verifyProof(proof, pubSignals)) {
                 revert InvalidProof();
@@ -798,7 +806,7 @@ contract Game {
         pdata.deckRoot = deckRoot;
         pdata.handSize = INITIAL_HAND_SIZE;
 
-        uint256 randomness = getPubRandomnessForBlock(gdata.lastBlockNum);
+        uint256 randomness = getPubRandomnessForInitialHand(pdata.joinBlockNum);
         checkInitialHandProof(pdata, randomness, pdata.saltHash, proof);
 
         // Add the player to the list of live players.
@@ -968,7 +976,7 @@ contract Game {
     {
         GameData storage gdata = gameData[gameID];
         PlayerData storage pdata = gdata.playerData[msg.sender];
-        uint256 randomness = getPubRandomnessForBlock(gdata.lastBlockNum);
+        uint256 randomness = getPubRandomness(gdata.lastBlockNum);
         checkDrawProof(pdata, handRoot, deckRoot, pdata.saltHash, randomness, proof);
         pdata.handRoot = handRoot;
         pdata.deckRoot = deckRoot;
@@ -1026,7 +1034,7 @@ contract Game {
             revert CardIndexTooHigh();
         }
         uint256 card = gdata.cards[cardIndex];
-        uint256 randomness = getPubRandomnessForBlock(gdata.lastBlockNum);
+        uint256 randomness = getPubRandomness(gdata.lastBlockNum);
         checkPlayProof(pdata, handRoot, pdata.saltHash, randomness, card, proof);
         pdata.handRoot = handRoot;
         pdata.handSize--;
