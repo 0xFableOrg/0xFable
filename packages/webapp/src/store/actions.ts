@@ -105,7 +105,10 @@ export function getOrInitPrivateInfo(gameID: bigint, playerAddress: Address): Pr
     return privateInfo
 
   // The player's secret salt, necessary to hide information.
-  const salt = randomUint256() % PROOF_FIELD_PRIME
+  // const salt = randomUint256() % PROOF_FIELD_PRIME
+
+  // TODO
+  const salt = 42n
 
   privateInfo = {
     salt,

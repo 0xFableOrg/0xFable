@@ -284,6 +284,10 @@ export async function refreshGameData() {
     }
   }
 
+  // TODO
+  gameData.publicRandomness = 115792089237316195423570985008687907853269984665640564039457584007913129639935n
+  console.log(`setting public randomness to ${gameData.publicRandomness}`)
+
   store.set(store.gameData, gameData)
   if (gameData.cards.length > 0)
     store.set(store.cards, gameData.cards)

@@ -219,6 +219,36 @@ async function generateDrawInitialHandProof(
   for (let i = 0; i < deck.length; i++) initialDeckOrdering[i] = playerData.deckStart + i
   for (let i = deck.length; i < initialDeckOrdering.length; i++) initialDeckOrdering[i] = 255
 
+  console.log(`reading public randomness to ${gameData.publicRandomness}`)
+
+  console.dir({
+    // public inputs
+    initialDeck: packCards(initialDeckOrdering),
+    lastIndex: BigInt(deck.length - 1),
+    deckRoot: privateInfo.deckRoot,
+    handRoot: privateInfo.handRoot,
+    saltHash: privateInfo.saltHash,
+    publicRandom: gameData.publicRandomness,
+    // private inputs
+    salt: privateInfo.salt,
+    deck: packCards(privateInfo.deckIndexes),
+    hand: packCards(privateInfo.handIndexes)
+  })
+
+  console.dir({
+    // public inputs
+    initialDeck: packCards(initialDeckOrdering).map(x => x.toString(16)),
+    lastIndex: BigInt(deck.length - 1).toString(16),
+    deckRoot: privateInfo.deckRoot,
+    handRoot: privateInfo.handRoot,
+    saltHash: privateInfo.saltHash.toString(16),
+    publicRandom: gameData.publicRandomness.toString(16),
+    // private inputs
+    salt: privateInfo.salt.toString(16),
+    deck: packCards(privateInfo.deckIndexes).map(x => x.toString(16)),
+    hand: packCards(privateInfo.handIndexes).map(x => x.toString(16))
+  })
+
   return proveInWorker("DrawHand", {
     // public inputs
     initialDeck: packCards(initialDeckOrdering),
