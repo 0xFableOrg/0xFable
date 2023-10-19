@@ -1,5 +1,5 @@
-const snarkjs = require("snarkjs");
-const fs = require("fs");
+const snarkjs = require("snarkjs")
+const fs = require("fs")
 
 // =================================================================================================
 
@@ -7,25 +7,25 @@ async function run(circuitName, inputs) {
 
   const { proof, publicSignals } = await snarkjs.plonk.fullProve(inputs,
     `out/${circuitName}_js/${circuitName}.wasm`,
-    `out/${circuitName}.zkey`);
+    `out/${circuitName}.zkey`)
 
-  // console.log(`Proof: ${JSON.stringify(proof)}`);
+  // console.log(`Proof: ${JSON.stringify(proof)}`)
 
-  const vKey = JSON.parse(fs.readFileSync(`out/${circuitName}.vkey.json`));
+  const vKey = JSON.parse(fs.readFileSync(`out/${circuitName}.vkey.json`))
 
-  const res = await snarkjs.plonk.verify(vKey, publicSignals, proof);
+  const res = await snarkjs.plonk.verify(vKey, publicSignals, proof)
 
   if (res === true) {
-    console.log("Verification OK");
+    console.log("Verification OK")
   } else {
-    console.log("Invalid proof");
+    console.log("Invalid proof")
   }
 }
 
 // -------------------------------------------------------------------------------------------------
 
 async function runWithFile(circuitName, inputFilename) {
-  const inputs = JSON.parse(fs.readFileSync(inputFilename));
+  const inputs = JSON.parse(fs.readFileSync(inputFilename))
   return run(circuitName, inputFilename)
 }
 
