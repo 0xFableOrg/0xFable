@@ -10,7 +10,16 @@
 
 ## Running tests
 
-This only works on Linux currently.
+`make test`
+
+This will try to prove and verify the circuits with pre-generated inputs.
+
+TODO: reuse logic from the frontend to generate the inputs automatically. The current procedure is
+to run the application then print out the inputs from the browser console.
+
+## Legacy Tests
+
+This only works on Linux.
 
 You'll also need to install the npm package `circom-helper`, either globally or locally (but don't
 commit to git). We removed it because it caused [build

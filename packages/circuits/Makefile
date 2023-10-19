@@ -20,9 +20,11 @@ C ?= Cards
 # CIRCUIT=DrawHand make rebuild
 # CIRCUIT=DrawHand make install
 # CIRCUIT=DrawHand make reinstall
+# CIRCUIT=DrawHand make test
 # make build-all
 # make install-all
 # make reinstall-all
+# make test-all
 # make clean
 
 # Makefile Cheat Sheet:
@@ -98,10 +100,21 @@ test-server:
 	pnpm circom-helper -c out/circom.config.json -b ./build/test -p 9001
 .PHONY: test-server
 
-make test:
+old-test:
 	echo "Running tests (requires running make test-server beforehand)"
 	pnpm jest
 .PHONY: test
+
+# Test $CIRCUIT by trying to prove then validate example inputs.
+test:
+	node verify.js $(CIRCUIT)
+.PHONY: info
+
+test-all:
+	CIRCUIT=Draw make test
+	CIRCUIT=DrawHand make test
+	CIRCUIT=Play make test
+.PHONY: test-all
 
 # Remove all outputs
 clean:
