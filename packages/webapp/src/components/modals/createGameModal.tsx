@@ -109,11 +109,10 @@ const CreateGameModalContent = ({ ctrl }: { ctrl: ModalController }) => {
   const { write: cancel } = useGameWrite({
     functionName: "cancelGame",
     args: [gameID],
-    enabled: created && !started,
+    enabled: created && !allPlayersJoined,
     setLoading,
     onSuccess() {
       setGameID(null)
-      // setJoinCompleted(false)
       ctrl.close()
     }
   })
