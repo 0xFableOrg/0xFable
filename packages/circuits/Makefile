@@ -5,9 +5,6 @@
 SETUP_FILE=powersOfTau28_hez_final_15.ptau
 SNARKJS="./node_modules/.bin/snarkjs"
 
-# For a few commands that return info about circuits.
-C ?= Cards
-
 ####################################################################################################
 # REFERENCE
 
@@ -221,7 +218,7 @@ out/%.calldata.txt: out/%.public.json out/%.proof.json
 	pnpm snarkjs zkey export soliditycalldata $^ > $@
 
 ####################################################################################################
-# INPUT-DEPENDANT (for verification / debugging)
+# INPUT-DEPENDENT (for verification / debugging)
 
 # Generates the witnesses for a specific set of public inputs.
 #
