@@ -10,6 +10,8 @@ let sharedPage
 
 const definedTests = []
 
+const PROOF_TIME = 25000
+
 function Test(name, test) {
   definedTests.push({ name, test })
 }
@@ -75,6 +77,8 @@ Test("create then cancel", async () => {
 })
 
 Test("create & join", async () => {
+  test.setTimeout(30000 + PROOF_TIME)
+
   // two click + metamask to create game
   await sharedPage.getByRole("button", { name: "Create Game →" }).click()
   await expect(sharedPage.getByRole("heading", { name: "Create Game" })).toBeVisible()
@@ -90,11 +94,16 @@ Test("create & join", async () => {
 
   await sharedPage.waitForFunction("() => document.querySelector('h3').textContent === 'Game Created'")
 
-  // click + metamask to cancel game
+  // click + metamask to join game
   await expect(sharedPage.getByRole("heading", { name: "Game Created" })).toBeVisible()
   await sharedPage.getByRole("button", { name: "Join Game" }).click()
+  // joinGame transaction
   await expect(sharedPage.getByRole("heading", { name: "Waiting for signature..." })).toBeVisible()
   await metamask.confirmTransaction()
+  // drawInitialhand transaction
+  // NOTE: I have observed this to flake once
+  await expect(sharedPage.getByRole("heading", { name: "Generating draw proof — may take a minute ..." })).toBeVisible()
+  await sharedPage.waitForTimeout(PROOF_TIME) // give time for proof generation
   await expect(sharedPage.getByRole("heading", { name: "Waiting for signature..." })).toBeVisible()
   await metamask.confirmTransaction()
 
@@ -117,14 +126,19 @@ Test("connect from other address", async () => {
 })
 
 Test("join from other address", async () => {
-  // TODO need to use viem or wagmi to query the game ID
+  test.setTimeout(30000 + PROOF_TIME)
+
   await sharedPage.getByRole('button', { name: 'Join →' }).click()
   await sharedPage.getByPlaceholder('Game ID').click()
   const gameID = await getGameID()
   await sharedPage.getByPlaceholder('Game ID').fill(Number(gameID).toString())
   await sharedPage.getByRole('button', { name: 'Join Game' }).click()
+  // joinGame transaction
   await expect(sharedPage.getByRole("heading", { name: "Waiting for signature..." })).toBeVisible()
   await metamask.confirmTransaction()
+  // drawInitialhand transaction
+  await expect(sharedPage.getByRole("heading", { name: "Generating draw proof — may take a minute ..." })).toBeVisible()
+  await sharedPage.waitForTimeout(PROOF_TIME) // give time for proof generation
   await expect(sharedPage.getByRole("heading", { name: "Waiting for signature..." })).toBeVisible()
   await metamask.confirmTransaction()
   await expect(sharedPage.getByRole('button', { name: 'CONCEDE' })).toBeEnabled()
