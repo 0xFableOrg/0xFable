@@ -5,13 +5,31 @@ import { useWeb3Modal, Web3Button, Web3NetworkSwitch } from "@web3modal/react"
 import { CreateGameModal } from "src/components/modals/createGameModal"
 import { JoinGameModal } from "src/components/modals/joinGameModal"
 import { MintDeckModal } from "src/components/modals/mintDeckModal"
-import { chains } from "src/chain"
+import { chains, ensureLocalAccountIndex } from "src/chain"
 import { FablePage } from "src/pages/_app"
+import { useRouter } from "next/router"
+import { useEffect } from "react"
 
 const Home: FablePage = ({ isHydrated }) => {
   const { address } = useAccount()
   const { open } = useWeb3Modal()
   const { chain: usedChain } = useNetwork()
+
+  if (process.env.NODE_ENV === "development") { // constant
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    const router = useRouter()
+    const accountIndex = parseInt(router.query.index as string)
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    useEffect(() => {
+      if (accountIndex === undefined || isNaN(accountIndex)) return
+      if (accountIndex < 0 || 9 < accountIndex) return
+      void ensureLocalAccountIndex(accountIndex)
+    }, [accountIndex, address])
+
+    // It's necessary to update this on address, as Web3Modal (and possibly other wallet frameworks)
+    // will ignore our existence and try to override us with their own account (depending on how
+    // async code scheduling ends up working out).
+  }
 
   const chainSupported = chains.some(chain => chain.id === usedChain?.id)
 
