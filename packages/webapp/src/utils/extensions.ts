@@ -16,14 +16,16 @@ declare global {
 }
 
 Object.defineProperty(Array.prototype, "last", {
-  enumerable: false,
+  enumerable: false, // don't include in for...in loops
+  configurable: true, // enable redefinition — good for hotloading
   value: function() {
     return this[this.length - 1]
   }
 })
 
 Object.defineProperty(Array.prototype, "setLast", {
-  enumerable: false,
+  enumerable: false, // don't include in for...in loops
+  configurable: true, // enable redefinition — good for hotloading
   value: function(item: any) {
     this[this.length - 1] = item
   }
