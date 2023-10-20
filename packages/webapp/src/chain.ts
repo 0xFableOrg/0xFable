@@ -4,9 +4,10 @@
  * @module chain
  */
 
+import { EthereumClient, w3mConnectors, w3mProvider } from "@web3modal/ethereum"
 import { type Chain, configureChains, createConfig } from "wagmi"
 import { localhost } from "wagmi/chains"
-import { EthereumClient, w3mConnectors, w3mProvider } from "@web3modal/ethereum"
+import { BurnerConnector } from "src/wagmi/BurnerConnector"
 
 // =================================================================================================
 
@@ -32,10 +33,17 @@ const { publicClient: wagmiPublicClient } =
 
 // -------------------------------------------------------------------------------------------------
 
+/** Arrays containing the connector for using a local browser private key. */
+const burnerConnectors = process.env.NODE_ENV === "development" ? [new BurnerConnector()] : []
+
+// -------------------------------------------------------------------------------------------------
+
 /** Wagmi's configuration, to be passed to the React WagmiConfig provider. */
 export const wagmiConfig = createConfig({
   autoConnect: true,
-  connectors: w3mConnectors({ projectId: walletConnectProjectID, chains }),
+  connectors: [
+    ...w3mConnectors({ projectId: walletConnectProjectID, chains }),
+    ...burnerConnectors ],
   publicClient: wagmiPublicClient
 })
 
@@ -74,6 +82,16 @@ export type AccountResult = {
  */
 export type NetworkResult = {
   chain?: Chain
+}
+
+// =================================================================================================
+
+/**
+ * Ensures we're connected to the Anvil ("test ... junk" mnemonic) account with the given index,
+ * disconnecting from another Wagmi connector if necessary.
+ */
+export async function ensureLocalAccountIndex(index: number) {
+  await burnerConnectors[0].ensureConnectedToIndex(index)
 }
 
 // =================================================================================================
