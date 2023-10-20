@@ -4,8 +4,5 @@
   "license": "BSD-3-Clause-Clear",
   "version": "1.0.0",
   "private": true,
-  "devDependencies": {
-    "run-pty": "^4.1.0"
-  },
   "packageManager": "pnpm@8.8.0"
 }
