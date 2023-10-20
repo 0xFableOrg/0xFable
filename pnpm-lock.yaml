@@ -6,11 +6,7 @@ settings:
 
 importers:
 
-  .:
-    devDependencies:
-      run-pty:
-        specifier: ^4.1.0
-        version: 4.1.0
+  .: {}
 
   packages/circuits:
     dependencies:
@@ -10209,10 +10205,6 @@ packages:
       thenify-all: 1.6.0
     dev: true
 
-  /nan@2.18.0:
-    resolution: {integrity: sha512-W7tfG7vMOGtD30sHoZSSc/JVYiyDPEyQVso/Zz+/uQd0B0L46gtC+pHha5FFMRpil6fm/AoEcRWyOVi4+E/f8w==}
-    dev: true
-
   /nanoassert@2.0.0:
     resolution: {integrity: sha512-7vO7n28+aYO4J+8w96AzhmU8G+Y/xpPDJz/se19ICsqj/momRbb9mh9ZUtkoJ5X3nTnPdhEJyc0qnM6yAsHBaA==}
     dev: false
@@ -10355,13 +10347,6 @@ packages:
     engines: {node: '>=8'}
     dependencies:
       process-on-spawn: 1.0.0
-    dev: true
-
-  /node-pty@1.0.0:
-    resolution: {integrity: sha512-wtBMWWS7dFZm/VgqElrTvtfMq4GzJ6+edFI0Y0zyzygUSZMgZdraDUMUhCIvkjhJjme15qWmbyJbtAx4ot4uZA==}
-    requiresBuild: true
-    dependencies:
-      nan: 2.18.0
     dev: true
 
   /node-releases@2.0.13:
@@ -11680,14 +11665,6 @@ packages:
       queue-microtask: 1.2.3
     dev: true
 
-  /run-pty@4.1.0:
-    resolution: {integrity: sha512-Sl0b143FW+4sYX+WQksnE7hcxMgqTDrKntd091x5s+HG36K37mL3INgjK8RasH3YqFQQYTXQX7bmUjgdUoTklQ==}
-    hasBin: true
-    dependencies:
-      node-pty: 1.0.0
-      tiny-decoders: 7.0.1
-    dev: true
-
   /rxjs@6.6.7:
     resolution: {integrity: sha512-hTdwr+7yYNIT5n4AMYp85KA6yw2Va0FLa3Rguvbpa4W3I5xynaBZo41cM3XM+4Q6fRMj3sBYIR1VAmZMXYJvRQ==}
     engines: {npm: '>=2.0.0'}
@@ -12560,10 +12537,6 @@ packages:
   /timed-out@4.0.1:
     resolution: {integrity: sha512-G7r3AhovYtr5YKOWQkta8RKAPb+J9IsO4uVmzjl8AZwfhs8UcUwTiD6gcJYSgOtzyjvQKrKYn41syHbUWMkafA==}
     engines: {node: '>=0.10.0'}
-    dev: true
-
-  /tiny-decoders@7.0.1:
-    resolution: {integrity: sha512-P1LaHTLASl/lCrdtwgAAVwxt4bEAPmxpf9HMQrlCkAseaT8oH8oxm8ndy4nx5rLTcL5U/Qxp1a+FDoQfS/ZgQQ==}
     dev: true
 
   /tmp@0.2.1:

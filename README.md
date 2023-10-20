@@ -24,6 +24,7 @@ See also the README files of the various subpackages:
 2. **Run `make setup`**
 3. Run contract tests for basic sanity testing:
    - `(cd packages/contracts && make test)`
+4. [Install Circom](https://docs.circom.io/getting-started/installation/)
 
 ## IDEs
 
@@ -33,26 +34,8 @@ root of the project to the `contracts` package. Otherwise, you'll add to manuall
 
 ## Running
 
-To deploy and try out the app locally:
-
-```shell
-make dev
-```
-
-This will do the following from a single terminal (using run-pty):
-
-- Run anvil (local EVM node) at localhost:8545 with chain ID 1337
-  (this chain comes preconfigured in Metamask and other wallets as "Localhost")
-- Run the NextJS dev command (web server + live reload)
-- Deploy the contracts to the local node
-- Build the zk circuits (this make take a while, especially the first time when you'll need to
-  download the 300MB trusted setup file). Make sure you have
-  [circom](https://docs.circom.io/getting-started/installation/) installed.
-
-After that, you can visit the app at http://localhost:3000/ (if that port is already occupied,
-NextJS might affect another one).
-
-If your shell doesn't support run-pty, you can run the commands manually in different terminals:
+To deploy and try out the app run the following commands (`anvil` and `webdev` will keep running and
+must be run in their own terminal):
 
 ```shell
 make anvil
@@ -61,9 +44,21 @@ make deploy
 make circuits
 ```
 
-Note: at least for me, Metamask has a bug that doesn't let the app initiate chain switching when
-the target is "Localhost" (other targets work fine). If the same thing happens to you, you'll need
-to switch to the Localhost chain manually within the wallet.
+This will do the following:
+
+- Run anvil (local EVM node) at localhost:8545 with chain ID 1337
+  (this chain comes preconfigured in Metamask and other wallets as "Localhost")
+- Run the NextJS dev command (web server + live reload)
+- Deploy the contracts to the local node
+- Build the zk circuits (the first time, you will need to a 300MB trusted setup file). Make sure you
+  have [circom](https://docs.circom.io/getting-started/installation/) installed.
+
+After that, you can visit the app at http://localhost:3000/ (if that port is already occupied,
+NextJS might affect another one).
+
+**Common caveat**: Every time you restart Anvil, you might have to perform some kind of reset in
+your wallet. With Metamask, that's "..." > "Settings" > "Advanced" > "Clear activity and nonce
+data".
 
 ## Commands
 
