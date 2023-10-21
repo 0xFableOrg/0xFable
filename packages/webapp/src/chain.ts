@@ -40,6 +40,7 @@ const burnerConnectors = process.env.NODE_ENV === "development" ? [new BurnerCon
 
 /** Wagmi's configuration, to be passed to the React WagmiConfig provider. */
 export const wagmiConfig = createConfig({
+  // Note: must be set to false for the (Metamask-enabled) e2e tests to work.
   autoConnect: true,
   connectors: [
     ...w3mConnectors({ projectId: walletConnectProjectID, chains }),

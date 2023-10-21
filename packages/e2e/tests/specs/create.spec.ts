@@ -101,7 +101,8 @@ Test("create & join", async () => {
   await expect(sharedPage.getByRole("heading", { name: "Waiting for signature..." })).toBeVisible()
   await metamask.confirmTransaction()
   // drawInitialhand transaction
-  // NOTE: I have observed this to flake once
+  await sharedPage.waitForTimeout(5000) // extra wait time to avoid observed flakiness
+  // seems to be caused by metamask struggling at this point
   await expect(sharedPage.getByRole("heading", { name: "Generating draw proof — may take a minute ..." })).toBeVisible()
   await sharedPage.waitForTimeout(PROOF_TIME) // give time for proof generation
   await expect(sharedPage.getByRole("heading", { name: "Waiting for signature..." })).toBeVisible()
@@ -153,6 +154,18 @@ Test("make sure first player is in the game too", async () => {
   await expect(sharedPage.getByRole('button', { name: 'CONCEDE' })).toBeEnabled()
 })
 
+Test("first player concede games", async () => {
+  await sharedPage.getByRole('button', { name: 'CONCEDE' }).click()
+  await expect(sharedPage.getByRole("heading", { name: "Waiting for signature..." })).toBeVisible()
+  // TODO: This fails due to the fact that the game ID isn't set anymore when switching back.
+  //       This can be fixed by querying the chain for the game the player is in upon load.
+  await metamask.confirmTransaction()
+  await expect(sharedPage.getByRole("heading", { name: "Game Ended" })).toBeVisible()
+  await expect(sharedPage.getByRole("paragraph", { name: "Winner: 0x70997970C51812dc3A010C7d01b50e0d17dc79C8" })).toBeVisible()
+  await sharedPage.getByRole("button", { name: "Exit to Menu" }).click()
+  await expect(sharedPage.getByRole("button", { name: "Create Game →" })).toBeVisible()
+})
+
 Test("game loads", async () => {
   await setupGame()
   await switchToAccount(1)
@@ -168,6 +181,7 @@ const testsToRun = [
   "connect from other address",
   "join from other address",
   "make sure first player is in the game too",
+  "first player concede games",
   // "game loads"
 ]
 
