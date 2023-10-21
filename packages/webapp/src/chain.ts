@@ -4,9 +4,10 @@
  * @module chain
  */
 
-import { EthereumClient, w3mConnectors, w3mProvider } from "@web3modal/ethereum"
-import { type Chain, configureChains, createConfig } from "wagmi"
+import { getDefaultConfig, getDefaultConnectors } from "connectkit"
+import { type Chain, createConfig } from "wagmi"
 import { localhost } from "wagmi/chains"
+
 import { BurnerConnector } from "src/wagmi/BurnerConnector"
 
 // =================================================================================================
@@ -15,21 +16,12 @@ import { BurnerConnector } from "src/wagmi/BurnerConnector"
 export const chains = [localhost]
 
 // =================================================================================================
-// Wagmi + WalletConnect Config
+// Wagmi + ConnectKit Config
 
 // -------------------------------------------------------------------------------------------------
 
 /** WalletConnect cloud project ID. */
-export const walletConnectProjectID='8934622f70e11b51de893ea309871a4c'
-
-// -------------------------------------------------------------------------------------------------
-
-/**
- * The wagmi public client, used to read from the blockchain. This can be accessed via wagmi's
- * `getPublicClient` action.
- */
-const { publicClient: wagmiPublicClient } =
-  configureChains(chains, [w3mProvider({ projectId: walletConnectProjectID })])
+export const walletConnectProjectId = "8934622f70e11b51de893ea309871a4c"
 
 // -------------------------------------------------------------------------------------------------
 
@@ -38,20 +30,31 @@ const burnerConnectors = process.env.NODE_ENV === "development" ? [new BurnerCon
 
 // -------------------------------------------------------------------------------------------------
 
+const metadata = {
+  name: "0xFable",
+  description: "Wizards & shit",
+  // url: "https://0xFable.org",
+  // icon: "https://0xFable.org/favicon.png",
+}
+
+const metaConfig = {
+  walletConnectProjectId,
+  chains,
+  appName: metadata.name,
+  appDescription: metadata.description,
+  // appUrl: metadata.url,
+  // appIcon: metadata.icon,
+  app: metadata
+}
+
 /** Wagmi's configuration, to be passed to the React WagmiConfig provider. */
-export const wagmiConfig = createConfig({
-  // Note: must be set to false for the (Metamask-enabled) e2e tests to work.
-  autoConnect: true,
-  connectors: [
-    ...w3mConnectors({ projectId: walletConnectProjectID, chains }),
-    ...burnerConnectors ],
-  publicClient: wagmiPublicClient
-})
-
-// -------------------------------------------------------------------------------------------------
-
-/** This encapsulate wagmi's functionality for use by Web3Modal. */
-export const web3ModalEthereumClient = new EthereumClient(wagmiConfig, chains)
+export const wagmiConfig = createConfig(
+  getDefaultConfig({
+    ...metaConfig,
+    connectors: [
+      ...getDefaultConnectors(metaConfig),
+      ...burnerConnectors],
+}))
 
 // =================================================================================================
 // TYPES

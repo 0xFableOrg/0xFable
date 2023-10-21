@@ -57,7 +57,9 @@ const filteredErrorCodes = [
   "UNPREDICTABLE_GAS_LIMIT",
 ]
 
-const filteredErrorMessages: (string|RegExp)[] = []
+const filteredErrorMessages: (string|RegExp)[] = [
+    "ChainDoesNotSupportContract: Chain \"Localhost\" does not support contract \"ensUniversalResolver\"."
+]
 
 const filteredWarningMessages = [
   "Lit is in dev mode.",
@@ -78,7 +80,8 @@ const filteredLogMessages = [
 
 // -------------------------------------------------------------------------------------------------
 
-function matchFilter(err: string, filter: string|RegExp): boolean {
+function matchFilter(err?: string, filter: string|RegExp): boolean {
+  if (err === undefined) return false
   return typeof filter === "string"
     ? err.startsWith(filter)
     : err.match(filter).length > 0
@@ -94,8 +97,8 @@ function matchFilter(err: string, filter: string|RegExp): boolean {
  */
 function setupFilterErrorMessages() {
   console.error = replaceFunction(console, "error", (oldFunction) => (arg) => {
-    const filteredErr = typeof arg === "string"
-      && filteredErrorMessages.some((filter) => matchFilter(arg, filter))
+    arg = arg?.toString()
+    const filteredErr = filteredErrorMessages.some((filter) => matchFilter(arg, filter))
     const filteredCode = filteredErrorCodes.includes(arg?.code)
 
     if (filteredErr || filteredCode) {
@@ -116,8 +119,8 @@ function setupFilterErrorMessages() {
  */
 function setupFilterWarningMessages() {
   console.warn = replaceFunction(console, "warn", (oldFunction) => (arg) => {
-    const filteredMsg = typeof arg === "string"
-      && filteredWarningMessages.some((filter) => matchFilter(arg, filter))
+    arg = arg?.toString()
+    const filteredMsg = filteredWarningMessages.some((filter) => matchFilter(arg, filter))
 
     if (filteredMsg) {
       window["suppressedWarnings"] ||= []
@@ -137,8 +140,8 @@ function setupFilterWarningMessages() {
  */
 function setupFilterInfoMessages() {
   console.info = replaceFunction(console, "info", (oldFunction) => (arg) => {
-    const filteredMsg = typeof arg === "string"
-      && filteredInfoMessages.some((filter) => matchFilter(arg, filter))
+    arg = arg?.toString()
+    const filteredMsg = filteredInfoMessages.some((filter) => matchFilter(arg, filter))
 
     if (filteredMsg) {
       window["suppressedInfos"] ||= []
@@ -158,8 +161,8 @@ function setupFilterInfoMessages() {
  */
 function setupFilterLogMessages() {
   console.log = replaceFunction(console, "log", (oldFunction) => (arg) => {
-    const filteredMsg = typeof arg === "string"
-      && filteredLogMessages.some((filter) => matchFilter(arg, filter))
+    arg = arg?.toString()
+    const filteredMsg = filteredLogMessages.some((filter) => matchFilter(arg, filter))
 
     if (filteredMsg) {
       window["suppressedLogs"] ||= []

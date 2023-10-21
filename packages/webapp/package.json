@@ -9,9 +9,8 @@
   },
   "dependencies": {
     "@emotion/react": "^11.11.1",
-    "@web3modal/ethereum": "^2.7.1",
-    "@web3modal/react": "^2.7.1",
     "circomlibjs": "^0.1.7",
+    "connectkit": "^1.5.3",
     "jotai": "^2.4.3",
     "jotai-devtools": "^0.6.3",
     "lodash": "^4.17.21",
@@ -21,8 +20,8 @@
     "react-dom": "18.2.0",
     "react-icons": "^4.11.0",
     "snarkjs": "^0.7.1",
-    "viem": "^1.14.0",
-    "wagmi": "^1.4.2"
+    "viem": "^1.16.6",
+    "wagmi": "^1.4.5"
   },
   "devDependencies": {
     "@swc-jotai/debug-label": "^0.1.0",

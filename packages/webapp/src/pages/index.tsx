@@ -1,6 +1,5 @@
 import Link from "next/link"
 import { useAccount, useNetwork } from "wagmi"
-import { useWeb3Modal, Web3Button, Web3NetworkSwitch } from "@web3modal/react"
 
 import { CreateGameModal } from "src/components/modals/createGameModal"
 import { JoinGameModal } from "src/components/modals/joinGameModal"
@@ -9,10 +8,12 @@ import { chains, ensureLocalAccountIndex } from "src/chain"
 import { FablePage } from "src/pages/_app"
 import { useRouter } from "next/router"
 import { useEffect } from "react"
+import { ConnectKitButton, useModal } from "connectkit"
 
 const Home: FablePage = ({ isHydrated }) => {
   const { address } = useAccount()
   const { open } = useWeb3Modal()
+  const { setOpen } = useModal()
   const { chain: usedChain } = useNetwork()
 
   if (process.env.NODE_ENV === "development") { // constant
@@ -49,16 +50,14 @@ const Home: FablePage = ({ isHydrated }) => {
           <div className="">
             <button
               className="btn-lg btn border-2 border-yellow-500 normal-case hover:scale-105 hover:border-yellow-400"
-              onClick={async () => {
-                await open();
-              }}
+              onClick={async () => setOpen(true)}
             >
               Connect Wallet
             </button>
           </div>
         }
 
-        {isWrongNetwork && <Web3NetworkSwitch />}
+        {isWrongNetwork && <ConnectKitButton />}
 
         {isRightNetwork && <>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-4 md:gap-8">
@@ -70,8 +69,7 @@ const Home: FablePage = ({ isHydrated }) => {
             </Link>
           </div>
 
-          {/* TODO: Theme the button */}
-          <Web3Button />
+          <ConnectKitButton />
         </>}
       </div>
     </main>
