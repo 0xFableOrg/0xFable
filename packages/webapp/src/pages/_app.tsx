@@ -1,17 +1,17 @@
+import { ConnectKitProvider } from "connectkit"
+import { NextPage } from "next"
 import type { AppType } from "next/app"
 import Head from "next/head"
-import jotaiDebug from "src/components/lib/jotaiDebug"
 import { WagmiConfig } from "wagmi"
-import { Web3Modal } from "@web3modal/react"
 
-import { walletConnectProjectID, wagmiConfig, web3ModalEthereumClient} from "src/chain"
+import { wagmiConfig } from "src/chain"
+import jotaiDebug from "src/components/lib/jotaiDebug"
 import { GlobalErrorModal } from "src/components/modals/globalErrorModal"
+import { useIsHydrated } from "src/hooks/useIsHydrated"
 import { useErrorConfig } from "src/store/hooks"
 import { setup } from "src/setup"
 
 import "src/styles/globals.css"
-import { useIsHydrated } from "src/hooks/useIsHydrated"
-import { NextPage } from "next"
 
 // =================================================================================================
 // SETUP (global hooks & customization)
@@ -40,14 +40,11 @@ const MyApp: AppType = ({ Component, pageProps }) => {
       </Head>
 
       <WagmiConfig config={wagmiConfig}>
-        {jotaiDebug()}
-        <Component { ...pageProps } isHydrated={isHydrated} />
+        <ConnectKitProvider>
+          {jotaiDebug()}
+          <Component { ...pageProps } isHydrated={isHydrated} />
+        </ConnectKitProvider>
       </WagmiConfig>
-
-      <Web3Modal
-        projectId={walletConnectProjectID}
-        ethereumClient={web3ModalEthereumClient}
-      />
 
       {/* Global error modal for errors that don't have obvious in-flow resolutions. */}
       {isHydrated && errorConfig && <GlobalErrorModal config={errorConfig} />}

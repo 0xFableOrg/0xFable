@@ -7,6 +7,6 @@
     "@playwright/test": "^1.38.1",
     "@synthetixio/synpress": "^3.7.1",
     "@types/node": "^20.8.0",
-    "viem": "^1.14.0"
+    "viem": "^1.16.6"
   }
 }

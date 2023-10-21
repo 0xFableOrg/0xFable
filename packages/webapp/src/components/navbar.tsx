@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { Web3Button } from "@web3modal/react"
+import { ConnectKitButton } from "connectkit"
 
 export const Navbar = () => {
   return (
@@ -21,7 +21,7 @@ export const Navbar = () => {
             </Link>
           </li>
           <li>
-            <Web3Button />
+            <ConnectKitButton />
           </li>
         </ul>
       </div>
