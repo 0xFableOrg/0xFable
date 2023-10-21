@@ -60,6 +60,23 @@ NextJS might affect another one).
 your wallet. With Metamask, that's "..." > "Settings" > "Advanced" > "Clear activity and nonce
 data".
 
+## Testing The Game
+
+If you access the app via http://localhost:3000/, you can interact with it with your wallet.
+You'll need to "Claim Airdrop" in order to get a deck to play with.
+
+However, for testing, it's expected you'll the Anvil ("test ... junk" mnemonic) accounts. These come
+preloaded with local testnet ETH, and as part of our deploy script, we pre-airdrop a deck to
+accounts 0 and 1.
+
+You can import those accounts in your wallet, but we recommend instead accessing the app via:
+
+- http://localhost:3000/?index=0
+- http://localhost:3000/?index=1
+
+**This will load the test private key locally, and avoid the need for you to click your wallet
+every time a transaction is made!**
+
 ## Commands
 
 See the [Makefile](/Makefile) for a description of all top-level make commands.
