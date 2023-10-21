@@ -7,6 +7,7 @@
   - [Cards and Inventory](#cards-and-inventory)
   - [`Game.sol`](#gamesol)
 - [Randomness](#randomness)
+  - [Consequences of the Randomness Scheme](#consequences-of-the-randomness-scheme)
 - [Private Information](#private-information)
 - [Zero-Knowledge Circuits](#zero-knowledge-circuits)
 - [Frontend](#frontend)
@@ -26,11 +27,11 @@ If you've never encountered a TCG before, [here's a commentary-less video of Hea
 gameplay](https://www.youtube.com/watch?v=hUi0eFuTi-g), so you can get a feel for it.
 
 In all these games, two players face off, each coming to the game with their own deck of cards that
-they have constructed in advance (or selected in case they use a premade deck). They draw cards from
-their decks into their hands (that the opponent can't see), and play cards from their hands into
-play (or "into the battlefield"). Typically, some of these cards are creatures which can attack the
-opponent's creature or the opponent's health points directly. It's common for players to have health
-points, and for them to lose when their health points reach 0.
+they have built in advance or selected from pre-made decks. They draw cards from their decks into
+their hands (that the opponent can't see), and play cards from their hands into play (or "into the
+battlefield"). Typically, some of these cards are creatures which can attack the opponent's creature
+or the opponent's health points directly. It's common for players to have health points, and for
+them to lose when their health points reach 0.
 
 ## Gameplay
 
@@ -48,13 +49,14 @@ score and a defense score.
 
 A player (say A) creates the game. Two players can subsequently join the game. In general, this will
 include the game creator (A), though this is currently not constrained in the contracts — it could
-be useful to let a third party create games, e.g., for tournaments. Nevertheless, the UI currently
-assumes the game creator is a player that will join the game.
+be useful to let a third party create games, e.g., for tournaments. Nevertheless, the frontend UI
+currently assumes the game creator is a player that will join the game.
 
-Once both players have joined the game, it starts automatically (currently the first joining player
-goes first, this can be changed in the future). Joining involves two transactions (for essential
-technical reasons, see later), one to join, and one to draw the initial hand of cards. Once this is done
-for every player, the UI is rendered, showing the player's hand and the game board.
+Once both players have joined the game, it starts automatically (currently the first player that
+completes joining the game (see below) goes first, this can be changed in the future). Joining
+involves two transactions (for essential technical reasons, see later), one to join, and one to draw
+the initial hand of cards. Once this is done for every player, the UI is rendered, showing the
+player's hand and the game board.
 
 Let's assume player A goes first. Here is how A's turn goes:
 
@@ -85,10 +87,10 @@ So the possible sequence of actions for B's turns (and for every single turn thr
 
 Combat is resolved as follows:
 
-- If an attacking creature is blocked, if the attacking creature's attack is higher than the
+- If an attacking creature is blocked, if the attacking creature's attack is higher or equal to the
   defending creature's defense, the defending creature dies.
-  - And vice versa, if the defending creature's attack is higher than the attacking creature's
-    defense, the attacking creature dies.
+  - And vice versa, if the defending creature's attack is higher or equal to the attacking
+    creature's defense, the attacking creature dies.
   - So the creatures can kill each other.
 - If an attacking creature is not blocked, it deals damage to the opponent's health points equal to
   its attack score.
@@ -115,9 +117,9 @@ From a strict perspective, there are only two components at this level: the fron
 application) and the backend (game contracts living on the blockchain).
 
 The zero-knowledge circuits are neatly divided between frontend and backend. Compiling a circuit
-creates both a prover (Webassembly code) that is used by the frontend to generate zero-knowledge
-proofs from private information, and a verifier (Solidity code) that is used by the backend to
-verify the proofs submitted by players.
+creates both a prover (WASM code) that is used by the frontend to generate zero-knowledge proofs
+from private information, and a verifier (Solidity code) that is used by the backend to verify the
+proofs submitted by players.
 
 But more pragmatically, there are three areas of expertise: some people will be more knowledgeable
 about frontend development, some about contract development, and some about circuits development.
@@ -145,7 +147,7 @@ use the usual NFT tools to determine the cards a player owns, which comprises bo
 and the cards staked in the inventory.
 
 The inventory contract does not allow players to removed cards from the inventory while they are
-participating in a game. (TODO: This is not implemented yet!)
+participating in a game.
 
 Beyond solving this issue, the inventory contract also manages deck listings. Players can use any
 card they own to create a deck that can be used in a game. The same card can be used in multiple
@@ -156,11 +158,12 @@ card from his inventory? We must either check all decks when that happens (or ma
 from card the decks they are used in), or check a player's deck before every game. Currently, we do
 the latter, but we might want to revisit this decision.
 
-It's also certain that there will be other deck validity conditions. For instance, we will limit the
-number of copies of the same card that can appear in a deck, for instance to 3. A unique card
-(unique NFT ID) can of course not appear multiple times in a deck. We might also adopt something
-like [Gwent's provision system](https://www.playgwent.com/en/news/41252/gwents-design-01-provision)
-which puts constraints on deck building for the sake of promoting diversity of card use.
+There are also other deck validity conditions. For instance, we limit the number of copies of the
+same card that can appear in a deck, for instance to 3. Other constraints will be added later: [for
+instance](https://github.com/0xFableOrg/0xFable/issues/73), a unique card (unique NFT ID) can of
+course not appear multiple times in a deck. We might also adopt something like [Gwent's provision
+system](https://www.playgwent.com/en/news/41252/gwents-design-01-provision) which puts constraints
+on deck building for the sake of promoting diversity of card use.
 
 ### `Game.sol`
 
@@ -170,8 +173,8 @@ call attention to some implementation details.
 
 First, a few data structures:
 
-- `GameData` — there is one such struct per game (i.e. match) and it encapsulates the entirety of the
-  (public) data necessary to play the game. Almost all functions in `Game.sol` take a `gameID`
+- `GameData` — there is one such struct per game (i.e. match) and it encapsulates the entirety of
+  the (public) data necessary to play the game. Almost all functions in `Game.sol` take a `gameID`
   uniquely identifying a game, and the first thing done is to fetch this structure.
 
 - `PlayerData` — there is one such struct per player per game. It's stored inside a mapping in
@@ -186,7 +189,7 @@ Within the game data, `currentPlayer` identifies the player who has to take acti
 `currentStep` (whose type is the enum `GameStep`) constrains the kind of actions that can be taken.
 
 The game steps are: `DRAW`, `PLAY`, `ATTACK`, `DEFEND`, `PASS`. They have a double duty of both
-marking an expected step, and representing the action the user makes.
+marking an expected next step, and representing the action the user makes.
 
 Note that there isn't a perfect 1-1 mapping between these two things. When the `currentStep` is
 `PLAY`, it merely means that the player is able to play a card, but at that stage, `ATTACK` and
@@ -204,7 +207,8 @@ Another detail: there used to be a predicate (`joinCheck`) to verify if a player
 a game. This would let the creator of the game restrict who can join by specifying a (pre-supplied
 or custom) function, for instance, this enables password-protected games, or games only for friends,
 or players within a certain ranking range. I ran into trouble encoding this on the fronted, so I
-removed it for now (meaning anyone can join any game), but it needs to go back in.
+removed it for now (meaning anyone can join any game), but it needs to [go back
+in](https://github.com/0xFableOrg/0xFable/issues/33).
 
 Let's take a step back from pure Solidity to tackle two more abstract concepts: randomness & private
 information.
@@ -228,7 +232,8 @@ probably a good thing to implement inside a custom rollup implementation.
 
 (Side note: verifiable randomness (VRF) oracles are another solutions, but they're only really
 practical insofar that they don't add latency to the game, which is the case because they work via
-request & response, and so require to wait for one extra block.)
+request & response, and so require to wait for at least one extra block — they're also not available
+for appchains.)
 
 Note that "randomness" is not the only important property here. We also need (1) to ensure players
 can't predict randomness multiple actions in advance (which would let them know in advance every
@@ -236,8 +241,8 @@ card they'll draw in the game!) and (2) other players can't know the randomness 
 (because then they could infer which cards that player has drawn — more explanations on this later).
 
 The above scheme gives us property (1), because the randomness is derived from the blockhash, which
-we assume cannot be known in advance. We, however, do not have property (2), because the opponent can
-see the blockhash as well as we can.
+we assume cannot be known in advance. We, however, do not have property (2), because the opponent
+can see the blockhash as well as we can.
 
 The fix is easy however: at the start of the game, every player picks a value which we call "salt",
 and they commit to it on-chain (by sending its hash). Thereafter, anytime a player needs a private
@@ -245,7 +250,43 @@ random value, they simply mix the blockhash with the salt they committed to. Ver
 correct salt was used can be done easily inside a zero-knowledge proof: the hash of the salt is a
 public input, and the value is a private input, the proof verifies `hashFunc(value) == hash`.
 
-TODO: explain that this requires two transactions
+We call the on-chain randomness (blockhash) the "public randomness". The effective (or "private")
+randomness mixes the public randomness with the salt.
+
+### Consequences of the Randomness Scheme
+
+The necessity of committing to a salt explains why joining a game requires two transactions
+(`joinGame` and `drawInitialHand`): during the first transactions, players commit to their salt, and
+during the second, they submit a commitment to the hand they draw (more on this soon) & a
+zero-knowledge proof that they used the correct randomness to select this hand.
+
+If both these things happened in a single transaction, players would be able to locally try a lot of
+salts in order to find one that makes them draw the perfect hand! Instead, we force players to pick
+a salt *before* they know the public randomness, which means they can't predict how the salt will
+affect the hand they will draw.
+
+Another caveat: we said above that the public randomness depends on `lastBlockNum`, which is updated
+each time a user sends a transaction. There is a big exception to this, and it is precisely when
+players are joining the game. In that case, it's the block number of when they each separately
+submit the `joinGame` transaction that is taken into account to get the blockhash that yields the
+randomness. If we don't do this, the first `drawInitialHand` to land will succeed, but the second
+will fail, as the `lastBlockNum` would have been shifted by the `drawInitialHand` transaction. It
+also allows a player to immediately follow his `joinGame` by `drawInitialHand` without waiting for
+the other player to submit his `joinGame` transaction (which would otherwise also shift
+`lastBlockNum`).
+
+The final consequence of our randomness scheme is that we're limited by the time when blockhashes
+can be acquired. The EVM `BLOCKHASH` opcode can only return the 256 last blockhashes. For a 2s/block
+rollup, this means about 8 minutes. This is plenty of time for people to join the game and make
+their next move, but it means that our code needs to handle those cases where the blockhash is
+unavailable and the game is therefore timed out.
+
+Whenever a game is timed out, anybody can call the `timeout` function in order to restore order. If
+the game has started, the player whose turn it is loses. If the game has not started (not every
+player has submitted theri `drawInitialHand` transaction), the game is cancelled.
+
+[In the future](https://github.com/0xFableOrg/0xFable/issues/75), we will add more stringent
+timeouts, especially for game actions. Maybe a chess timer.
 
 ## Private Information
 
@@ -257,13 +298,21 @@ What's missing is a way to "commit" to the cards we drew. For this, we simply co
 identifiers for all the cards in our hand, and produce a hash of the concatenation. That hash can
 be used to commit to the hand on-chain.
 
-(You might wonder why we're not using a [Merkle root](https://en.wikipedia.org/wiki/Merkle_tree)
-here. Constructing a Merkle tree requires log(n) hash operations, which are very expensive to prove
-in a zk circuit. Additionally, our cards can be represented by a single byte, meaning we can pack
-them in a small number of field elements, making the single hash operation relatively cheap.)
+Actually — we do not concatenate identifiers, but indexes into the `GameData`'s `cards` array, which
+holds a concatenation of players' decks. Because decks are limited in size, this array will always
+be smaller than 255 in size, meaning we can identify each card with a single byte.
 
-This is not yet perfect: the opponent could "brute force" the hash by trying to hash every single
-possible hand (for a 5-cards hand drawn from a 60-cards, that's very tractable [5.5 million
+You might also wonder why we're not using a [Merkle root](https://en.wikipedia.org/wiki/Merkle_tree)
+here. Constructing a Merkle tree requires log(n) hash operations, which are very expensive to prove
+in a zk circuit. Because each card is represented by a single byte, we can pack them in a small
+number of field elements, making the single hash operation relatively cheap.
+
+In particular, we currently use the Plonk zero-knowledge scheme (though we will switch to Groth16),
+compiled with the snarkjs stack. Our field elements can carry 31 bytes. This means that using two
+field elements, we can encode decks up to 62 cards in length, which is enough for our purpose.
+
+This scheme is not yet perfect: the opponent could "brute force" the hash by trying to hash every
+single possible hand (for a 5-cards hand drawn from a 60-cards, that's very tractable [5.5 million
 possibilities](https://norswap.com/combinatorics/)), and therefore figure out which card we drew (or
 otherwise have in our hand at any given time).
 
@@ -335,7 +384,8 @@ If you want to get more familiar with Circom, I highly recommend [this Circom co
 You may also notice identically named files in the `instantiated` directory. These take the circuits
 template defined in the `proofs` directory and instantiate them as circuits with concrete
 parameters. In particular, they set an initial hand size, as well as maximum hand and deck sizes
-(currently: 7 cards in the initial hand, 64 cards max for both the hand and the deck).
+(currently: 7 cards in the initial hand, 2 field elements to pack the cards, so 62 cards max for
+both the hand and the deck).
 
 When compiling each circuit, Circom generates a prover (WebAssembly code, used in the frontend) and
 a verifier (Solidity code, used in the contracts).
