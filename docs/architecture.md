@@ -265,15 +265,23 @@ salts in order to find one that makes them draw the perfect hand! Instead, we fo
 a salt *before* they know the public randomness, which means they can't predict how the salt will
 affect the hand they will draw.
 
-Another caveat: we said above that the public randomness depends on `lastBlockNum`, which is updated
-each time a user sends a transaction. There is a big exception to this, and it is precisely when
-players are joining the game. In that case, it's the block number of when they each separately
-submit the `joinGame` transaction that is taken into account to get the blockhash that yields the
-randomness. If we don't do this, the first `drawInitialHand` to land will succeed, but the second
-will fail, as the `lastBlockNum` would have been shifted by the `drawInitialHand` transaction. It
-also allows a player to immediately follow his `joinGame` by `drawInitialHand` without waiting for
-the other player to submit his `joinGame` transaction (which would otherwise also shift
-`lastBlockNum`).
+A caveat: we said above that the public randomness depends on `lastBlockNum`, which is updated each
+time a user sends a transaction. There is a big exception to this, and it is precisely when players
+are joining the game. In that case, it's the block number of when they each separately submit the
+`joinGame` transaction that is taken into account to get the blockhash that yields the randomness.
+If we don't do this, the first `drawInitialHand` to land will succeed, but the second will fail, as
+the `lastBlockNum` would have been shifted by the `drawInitialHand` transaction. It also allows a
+player to immediately follow his `joinGame` by `drawInitialHand` without waiting for the other
+player to submit his `joinGame` transaction (which would otherwise also shift `lastBlockNum`).
+
+Another annoying consequence of this separation is that we need to wait at least one block between
+submitting `drawInitialHand`. i.e. if `joinGame` lands on block X, we can only submit
+`drawInitialHand` at X+2. This is because transactions are simulated before being submitted,
+simulation is done via the `eth_call` JSON-RPC and for whatever genius reason, this executes the
+transaction as though it was part of the last block, meaning the blockhash of the most recent block
+is not yet available. Since we need to do proof generation in between these two (currently > 20s),
+it shouldn't be an issue. However, it means we need to pass a block time to Anvil which otherwise
+only generates a block when a transaction is submitted!
 
 The final consequence of our randomness scheme is that we're limited by the time when blockhashes
 can be acquired. The EVM `BLOCKHASH` opcode can only return the 256 last blockhashes. For a 2s/block
