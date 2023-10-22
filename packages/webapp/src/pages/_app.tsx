@@ -2,6 +2,7 @@
 
 // Must come first, so that can we can hook global members before they're used by imports.
 import "src/setup"
+import "src/store/setup"
 
 import { ConnectKitProvider } from "connectkit"
 import { NextPage } from "next"

@@ -7,7 +7,7 @@
 // =================================================================================================
 
 
-import { getAccount, getNetwork, getPublicClient, watchAccount, watchNetwork } from "wagmi/actions"
+import { getAccount, getNetwork, getPublicClient } from "wagmi/actions"
 
 import { AccountResult, Address, chains, NetworkResult } from "src/chain"
 import { subscribeToGame } from "src/store/subscriptions"
@@ -25,47 +25,13 @@ import { gameABI } from "src/generated"
 import { PROOF_CURVE_ORDER } from "src/game/constants"
 
 // =================================================================================================
-// INITIALIZATION
-
-// Only run setup once.
-let setupHasRun = false
-
-/**
- * Called from {@link setup} to setup the store.
- */
-export function setupStore() {
-  if (setupHasRun) return
-  setupHasRun = true
-
-  // Whenever the connected wallet address changes, update the player address.
-  watchAccount(updatePlayerAddress)
-
-  // Make sure to clear game data if we switch to an unsupported network.
-  watchNetwork(updateNetwork)
-
-  // Make sure we don't miss the initial value, if already set.
-  updatePlayerAddress(getAccount())
-
-  // The game ID can change from actions in this tab, but also in other tabs, or can be retrieved
-  // from the storage upon boot, so we need to listen to the storage.
-  store.store.sub(store.gameID, () => {
-    gameIDListener(store.get(store.gameID))
-  })
-
-  // Make sure we don't miss the initial value, if already set.
-  const gameID = store.get(store.gameID)
-  if (gameID !== null)
-    gameIDListener(gameID)
-}
-
-// =================================================================================================
 // CHANGE LISTENERS
 
 /**
  * Called whenever the connected wallet address changes. Makes sure to clear the address if the
  * wallet is disconnected, as well as the game data.
  */
-function updatePlayerAddress(result: AccountResult) {
+export function updatePlayerAddress(result: AccountResult) {
   const oldAddress = store.get(store.playerAddress)
   const newAddress = result.status === 'disconnected' || !isNetworkValid()
     ? null
@@ -101,7 +67,7 @@ function isNetworkValid(network: NetworkResult = getNetwork()) {
  * Called whenever the network we are connected to changes. Makes sure to clear the game data if the
  * network is unsupported.
  */
-function updateNetwork(result: NetworkResult) {
+export function updateNetwork(result: NetworkResult) {
   if (result.chain === undefined)
     console.log("disconnected from network")
   else
@@ -130,7 +96,7 @@ function updateNetwork(result: NetworkResult) {
  * It never causes race conditions or weird data states: this resets all associated states, and if
  * a refresh lands with another ID, it will be ignored.
  */
-function gameIDListener(ID: bigint|null) {
+export function gameIDListener(ID: bigint|null) {
   console.log(`transitioning to game ID ${ID}`)
 
   // avoid using inconsistent data
