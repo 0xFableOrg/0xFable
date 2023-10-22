@@ -7,14 +7,15 @@ import { GameEndedModal } from "src/components/modals/gameEndedModal"
 import { Navbar } from "src/components/navbar"
 import { useGameWrite } from "src/hooks/useFableWrite"
 import * as store from "src/store/hooks"
-import { getPrivateInfo } from "src/store/read"
-import { GameStatus, PrivateInfo } from "src/store/types"
+import { GameStatus } from "src/store/types"
 import { FablePage } from "src/pages/_app"
 import { Address } from "viem"
 import { readContract } from "wagmi/actions"
 import { deployment } from "src/deployment"
 import { gameABI } from "src/generated"
 import { useRouter } from "next/router"
+import { setError } from "src/store/actions"
+import { DISMISS_BUTTON } from "src/actions/errors"
 
 const Play: FablePage = ({ isHydrated }) => {
   const [ gameID, setGameID ] = store.useGameID()
@@ -24,38 +25,38 @@ const Play: FablePage = ({ isHydrated }) => {
   const [ concedeCompleted, setConcedeCompleted ] = useState(false)
   const playerAddress = store.usePlayerAddress()
   const router = useRouter()
+  const privateInfo = store.usePrivateInfo(gameID, playerAddress)
 
   const [ hasVisitedBoard, visitBoard ] = store.useHasVisitedBoard()
   useEffect(visitBoard, [visitBoard, hasVisitedBoard])
 
-  // If the game ID is null, fetch it from the contract. If still null, we're not in a game,
-  // navigate back to homepage.
+
   useEffect(() => {
+    // If the game ID is null, fetch it from the contract. If still null, we're not in a game,
+    // navigate back to homepage.
     const fetchGameID = async () => {
       const fetchedGameID = await readContract({
         address: deployment.Game,
         abi: gameABI,
         functionName: "inGame",
-        args: [playerAddress as Address]
+        args: [playerAddress as Address],
       })
       if (gameID !== null)
         setGameID(fetchedGameID)
       else
         void router.push("/")
     }
+
+    // Back to home screen if player disconnects.
+    if (playerAddress === null)
+      void router.push("/")
+
     if (gameID === null)
       void fetchGameID()
 
   }, [gameID, setGameID, playerAddress, router])
 
-  let privateInfo: PrivateInfo | null = null
-  if (gameID) {
-    privateInfo = getPrivateInfo(gameID as bigint, playerAddress as Address)
-  }
-
-  const playerHand: bigint[] | null = privateInfo
-    ? (privateInfo?.deck as bigint[])
-    : null
+  const playerHand: bigint[] | null = privateInfo?.deck as bigint[] ?? null
 
   const ended = gameStatus === GameStatus.ENDED || concedeCompleted
 
@@ -68,6 +69,19 @@ const Play: FablePage = ({ isHydrated }) => {
     // will follow.
     onSuccess: () => setConcedeCompleted(true),
   })
+
+  useEffect(() => {
+    if (gameID !== null && playerAddress !== null && !privateInfo) {
+      setError({
+        title: "Hand information is missing",
+        message: "Keep playing on the device where you started the game, and do not clear your "
+          + "browser data while a game is in progress.",
+        buttons: [DISMISS_BUTTON, { text: "Concede", onClick: () => void concede?.() }]
+      })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [privateInfo])
+
 
   const ctrl = useModalController({ displayed: true, closeable: false })
 
