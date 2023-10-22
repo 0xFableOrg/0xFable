@@ -1,20 +1,35 @@
+import { ConnectKitButton, useModal } from "connectkit"
 import Link from "next/link"
+import { useRouter } from "next/router"
+import { useEffect } from "react"
 import { useAccount, useNetwork } from "wagmi"
 
+import { Address, chains, ensureLocalAccountIndex } from "src/chain"
+import { deployment } from "src/deployment"
 import { CreateGameModal } from "src/components/modals/createGameModal"
 import { JoinGameModal } from "src/components/modals/joinGameModal"
 import { MintDeckModal } from "src/components/modals/mintDeckModal"
-import { chains, ensureLocalAccountIndex } from "src/chain"
+import { useGameInGame } from "src/generated"
 import { FablePage } from "src/pages/_app"
-import { useRouter } from "next/router"
-import { useEffect } from "react"
-import { ConnectKitButton, useModal } from "connectkit"
+import { useGameID } from "src/store/hooks"
 
 const Home: FablePage = ({ isHydrated }) => {
   const { address } = useAccount()
-  const { open } = useWeb3Modal()
   const { setOpen } = useModal()
   const { chain: usedChain } = useNetwork()
+  const [ _gameID, setGameID ] = useGameID()
+
+  // Refresh game ID and put it in the store.
+  // noinspection JSDeprecatedSymbols
+  useGameInGame({
+    address: deployment.Game,
+    args: [address as Address],
+    enabled: !!address,
+    onSuccess: gameID => {
+      // 0 means we're not in a game
+      if (gameID !== 0n) setGameID(gameID)
+    }
+  })
 
   if (process.env.NODE_ENV === "development") { // constant
     // eslint-disable-next-line react-hooks/rules-of-hooks

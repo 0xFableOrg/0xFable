@@ -35,9 +35,8 @@ export const playerAddress = atom(null as Address|null)
 
 /**
  * ID of the game the player is currently participating in (creating, joined, or playing).
- * This is stored in local storage.
  */
-export const gameID = atomWithStorage("0xFable::gameID", null as bigint|null)
+export const gameID = atom(null as bigint|null)
 
 // -------------------------------------------------------------------------------------------------
 
