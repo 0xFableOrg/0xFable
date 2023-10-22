@@ -485,7 +485,6 @@ contract Game {
     // `timeout()` function to boot the timed out player from the game, or cancel the game if not
     // everyone joined and drew the initial hand yet.
     function getPublicRandomness(uint256 gameID, address player) public view returns (uint256) {
-
         // When the player is specified, they're in the game and their hand hasn't been drawn yet,
         // we set the publicRandomness based on the block at which their joinGame transaction was
         // received. This enables all players to draw their hands and generate the zk proof locally,
@@ -495,7 +494,8 @@ contract Game {
         // randomness-dependent actions.
 
         GameData storage gdata = gameData[gameID];
-        if (player != address(0)) { // player specified
+        if (player != address(0)) {
+            // player specified
             PlayerData storage pdata = gdata.playerData[player];
             if (pdata.saltHash != 0 && pdata.handRoot == 0) {
                 // player in the game & hand not drawn yet
