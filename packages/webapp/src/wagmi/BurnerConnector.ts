@@ -41,7 +41,7 @@ const privateKeys: PrivateKey[] = [
 export class BurnerConnector extends Connector {
   readonly id = "0xFable-burner"
   readonly name = "0xFable Burner Wallet"
-  readonly ready = true
+  ready = false
 
   #chain = localhost
   #connected = false
@@ -55,7 +55,6 @@ export class BurnerConnector extends Connector {
       chains: [localhost],
       options: {}
     })
-    this.setKey(privateKeys[0]) // default to first private key
   }
 
   private setKey(privkey: PrivateKey) {
@@ -66,6 +65,7 @@ export class BurnerConnector extends Connector {
       chain: this.#chain,
       transport: http()
     })
+    this.ready = true
     if (this.#connected)
       this.onAccountsChanged([this.#account.address])
   }
@@ -90,7 +90,7 @@ export class BurnerConnector extends Connector {
     if (keyIndex < 0 || keyIndex >= privateKeys.length)
       throw new Error(`Invalid private key index: ${keyIndex}`)
 
-    if (getAccount().address !== this.#account.address)
+    if (getAccount().address !== this.#account?.address)
       // Necessary because Web3Connect (possibly others) don't play nice with others and don't
       // disconnect before connecting.
       this.#connected = false
@@ -107,8 +107,11 @@ export class BurnerConnector extends Connector {
 
     await this.#connectLock.protect(async () => {
       if (!this.#connected) {
-        // The next three functions are wagmi actions, not methods of this class!
-        if (getAccount().isConnected) await disconnect()
+        // The next two functions are wagmi actions, not methods of this class!
+
+        // Unconditional disconnet to avoid issues: `getAccount().isConnect == false`
+        // but we still get an `AlreadyConnectedException` if we don't disconnect.
+        await disconnect()
         await connect({connector: this})
       }
     })
