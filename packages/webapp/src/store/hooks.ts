@@ -97,7 +97,7 @@ export function usePrivateInfo(gameID: bigint|null, playerAddress: Address|null)
   const privateInfoStore = useAtomValue(store.privateInfoStore)
   return gameID === null || playerAddress === null
     ? null
-    : privateInfoStore[gameID.toString()][playerAddress]
+    : privateInfoStore?.[gameID.toString()]?.[playerAddress]
 }
 
 // =================================================================================================
