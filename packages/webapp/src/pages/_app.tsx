@@ -1,3 +1,8 @@
+// =================================================================================================
+
+// Must come first, so that can we can hook global members before they're used by imports.
+import "src/setup"
+
 import { ConnectKitProvider } from "connectkit"
 import { NextPage } from "next"
 import type { AppType } from "next/app"
@@ -9,14 +14,8 @@ import jotaiDebug from "src/components/lib/jotaiDebug"
 import { GlobalErrorModal } from "src/components/modals/globalErrorModal"
 import { useIsHydrated } from "src/hooks/useIsHydrated"
 import { useErrorConfig } from "src/store/hooks"
-import { setup } from "src/setup"
 
 import "src/styles/globals.css"
-
-// =================================================================================================
-// SETUP (global hooks & customization)
-
-setup()
 
 // =================================================================================================
 
