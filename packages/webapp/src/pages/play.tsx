@@ -11,16 +11,42 @@ import { getPrivateInfo } from "src/store/read"
 import { GameStatus, PrivateInfo } from "src/store/types"
 import { FablePage } from "src/pages/_app"
 import { Address } from "viem"
+import { readContract } from "wagmi/actions"
+import { deployment } from "src/deployment"
+import { gameABI } from "src/generated"
+import { useRouter } from "next/router"
 
 const Play: FablePage = ({ isHydrated }) => {
-  const [ gameID ] = store.useGameID()
+  const [ gameID, setGameID ] = store.useGameID()
   const gameStatus = store.useGameStatus()
-  const [ hasVisitedBoard, visitBoard ] = store.useHasVisitedBoard()
-  useEffect(() => visitBoard, [visitBoard, hasVisitedBoard])
   const [ loading, setLoading ] = useState<string|null>(null)
   const [ hideResults, setHideResults ] = useState(false)
   const [ concedeCompleted, setConcedeCompleted ] = useState(false)
   const playerAddress = store.usePlayerAddress()
+  const router = useRouter()
+
+  const [ hasVisitedBoard, visitBoard ] = store.useHasVisitedBoard()
+  useEffect(visitBoard, [visitBoard, hasVisitedBoard])
+
+  // If the game ID is null, fetch it from the contract. If still null, we're not in a game,
+  // navigate back to homepage.
+  useEffect(() => {
+    const fetchGameID = async () => {
+      const fetchedGameID = await readContract({
+        address: deployment.Game,
+        abi: gameABI,
+        functionName: "inGame",
+        args: [playerAddress as Address]
+      })
+      if (gameID !== null)
+        setGameID(fetchedGameID)
+      else
+        void router.push("/")
+    }
+    if (gameID === null)
+      void fetchGameID()
+
+  }, [gameID, setGameID, playerAddress, router])
 
   let privateInfo: PrivateInfo | null = null
   if (gameID) {
@@ -45,9 +71,6 @@ const Play: FablePage = ({ isHydrated }) => {
 
   const ctrl = useModalController({ displayed: true, closeable: false })
 
-  // TODO: if there is no game ID, should redirect away from this page
-  // TODO: the navbar connector should show bad chain if it's a bad chain
-
   // -----------------------------------------------------------------------------------------------
 
   if (!isHydrated) return <></>
@@ -55,12 +78,13 @@ const Play: FablePage = ({ isHydrated }) => {
   return (
     <>
       {loading && (
-        <LoadingModal ctrl={ctrl} loading={loading} setLoading={setLoading} />
-      )}
+        <LoadingModal ctrl={ctrl} loading={loading} setLoading={setLoading} />)}
+
+      {gameID === 0n && (
+        <LoadingModal ctrl={ctrl} loading="Fetching game ..." setLoading={setLoading} />)}
 
       {ended && !hideResults && (
-        <GameEndedModal closeCallback={() => setHideResults(true)} />
-      )}
+        <GameEndedModal closeCallback={() => setHideResults(true)} />)}
 
       <main className="flex min-h-screen flex-col">
         <Navbar />
