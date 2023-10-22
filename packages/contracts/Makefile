@@ -91,6 +91,11 @@ deploy: build
 	@cd ../webapp && pnpm wagmi generate
 .PHONY: deploy
 
+# Like make deploy, but deploy contracts that do not check proofs.
+deploy-noproofs:
+	CHECK_PROOFS=false make deploy
+.PHONY: deploy-noproofs
+
 # Sometimes the deployment crashes, this allows us to see why. Hardcoded to only use local
 # deployment.
 debug-deploy:

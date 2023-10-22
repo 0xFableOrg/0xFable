@@ -270,8 +270,7 @@ contract Game {
     uint256 private nextID = 1;
 
     // Boolean to indicate whether we should check zk proof.
-    // TODO set to true by default, can be disabled in test via the `toggleProof` function
-    bool private checkProofs = true;
+    bool private checkProofs;
 
     // Maps game IDs to game data.
     mapping(uint256 => GameData) public gameData;
@@ -410,13 +409,15 @@ contract Game {
         Inventory inventory_,
         DrawVerifier drawVerifier_,
         PlayVerifier playVerifier_,
-        DrawHandVerifier drawHandVerifier_
+        DrawHandVerifier drawHandVerifier_,
+        bool checkProofs_
     ) {
         inventory = inventory_;
         cardsCollection = inventory.originalCardsCollection();
         drawVerifier = drawVerifier_;
         playVerifier = playVerifier_;
         drawHandVerifier = drawHandVerifier_;
+        checkProofs = checkProofs_;
     }
 
     // =============================================================================================

@@ -52,7 +52,7 @@ const HashOne = "0x0000000000000000000000000000000000000000000000000000000000000
  * Whether to generate proofs, can be turned to false for debugging (in which case the corresponding
  * switch (`checkProofs = false`) must be set on the contract side).
  */
-const generateProofs = true
+const generateProofs = !process.env["NEXT_PUBLIC_NO_PROOFS"]
 
 // -------------------------------------------------------------------------------------------------
 
