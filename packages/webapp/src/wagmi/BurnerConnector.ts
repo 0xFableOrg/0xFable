@@ -144,15 +144,15 @@ export class BurnerConnector extends Connector {
     return true
   }
 
-  protected onAccountsChanged(accounts: Address[]): void {
+  protected onAccountsChanged(_accounts: Address[]): void {
     this.emit("change", { account: this.#account.address })
   }
 
-  protected onChainChanged(chain: number | string): void {
+  protected onChainChanged(_chain: number | string): void {
     this.emit("change", { chain: { id: this.#chain.id, unsupported: false } })
   }
 
-  protected onDisconnect(error: Error): void {
+  protected onDisconnect(_error: Error): void {
     this.emit("disconnect")
   }
 }
