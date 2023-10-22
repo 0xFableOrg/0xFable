@@ -10,7 +10,17 @@ let sharedPage
 
 const definedTests = []
 
-const PROOF_TIME = 25000
+// Whether we're generating proofs. A false value requires running `make dev-noproofs` and deploying
+// with `make deploy-noproofs`.
+const generateProofs = !process.env["NO_PROOFS"]
+
+// Time to wait for proof generation.
+const PROOF_TIME = generateProofs ? 25000 : 0
+
+// The index of the key to use in the Anvil ("test ... junk" mnemonic) private keys.
+// Currently unused, but could be used later to test with /?index=0 or /?index=1 and avoid
+// the need to maniuplate metamask altogether.
+let currentPlayer = 0
 
 function Test(name, test) {
   definedTests.push({ name, test })
@@ -18,7 +28,8 @@ function Test(name, test) {
 
 test.beforeAll(async ({ page }) => {
   sharedPage = page;
-  await sharedPage.goto("http://localhost:3000")
+  // await sharedPage.goto(`http://localhost:3000/?index=${currentPlayer}`)
+  await sharedPage.goto(`http://localhost:3000/`)
 })
 
 test.afterAll(async ({ context }) => {
@@ -41,7 +52,7 @@ Test("connect wallet using default metamask account (first anvil account)", asyn
   await expect(sharedPage).toHaveTitle(/0xFable/)
   await connectMetamask()
 
-  await expect(sharedPage.getByRole("button", { name: "0xf3...2266"})).toBeVisible()
+  await expect(sharedPage.getByRole("button", { name: "0xf39F••••2266"})).toBeVisible()
   await expect(sharedPage.getByRole("button", { name: "Create Game →" })).toBeVisible()
   await expect(sharedPage.getByRole("button", { name: "Join →" })).toBeVisible()
   await expect(sharedPage.getByRole("button", { name: "Mint Deck →" })).toBeVisible()
@@ -100,16 +111,20 @@ Test("create & join", async () => {
   // joinGame transaction
   await expect(sharedPage.getByRole("heading", { name: "Waiting for signature..." })).toBeVisible()
   await metamask.confirmTransaction()
+
   // drawInitialhand transaction
-  await sharedPage.waitForTimeout(5000) // extra wait time to avoid observed flakiness
-  // seems to be caused by metamask struggling at this point
-  await expect(sharedPage.getByRole("heading", { name: "Generating draw proof — may take a minute ..." })).toBeVisible()
-  await sharedPage.waitForTimeout(PROOF_TIME) // give time for proof generation
-  await expect(sharedPage.getByRole("heading", { name: "Waiting for signature..." })).toBeVisible()
+  if (generateProofs)
+    // Extra wait time to avoid observed flakiness,
+    // seems to be caused by metamask struggling at this point.
+    await expect(sharedPage.getByRole("heading",
+      { name: "Generating draw proof — may take a minute ..." })).toBeVisible({ timeout: 10000 })
+  await expect(sharedPage.getByRole("heading",{ name: "Waiting for signature..." }))
+    .toBeVisible({ timeout: PROOF_TIME + 10000 })
   await metamask.confirmTransaction()
 
   // wait for on-chain inclusion
   await expect(sharedPage.getByRole("heading", { name: "Waiting for other player..." })).toBeVisible()
+  currentPlayer = 1
 })
 
 // NOTE
@@ -123,7 +138,7 @@ Test("connect from other address", async () => {
   await metamask.disconnectWalletFromDapp()
   await metamask.createAccount()
   await switchToAccount(2)
-  await expect(sharedPage.getByRole("button", { name: "0x70...79C8"})).toBeVisible()
+  await expect(sharedPage.getByRole("button", { name: "0x7099••••79C8"})).toBeVisible()
 })
 
 Test("join from other address", async () => {
@@ -138,11 +153,16 @@ Test("join from other address", async () => {
   await expect(sharedPage.getByRole("heading", { name: "Waiting for signature..." })).toBeVisible()
   await metamask.confirmTransaction()
   // drawInitialhand transaction
-  await expect(sharedPage.getByRole("heading", { name: "Generating draw proof — may take a minute ..." })).toBeVisible()
-  await sharedPage.waitForTimeout(PROOF_TIME) // give time for proof generation
-  await expect(sharedPage.getByRole("heading", { name: "Waiting for signature..." })).toBeVisible()
+  if (generateProofs)
+    await expect(sharedPage.getByRole("heading",
+      {name: "Generating draw proof — may take a minute ..."})).toBeVisible()
+  await expect(sharedPage.getByRole("heading", { name: "Waiting for signature..." }))
+    .toBeVisible({ timeout: PROOF_TIME + 5000 })
   await metamask.confirmTransaction()
-  await expect(sharedPage.getByRole('button', { name: 'CONCEDE' })).toBeEnabled()
+  // Extra wait time to avoid observed flakiness,
+  // seems to be caused by metamask struggling at this point.
+  await expect(sharedPage.getByRole('button', { name: 'CONCEDE' })).toBeEnabled({ timeout: 10000 })
+  currentPlayer = 0
 })
 
 Test("make sure first player is in the game too", async () => {
@@ -157,19 +177,19 @@ Test("make sure first player is in the game too", async () => {
 Test("first player concede games", async () => {
   await sharedPage.getByRole('button', { name: 'CONCEDE' }).click()
   await expect(sharedPage.getByRole("heading", { name: "Waiting for signature..." })).toBeVisible()
-  // TODO: This fails due to the fact that the game ID isn't set anymore when switching back.
-  //       This can be fixed by querying the chain for the game the player is in upon load.
   await metamask.confirmTransaction()
   await expect(sharedPage.getByRole("heading", { name: "Game Ended" })).toBeVisible()
-  await expect(sharedPage.getByRole("paragraph", { name: "Winner: 0x70997970C51812dc3A010C7d01b50e0d17dc79C8" })).toBeVisible()
+  await sharedPage.pause()
+  await expect(sharedPage.getByText('Winner: 0x70997970C51812dc3A010C7d01b50e0d17dc79C8')).toBeVisible()
   await sharedPage.getByRole("button", { name: "Exit to Menu" }).click()
   await expect(sharedPage.getByRole("button", { name: "Create Game →" })).toBeVisible()
 })
 
 Test("game loads", async () => {
+  // TODO This is broken after a bunch of changes (namely proof generation),
+  //      fix it when game logic needs to be tested.
   await setupGame()
   await switchToAccount(1)
-  // TODO: Right now we don't detect that the player is in a game, implement that.
   await expect(sharedPage.getByRole('button', { name: 'CONCEDE' })).toBeEnabled()
 })
 
