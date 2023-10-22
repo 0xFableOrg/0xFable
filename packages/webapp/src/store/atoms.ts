@@ -71,7 +71,15 @@ export const hasVisitedBoard = atom(false)
  * This information cannot be derived from on-chain data, it's therefore important to persist it
  * to browser storage in order to survive page reloads.
  */
-export const privateInfoStore = atomWithStorage("0xFable::privateInfoStore", {} as PrivateInfoStore)
+export const privateInfoStore = atomWithStorage(
+  "0xFable::privateInfoStore",
+  {} as PrivateInfoStore,
+  undefined,
+  // Necessary, otherwise the storage only gets read when the atom is mounted in React.
+  { unstable_getOnInit: true })
+
+// Without this, Jotai does not seem to pickup in updates from other tabs.
+store.sub(privateInfoStore, () => {})
 
 // -------------------------------------------------------------------------------------------------
 

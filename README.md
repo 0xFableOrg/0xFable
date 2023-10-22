@@ -77,6 +77,10 @@ You can import those accounts in your wallet, but we recommend instead accessing
 **This will load the test private key locally, and avoid the need for you to click your wallet
 every time a transaction is made!**
 
+**IMPORTANT**: You will need to use two separate browsers (or two separate profiles) to test the
+game with two different accounts. It may work to some extent with two different tabs, but any
+reload will reset the address.
+
 ## Commands
 
 See the [Makefile](/Makefile) for a description of all top-level make commands.
