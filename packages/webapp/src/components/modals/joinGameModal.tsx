@@ -20,8 +20,9 @@ export const JoinGameModal = () => {
   const isGameJoiner = store.useIsGameJoiner()
   const ctrl = useModalController({ loaded: isGameJoiner })
 
-  // If we're on the home page and we have joined a game we didn't create, this modal should be displayed.
   useEffect(() => {
+    // If we're on the home page and we have joined a game we didn't create, this modal
+    // should be displayed.
     if (isGameJoiner && !ctrl.displayed)
       ctrl.display()
   }, [isGameJoiner, ctrl, ctrl.displayed])

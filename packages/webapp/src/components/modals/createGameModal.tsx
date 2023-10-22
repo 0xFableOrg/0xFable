@@ -15,15 +15,16 @@ import { GameStatus } from "src/store/types"
 // =================================================================================================
 
 export const CreateGameModal = () => {
+  const [gameID] = store.useGameID()
+
   const isGameCreator = store.useIsGameCreator()
   const ctrl = useModalController({ loaded: isGameCreator })
 
-  // If we're on the home page and we're the game creator, this modal should be displayed.
-  // An explicit intervention is necessary because the state might update while the modal is closed.
   useEffect(() => {
+    // If we're on the home page and we're the game creator, this modal should be displayed.
     if (isGameCreator && !ctrl.displayed)
       ctrl.display()
-  }, [isGameCreator, ctrl, ctrl.displayed])
+  }, [isGameCreator, ctrl, ctrl.displayed, gameID])
 
   return <>
     <ModalMenuButton display={ctrl.display} label="Create Game →" />
