@@ -49,20 +49,6 @@ const nextConfig = {
       topLevelAwait: true // enable await at top-level in modules
     }
 
-    // why did you render
-    if (dev && !isServer) {
-      const originalEntry = config.entry
-      config.entry = async () => {
-        const __filename = fileURLToPath(import.meta.url)
-        const __dirname = dirname(__filename)
-        const wdrPath = path.resolve(__dirname, './scripts/whyDidYouRender.js')
-        const entries = await originalEntry()
-        if (entries['main.js'] && !entries['main.js'].includes(wdrPath)) {
-          entries['main.js'].unshift(wdrPath)
-        }
-        return entries
-      }
-    }
     // This would be great, but is sadly disallowed by Next, because they hate freedom.
     // https://nextjs.org/docs/messages/improper-devtool
     // Having this would enable parsing hook names in the React DevTools.
