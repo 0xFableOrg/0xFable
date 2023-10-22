@@ -30,7 +30,6 @@ const Play: FablePage = ({ isHydrated }) => {
   const [ hasVisitedBoard, visitBoard ] = store.useHasVisitedBoard()
   useEffect(visitBoard, [visitBoard, hasVisitedBoard])
 
-
   useEffect(() => {
     // If the game ID is null, fetch it from the contract. If still null, we're not in a game,
     // navigate back to homepage.
@@ -51,7 +50,7 @@ const Play: FablePage = ({ isHydrated }) => {
     if (playerAddress === null)
       void router.push("/")
 
-    if (gameID === null)
+    if (gameID === null && playerAddress !== null)
       void fetchGameID()
 
   }, [gameID, setGameID, playerAddress, router])
