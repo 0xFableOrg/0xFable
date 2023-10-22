@@ -50,7 +50,7 @@ const CreateGameModalContent = ({ ctrl }: { ctrl: ModalController }) => {
   // Decompose in boolean to help sharing code.
   const created = gameStatus >= GameStatus.CREATED
   const joined  = gameStatus >= GameStatus.HAND_DRAWN || drawCompleted
-  const started = gameStatus >= GameStatus.STARTED
+  const started = gameStatus >= GameStatus.STARTED && gameStatus < GameStatus.ENDED
 
   // If the game is created, the modal can't be closed in the normal way, same if loading.
   useEffect(() => {

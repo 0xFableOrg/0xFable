@@ -76,7 +76,11 @@ const Play: FablePage = ({ isHydrated }) => {
         title: "Hand information is missing",
         message: "Keep playing on the device where you started the game, and do not clear your "
           + "browser data while a game is in progress.",
-        buttons: [DISMISS_BUTTON, { text: "Concede", onClick: () => void concede?.() }]
+        buttons: [DISMISS_BUTTON, { text: "Concede", onClick: () => {
+          void concede!()
+          setError(null)
+          }
+        }]
       })
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

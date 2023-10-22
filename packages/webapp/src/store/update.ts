@@ -15,7 +15,7 @@ import * as store from "src/store/atoms"
 import * as net from "src/store/network"
 import { THROTTLED, ZOMBIE } from "src/utils/throttled-fetch"
 import { formatTimestamp, parseBigInt } from "src/utils/js-utils"
-import { GameStatus } from "src/store/types"
+import { GameStatus, GameStep } from "src/store/types"
 import { getBlock } from "viem/actions"
 import { setError } from "src/store/actions"
 import { getGameStatus } from "src/game/status"
@@ -158,7 +158,7 @@ export async function refreshGameData() {
   }
 
   // Always fetch cards before game is started (easier). Don't fetch after, as they won't change,
-  // but fetch is missing (e.g. browser refresh).
+  // but fetch if missing (e.g. browser refresh).
   const cards = store.get(store.cards)
   const shouldFetchCards = status < GameStatus.STARTED || cards === null
 
@@ -175,6 +175,15 @@ export async function refreshGameData() {
     return oldGameData
 
   status = getGameStatus(gameData, player)
+
+  if (status === GameStatus.ENDED && gameData.playersLeftToJoin > 0) {
+    // The game was cancelled before starting.
+    // We do not do this when the game ends after starting, as we may still want to peruse the
+    // game board.
+    store.set(store.gameID, null)
+    // The above will cause the gameData to be cleared, return early.
+    return
+  }
 
   if (gameData.publicRandomness === 0n && status !== GameStatus.ENDED) {
     const block = await getBlock(getPublicClient())
