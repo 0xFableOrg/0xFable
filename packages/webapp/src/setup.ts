@@ -11,14 +11,10 @@
 import { setupStore } from "src/store/update"
 
 // =================================================================================================
+// SETUP
 
-// Only run setup once.
-let setupHasRun = false
-
-export function setup() {
-  if (setupHasRun) return
-  setupHasRun = true
-
+// Calle at bottom of this file.
+function setup() {
   setupFilterErrorMessages()
   setupFilterWarningMessages()
   setupFilterInfoMessages()
@@ -214,5 +210,9 @@ function setupBigintSerialization() {
   }
   JSON.parse["oldParse"] = oldParse
 }
+
+// =================================================================================================
+
+setup()
 
 // =================================================================================================
