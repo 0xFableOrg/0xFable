@@ -81,6 +81,10 @@ every time a transaction is made!**
 game with two different accounts. It may work to some extent with two different tabs, but any
 reload will reset the address.
 
+If you would like to skip proof generation and verification, you can use the following commands:
+- `cd packages/webapp && make deploy-noproofs`
+- `cd packages/webapp && make dev-noproofs`
+
 ## Commands
 
 See the [Makefile](/Makefile) for a description of all top-level make commands.

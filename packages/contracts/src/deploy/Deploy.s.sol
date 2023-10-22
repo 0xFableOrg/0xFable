@@ -47,7 +47,8 @@ contract Deploy is Script {
         drawVerifier = new DrawVerifier();
         playVerifier = new PlayVerifier();
         drawHandVerifier = new DrawHandVerifier();
-        game = new Game(inventory, drawVerifier, playVerifier, drawHandVerifier);
+        bool checkProofs = vm.envOr("CHECK_PROOFS", true);
+        game = new Game(inventory, drawVerifier, playVerifier, drawHandVerifier, checkProofs);
         airdrop = new DeckAirdrop(inventory);
 
         // initialize
