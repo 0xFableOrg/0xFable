@@ -27,18 +27,19 @@ import { DISMISS_BUTTON } from "src/actions/errors"
 
 /** List of events we want to listen to. */
 const eventNames = [
-  'CardDrawn',
-  'CardPlayed',
-  'PlayerAttacked',
-  'PlayerDefended',
-  'PlayerPassed',
-  'PlayerJoined',
-  'PlayerDrewHand',
-  'GameStarted',
-  'PlayerConceded',
-  'Champion',
-  'PlayerDefeated',
-  'MissingPlayers',
+  "CardDrawn",
+  "CardPlayed",
+  "Champion",
+  "GameStarted",
+  "MissingPlayers",
+  "PlayerAttacked",
+  "PlayerConceded",
+  "PlayerDefeated",
+  "PlayerDrewHand",
+  "PlayerDefended",
+  "PlayerJoined",
+  "PlayerPassed",
+  "PlayerTimedOut"
 ]
 
 // -------------------------------------------------------------------------------------------------
@@ -105,50 +106,54 @@ function handleEvent(name: string, args: GameEventArgs) {
   if (ID != args.gameID) return
 
   switch (name) {
-    case 'CardDrawn': {
+    case "CardDrawn": {
       const { _player } = args
       break
-    } case 'CardPlayed': {
+    } case "CardPlayed": {
       const { _player, _card } = args
       break
-    } case 'PlayerAttacked': {
+    } case "PlayerAttacked": {
       const { _attacking, _defending } = args
       break
-    } case 'PlayerDefended': {
+    } case "PlayerDefended": {
       const { _attacking, _defending } = args
       break
-    } case 'PlayerPassed': {
+    } case "PlayerPassed": {
       const { _player } = args
       break
-    } case 'PlayerJoined': {
+    } case "PlayerJoined": {
       const { _player } = args
       // Refetch game data to get up to date player list and update the status.
       void refreshGameData()
       break
     }
-    case 'PlayerDrewHand': {
+    case "PlayerDrewHand": {
       void refreshGameData()
       break
     }
-    case 'GameStarted': {
+    case "GameStarted": {
       // No need to refetch game data, game started is triggered by a player drawing his hand, which
       // refreshes the game data.
       break
     }
-    case 'PlayerConceded': {
+    case "PlayerConceded": {
       void refreshGameData()
       break
     }
-    case 'PlayerDefeated': {
+    case "PlayerDefeated": {
       void refreshGameData()
       break
     }
-    case 'Champion': {
-      // No need to refetch game data, a player winning is triggered by a player conceding or being
-      // defeating, which refreshes the game data.
+    case "PlayerTimedOut": {
+      void refreshGameData()
       break
     }
-    case 'MissingPlayers': {
+    case "Champion": {
+      // No need to refetch game data, a player winning is triggered by a player conceding, timing
+      // out, or being defeated, which refreshes the game data.
+      break
+    }
+    case "MissingPlayers": {
       // TODO: temporary message, need to do better flow handling for these scenarios
       // TODO: might also be good to close the createGame modal after this
       setError({
