@@ -1,6 +1,6 @@
 /**
- * This module contains logic to be called at the top of the app (via {@link setup}), representing
- * various hooks and customizations.
+ * This module contains logic that runs as a side-effect of module iniitalization, and should be run
+ * first thing when the app launches. It sets up various hooks and customizations.
  *
  * @module setup
  */
@@ -8,12 +8,10 @@
 // We're doing too much magic here.
 // @ts-nocheck
 
-import { setupStore } from "src/store/update"
-
 // =================================================================================================
 // SETUP
 
-// Calle at bottom of this file.
+// Called at bottom of this file.
 function setup() {
   setupFilterErrorMessages()
   setupFilterWarningMessages()
@@ -24,8 +22,6 @@ function setup() {
     setupFilterLogMessages()
 
   setupBigintSerialization()
-
-  setupStore()
 }
 
 // =================================================================================================
@@ -85,88 +81,73 @@ function matchFilter(err?: string, filter: string|RegExp): boolean {
 
 // -------------------------------------------------------------------------------------------------
 
-/**
- * Hooks {@link console.error} such that string errors starting with any of the strings in
- * {@link filteredErrorMessages} and object errors with a `code` property contained in {@link
- * filteredErrorCodes} will be filtered out. Instead they will be stored in {@link
- * window.suppressedErrors}.
- */
-function setupFilterErrorMessages() {
-  console.error = replaceFunction(console, "error", (oldFunction) => (arg) => {
-    arg = arg?.toString()
-    const filteredErr = filteredErrorMessages.some((filter) => matchFilter(arg, filter))
-    const filteredCode = filteredErrorCodes.includes(arg?.code)
+function setupFiltering(
+    level: string, filteredMessages: (string|RegExp)[], filteredCodes?: string[]) {
 
-    if (filteredErr || filteredCode) {
-      window["suppressedErrors"] ||= []
-      window["suppressedErrors"].push(arg)
+  console[level] = replaceFunction(console, level, (oldFunction) => (msg, ...args) => {
+
+    if (typeof msg === "string" && args.length > 0)
+      // Very imperfect implementation of string substitutions, good enough for us.
+      msg.replace(/%s/g, () => args.shift())
+
+    const msgStr = msg?.toString()
+
+    const filteredMsg = filteredMessages.some((filter) => matchFilter(msgStr, filter))
+    const filteredCode = filteredCodes || filteredErrorCodes.includes(msg?.code)
+
+    if (filteredMsg || filteredCode) {
+      const suppressed = `suppressed${level[0].toUpperCase()}${level.slice(1)}s`
+      window[suppressed] ||= []
+      window[suppressed].push(msgStr)
     } else {
-      oldFunction(arg)
+      oldFunction(msg, ...args)
     }
   })
+}
+
+// -------------------------------------------------------------------------------------------------
+
+/**
+ * Hooks {@link console.error} such that string errors starting with any of the strings in {@link
+ * filteredErrorMessages} and object errors with a `code` property contained in {@link
+ * filteredErrorCodes} will be filtered out. Instead they will be stored in
+ * `window.suppressedErrors`.
+ */
+function setupFilterErrorMessages() {
+  setupFiltering("error", filteredErrorMessages, filteredErrorCodes)
 }
 
 // -------------------------------------------------------------------------------------------------
 
 /**
  * Hooks {@link console.warn} such that string warnings starting with any of the strings in {@link
- * filteredWarningMessages} will be filtered out. Instead they will be stored in {@link
- * window.suppressedWarnings}.
+ * filteredWarningMessages} will be filtered out. Instead they will be stored in
+ * `window.suppressedWarnings`.
  */
 function setupFilterWarningMessages() {
-  console.warn = replaceFunction(console, "warn", (oldFunction) => (arg) => {
-    arg = arg?.toString()
-    const filteredMsg = filteredWarningMessages.some((filter) => matchFilter(arg, filter))
-
-    if (filteredMsg) {
-      window["suppressedWarnings"] ||= []
-      window["suppressedWarnings"].push(arg)
-    } else {
-      oldFunction(arg)
-    }
-  })
+  setupFiltering("warn", filteredWarningMessages)
 }
 
 // -------------------------------------------------------------------------------------------------
 
 /**
  * Hooks {@link console.info} such that string infos starting with any of the strings in {@link
- * filteredInfoMessages} will be filtered out. Instead they will be stored in {@link
- * window.suppressedInfos}.
+ * filteredInfoMessages} will be filtered out. Instead they will be stored in
+ * `window.suppressedInfos`.
  */
 function setupFilterInfoMessages() {
-  console.info = replaceFunction(console, "info", (oldFunction) => (arg) => {
-    arg = arg?.toString()
-    const filteredMsg = filteredInfoMessages.some((filter) => matchFilter(arg, filter))
-
-    if (filteredMsg) {
-      window["suppressedInfos"] ||= []
-      window["suppressedInfos"].push(arg)
-    } else {
-      oldFunction(arg)
-    }
-  })
+  setupFiltering("info", filteredInfoMessages)
 }
 
 // -------------------------------------------------------------------------------------------------
 
 /**
  * Hooks {@link console.log} such that string infos starting with any of the strings in {@link
-  * filteredLogMessages} will be filtered out. Instead they will be stored in {@link
-  * window.suppressedLogs}.
+ * filteredLogMessages} will be filtered out. Instead they will be stored in
+ * `window.suppressedLogs`.
  */
 function setupFilterLogMessages() {
-  console.log = replaceFunction(console, "log", (oldFunction) => (arg) => {
-    arg = arg?.toString()
-    const filteredMsg = filteredLogMessages.some((filter) => matchFilter(arg, filter))
-
-    if (filteredMsg) {
-      window["suppressedLogs"] ||= []
-      window["suppressedLogs"].push(arg)
-    } else {
-      oldFunction(arg)
-    }
-  })
+  setupFiltering("log", filteredLogMessages)
 }
 
 // =================================================================================================
