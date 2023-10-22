@@ -39,7 +39,8 @@ const eventNames = [
   "PlayerDefended",
   "PlayerJoined",
   "PlayerPassed",
-  "PlayerTimedOut"
+  "PlayerTimedOut",
+  "GameCancelled"
 ]
 
 // -------------------------------------------------------------------------------------------------
@@ -163,6 +164,10 @@ function handleEvent(name: string, args: GameEventArgs) {
         buttons: [DISMISS_BUTTON]
       })
       quitGame()
+      break
+    }
+    case "GameCancelled": {
+      void refreshGameData()
       break
     }
   }

@@ -6,8 +6,7 @@ import { InGameMenuModalContent } from "src/components/modals/inGameMenuModalCon
 
 import { useGameWrite } from "src/hooks/useFableWrite"
 import * as store from "src/store/hooks"
-import { isStringPositiveInteger } from "src/utils/js-utils"
-import { parseBigIntOrNull } from "src/utils/js-utils"
+import { isStringPositiveInteger, parseBigIntOrNull } from "src/utils/js-utils"
 import { Modal, ModalController, useModalController } from "src/components/lib/modal"
 import { LoadingModalContent } from "src/components/lib/loadingModal"
 import { joinGame, reportInconsistentGameState } from "src/actions"
@@ -49,7 +48,7 @@ const JoinGameModalContent = ({ ctrl }: { ctrl: ModalController }) => {
 
   // Decompose in boolean to help sharing code.
   const joined  = gameStatus >= GameStatus.HAND_DRAWN || drawCompleted
-  const started = gameStatus >= GameStatus.STARTED
+  const started = gameStatus >= GameStatus.STARTED && gameStatus < GameStatus.ENDED
 
   // Load game board game once upon game start.
   useEffect(() => {

@@ -88,9 +88,9 @@ export enum GameStatus {
   JOINED,
   /** The player has drawn their initial hand. */
   HAND_DRAWN,
-  /** The game has started (all players have drawn their initial hand. */
+  /** The game has started (all players have drawn their initial hand). */
   STARTED,
-  /** The game has ended (only one player left standing). */
+  /** The game has ended (could be cancellation, timeout, or only one player left standing). */
   ENDED
 }
 

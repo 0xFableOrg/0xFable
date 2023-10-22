@@ -131,7 +131,7 @@ contract Game {
     // A game was created by the given creator.
     event GameCreated(uint256 gameID, address indexed creator);
 
-    // The game was cancelled by its creator.
+    // The game was cancelled by its creator before it is started.
     event GameCancelled(uint256 indexed gameID);
 
     // A player joined the game.
@@ -430,6 +430,11 @@ contract Game {
         returns (FetchedGameData memory)
     {
         GameData storage gdata = gameData[gameID];
+
+        if (gdata.lastBlockNum == 0) {
+            revert NoGameNoLife();
+        }
+
         PlayerData[] memory pData = new PlayerData[](gdata.players.length);
         for (uint8 i = 0; i < gdata.players.length; ++i) {
             pData[i] = gdata.playerData[gdata.players[i]];
@@ -641,6 +646,7 @@ contract Game {
         if (gdata.playersLeftToJoin == 0) {
             revert GameAlreadyLocked();
         }
+        emit GameCancelled(gameID);
         endGameBeforeStart(gameID, gdata);
     }
 
@@ -652,6 +658,7 @@ contract Game {
             delete inGame[gdata.players[i]];
         }
         gdata.lastBlockNum = block.number;
+        gdata.currentStep = GameStep.ENDED;
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -732,7 +739,7 @@ contract Game {
         GameData storage gdata = gameData[gameID];
         PlayerData storage pdata = gdata.playerData[msg.sender];
 
-        if (pdata.saltHash != 0) {
+        if (pdata.joinBlockNum != 0) {
             revert AlreadyJoined();
         }
         if (gdata.playersLeftToJoin == 0) {
@@ -795,7 +802,7 @@ contract Game {
         GameData storage gdata = gameData[gameID];
         PlayerData storage pdata = gdata.playerData[msg.sender];
 
-        if (pdata.saltHash == 0) {
+        if (pdata.joinBlockNum == 0) {
             revert PlayerNotInGame();
         }
         if (pdata.handRoot != 0) {
@@ -860,7 +867,9 @@ contract Game {
         if (gdata.playerData[msg.sender].handRoot == 0) {
             revert PlayerNotInGame();
         }
-
+        if (gdata.currentStep == GameStep.UNINITIALIZED) {
+            revert FalseStart();
+        }
         emit PlayerConceded(gameID, msg.sender);
         playerDefeated(gameID, msg.sender);
         gdata.lastBlockNum = block.number;

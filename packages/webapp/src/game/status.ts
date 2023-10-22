@@ -5,8 +5,6 @@
  * @module game/status
  */
 
-import { zeroAddress } from "viem"
-
 import { Address } from "src/chain"
 import { FetchedGameData, GameStatus, GameStep } from "src/store/types"
 
@@ -17,7 +15,7 @@ import { FetchedGameData, GameStatus, GameStep } from "src/store/types"
  */
 export function getGameStatus(gdata: FetchedGameData|null, player: Address|null): GameStatus {
 
-  if (gdata === null || player === null || gdata.gameCreator === zeroAddress)
+  if (gdata === null || player === null || gdata.lastBlockNum === 0n)
     return GameStatus.UNKNOWN
 
   if (gdata.currentStep === GameStep.UNINITIALIZED)
