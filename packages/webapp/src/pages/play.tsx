@@ -46,7 +46,7 @@ const Play: FablePage = ({ isHydrated }) => {
   const privateInfo = store.usePrivateInfo()
   const gameData = store.useGameData()
 
-  const [hasVisitedBoard, visitBoard] = store.useHasVisitedBoard()
+  const [ hasVisitedBoard, visitBoard ] = store.useHasVisitedBoard()
   useEffect(visitBoard, [visitBoard, hasVisitedBoard])
 
   useEffect(() => {
