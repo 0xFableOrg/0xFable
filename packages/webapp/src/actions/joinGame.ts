@@ -34,32 +34,9 @@ import {
   getPrivateInfo
 } from "src/store/read"
 import { FetchedGameData, GameStatus, PlayerData, PrivateInfo } from "src/store/types"
-import { ProofOutput, proveInWorker } from "src/utils/zkproofs"
+import { SHOULD_GENERATE_PROOFS, FAKE_PROOF, ProofOutput, proveInWorker } from "src/utils/zkproofs"
 import { NUM_CARDS_FOR_PROOF } from "src/game/constants"
 import { packCards } from "src/game/fableProofs"
-
-// =================================================================================================
-
-/**
- * Temporary stand-in value. Don't use 0x0 as that can be interpreted as lack of initialization in
- * the contracts.
- */
-const HashOne = "0x0000000000000000000000000000000000000000000000000000000000000001"
-
-// -------------------------------------------------------------------------------------------------
-
-/**
- * Whether to generate proofs, can be turned to false for debugging (in which case the corresponding
- * switch (`checkProofs = false`) must be set on the contract side).
- */
-const generateProofs = !process.env["NEXT_PUBLIC_NO_PROOFS"]
-
-// -------------------------------------------------------------------------------------------------
-
-/**
- * Stand-in value for proofs, used when {@link generateProofs} is false.
- */
-const fakeProof: readonly bigint[] = Array(24).fill(1n)
 
 // =================================================================================================
 
@@ -77,7 +54,7 @@ export type JoinGameArgs = {
  * Handles both the game creator joining, as well as a player that isn't currently associated
  * to any game.
  *
- * Returns `true` if the player successfully joined the game, `false` otherwise.
+ * Returns `true` iff the player successfully joined the game.
  */
 export async function joinGame(args: JoinGameArgs): Promise<boolean> {
   try {
@@ -96,9 +73,9 @@ async function joinGameImpl(args: JoinGameArgs): Promise<boolean> {
   const gameStatus = getGameStatus()
 
   if (gameID !== null && gameID !== args.gameID)
-    throw new InconsistentGameStateError("Trying to join a game while in a different game.")
+    return false // old/stale call
 
-  if (gameStatus >= GameStatus.HAND_DRAWN) // works with UNKNOWN
+  if (gameStatus >= GameStatus.HAND_DRAWN)
     // We already drew, no need to display an error, this is a stale call,
     // and most likely we're in an aberrant state anwyay.
     return false
@@ -151,9 +128,9 @@ async function joinGameImpl(args: JoinGameArgs): Promise<boolean> {
   console.log(`drew initial hand: ${handDeckInfo.hand}`)
   args.setLoading("Generating draw proof — may take a minute ...")
 
-  const { proof } = generateProofs
+  const { proof } = SHOULD_GENERATE_PROOFS
     ? await generateDrawInitialHandProof(deck, privateInfo, gameData, playerData)
-    : { proof: fakeProof }
+    : { proof: FAKE_PROOF }
 
   await doDrawInitialHandTransaction(args, privateInfo, proof)
   return true
@@ -177,7 +154,8 @@ async function doJoinGameTransaction(args: JoinGameArgs, saltHash: bigint) {
         args.gameID,
         0, // deckID
         saltHash,
-        HashOne // data for join-check callback
+        // data for join-check callback — currently unused, just use 1
+        "0x0000000000000000000000000000000000000000000000000000000000000001",
       ],
       setLoading: args.setLoading
     })))
@@ -253,7 +231,7 @@ async function doDrawInitialHandTransaction
         args.gameID,
         privateInfo.handRoot,
         privateInfo.deckRoot,
-        proof as any, // coerce because signature wants precise length
+        proof as any // coerce because signature wants precise length
       ],
       setLoading: args.setLoading
     })))
