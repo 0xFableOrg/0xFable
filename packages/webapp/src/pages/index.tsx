@@ -1,10 +1,8 @@
 import { ConnectKitButton, useModal } from "connectkit"
 import Link from "next/link"
-import { useRouter } from "next/router"
-import { useEffect } from "react"
 import { useAccount, useNetwork } from "wagmi"
 
-import { Address, chains, ensureLocalAccountIndex } from "src/chain"
+import { Address, chains } from "src/chain"
 import { deployment } from "src/deployment"
 import { CreateGameModal } from "src/components/modals/createGameModal"
 import { JoinGameModal } from "src/components/modals/joinGameModal"
@@ -30,22 +28,6 @@ const Home: FablePage = ({ isHydrated }) => {
       if (gameID !== 0n) setGameID(gameID)
     }
   })
-
-  if (process.env.NODE_ENV === "development") { // constant
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    const router = useRouter()
-    const accountIndex = parseInt(router.query.index as string)
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    useEffect(() => {
-      if (accountIndex === undefined || isNaN(accountIndex)) return
-      if (accountIndex < 0 || 9 < accountIndex) return
-      void ensureLocalAccountIndex(accountIndex)
-    }, [accountIndex, address])
-
-    // It's necessary to update this on address, as Web3Modal (and possibly other wallet frameworks)
-    // will ignore our existence and try to override us with their own account (depending on how
-    // async code scheduling ends up working out).
-  }
 
   const chainSupported = chains.some(chain => chain.id === usedChain?.id)
 

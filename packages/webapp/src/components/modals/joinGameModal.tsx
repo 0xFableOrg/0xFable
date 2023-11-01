@@ -12,6 +12,7 @@ import { LoadingModalContent } from "src/components/lib/loadingModal"
 import { joinGame, reportInconsistentGameState } from "src/actions"
 import { setError } from "src/store/actions"
 import { GameStatus } from "src/store/types"
+import { navigate } from "src/utils/navigate"
 
 // =================================================================================================
 
@@ -53,7 +54,7 @@ const JoinGameModalContent = ({ ctrl }: { ctrl: ModalController }) => {
   // Load game board game once upon game start.
   useEffect(() => {
     if (!hasVisitedBoard && started)
-      void router.push("/play")
+      void navigate(router, "/play")
   }, [hasVisitedBoard, router, started])
 
   // The modal can't be closed in the normal way when in a loading state.
