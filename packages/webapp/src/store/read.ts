@@ -108,6 +108,15 @@ export function getDeck(
   return cards.slice(pdata.deckStart, pdata.deckEnd)
 }
 
+// -------------------------------------------------------------------------------------------------
+
+/**
+ * Returns the address of the player whose turn it is.
+ */
+export function getCurrentPlayerAddress(gameData: FetchedGameData) {
+  return gameData.players[gameData.currentPlayer]
+}
+
 // =================================================================================================
 // CHECKFRESH / FRESHWRAP
 
