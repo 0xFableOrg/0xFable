@@ -10,6 +10,21 @@ const snarkjs = require("snarkjs")
 
 // =================================================================================================
 
+/**
+ * Whether to generate proofs, can be turned to false for debugging (in which case the corresponding
+ * switch (`checkProofs = false`) must be set on the contract side).
+ */
+export const SHOULD_GENERATE_PROOFS = !process.env["NEXT_PUBLIC_NO_PROOFS"]
+
+// -------------------------------------------------------------------------------------------------
+
+/**
+ * Stand-in value for proofs, used when {@link SHOULD_GENERATE_PROOFS} is false.
+ */
+export const FAKE_PROOF: readonly bigint[] = Array(24).fill(1n)
+
+// =================================================================================================
+
 export type ProofInputs = Record<string, bigint|bigint[]|string>
 
 // -------------------------------------------------------------------------------------------------
