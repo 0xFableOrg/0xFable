@@ -22,6 +22,15 @@ import { endTurn } from "src/actions/endTurn"
 import { currentPlayer, isEndingTurn } from "src/game/misc"
 import { useCancellationHandler } from "src/hooks/useCancellationHandler"
 import { usePlayerHand } from "src/store/hooks"
+import {
+  DndContext,
+  DragEndEvent,
+  MouseSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core"
+import PlayerBoard from "src/components/game-board/playerBoard"
 
 const Play: FablePage = ({ isHydrated }) => {
   const [ gameID, setGameID ] = store.useGameID()
@@ -30,11 +39,14 @@ const Play: FablePage = ({ isHydrated }) => {
   const [ hideResults, setHideResults ] = useState(false)
   const [ concedeCompleted, setConcedeCompleted ] = useState(false)
   const playerAddress = store.usePlayerAddress()
+
+  // address to attacking player for PlayerBoard
+  const opponentAddress = store.useGameData()?.attackingPlayer
   const router = useRouter()
   const privateInfo = store.usePrivateInfo()
   const gameData = store.useGameData()
 
-  const [ hasVisitedBoard, visitBoard ] = store.useHasVisitedBoard()
+  const [hasVisitedBoard, visitBoard] = store.useHasVisitedBoard()
   useEffect(visitBoard, [visitBoard, hasVisitedBoard])
 
   useEffect(() => {
@@ -64,6 +76,20 @@ const Play: FablePage = ({ isHydrated }) => {
   }, [gameID, setGameID, playerAddress, router])
 
   const playerHand = usePlayerHand()
+
+  const currentPlayerCards = useMemo(() => {
+    if (!playedCards) return []
+    return playedCards
+      .filter((card) => card.owner === playerAddress)
+      .map((card) => card.cardId)
+  }, [playerAddress, playedCards])
+
+  const opponentPlayerCards = useMemo(() => {
+    if (!playedCards) return []
+    return playedCards
+      .filter((card) => card.owner === opponentAddress)
+      .map((card) => card.cardId)
+  }, [opponentAddress, playedCards])
 
   const ended = gameStatus === GameStatus.ENDED || concedeCompleted
 
@@ -126,9 +152,28 @@ const Play: FablePage = ({ isHydrated }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [privateInfo])
 
-
   const ctrl = useModalController({ displayed: true, closeable: false })
 
+  function handleDragEnd(event: DragEndEvent) {
+    const { over } = event
+    if (over && over.id === "player-board") {
+      // @todo this should ideally only cards to be dropped into one's one board and not the other player's board, need a naming convention for board refs + id
+      const eventStr = event.active.id as unknown as string
+      if (eventStr.match(/playedCard/)) return
+
+      const cardId = Number((eventStr.match(/^card-(\d+)/) || [, undefined])[1]) // card being moved from hand, still unplayed
+      const playedCard: CardInPlay = {
+        cardId: cardId,
+        owner: playerAddress as Address,
+      }
+      addOrRemoveCard(playedCard)
+    }
+  }
+
+  const sensors = useSensors(
+    // waits for a drag of 20 pixels before the UX assumes a card is being played
+    useSensor(MouseSensor, { activationConstraint: { distance: 20 } })
+  )
   // -----------------------------------------------------------------------------------------------
 
   if (!isHydrated) return <></>
@@ -138,6 +183,12 @@ const Play: FablePage = ({ isHydrated }) => {
       {/* The !ended here hides the loading modal to avoid it superimposing with the game ending
           modal, which can happen when we learn the game has ended because of a data refresh that
           precedes the inclusion confirmation. */}
+    <DndContext
+      onDragEnd={handleDragEnd}
+      sensors={sensors}
+      collisionDetection={closestCenter}
+    >
+      
       {loading && !ended && (
         <LoadingModal ctrl={ctrl} loading={loading} setLoading={setLoading} />)}
 
@@ -157,13 +208,7 @@ const Play: FablePage = ({ isHydrated }) => {
           className="absolute left-0 right-0 mx-auto z-[100] translate-y-1/2 transition-all duration-500 rounded-xl ease-in-out hover:translate-y-0"
         />
         <div className="grid-col-1 relative mx-6 mb-6 grid grow grid-rows-[6]">
-          <div className="border-b-1 relative row-span-6 rounded-xl rounded-b-none border bg-base-300 shadow-inner">
-            <p className="z-0 m-2 font-mono font-bold"> 🛡 p2 address </p>
-            <p className="z-0 m-2 font-mono font-bold"> ♥️ 100 </p>
-            {/* <div className="absolute top-0 right-1/2 -mb-2 flex h-32 w-32 translate-x-1/2 items-center justify-center rounded-full border bg-slate-900  font-mono text-lg font-bold text-white">
-              100
-            </div> */}
-          </div>
+          <PlayerBoard playerAddress={opponentAddress} playedCards={opponentPlayerCards} />
 
           {!ended && (
             <>
@@ -202,15 +247,10 @@ const Play: FablePage = ({ isHydrated }) => {
             </>
           )}
 
-          <div className="relative row-span-6 rounded-xl rounded-t-none border border-t-0 bg-base-300 shadow-inner">
-            <p className="z-0 m-2 font-mono font-bold"> ⚔️ p1 address </p>
-            <p className="-0 m-2 font-mono font-bold"> ♥️ 100 </p>
-            {/* <div className="absolute bottom-0 right-1/2 -mb-2 flex h-32 w-32 translate-x-1/2 items-center justify-center rounded-full border bg-slate-900  font-mono text-lg font-bold text-white">
-              100
-            </div> */}
-          </div>
+          <PlayerBoard playerAddress={playerAddress} playedCards={currentPlayerCards} />
         </div>
       </main>
+    </DndContext>
     </>
   )
 }
