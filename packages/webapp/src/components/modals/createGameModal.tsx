@@ -11,6 +11,7 @@ import { useGameWrite } from "src/hooks/useFableWrite"
 import * as store from "src/store/hooks"
 import { joinGame, reportInconsistentGameState } from "src/actions"
 import { GameStatus } from "src/store/types"
+import { navigate } from "src/utils/navigate"
 
 // =================================================================================================
 
@@ -61,7 +62,7 @@ const CreateGameModalContent = ({ ctrl }: { ctrl: ModalController }) => {
   // Load game board game once the game start, unless we've visited it for this game already.
   useEffect(() => {
     if (!hasVisitedBoard && started)
-      void router.push("/play")
+      void navigate(router, "/play")
   }, [hasVisitedBoard, router, started])
 
   // -----------------------------------------------------------------------------------------------

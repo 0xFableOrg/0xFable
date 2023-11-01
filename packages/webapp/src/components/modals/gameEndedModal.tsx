@@ -4,6 +4,7 @@ import { useCallback } from "react"
 import { ModalTitle } from "src/components/lib/modalElements"
 import { useGameData, useGameID } from "src/store/hooks"
 import { Modal, useModalController } from "src/components/lib/modal"
+import { navigate } from "src/utils/navigate"
 
 /**
  * This modal is displayed in the "/play" page, when the game ends. It can be dismissed if the
@@ -18,7 +19,7 @@ export const GameEndedModal = ({ closeCallback }: { closeCallback: () => void })
 
   const exitToMenu = useCallback(() => {
     setGameID(null)
-    void router.push("/")
+    void navigate(router, "/")
   }, [router, setGameID])
 
   const viewGame = useCallback(() => {

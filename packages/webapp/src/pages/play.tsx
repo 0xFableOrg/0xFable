@@ -16,6 +16,7 @@ import { gameABI } from "src/generated"
 import { useRouter } from "next/router"
 import { setError } from "src/store/actions"
 import { DISMISS_BUTTON } from "src/actions/errors"
+import { navigate } from "src/utils/navigate"
 
 const Play: FablePage = ({ isHydrated }) => {
   const [ gameID, setGameID ] = store.useGameID()
@@ -43,12 +44,12 @@ const Play: FablePage = ({ isHydrated }) => {
       if (gameID !== null)
         setGameID(fetchedGameID)
       else
-        void router.push("/")
+        void navigate(router, "/")
     }
 
     // Back to home screen if player disconnects.
     if (playerAddress === null)
-      void router.push("/")
+      void navigate(router, "/")
 
     if (gameID === null && playerAddress !== null)
       void fetchGameID()
