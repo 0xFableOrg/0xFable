@@ -97,8 +97,8 @@ function setupFiltering(
 
     if (filteredMsg || filteredCode) {
       const suppressed = `suppressed${level[0].toUpperCase()}${level.slice(1)}s`
-      window[suppressed] ||= []
-      window[suppressed].push(msgStr)
+      console[suppressed] ||= []
+      console[suppressed].push(msgStr)
     } else {
       oldFunction(msg, ...args)
     }
