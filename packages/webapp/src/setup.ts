@@ -70,6 +70,20 @@ const filteredLogMessages = [
   "[HMR] connected"
 ]
 
+// Logs I can't suppress:
+//
+// - "Ignoring unsupported entryTypes: largest-contentful-paint."
+//     - only on Firefox
+//     - Origin unknown, seems to be from Firefox via a performance observer, but pinpointed in the
+//       `play.js` chunk.
+//
+// - 'Partitioned cookie or storage access was provided to
+//    “https://verify.walletconnect.com/8934622f70e11b51de893ea309871a4c” because it is loaded in
+//    the third-party context and dynamic state partitioning is enabled.'
+//      - only on Firefox, URL varies
+//
+// You can hide those with the filter: -/Partitioned|entryTypes/
+
 // -------------------------------------------------------------------------------------------------
 
 function matchFilter(err?: string, filter: string|RegExp): boolean {
