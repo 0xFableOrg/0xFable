@@ -11,7 +11,7 @@ import { useAtom, useAtomValue } from "jotai"
 
 import { Address } from "src/chain"
 import * as store from "src/store/atoms"
-import { ErrorConfig, FetchedGameData, GameStatus, PlayerData, PrivateInfo } from "src/store/types"
+import { ErrorConfig, FetchedGameData, GameStatus, PrivateInfo, CardInPlay } from "src/store/types"
 
 // =================================================================================================
 
@@ -37,6 +37,29 @@ export function useGameID(): [bigint|null, (ID: bigint|null) => void] {
 /** The current state of the game. */
 export function useGameData(): FetchedGameData|null {
   return useAtomValue(store.gameData)
+}
+
+// -------------------------------------------------------------------------------------------------
+
+/** The current cards in play inside the game. */
+type UsePlayedCardsReturn = [ CardInPlay[]|null, (card: CardInPlay|null) => void ]
+
+export function usePlayedCards(): UsePlayedCardsReturn {
+  const [ playedCards, setPlayedCards ] = useAtom(store.playedCards)
+
+  const addOrRemoveCard = (card: CardInPlay|null) => {
+    if (card === null) {
+      setPlayedCards(null)
+      return
+    }
+    if (playedCards) {
+      setPlayedCards([...playedCards, card])
+    } else {
+      setPlayedCards([card])
+    }
+  }
+
+  return [ playedCards, addOrRemoveCard ]
 }
 
 // -------------------------------------------------------------------------------------------------
