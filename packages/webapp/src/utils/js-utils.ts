@@ -181,3 +181,11 @@ export function randomUint256(): bigint {
 }
 
 // =================================================================================================
+
+/** Truncates an address into a shorter representation by displaying a specified number of characters. */
+export const shortenAddress = (address?: `0x${string}` | null, digits = 5) => {
+  if (!address) return ""
+  return (address.substring(0, digits) + "..." + address.substring(address.length - digits))
+}
+
+// =================================================================================================
