@@ -3,17 +3,18 @@ build:
 	pnpm next build
 .PHONY: build
 
-# Serve webapp in production environment (after building)
+# Serves webapp in production environment (after building)
 serve:
 	pnpm next start
 .PHONY: serve
 
-# Serve webapp in dev environment (building not required)
+# Serves webapp in dev environment (building not required)
 dev:
 	pnpm next dev
 .PHONY: dev
 
-# Serve webapp in dev environment (building not required), includes bogus proofs.
+# Serves webapp in dev environment (building not required), do not generate proofs, sends bogus
+# proofs instead.
 dev-noproofs:
 	NO_PROOFS=1 pnpm next dev
 .PHONY: dev-noproofs
