@@ -272,6 +272,10 @@ contract Game {
     // Boolean to indicate whether we should check zk proof.
     bool private checkProofs;
 
+    // If > 0, indicates that we should use deterministic randomness and not have timeouts.
+    // The randomness is the value of this field, which increases every block it is used.
+    uint256 private noRandomCounter;
+
     // Maps game IDs to game data.
     mapping(uint256 => GameData) public gameData;
 
@@ -410,7 +414,8 @@ contract Game {
         DrawVerifier drawVerifier_,
         PlayVerifier playVerifier_,
         DrawHandVerifier drawHandVerifier_,
-        bool checkProofs_
+        bool checkProofs_,
+        bool noRandom_
     ) {
         inventory = inventory_;
         cardsCollection = inventory.originalCardsCollection();
@@ -418,6 +423,9 @@ contract Game {
         playVerifier = playVerifier_;
         drawHandVerifier = drawHandVerifier_;
         checkProofs = checkProofs_;
+        if (noRandom_) {
+            noRandomCounter = 1;
+        }
     }
 
     // =============================================================================================
@@ -498,9 +506,15 @@ contract Game {
             // player specified
             PlayerData storage pdata = gdata.playerData[player];
             if (pdata.saltHash != 0 && pdata.handRoot == 0) {
+                if (noRandomCounter > 0) {
+                    return noRandomCounter;
+                }
                 // player in the game & hand not drawn yet
                 return uint256(blockhash(pdata.joinBlockNum)) % PROOF_CURVE_ORDER;
             }
+        }
+        if (noRandomCounter > 0) {
+            return noRandomCounter + 1;
         }
         return uint256(blockhash(gdata.lastBlockNum)) % PROOF_CURVE_ORDER;
     }
@@ -510,6 +524,10 @@ contract Game {
     // Slightly more efficient internal version of `getPublicRandomness` for use when drawing
     // the initial hand.
     function getPubRandomnessForInitialHand(uint256 joinBlockNum) internal view returns (uint256) {
+        if (noRandomCounter > 0) {
+            // do not increase, first increase will be before the first card played or first draw
+            return noRandomCounter;
+        }
         return uint256(blockhash(joinBlockNum)) % PROOF_CURVE_ORDER;
     }
 
@@ -517,7 +535,10 @@ contract Game {
 
     // Slightly more efficient internal version of `getPublicRandomness` for use after the game
     // has started.
-    function getPubRandomness(uint256 lastBlockNum) internal view returns (uint256) {
+    function getPubRandomness(uint256 lastBlockNum) internal returns (uint256) {
+        if (noRandomCounter > 0) {
+            return ++noRandomCounter;
+        }
         return uint256(blockhash(lastBlockNum)) % PROOF_CURVE_ORDER;
     }
     // ---------------------------------------------------------------------------------------------
