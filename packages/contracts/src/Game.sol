@@ -1010,7 +1010,7 @@ contract Game {
         PlayerData storage pdata,
         bytes32 handRoot,
         uint256 saltHash,
-        uint256 randomness,
+        uint256 cardIndex,
         uint256 card,
         uint256[24] memory proof
     ) internal view {
@@ -1020,7 +1020,7 @@ contract Game {
         pubSignals[0] = uint256(pdata.handRoot);
         pubSignals[1] = uint256(handRoot);
         pubSignals[2] = saltHash;
-        pubSignals[3] = randomness;
+        pubSignals[3] = cardIndex;
         pubSignals[4] = pdata.handSize - 1; // last index
         pubSignals[5] = card;
 
@@ -1044,8 +1044,7 @@ contract Game {
             revert CardIndexTooHigh();
         }
         uint256 card = gdata.cards[cardIndex];
-        uint256 randomness = getPubRandomness(gdata.lastBlockNum);
-        checkPlayProof(pdata, handRoot, pdata.saltHash, randomness, card, proof);
+        checkPlayProof(pdata, handRoot, pdata.saltHash, cardIndex, card, proof);
         pdata.handRoot = handRoot;
         pdata.handSize--;
         pdata.battlefield |= 1 << cardIndex;
