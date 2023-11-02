@@ -87,12 +87,23 @@ contract Integration is Test {
 
         vm.startPrank(player1);
 
+        // NOTE: For all calls to play card, we use 0 as the value of `cardIndexInHand`.
+        // Since we don't check proof, we can pretend we have whatever in the hand.
+        // (In these tests we don't event generate a hand.)
+        // The value of `cardIndex` (and in parens next to card names) is the index in the cards
+        // array.
+
+        // TODO: These index are thoroughly incorrect, as we use the 0-23 range for both players,
+        //       instead of the 0-23 range for player1 and 24-47 range for player2.
+        // The test are still correct as expected, because the stat lookups can be done correctly,
+        // and we don't check the proofs which would detect this index error.
+
         // play Horrible Gremlin (0)
-        game.playCard(gameID, HAND_ROOT, 0, proof);
+        game.playCard(gameID, HAND_ROOT, 0, 0, proof);
         pdata = game.playerData(gameID, player1);
         assertEq(pdata.battlefield, 1);
 
-        // attack with Horrible Gremlin
+        // attack with Horrible Gremlin (0)
         game.attack(gameID, 1, size1array);
         pdata = game.playerData(gameID, player1);
         assertEq(pdata.attacking.length, 1);
@@ -108,9 +119,9 @@ contract Integration is Test {
         pdata = game.playerData(gameID, player2);
         assertEq(pdata.health, 19);
 
-        // draw card then play Fire Fighter
+        // draw card then play Fire Fighter (8)
         game.drawCard(gameID, HAND_ROOT, DECK_ROOT, proof);
-        game.playCard(gameID, HAND_ROOT, 8, proof);
+        game.playCard(gameID, HAND_ROOT, 0, 8, proof);
         pdata = game.playerData(gameID, player2);
         assertEq(pdata.battlefield, 1 << 8);
 
@@ -123,7 +134,7 @@ contract Integration is Test {
 
         // draw card then play Wise Elf (4)
         game.drawCard(gameID, HAND_ROOT, DECK_ROOT, proof);
-        game.playCard(gameID, HAND_ROOT, 4, proof);
+        game.playCard(gameID, HAND_ROOT, 0, 4, proof);
         pdata = game.playerData(gameID, player1);
         assertEq(pdata.battlefield, (1 << 4) + 1);
 
@@ -147,7 +158,7 @@ contract Integration is Test {
 
         // draw card then play Mana Fiend (16)
         game.drawCard(gameID, HAND_ROOT, DECK_ROOT, proof);
-        game.playCard(gameID, HAND_ROOT, 16, proof);
+        game.playCard(gameID, HAND_ROOT, 0, 16, proof);
 
         // attack with Fire Fighter (8)
         size1array[0] = 8;
@@ -168,7 +179,7 @@ contract Integration is Test {
 
         // draw card then play Goblin Queen (20)
         game.drawCard(gameID, HAND_ROOT, DECK_ROOT, proof);
-        game.playCard(gameID, HAND_ROOT, 20, proof);
+        game.playCard(gameID, HAND_ROOT, 0, 20, proof);
 
         // attack with both Wise Elf (4) and Goblin Queen (20)
         size2array[0] = 4;

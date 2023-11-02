@@ -1027,17 +1027,17 @@ contract Game {
         PlayerData storage pdata,
         bytes32 handRoot,
         uint256 saltHash,
+        uint256 cardIndexInHand,
         uint256 cardIndex,
-        uint256 card,
         uint256[24] memory proof
     ) internal view {
         uint256[6] memory pubSignals;
         pubSignals[0] = uint256(pdata.handRoot);
         pubSignals[1] = uint256(handRoot);
         pubSignals[2] = saltHash;
-        pubSignals[3] = cardIndex;
+        pubSignals[3] = cardIndexInHand;
         pubSignals[4] = pdata.handSize - 1; // last index
-        pubSignals[5] = card;
+        pubSignals[5] = cardIndex;
 
         if (checkProofs) {
             if (!playVerifier.verifyProof(proof, pubSignals)) {
@@ -1049,21 +1049,23 @@ contract Game {
     // ---------------------------------------------------------------------------------------------
 
     // Play the given card (index into `gameData.cards`).
-    function playCard(uint256 gameID, bytes32 handRoot, uint8 cardIndex, uint256[24] memory proof)
-        external
-        step(gameID, GameStep.PLAY)
-    {
+    function playCard(
+        uint256 gameID,
+        bytes32 handRoot,
+        uint8 cardIndexInHand,
+        uint8 cardIndex,
+        uint256[24] memory proof
+    ) external step(gameID, GameStep.PLAY) {
         GameData storage gdata = gameData[gameID];
         PlayerData storage pdata = gdata.playerData[msg.sender];
         if (cardIndex > gdata.cards.length) {
             revert CardIndexTooHigh();
         }
-        uint256 card = gdata.cards[cardIndex];
-        checkPlayProof(pdata, handRoot, pdata.saltHash, cardIndex, card, proof);
+        checkPlayProof(pdata, handRoot, pdata.saltHash, cardIndexInHand, cardIndex, proof);
         pdata.handRoot = handRoot;
         pdata.handSize--;
         pdata.battlefield |= 1 << cardIndex;
-        emit CardPlayed(gameID, gdata.currentPlayer, card);
+        emit CardPlayed(gameID, gdata.currentPlayer, cardIndex);
     }
 
     // ---------------------------------------------------------------------------------------------
