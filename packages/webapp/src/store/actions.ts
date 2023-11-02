@@ -113,8 +113,8 @@ export function getOrInitPrivateInfo(gameID: bigint, playerAddress: Address): Pr
     // dummy values
     hand: [],
     deck: [],
-    handIndexes: new Uint8Array(0),
-    deckIndexes: new Uint8Array(0),
+    handIndexes: [],
+    deckIndexes: [],
     handRoot: `0x0`,
     deckRoot: `0x0`
   }

@@ -139,7 +139,7 @@ export async function verify(circuitName: string, publicSignals: readonly string
  * there are too few bytes to fill the given number of field elements, the remaining space is
  * padded with 0s.
  */
-export function packBytes(bytes: Uint8Array, numFelts: number, itemsPerFelt: number)
+export function packBytes(bytes: Uint8Array|number[], numFelts: number, itemsPerFelt: number)
     : bigint[] {
 
   if (bytes.length > numFelts * itemsPerFelt)

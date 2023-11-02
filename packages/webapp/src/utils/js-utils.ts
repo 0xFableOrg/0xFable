@@ -96,7 +96,8 @@ export function bigintToHexString(n: bigint, extendTo?: number): string {
  * Converts a byte array to a hex string. The string does *not* start with 0x, and has length
  * `2 * array.length`.
  */
-export function bytesToHexString(array: Uint8Array): string {
+export function bytesToHexString(array: Uint8Array|number[]): string {
+  if (!Array.isArray(array)) array = Array.from(array)
   return Array.from(array).map(byte => byte.toString(16).padStart(2, "0")).join("")
 }
 
@@ -111,16 +112,16 @@ export function bytesToHexString(array: Uint8Array): string {
  * arrays).
  */
 export function parseBigInt
-    (value: string|number|bigint|Uint8Array, endianness: "big"|"little" = "big"): bigint {
+    (value: string|number|bigint|Uint8Array|number[], endianness: "big"|"little" = "big"): bigint {
 
-  if (value instanceof Uint8Array) {
+  if (value instanceof Uint8Array || Array.isArray(value)) {
     if (endianness == "little")
       value = value.reverse()
     return BigInt("0x" + bytesToHexString(value))
   }
 
   if (endianness == "little")
-    throw new Error("little-endianness only supported with Uint8Array argument")
+    throw new Error("little-endianness only supported with Uint8Array or number[] argument")
 
   if (typeof value === "bigint") return value
   return BigInt(value).valueOf()
@@ -132,7 +133,9 @@ export function parseBigInt
  * Parses a bigint-compatible value into a bigint.
  * Returns null if the value is null or if it cannot be parsed.
  */
-export function parseBigIntOrNull(value: string|number|bigint|Uint8Array|null): bigint|null {
+export function parseBigIntOrNull(value: string|number|bigint|Uint8Array|number[]|null)
+    : bigint|null {
+
   if (value === null) return null
   try {
     return parseBigInt(value)
