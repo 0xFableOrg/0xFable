@@ -96,6 +96,17 @@ deploy-noproofs:
 	CHECK_PROOFS=false make deploy
 .PHONY: deploy-noproofs
 
+# Like make deploy, but the randomness is deterministic and there is no timeouts.
+deploy-norandom:
+	NO_RANDOM=true make deploy
+.PHONY: deploy-norandom
+
+# Like make deploy, but proofs are not checked, the randomness is deterministic and there is no
+# timeouts.
+deploy-noproofs-norandom:
+	NO_RANDOM=true CHECK_PROOFS=false make deploy
+.PHONY: deploy-noproofs-norandom
+
 # Sometimes the deployment crashes, this allows us to see why. Hardcoded to only use local
 # deployment.
 debug-deploy:
