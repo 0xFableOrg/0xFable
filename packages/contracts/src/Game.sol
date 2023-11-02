@@ -697,8 +697,6 @@ contract Game {
         uint256 saltHash,
         uint256[24] memory proof
     ) internal view {
-        if (address(drawVerifier) == address(0)) return;
-
         // - The proof requires a deck packed onto two field elements.
         // - We obtain it by write the index of each card in the `gdata.cards` array to a byte
         //   of the field elements.
@@ -979,8 +977,6 @@ contract Game {
         uint256 randomness,
         uint256[24] memory proof
     ) internal view {
-        if (address(drawVerifier) == address(0)) return;
-
         uint256[8] memory pubSignals;
         pubSignals[0] = uint256(pdata.deckRoot);
         pubSignals[1] = uint256(deckRoot);
@@ -1035,8 +1031,6 @@ contract Game {
         uint256 card,
         uint256[24] memory proof
     ) internal view {
-        if (address(playVerifier) == address(0)) return;
-
         uint256[6] memory pubSignals;
         pubSignals[0] = uint256(pdata.handRoot);
         pubSignals[1] = uint256(handRoot);
