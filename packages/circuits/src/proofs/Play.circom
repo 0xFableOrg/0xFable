@@ -12,9 +12,9 @@ template Play(elementSize) {
     signal input handRoot;
     signal input newHandRoot;
     signal input saltHash;
-    signal input publicRandom;
+    signal input cardIndex;
     signal input lastIndex;
-    signal input playedCardLeaf;
+    signal input playedCard;
 
     // private inputs
     signal input salt;
@@ -26,12 +26,6 @@ template Play(elementSize) {
     checkSalt.ins[0] <== salt;
     checkSalt.k <== 0;
     saltHash === checkSalt.outs[0];
-
-    // compute randomness from private salt and public randomness (publicRandom)
-    component randomness = MiMCSponge(2, 220, 1);
-    randomness.ins[0] <== salt;
-    randomness.ins[1] <== publicRandom;
-    randomness.k <== 0;
 
     // check the hand root matches the hand content before playing
     component checkHand = MiMCSponge(elementSize+1, 220, 1);
@@ -52,13 +46,13 @@ template Play(elementSize) {
 
     // update hand
     playCard.lastIndex <== lastIndex;
-    playCard.randomness <== randomness.outs[0];
-    playCard.deck <== initialHandInNum;
+    playCard.candidateIndex <== cardIndex;
+    playCard.cardList <== initialHandInNum;
     // constraint selected card
-    playCard.selectedCard === playedCardLeaf;
+    playCard.selectedCard === playedCard;
     // pack the updated hand into 256-bit elements
     component packHand = PackCards(elementSize);
-    packHand.unpackedCards <== playCard.updatedDeck;
+    packHand.unpackedCards <== playCard.updatedCardList;
     for (var i = 0; i < elementSize; i++) {
         newHand[i] === packHand.packedCards[i];
     }

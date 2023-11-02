@@ -71,11 +71,11 @@ template Draw(elementSize) {
 
     // update deck and hand
     drawCard.lastIndex <== lastIndex;
-    drawCard.randomness <== randomness.outs[0];
-    drawCard.deck <== initialDeckInNum;
+    drawCard.candidateIndex <== randomness.outs[0];
+    drawCard.cardList <== initialDeckInNum;
     // pack the updated deck into 256-bit elements
     component packDeck = PackCards(elementSize);
-    packDeck.unpackedCards <== drawCard.updatedDeck;
+    packDeck.unpackedCards <== drawCard.updatedCardList;
     for (var i = 0; i < elementSize; i++) {
         newDeck[i] === packDeck.packedCards[i];
     }

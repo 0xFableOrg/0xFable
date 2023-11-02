@@ -72,9 +72,9 @@ template DrawHand(elementSize, initialHandSize) {
 
         // update deck and hand
         drawCards[i].lastIndex <== lastIndex - i;
-        drawCards[i].randomness <== randomness.outs[0];
-        drawCards[i].deck <== intermediateDecks[i];
-        intermediateDecks[i+1] <== drawCards[i].updatedDeck;
+        drawCards[i].candidateIndex <== randomness.outs[0];
+        drawCards[i].cardList <== intermediateDecks[i];
+        intermediateDecks[i+1] <== drawCards[i].updatedCardList;
         drawnCards[i] <== drawCards[i].selectedCard;
     }
 
