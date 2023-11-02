@@ -188,11 +188,6 @@ export async function refreshGameData() {
   if (gameData.publicRandomness === 0n && status !== GameStatus.ENDED) {
     const block = await getBlock(getPublicClient())
 
-    // This could be due to:
-    // 1. The block used being used for the randomness being the last block. eth_call RPC calls
-    //    are seemingly ran with the last block number, meaning the blockhash is unavailable.
-    // 2.
-
     if (gameData.lastBlockNum < block.number - 256n) {
       // The block used for randomness is too old (> 256 blocks in the past), meaning the game
       // is timed out.
