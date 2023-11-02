@@ -191,7 +191,7 @@ async function generateDrawInitialHandProof(
     playerData: PlayerData)
     : Promise<ProofOutput> {
 
-  const initialDeckOrdering = new Uint8Array(NUM_CARDS_FOR_PROOF)
+  const initialDeckOrdering = new Array(NUM_CARDS_FOR_PROOF)
 
   // initialDeckOrdering = [deckStart .. deckStart + deck.length] + pad with 255
   for (let i = 0; i < deck.length; i++) initialDeckOrdering[i] = playerData.deckStart + i

@@ -28,8 +28,8 @@ export function drawInitialHand
   // draw cards and update deck
   const deck = [...initialDeck]
   const hand = []
-  const deckIndexes = new Uint8Array(MAX_DECK_SIZE)
-  const handIndexes = new Uint8Array(MAX_HAND_SIZE)
+  const deckIndexes = new Array(MAX_DECK_SIZE)
+  const handIndexes = new Array(MAX_HAND_SIZE)
 
   for (let i = 0; i < deck.length; i++)
     deckIndexes[i] = deckStartIndex + i
