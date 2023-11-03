@@ -93,7 +93,7 @@ const cards = [
   },
 ]
 
-export const Card = ({
+export const HandCard = ({
   id,
   gameID,
   playerAddress,
