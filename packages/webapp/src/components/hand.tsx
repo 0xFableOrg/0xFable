@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from "react"
 import { AiOutlineLeft, AiOutlineRight } from "react-icons/ai"
 import useScrollBox from "../hooks/useScrollBox"
-import { Card } from "./card"
 import * as store from "src/store/hooks"
 import { CancellationHandler } from "src/components/lib/loadingModal"
+import { HandCard } from "./handCard"
 
 const Hand = ({
   cards,
@@ -30,7 +30,7 @@ const Hand = ({
     for (let i = 0; i < cards?.length; i++) {
       hand.push(
         <div key={i}>
-          <Card
+          <HandCard
             id={i}
             gameID={gameID}
             playerAddress={playerAddress}
