@@ -119,10 +119,12 @@ export const Card = ({
   const [isDetailsVisible, setIsDetailsVisible] = useState<boolean>(false)
   const [cardHover, setCardHover] = useState<boolean>(false)
 
+  const showingDetails = isDetailsVisible && !isDragging
+
   const cardDisplayContent = (
     <div
       className={`${className} transition-all ease-in-out duration-300 ${
-        isDetailsVisible && !isDragging
+        showingDetails
           ? "shadow-2xl z-[50] flex h-[33rem] max-w-[24rem] scale-[65%] cursor-pointer flex-col items-center justify-evenly rounded-lg border-4 bg-gray-900 p-5 transform translateY-[-50%]"
           : "flex flex-col space-y-1 max-w-[200px]"
       }`}
@@ -150,7 +152,7 @@ export const Card = ({
     >
       <span
         className={
-          isDetailsVisible && !isDragging
+          showingDetails
             ? "font-serif overflow-hidden text-2xl font-bold text-slate-200 text-left text-clip max-w-[320px] select-none"
             : handHovered
               ? "font-serif text-[14px] font-bold text-slate-200 text-left truncate select-none"
@@ -162,15 +164,15 @@ export const Card = ({
       <Image
         alt={`${id}`}
         src={cards[id]?.image}
-        width={isDetailsVisible && !isDragging ? 375 : 200}
-        height={isDetailsVisible && !isDragging ? 375 : 200}
+        width={showingDetails ? 375 : 200}
+        height={showingDetails ? 375 : 200}
         className="pointer-events-none rounded-xl border select-none"
         style={{
           boxShadow:
             cardHover && !isDetailsVisible ? "0 0 10px 2px gold" : "none", // Adds golden glow when hovered
         }}
       />
-      {isDetailsVisible && !isDragging && (
+      {showingDetails && (
         <>
           <p className="-mt-10 rounded-b-xl border border-t-0 bg-slate-900 font-mono font-semibold italic p-2 text-center select-none">
             {cards[id]?.description}
