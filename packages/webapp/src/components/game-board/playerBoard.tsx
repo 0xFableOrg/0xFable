@@ -21,12 +21,6 @@ const PlayerBoard: React.FC<PlayerBoardProps> = ({ playerAddress, playedCards })
 
   return (
     <div
-      // className={clsx({
-      //   "border-b-1 relative row-span-6 rounded-xl rounded-b-none border bg-base-300 shadow-inner overflow-hidden":
-      //     playerAddress !== currentPlayerAddress,
-      //   "relative row-span-6 rounded-xl rounded-t-none border border-t-0 bg-base-300 shadow-inner overflow-hidden":
-      //     playerAddress === currentPlayerAddress,
-      // })}
       className={playerAddress !== currentPlayerAddress 
         ? `border-b-1 relative row-span-6 rounded-xl rounded-b-none border bg-base-300 shadow-inner overflow-hidden`
         : `relative row-span-6 rounded-xl rounded-t-none border border-t-0 bg-base-300 shadow-inner overflow-hidden`}
