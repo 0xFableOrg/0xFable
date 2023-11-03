@@ -22,6 +22,7 @@ import { endTurn } from "src/actions/endTurn"
 import { currentPlayer, isEndingTurn } from "src/game/misc"
 import { useCancellationHandler } from "src/hooks/useCancellationHandler"
 import { usePlayerHand } from "src/store/hooks"
+import { usePlayedCards } from "src/store/hooks"
 import {
   DndContext,
   DragEndEvent,
@@ -39,12 +40,11 @@ const Play: FablePage = ({ isHydrated }) => {
   const [ hideResults, setHideResults ] = useState(false)
   const [ concedeCompleted, setConcedeCompleted ] = useState(false)
   const playerAddress = store.usePlayerAddress()
-
-  // address to attacking player for PlayerBoard
-  const opponentAddress = store.useGameData()?.attackingPlayer
+  const opponentAddress = store.useGameData()?.attackingPlayer // address of attacking player for PlayerBoard
   const router = useRouter()
   const privateInfo = store.usePrivateInfo()
   const gameData = store.useGameData()
+  const [ playedCards, addCard ] = usePlayedCards()
 
   const [ hasVisitedBoard, visitBoard ] = store.useHasVisitedBoard()
   useEffect(visitBoard, [visitBoard, hasVisitedBoard])
@@ -157,7 +157,7 @@ const Play: FablePage = ({ isHydrated }) => {
   function handleDragEnd(event: DragEndEvent) {
     const { over } = event
     if (over && over.id === "player-board") {
-      // @todo this should ideally only cards to be dropped into one's one board and not the other player's board, need a naming convention for board refs + id
+      // @todo need a naming convention for board refs + id
       const eventStr = event.active.id as unknown as string
       if (eventStr.match(/playedCard/)) return
 
@@ -166,7 +166,7 @@ const Play: FablePage = ({ isHydrated }) => {
         cardId: cardId,
         owner: playerAddress as Address,
       }
-      addOrRemoveCard(playedCard)
+      addCard(playedCard)
     }
   }
 
