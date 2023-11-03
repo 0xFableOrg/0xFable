@@ -42,24 +42,20 @@ export function useGameData(): FetchedGameData|null {
 // -------------------------------------------------------------------------------------------------
 
 /** The current cards in play inside the game. */
-type UsePlayedCardsReturn = [ CardInPlay[]|null, (card: CardInPlay|null) => void ]
+type UsePlayedCardsReturn = [CardInPlay[], (card: CardInPlay | null) => void];
 
 export function usePlayedCards(): UsePlayedCardsReturn {
-  const [ playedCards, setPlayedCards ] = useAtom(store.playedCards)
+  const [playedCards, setPlayedCards] = useAtom(store.playedCards);
 
-  const addOrRemoveCard = (card: CardInPlay|null) => {
+  const addCard = (card: CardInPlay | null) => {
     if (card === null) {
-      setPlayedCards(null)
-      return
-    }
-    if (playedCards) {
-      setPlayedCards([...playedCards, card])
+      setPlayedCards(playedCards)
     } else {
-      setPlayedCards([card])
+      setPlayedCards((currentCards) => [...currentCards, card]);
     }
-  }
+  };
 
-  return [ playedCards, addOrRemoveCard ]
+  return [playedCards, addCard];
 }
 
 // -------------------------------------------------------------------------------------------------
