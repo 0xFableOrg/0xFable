@@ -37,7 +37,7 @@ const PlayerBoard: React.FC<PlayerBoardProps> = ({ playerAddress, playedCards })
       }}
     >
       <div className="relative flex flex-col">
-        <div className="flex flex-col p-2 space-y-1 justify-start">
+        <div className="flex flex-row p-2 space-x-3 justify-start items-center">
           <p className="z-0 m-2 font-mono font-bold select-none">
             {" "}
             {`🛡 ${shortenAddress(playerAddress)}`}{" "}
