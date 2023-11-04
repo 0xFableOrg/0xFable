@@ -40,7 +40,7 @@ const Play: FablePage = ({ isHydrated }) => {
   const [ hideResults, setHideResults ] = useState(false)
   const [ concedeCompleted, setConcedeCompleted ] = useState(false)
   const playerAddress = store.usePlayerAddress()
-  const opponentAddress = store.useGameData()?.attackingPlayer // address of attacking player for PlayerBoard
+  const opponentAddress = store.useGameData()?.players.find(address => address !== playerAddress)
   const router = useRouter()
   const privateInfo = store.usePrivateInfo()
   const gameData = store.useGameData()
