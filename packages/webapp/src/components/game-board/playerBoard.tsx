@@ -2,7 +2,6 @@ import * as store from "src/store/hooks"
 import { shortenAddress } from "src/utils/js-utils"
 import { useDroppable } from "@dnd-kit/core"
 import {
-  // horizontalListSortingStrategy,
   rectSortingStrategy,
   SortableContext,
 } from "@dnd-kit/sortable"
@@ -22,8 +21,7 @@ const PlayerBoard: React.FC<PlayerBoardProps> = ({
   })
 
   const currentPlayerAddress = store.usePlayerAddress()
-  const cardOverStyle =
-    isOver && playerAddress === currentPlayerAddress ? "green" : undefined
+  const playerActive = isOver && playerAddress === currentPlayerAddress
 
   return (
     <SortableContext items={playedCards} strategy={rectSortingStrategy}>
@@ -35,13 +33,12 @@ const PlayerBoard: React.FC<PlayerBoardProps> = ({
         }
         ref={setNodeRef}
         style={{
-          color: cardOverStyle,
-          borderColor: cardOverStyle,
-          // backgroundColor: cardOverStyle,
+          color: playerActive ? "green" : undefined,
+          borderColor: playerActive ? "green" : undefined,
         }}
       >
-        <div className="relative flex flex-col">
-          <div className="flex flex-row p-2 space-x-3 justify-start items-center">
+        <div className="relative flex flex-col items-center">
+          <div className="flex flex-row p-2 space-x-3 self-start items-center">
             <p className="z-0 m-2 font-mono font-bold select-none">
               {" "}
               {`🛡 ${shortenAddress(playerAddress)}`}{" "}
@@ -49,7 +46,7 @@ const PlayerBoard: React.FC<PlayerBoardProps> = ({
             <p className="z-0 m-3 font-mono font-bold select-none"> ♥️ 100 </p>
           </div>
 
-          <div className="absolute top-[100%] flex flex-row px-4 space-x-4 items-center justify-center w-full">
+          <div className={`absolute top-[120%] flex flex-row p-4 space-x-4 rounded-xl mx-4 items-center justify-center w-[95%] ${playerActive ? "bg-green-700 opacity-50" : null}`}>
             {playedCards?.map((card) => (
               <PlayedCard
                 key={card}
