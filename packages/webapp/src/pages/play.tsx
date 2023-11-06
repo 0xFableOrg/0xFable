@@ -26,12 +26,14 @@ import { usePlayedCards } from "src/store/hooks"
 import {
   DndContext,
   DragEndEvent,
+  KeyboardSensor,
   MouseSensor,
   closestCenter,
   useSensor,
   useSensors,
 } from "@dnd-kit/core"
 import PlayerBoard from "src/components/game-board/playerBoard"
+import { sortableKeyboardCoordinates } from "@dnd-kit/sortable"
 
 const Play: FablePage = ({ isHydrated }) => {
   const [ gameID, setGameID ] = store.useGameID()
@@ -167,12 +169,16 @@ const Play: FablePage = ({ isHydrated }) => {
         owner: playerAddress as Address,
       }
       addCard(playedCard)
+    } else if (over && over.id === "player-hand") {
+      // don't add card to playedCards if the user brings it back to the hand
+      return
     }
   }
 
   const sensors = useSensors(
     // waits for a drag of 20 pixels before the UX assumes a card is being played
-    useSensor(MouseSensor, { activationConstraint: { distance: 20 } })
+    useSensor(MouseSensor, { activationConstraint: { distance: 20 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   )
   // -----------------------------------------------------------------------------------------------
 

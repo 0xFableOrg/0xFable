@@ -4,6 +4,7 @@ import useScrollBox from "../hooks/useScrollBox"
 import * as store from "src/store/hooks"
 import { CancellationHandler } from "src/components/lib/loadingModal"
 import { HandCard } from "./handCard"
+import { useDroppable } from "@dnd-kit/core"
 
 const Hand = ({
   cards,
@@ -57,6 +58,7 @@ const Hand = ({
   return (
     <div
       className={`${className} flex flex-row items-center justify-evenly bottom-0 w-[95%] space-x-2`}
+      ref={setNodeRef}
       onMouseEnter={() => {
         setIsFocused(true)
       }}
