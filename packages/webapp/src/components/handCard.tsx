@@ -133,6 +133,7 @@ export const HandCard = ({
       {...attributes}
       style={{
         zIndex: isDragging ? 1000 : 1,
+        opacity: isDragging ? 0.3 : 1
       }}
       onClick={() => {
         setIsDetailsVisible(!isDetailsVisible)
@@ -191,7 +192,10 @@ export const HandCard = ({
   
   if (isDragging) {
     return ReactDOM.createPortal(
-      <DragOverlay>{cardDisplayContent}</DragOverlay>,
+      <DragOverlay dropAnimation={{
+        duration: 100,
+        easing: 'cubic-bezier(0.18, 0.67, 0.6, 1.22)',
+      }}>{cardDisplayContent}</DragOverlay>,
       document.body
     )
   }
