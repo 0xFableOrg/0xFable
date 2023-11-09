@@ -5,6 +5,8 @@ import * as store from "src/store/hooks"
 import { CancellationHandler } from "src/components/lib/loadingModal"
 import { HandCard } from "./handCard"
 import { useDroppable } from "@dnd-kit/core"
+import { SortableContext, horizontalListSortingStrategy } from "@dnd-kit/sortable"
+import { CardPlacement } from "src/store/types"
 
 const Hand = ({
   cards,
@@ -27,6 +29,8 @@ const Hand = ({
   const gameID = store.useGameID()[0]!
   const playerAddress = store.usePlayerAddress()!
 
+  let range: number[] = [];
+
   if (cards && cards.length > 0) {
     for (let i = 0; i < cards?.length; i++) {
       hand.push(
@@ -39,10 +43,12 @@ const Hand = ({
             handHovered={isFocused}
             setLoading={setLoading}
             cancellationHandler={cancellationHandler}
+            placement={CardPlacement.HAND}
           />
         </div>
       )
     }
+    range = Array.from({ length: cards.length }, (_, index) => index + 1);
   }
 
   useEffect(() => {
@@ -78,7 +84,9 @@ const Hand = ({
         <div className="overflow-x-scroll no-scrollbar" ref={scrollWrapperRef}>
           <div className="relative flex w-max">
             <div className="flex flex-row items-end justify-center space-x-4 px-2">
-              {hand}
+              <SortableContext items={range} strategy={horizontalListSortingStrategy}>
+                {hand}
+              </SortableContext>
             </div>
           </div>
         </div>
