@@ -26,30 +26,39 @@ import { usePlayedCards } from "src/store/hooks"
 import {
   DndContext,
   DragEndEvent,
-  KeyboardSensor,
+  DragOverlay,
   MouseSensor,
+  UniqueIdentifier,
   closestCenter,
   useSensor,
   useSensors,
 } from "@dnd-kit/core"
 import PlayerBoard from "src/components/game-board/playerBoard"
-import { sortableKeyboardCoordinates } from "@dnd-kit/sortable"
+import { createPortal } from "react-dom"
+import useDragEvents from "src/hooks/useDragEvents"
+import { HandCard } from "src/components/handCard"
 
 const Play: FablePage = ({ isHydrated }) => {
   const [ gameID, setGameID ] = store.useGameID()
   const gameStatus = store.useGameStatus()
-  const [ loading, setLoading ] = useState<string|null>(null)
-  const [ hideResults, setHideResults ] = useState(false)
-  const [ concedeCompleted, setConcedeCompleted ] = useState(false)
+
   const playerAddress = store.usePlayerAddress()
   const opponentAddress = store.useGameData()?.players.find(address => address !== playerAddress)
   const router = useRouter()
   const privateInfo = store.usePrivateInfo()
   const gameData = store.useGameData()
   const [ playedCards, addCard ] = usePlayedCards()
-
   const [ hasVisitedBoard, visitBoard ] = store.useHasVisitedBoard()
+  const { useDragStart } = useDragEvents()
   useEffect(visitBoard, [visitBoard, hasVisitedBoard])
+
+  const [ loading, setLoading ] = useState<string|null>(null)
+  const [ hideResults, setHideResults ] = useState(false)
+  const [ concedeCompleted, setConcedeCompleted ] = useState(false)
+  const [ playerHand, setPlayerHand ] = useState<bigint[]>(privateInfo?.deck as bigint[] ?? []);
+  const [ activeId, setActiveId ] = useState<UniqueIdentifier | null>(null);
+
+  const handleDragStart = useDragStart(setActiveId);
 
   useEffect(() => {
     // If the game ID is null, fetch it from the contract. If still null, we're not in a game,
@@ -160,15 +169,23 @@ const Play: FablePage = ({ isHydrated }) => {
     const { over } = event
     if (over && over.id === "player-board") {
       // @todo need a naming convention for board refs + id
-      const eventStr = event.active.id as unknown as string
-      if (eventStr.match(/playedCard/)) return
-
-      const cardId = Number((eventStr.match(/^card-(\d+)/) || [, undefined])[1]) // card being moved from hand, still unplayed
+      const cardId = event.active.id as unknown as number
       const playedCard: CardInPlay = {
         cardId: cardId,
         owner: playerAddress as Address,
       }
       addCard(playedCard)
+      if(playerHand) {
+        // remove vard from hand since it's been added to play
+        setPlayerHand(currentHand => {
+          if (cardId >= 0 && cardId < currentHand.length) {
+            const newHand = [...currentHand];
+            newHand.splice(cardId, 1);
+            return newHand;
+          }
+          return currentHand; 
+        });
+      }
     } else if (over && over.id === "player-hand") {
       // don't add card to playedCards if the user brings it back to the hand
       return
@@ -178,7 +195,6 @@ const Play: FablePage = ({ isHydrated }) => {
   const sensors = useSensors(
     // waits for a drag of 20 pixels before the UX assumes a card is being played
     useSensor(MouseSensor, { activationConstraint: { distance: 20 } }),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   )
   // -----------------------------------------------------------------------------------------------
 
@@ -190,6 +206,7 @@ const Play: FablePage = ({ isHydrated }) => {
           modal, which can happen when we learn the game has ended because of a data refresh that
           precedes the inclusion confirmation. */}
     <DndContext
+      onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
       sensors={sensors}
       collisionDetection={closestCenter}
@@ -254,7 +271,20 @@ const Play: FablePage = ({ isHydrated }) => {
           )}
 
           <PlayerBoard playerAddress={playerAddress} playedCards={currentPlayerCards} />
+          {createPortal(
+            <DragOverlay dropAnimation={{
+              duration: 100,
+              easing: 'cubic-bezier(0.18, 0.67, 0.6, 1.22)',
+              }}>
+                <HandCard 
+                  key={activeId} 
+                  id={activeId as number ?? 0} 
+                  className={`flex flex-col items-start space-y-3 relative`} 
+                />
+            </DragOverlay>,
+          document.body)}
         </div>
+        
       </main>
     </DndContext>
     </>

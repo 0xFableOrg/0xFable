@@ -1,97 +1,12 @@
 import { useState } from "react"
-import { DragOverlay, useDraggable } from "@dnd-kit/core"
 import Image from "next/image"
 import { playCard } from "src/actions/playCard"
 import { Address } from "src/chain"
 import { CancellationHandler } from "src/components/lib/loadingModal"
-
-// quick fix for hackathon
-const cards = [
-  {
-    name: "Goblin Spawn, The Damned",
-    description: "A small, green, mean, and ugly creature.",
-    attack: 1,
-    defense: 1,
-    image: "/card_art/0.jpg",
-  },
-  {
-    name: "Eternal Smite, Unborn Legacy",
-    description: "A small, green, mean, and ugly creature.",
-    attack: 1,
-    defense: 1,
-    image: "/card_art/1.jpg",
-  },
-  {
-    name: "Goblin",
-    description: "A small, green, mean, and ugly creature.",
-    attack: 1,
-    defense: 1,
-    image: "/card_art/2.jpg",
-  },
-  {
-    name: "Goblin",
-    description: "A small, green, mean, and ugly creature.",
-    attack: 1,
-    defense: 1,
-    image: "/card_art/3.jpg",
-  },
-  {
-    name: "Goblin",
-    description: "A small, green, mean, and ugly creature.",
-    attack: 1,
-    defense: 1,
-    image: "/card_art/4.jpg",
-  },
-  {
-    name: "Goblin",
-    description: "A small, green, mean, and ugly creature.",
-    attack: 1,
-    defense: 1,
-    image: "/card_art/5.jpg",
-  },
-  {
-    name: "Goblin",
-    description: "A small, green, mean, and ugly creature.",
-    attack: 1,
-    defense: 1,
-    image: "/card_art/6.jpg",
-  },
-  {
-    name: "Goblin",
-    description: "A small, green, mean, and ugly creature.",
-    attack: 1,
-    defense: 1,
-    image: "/card_art/7.jpg",
-  },
-  {
-    name: "Goblin",
-    description: "A small, green, mean, and ugly creature.",
-    attack: 1,
-    defense: 1,
-    image: "/card_art/8.jpg",
-  },
-  {
-    name: "Goblin",
-    description: "A small, green, mean, and ugly creature.",
-    attack: 1,
-    defense: 1,
-    image: "/card_art/9.jpg",
-  },
-  {
-    name: "Goblin",
-    description: "A small, green, mean, and ugly creature.",
-    attack: 1,
-    defense: 1,
-    image: "/card_art/0.jpg",
-  },
-  {
-    name: "Goblin",
-    description: "A small, green, mean, and ugly creature.",
-    attack: 1,
-    defense: 1,
-    image: "/card_art/0.jpg",
-  },
-]
+import { cards } from "src/utils/card-list"
+import { useSortable } from "@dnd-kit/sortable"
+import { CardPlacement } from "src/store/types"
+import { CSS } from "@dnd-kit/utilities"
 
 export const HandCard = ({
   id,
@@ -100,7 +15,8 @@ export const HandCard = ({
   className,
   handHovered,
   setLoading,
-  cancellationHandler
+  cancellationHandler,
+  placement,
 }: {
   // TODO id has a double role as ID and card index in hand
   id: number
@@ -110,18 +26,26 @@ export const HandCard = ({
   handHovered?: boolean
   setLoading: (label: string | null) => void
   cancellationHandler: CancellationHandler
+  placement?: CardPlacement
 }) => {
-  const { attributes, listeners, setNodeRef, isDragging } =
-    useDraggable({
-      id: `card-${id}`,
+  // @todo cleanup
+  const { attributes, listeners, setNodeRef, isDragging, transform, transition } =
+    useSortable({
+      id: id, // currently the IDs used to reference the hard coded cards
     })
 
-  const [isDetailsVisible, setIsDetailsVisible] = useState<boolean>(false)
-  const [cardHover, setCardHover] = useState<boolean>(false)
+  const sortableStyle = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  }
+
+  const [ isDetailsVisible, setIsDetailsVisible ] = useState<boolean>(false)
+  const [ cardHover, setCardHover]  = useState<boolean>(false)
+  const [ showCardName, setShowCardName ] = useState<boolean>(false)
 
   const showingDetails = isDetailsVisible && !isDragging
 
-  const cardDisplayContent = (
+  const handCardDisplayContent = (
     <div
       className={`${className} transition-all ease-in-out duration-300 ${
         showingDetails
@@ -188,16 +112,55 @@ export const HandCard = ({
     </div>
   )
 
+  const boardCardDisplayContent = (
+    <div
+      className={`${className}`}
+      style={sortableStyle}
+      ref={setNodeRef}
+      {...attributes}
+      {...listeners}
+      onMouseEnter={() => setShowCardName(true)}
+      onMouseLeave={() => setShowCardName(false)}
+    >
+      <Image
+        alt={`${id}`}
+        src={cards[id]?.image}
+        width={200}
+        height={200}
+        className="pointer-events-none rounded-xl border select-none"
+        style={{
+          boxShadow: "0 0 10px 2px gold",
+        }}
+      />
+
+      {showCardName && (
+        <>
+          <div className="flex w-full justify-between px-2 absolute top-0 left-0 right-0">
+            <div className="flex items-center justify-center h-8 w-8 rounded-full bg-yellow-400 text-gray-900 font-bold text-lg select-none">
+              {`${cards[id]?.attack}`}
+            </div>
+            <div className="flex items-center justify-center h-8 w-8 rounded-full bg-red-600 text-gray-900 font-bold text-lg select-none">
+              {`${cards[id]?.defense}`}
+            </div>
+          </div>
+
+          <span
+            className={`absolute w-[90%] bottom-0 left-1/2 transform -translate-x-1/2 font-serif text-[14px] font-bold text-slate-200 text-center pb-2.5 select-none truncate transition-opacity duration-1000 ${
+              showCardName ? "opacity-100" : "opacity-0"
+            } hover:whitespace-normal hover:overflow-visible`}
+          >
+            {`${cards[id]?.name}`}
+          </span>
+        </>
+      )}
+    </div>
+  )
+
   // -----------------------------------------------------------------------------------------------
   
-  if (isDragging) {
-    return ReactDOM.createPortal(
-      <DragOverlay dropAnimation={{
-        duration: 100,
-        easing: 'cubic-bezier(0.18, 0.67, 0.6, 1.22)',
-      }}>{cardDisplayContent}</DragOverlay>,
-      document.body
-    )
+  if (placement === CardPlacement.BOARD) {
+    return boardCardDisplayContent
+  } else {
+    return handCardDisplayContent
   }
-  return cardDisplayContent
 }

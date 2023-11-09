@@ -1,11 +1,13 @@
 import * as store from "src/store/hooks"
 import { shortenAddress } from "src/utils/js-utils"
-import { useDroppable } from "@dnd-kit/core"
 import {
+  horizontalListSortingStrategy,
   rectSortingStrategy,
   SortableContext,
+  useSortable,
 } from "@dnd-kit/sortable"
-import PlayedCard from "./playedCard"
+import { HandCard } from "../handCard"
+import { CardPlacement } from "src/store/types"
 
 interface PlayerBoardProps {
   playerAddress: `0x${string}`|undefined|null, // opponent on top, current player below
@@ -16,7 +18,7 @@ const PlayerBoard: React.FC<PlayerBoardProps> = ({
   playerAddress,
   playedCards,
 }) => {
-  const { setNodeRef, isOver } = useDroppable({
+  const { setNodeRef, isOver } = useSortable({
     id: "player-board",
   })
 
@@ -37,7 +39,7 @@ const PlayerBoard: React.FC<PlayerBoardProps> = ({
           borderColor: playerActive ? "green" : undefined,
         }}
       >
-        <div className="relative flex flex-col items-center">
+        <div className="relative flex flex-col items-center space-y-4">
           <div className="flex flex-row p-2 space-x-3 self-start items-center">
             <p className="z-0 m-2 font-mono font-bold select-none">
               {" "}
@@ -46,14 +48,19 @@ const PlayerBoard: React.FC<PlayerBoardProps> = ({
             <p className="z-0 m-3 font-mono font-bold select-none"> ♥️ 100 </p>
           </div>
 
-          <div className={`absolute top-[120%] flex flex-row p-4 space-x-4 rounded-xl mx-4 items-center justify-center w-[95%] ${playerActive ? "bg-green-700 opacity-50" : null}`}>
-            {playedCards?.map((card) => (
-              <PlayedCard
-                key={card}
-                id={card}
-                className={`flex flex-col items-start space-y-3 relative`}
-              />
-            ))}
+          <div className={`absolute top-[150%] flex flex-row p-4 space-x-4 rounded-xl mx-4 items-center justify-center min-h-[220px] w-[95%] ${playerActive ? "bg-green-700 opacity-50" : null}`}>
+            <SortableContext items={playedCards} strategy={horizontalListSortingStrategy}>
+              {playedCards?.map((card) => (
+                // @todo rename HandCard to Card
+                <HandCard 
+                  key={card} 
+                  id={card} 
+                  className={`flex flex-col items-start space-y-3 relative`} 
+                  placement={CardPlacement.BOARD} 
+                />
+              ))}
+            </SortableContext>
+            
           </div>
         </div>
       </div>
