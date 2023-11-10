@@ -19,7 +19,7 @@ const Hand = ({
   setLoading: (label: string | null) => void
   cancellationHandler: CancellationHandler
 }) => {
-  const [isFocused, setIsFocused] = useState<boolean>(false)
+  const [ isFocused, setIsFocused ] = useState<boolean>(false)
 
   const hand: any = []
   const scrollWrapperRef = useRef<any>()
