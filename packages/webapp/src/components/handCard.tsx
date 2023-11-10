@@ -161,6 +161,7 @@ export const HandCard = ({
   if (placement === CardPlacement.BOARD) {
     return boardCardDisplayContent
   } else {
+    // cards being dragged and cards in hand
     return handCardDisplayContent
   }
 }

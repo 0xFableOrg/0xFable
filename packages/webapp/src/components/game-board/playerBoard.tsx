@@ -2,7 +2,6 @@ import * as store from "src/store/hooks"
 import { shortenAddress } from "src/utils/js-utils"
 import {
   horizontalListSortingStrategy,
-  rectSortingStrategy,
   SortableContext,
   useSortable,
 } from "@dnd-kit/sortable"
@@ -24,9 +23,7 @@ const PlayerBoard: React.FC<PlayerBoardProps> = ({
 
   const currentPlayerAddress = store.usePlayerAddress()
   const playerActive = isOver && playerAddress === currentPlayerAddress
-
   return (
-    <SortableContext items={playedCards} strategy={rectSortingStrategy}>
       <div
         className={
           playerAddress !== currentPlayerAddress
@@ -48,7 +45,7 @@ const PlayerBoard: React.FC<PlayerBoardProps> = ({
             <p className="z-0 m-3 font-mono font-bold select-none"> ♥️ 100 </p>
           </div>
 
-          <div className={`absolute top-[150%] flex flex-row p-4 space-x-4 rounded-xl mx-4 items-center justify-center min-h-[220px] w-[95%] ${playerActive ? "bg-green-700 opacity-50" : null}`}>
+          <div className={`absolute top-[150%] flex flex-row p-4 space-x-4 rounded-xl mx-4 items-center justify-center min-h-[220px] min-w-[95%] ${playerActive ? "bg-green-700 opacity-50" : null}`}>
             <SortableContext items={playedCards} strategy={horizontalListSortingStrategy}>
               {playedCards?.map((card) => (
                 // @todo rename HandCard to Card
@@ -63,8 +60,7 @@ const PlayerBoard: React.FC<PlayerBoardProps> = ({
             
           </div>
         </div>
-      </div>
-    </SortableContext>
+      </div>  
   )
 }
 
