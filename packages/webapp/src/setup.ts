@@ -125,7 +125,7 @@ function setupFiltering(
  * Hooks {@link console.error} such that string errors starting with any of the strings in {@link
  * filteredErrorMessages} and object errors with a `code` property contained in {@link
  * filteredErrorCodes} will be filtered out. Instead they will be stored in
- * `window.suppressedErrors`.
+ * `console.suppressedErrors`.
  */
 function setupFilterErrorMessages() {
   setupFiltering("error", filteredErrorMessages, filteredErrorCodes)
@@ -136,7 +136,7 @@ function setupFilterErrorMessages() {
 /**
  * Hooks {@link console.warn} such that string warnings starting with any of the strings in {@link
  * filteredWarningMessages} will be filtered out. Instead they will be stored in
- * `window.suppressedWarnings`.
+ * `console.suppressedWarnings`.
  */
 function setupFilterWarningMessages() {
   setupFiltering("warn", filteredWarningMessages)
@@ -147,7 +147,7 @@ function setupFilterWarningMessages() {
 /**
  * Hooks {@link console.info} such that string infos starting with any of the strings in {@link
  * filteredInfoMessages} will be filtered out. Instead they will be stored in
- * `window.suppressedInfos`.
+ * `console.suppressedInfos`.
  */
 function setupFilterInfoMessages() {
   setupFiltering("info", filteredInfoMessages)
@@ -158,7 +158,7 @@ function setupFilterInfoMessages() {
 /**
  * Hooks {@link console.log} such that string infos starting with any of the strings in {@link
  * filteredLogMessages} will be filtered out. Instead they will be stored in
- * `window.suppressedLogs`.
+ * `console.suppressedLogs`.
  */
 function setupFilterLogMessages() {
   setupFiltering("log", filteredLogMessages)
