@@ -108,6 +108,17 @@ export function getDeck(
   return cards.slice(pdata.deckStart, pdata.deckEnd)
 }
 
+// =================================================================================================
+// DERIVED DATA
+
+/**
+ * Returns the number of cards left in the deck.
+ */
+export function getDeckSize(privateInfo: PrivateInfo): number {
+  const size = privateInfo.deckIndexes.indexOf(255)
+  return size < 0 ? privateInfo.deckIndexes.length : size
+}
+
 // -------------------------------------------------------------------------------------------------
 
 /**
