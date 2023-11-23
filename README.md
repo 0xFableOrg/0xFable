@@ -81,9 +81,19 @@ every time a transaction is made!**
 game with two different accounts. It may work to some extent with two different tabs, but any
 reload will reset the address.
 
-If you would like to skip proof generation and verification, you can use the following commands:
-- `cd packages/webapp && make deploy-noproofs`
+If you would like to skip proof generation and verification, you can replace `makde deploy` and
+`make dev` with the following commands:
+- `cd packages/contracts && make deploy-noproofs`
 - `cd packages/webapp && make dev-noproofs`
+
+If you would like to test with deterministic randomness and avoid timeouts when a player takes too
+long to perform an action, you can replace `make deploy` with:
+- `cd packages/contracts && make deploy-norandom`
+
+To both skip proofs and use deterministic randomness, you can replace `make deploy` and `make dev`
+with the following commands:
+- `cd packages/contracts && make deploy-noproofs`
+- `cd packages/webapp && make dev-noproofs-norandom`
 
 ## Commands
 
