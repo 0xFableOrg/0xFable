@@ -343,7 +343,7 @@ contract Game {
         if (gdata.players[gdata.currentPlayer] != msg.sender) {
             revert WrongPlayer();
         }
-        if (block.number > 256 && gdata.lastBlockNum < block.number - 256) {
+        if (noRandomCounter == 0 && block.number > 256 && gdata.lastBlockNum < block.number - 256) {
             // TODO(LATER): This is the max timeout, make shorter + implement a chess clock.
             // Action timed out: the player loses.
             address timedOutPlayer = gdata.players[gdata.currentPlayer];
