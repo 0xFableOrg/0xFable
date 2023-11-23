@@ -71,6 +71,11 @@ export type Hash = `0x${string}`
 
 // -------------------------------------------------------------------------------------------------
 
+/** `0x{string}` */
+export type HexString = `0x${string}`
+
+// -------------------------------------------------------------------------------------------------
+
 /**
  * Simplification of wagmi's unexported GetAccountResult<TProvider>.
  */
