@@ -153,6 +153,9 @@ contract Game {
     // A player played a card.
     event CardPlayed(uint256 indexed gameID, uint8 player, uint256 card);
 
+    // The given player ended his turn.
+    event TurnEnded(uint256 indexed gameID, address player);
+
     // A player attacked another player.
     event PlayerAttacked(uint256 indexed gameID, address attackingPlayer, address defendingPlayer);
 
@@ -1016,7 +1019,8 @@ contract Game {
     // ---------------------------------------------------------------------------------------------
 
     function pass(uint256 gameID) external step(gameID, GameStep.PASS) {
-        // empty: everything happens in the step function
+        // mostly empty: everything happens in the step function
+        emit TurnEnded(gameID, msg.sender);
     }
 
     // ---------------------------------------------------------------------------------------------

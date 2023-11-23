@@ -25,11 +25,15 @@ import { DISMISS_BUTTON } from "src/actions/errors"
 // =================================================================================================
 // SUBSCRIPTION MANAGEMENT
 
+// NOTE: If you put a non-existent event in the list below, it will generate spurious events,
+// because good API design is a mysterious art I guess.
+
 /** List of events we want to listen to. */
 const eventNames = [
   "CardDrawn",
   "CardPlayed",
   "Champion",
+  "GameCancelled",
   "GameStarted",
   "MissingPlayers",
   "PlayerAttacked",
@@ -40,7 +44,7 @@ const eventNames = [
   "PlayerJoined",
   "PlayerPassed",
   "PlayerTimedOut",
-  "GameCancelled"
+  "TurnEnded"
 ]
 
 // -------------------------------------------------------------------------------------------------
@@ -167,6 +171,10 @@ function handleEvent(name: string, args: GameEventArgs) {
       break
     }
     case "GameCancelled": {
+      void refreshGameData()
+      break
+    }
+    case "TurnEnded": {
       void refreshGameData()
       break
     }
