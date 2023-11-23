@@ -10,7 +10,7 @@ import { Address } from "src/chain"
  * Returns true iff it is legal to end a turn in the given game step.
  */
 export function isEndingTurn(gameStep: GameStep): boolean {
-  return gameStep === GameStep.PLAY || gameStep === GameStep.ATTACK || gameStep === GameStep.PASS
+  return gameStep === GameStep.PLAY || gameStep === GameStep.ATTACK || gameStep === GameStep.END_TURN
 }
 
 // -------------------------------------------------------------------------------------------------

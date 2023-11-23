@@ -63,12 +63,12 @@ Let's assume player A goes first. Here is how A's turn goes:
 - A can play a single card if he wants
 - A can attack with any number of creatures, if able — attacking simply consists of selecting
   attacking creatures
-- A can also pass if he doesn't want to attack (or play a card)
+- A can also end his turn if he doesn't want to attack (or play a card)
 
 In summary, the possible sequences of actions for A in the first turn are:
 
-- pass
-- play card, then pass
+- end turn
+- play card, then end turn
 - play card, then attack
 - attack
 
@@ -80,8 +80,8 @@ After defending, B draws a card, and then his turn proceeds like A's turn.
 
 So the possible sequence of actions for B's turns (and for every single turn throughout the game):
 
-- defend (if other player attacked), then draw, then pass
-- defend (if other player attacked), then draw, then play card, then pass
+- defend (if other player attacked), then draw, then end turn
+- defend (if other player attacked), then draw, then play card, then end turn
 - defend (if other player attacked), then draw, then play card, then attack
 - defend (if other player attacked), then draw, then attack
 
@@ -188,20 +188,21 @@ First, a few data structures:
 Within the game data, `currentPlayer` identifies the player who has to take action, while
 `currentStep` (whose type is the enum `GameStep`) constrains the kind of actions that can be taken.
 
-The game steps are: `DRAW`, `PLAY`, `ATTACK`, `DEFEND`, `PASS`. They have a double duty of both
+The game steps are: `DRAW`, `PLAY`, `ATTACK`, `DEFEND`, `END_TURN`. They have a double duty of both
 marking an expected next step, and representing the action the user makes.
 
 Note that there isn't a perfect 1-1 mapping between these two things. When the `currentStep` is
 `PLAY`, it merely means that the player is able to play a card, but at that stage, `ATTACK` and
-`PASS` are both valid actions for the player to take, respectively bypassing the option to play a
-card and both the option to play a card and attack. (Refer to the section on gameplay for details.)
+`END_TURN` are both valid actions for the player to take, respectively bypassing the option to play
+a card and both the option to play a card and attack. (Refer to the section on gameplay for
+details.)
 
 Transitioning the `currentPlayer` and `currentStep` is done via the `step` modifier. This modifier
 is applied to every function that represents a game action. It must be given the step that the
 player tries to take. The modifier then checks that the step is valid given `currentStep` and
 `currentPlayer`, returns to the function, then transitions the game state to the next step, which
 may depend on the action the current player picked. For instance, the next step might be `DEFEND` or
-`DRAW`, depending on whether the current player attacked or passed.
+`DRAW`, depending on whether the current player attacked or ended his turn.
 
 Another detail: there used to be a predicate (`joinCheck`) to verify if a player is allowed to join
 a game. This would let the creator of the game restrict who can join by specifying a (pre-supplied
