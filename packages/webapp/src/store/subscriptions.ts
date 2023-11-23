@@ -42,7 +42,6 @@ const eventNames = [
   "PlayerDrewHand",
   "PlayerDefended",
   "PlayerJoined",
-  "PlayerPassed",
   "PlayerTimedOut",
   "TurnEnded"
 ]

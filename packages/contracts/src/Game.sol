@@ -162,9 +162,6 @@ contract Game {
     // A player defended against another player.
     event PlayerDefended(uint256 indexed gameID, address attackingPlayer, address defendingPlayer);
 
-    // A player ended his turn without attacking.
-    event PlayerPassed(uint256 indexed gameID, uint8 player);
-
     // Someone won!
     event Champion(uint256 indexed gameID, address indexed player);
 
