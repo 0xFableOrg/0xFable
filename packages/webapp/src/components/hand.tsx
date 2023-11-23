@@ -2,13 +2,16 @@ import { useEffect, useRef, useState } from "react"
 import { AiOutlineLeft, AiOutlineRight } from "react-icons/ai"
 import useScrollBox from "../hooks/useScrollBox"
 import { Card } from "./card"
+import * as store from "src/store/hooks"
 
 const Hand = ({
   cards,
   className,
+  setLoading,
 }: {
   cards?: bigint[] | null
   className?: string
+  setLoading: (label: string | null) => void
 }) => {
   const [isFocused, setIsFocused] = useState<boolean>(false)
 
@@ -17,14 +20,20 @@ const Hand = ({
   const { showLeftArrow, scrollLeft, showRightArrow, scrollRight } =
     useScrollBox(scrollWrapperRef)
 
+  const gameID = store.useGameID()[0]!
+  const playerAddress = store.usePlayerAddress()!
+
   if (cards && cards.length > 0) {
     for (let i = 0; i < cards?.length; i++) {
       hand.push(
         <div key={i}>
           <Card
             id={i}
+            gameID={gameID}
+            playerAddress={playerAddress}
             className="transitional-all duration-200 hover:scale-[100%] hover:border-yellow-500"
             handHovered={isFocused}
+            setLoading={setLoading}
           />
         </div>
       )

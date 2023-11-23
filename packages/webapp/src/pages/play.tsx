@@ -17,6 +17,8 @@ import { useRouter } from "next/router"
 import { setError } from "src/store/actions"
 import { DISMISS_BUTTON } from "src/actions/errors"
 import { navigate } from "src/utils/navigate"
+import { drawCard } from "src/actions/drawCard"
+import { endTurn } from "src/actions/endTurn"
 
 const Play: FablePage = ({ isHydrated }) => {
   const [ gameID, setGameID ] = store.useGameID()
@@ -70,6 +72,22 @@ const Play: FablePage = ({ isHydrated }) => {
     onSuccess: () => setConcedeCompleted(true),
   })
 
+  const doDrawCard = gameID === null || playerAddress === null
+    ? undefined
+    : () => drawCard({
+        gameID,
+        playerAddress,
+        setLoading
+      })
+
+  const doEndTurn = gameID === null || playerAddress === null
+    ? undefined
+    : () => endTurn({
+      gameID,
+      playerAddress,
+      setLoading
+    })
+
   useEffect(() => {
     if (gameID !== null && playerAddress !== null && !privateInfo) {
       setError({
@@ -109,6 +127,7 @@ const Play: FablePage = ({ isHydrated }) => {
 
         <Hand
           cards={playerHand}
+          setLoading={setLoading}
           className="absolute left-0 right-0 mx-auto z-[100] translate-y-1/2 transition-all duration-500 rounded-xl ease-in-out hover:translate-y-0"
         />
         <div className="grid-col-1 relative mx-6 mb-6 grid grow grid-rows-[6]">
@@ -122,11 +141,16 @@ const Play: FablePage = ({ isHydrated }) => {
 
           {!ended && (
             <>
-              <button className="btn-warning btn-lg btn absolute right-96 bottom-1/2 z-50 !translate-y-1/2 rounded-lg border-[.1rem] border-base-300 font-mono hover:scale-105">
+              <button className="btn-warning btn-lg btn absolute right-96 bottom-1/2 z-50 !translate-y-1/2 rounded-lg border-[.1rem] border-base-300 font-mono hover:scale-105"
+                disabled={!doDrawCard}
+                onClick={doDrawCard}>
                 DRAW
               </button>
 
-              <button className="btn-warning btn-lg btn absolute right-48 bottom-1/2 z-50 !translate-y-1/2 rounded-lg border-[.1rem] border-base-300 font-mono hover:scale-105">
+              <button
+                className="btn-warning btn-lg btn absolute right-48 bottom-1/2 z-50 !translate-y-1/2 rounded-lg border-[.1rem] border-base-300 font-mono hover:scale-105"
+                disabled={!doEndTurn}
+                onClick={doEndTurn}>
                 END TURN
               </button>
 
