@@ -1,5 +1,7 @@
 import { useState } from "react"
 import Image from "next/image"
+import { playCard } from "src/actions/playCard"
+import { Address } from "src/chain"
 
 // quick fix for hackathon
 const cards = [
@@ -91,12 +93,19 @@ const cards = [
 
 export const Card = ({
   id,
+  gameID,
+  playerAddress,
   className,
   handHovered,
+  setLoading,
 }: {
+  // TODO id has a double role as ID and card index in hand
   id: number
+  gameID: bigint
+  playerAddress: Address
   className?: string
   handHovered?: boolean
+  setLoading: (label: string | null) => void
 }) => {
   // const [ , addToBoard ] = useAtom(store.addToBoard)
   const [isDetailsVisible, setIsDetailsVisible] = useState<boolean>(false)
@@ -110,6 +119,12 @@ export const Card = ({
       }`}
       onClick={() => {
         setIsDetailsVisible(!isDetailsVisible)
+        void playCard({
+          gameID,
+          playerAddress,
+          cardIndexInHand: id,
+          setLoading
+        })
       }}
       onMouseEnter={() => setCardHover(true)}
       onMouseLeave={() => {
