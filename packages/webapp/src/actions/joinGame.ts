@@ -168,7 +168,7 @@ async function doJoinGameTransaction(args: JoinGameArgs, saltHash: bigint) {
       data: logs[0].data,
       topics: logs[0]["topics"]
     })
-    setGameID(event.args["gameID"])
+    setGameID((event.args as any).gameID)
   }
 
   // We need to get the player data in order to draw cards.
