@@ -14,6 +14,7 @@ include "../../node_modules/circomlib/circuits/mimcsponge.circom";
  *
  * Public inputs:
  * - `initialDeck` are the cards in the initial deck listing (packed into 256-bit elements)
+ * - `lastIndex` is the index of the last card in the deck (last non-255 byte)
  * - `deckRoot` is the hash of the deck after drawing the cards, together with the salt
  * - `handRoot` is the hash of the hand the player drew, together with the salt
  * - `saltHash` is the hash of player's secret salt, acting as an on-chain commitment to that salt
