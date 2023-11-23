@@ -7,7 +7,7 @@ import { GameEndedModal } from "src/components/modals/gameEndedModal"
 import { Navbar } from "src/components/navbar"
 import { useGameWrite } from "src/hooks/useFableWrite"
 import * as store from "src/store/hooks"
-import { GameStatus } from "src/store/types"
+import { GameStatus, GameStep } from "src/store/types"
 import { FablePage } from "src/pages/_app"
 import { Address } from "viem"
 import { readContract } from "wagmi/actions"
@@ -19,6 +19,7 @@ import { DISMISS_BUTTON } from "src/actions/errors"
 import { navigate } from "src/utils/navigate"
 import { drawCard } from "src/actions/drawCard"
 import { endTurn } from "src/actions/endTurn"
+import { currentPlayer, isEndingTurn } from "src/game/misc"
 
 const Play: FablePage = ({ isHydrated }) => {
   const [ gameID, setGameID ] = store.useGameID()
@@ -29,6 +30,7 @@ const Play: FablePage = ({ isHydrated }) => {
   const playerAddress = store.usePlayerAddress()
   const router = useRouter()
   const privateInfo = store.usePrivateInfo(gameID, playerAddress)
+  const gameData = store.useGameData()
 
   const [ hasVisitedBoard, visitBoard ] = store.useHasVisitedBoard()
   useEffect(visitBoard, [visitBoard, hasVisitedBoard])
@@ -72,7 +74,10 @@ const Play: FablePage = ({ isHydrated }) => {
     onSuccess: () => setConcedeCompleted(true),
   })
 
-  const doDrawCard = gameID === null || playerAddress === null
+  const cantDoThings = gameID === null|| playerAddress === null || gameData === null
+    || currentPlayer(gameData) !== playerAddress
+
+  const doDrawCard = cantDoThings || gameData.currentStep !== GameStep.DRAW
     ? undefined
     : () => drawCard({
         gameID,
@@ -80,7 +85,7 @@ const Play: FablePage = ({ isHydrated }) => {
         setLoading
       })
 
-  const doEndTurn = gameID === null || playerAddress === null
+  const doEndTurn = cantDoThings || !isEndingTurn(gameData.currentStep)
     ? undefined
     : () => endTurn({
       gameID,

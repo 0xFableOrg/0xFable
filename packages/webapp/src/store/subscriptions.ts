@@ -113,9 +113,11 @@ function handleEvent(name: string, args: GameEventArgs) {
   switch (name) {
     case "CardDrawn": {
       const { _player } = args
+      void refreshGameData()
       break
     } case "CardPlayed": {
       const { _player, _card } = args
+      void refreshGameData()
       break
     } case "PlayerAttacked": {
       const { _attacking, _defending } = args
