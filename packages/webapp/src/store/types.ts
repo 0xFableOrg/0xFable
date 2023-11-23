@@ -44,6 +44,7 @@ export type PlayerData = {
   deckStart: number
   deckEnd: number
   handSize: number
+  deckSize: number
   joinBlockNum: bigint
   saltHash: bigint
   handRoot: Hash

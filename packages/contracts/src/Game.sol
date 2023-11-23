@@ -211,6 +211,7 @@ contract Game {
         uint8 deckStart;
         uint8 deckEnd;
         uint8 handSize;
+        uint8 deckSize;
         // The block number at which the player's joinGame transaction landed.
         // NOTE: Since this is only used at the start of the game, it could be packed into another
         //       uint256 value (e.g. battlefield).
@@ -839,6 +840,10 @@ contract Game {
         uint256 randomness = getPubRandomnessForInitialHand(pdata.joinBlockNum);
         checkInitialHandProof(pdata, randomness, pdata.saltHash, proof);
 
+        uint256 deckStart = pdata.deckStart;
+        uint256 deckEnd = pdata.deckEnd;
+        pdata.deckSize = uint8(deckEnd - deckStart - INITIAL_HAND_SIZE);
+
         // Add the player to the list of live players.
         // Note that this loop is cheaper than passing the index to the function, as calldata is
         // expensive on layer 2 rollups.
@@ -988,7 +993,7 @@ contract Game {
         pubSignals[4] = saltHash;
         pubSignals[5] = randomness;
         pubSignals[6] = pdata.handSize;
-        pubSignals[7] = pdata.deckEnd - pdata.deckStart; // last index
+        pubSignals[7] = pdata.deckSize - 1;
 
         if (checkProofs) {
             if (!drawVerifier.verifyProof(proof, pubSignals)) {
@@ -1011,6 +1016,7 @@ contract Game {
         pdata.handRoot = handRoot;
         pdata.deckRoot = deckRoot;
         pdata.handSize++;
+        pdata.deckSize--;
         emit CardDrawn(gameID, gdata.currentPlayer);
 
         // TODO(LATER) if you can't draw you lose the game!
