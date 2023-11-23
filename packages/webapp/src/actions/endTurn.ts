@@ -31,7 +31,7 @@ export type EndTurnArgs = {
 // =================================================================================================
 
 /**
- * Ends the player's current turn, by sending the `pass` transaction.
+ * Ends the player's current turn, by sending the `endTurn` transaction.
  * Returns `true` iff the transaction was successfully sent.
  */
 export async function endTurn(args: EndTurnArgs): Promise<boolean> {
@@ -62,7 +62,7 @@ export async function skipTurnImpl(args: EndTurnArgs): Promise<boolean> {
     contractWriteThrowing({
       contract: deployment.Game,
       abi: gameABI,
-      functionName: "pass",
+      functionName: "endTurn",
       args: [ gameID],
       setLoading: args.setLoading
     })))

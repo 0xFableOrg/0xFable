@@ -126,7 +126,7 @@ contract Integration is Test {
         assertEq(pdata.battlefield, 1 << 8);
 
         // pass without attacking
-        game.pass(gameID);
+        game.endTurn(gameID);
 
         // player1: Horrible Gremlin (0)
         // player2: Fire Fighter (8)

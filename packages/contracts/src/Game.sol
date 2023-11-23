@@ -197,7 +197,7 @@ contract Game {
         PLAY,
         ATTACK,
         DEFEND,
-        PASS,
+        END_TURN,
         ENDED
     }
 
@@ -358,11 +358,12 @@ contract Game {
         //       conservative and avoid future problems arising from hidden assumptions.
 
         if (gdata.currentStep == GameStep.PLAY) {
-            if (requestedStep != GameStep.PLAY && requestedStep != GameStep.ATTACK && requestedStep != GameStep.PASS) {
+            GameStep reqStep = requestedStep;
+            if (reqStep != GameStep.PLAY && reqStep != GameStep.ATTACK && reqStep != GameStep.END_TURN) {
                 revert WrongStep();
             }
         } else if (gdata.currentStep == GameStep.ATTACK) {
-            if (requestedStep != GameStep.ATTACK && requestedStep != GameStep.PASS) {
+            if (requestedStep != GameStep.ATTACK && requestedStep != GameStep.END_TURN) {
                 revert WrongStep();
             }
         } else if (gdata.currentStep != requestedStep) {
@@ -384,7 +385,7 @@ contract Game {
                 gdata.currentPlayer = nextPlayer(gdata);
             } else if (requestedStep == GameStep.DEFEND) {
                 gdata.currentStep = GameStep.DRAW; // enum wraparound
-            } else if (requestedStep == GameStep.PASS) {
+            } else if (requestedStep == GameStep.END_TURN) {
                 gdata.currentStep = GameStep.DRAW;
                 gdata.currentPlayer = nextPlayer(gdata);
             }
@@ -1021,7 +1022,7 @@ contract Game {
 
     // ---------------------------------------------------------------------------------------------
 
-    function pass(uint256 gameID) external step(gameID, GameStep.PASS) {
+    function endTurn(uint256 gameID) external step(gameID, GameStep.END_TURN) {
         // mostly empty: everything happens in the step function
         emit TurnEnded(gameID, msg.sender);
     }

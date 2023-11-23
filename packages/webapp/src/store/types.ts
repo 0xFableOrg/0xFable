@@ -32,7 +32,7 @@ export enum GameStep {
   PLAY,
   ATTACK,
   DEFEND,
-  PASS,
+  END_TURN,
   ENDED
 }
 
