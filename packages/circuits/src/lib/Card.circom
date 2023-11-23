@@ -40,15 +40,22 @@ template RemoveCard(size) {
 
     // pick out a random card — we need to do the dance to prove the modulus
     signal numCards <-- lastIndex + 1;
-    signal index <-- candidateIndex % numCards;
+    signal selectedIndex <-- candidateIndex % numCards;
     signal divisor <-- candidateIndex \ numCards;
-    candidateIndex === divisor * numCards + index;
+    candidateIndex === divisor * numCards + selectedIndex;
 
-    // loop through the card List to get the last card
+    // Loop through the card List to get the last card (cardList[lastIndex])
+    // So after the loop:
+    //    `lastCardAccumulator[i] == 0` for all `i <= lastIndex`
+    //    `lastCardAccumulator[i] == cardList[i]` for all `i > lastIndex`
+    //     and we can read `cardList[lastIndex]` from `lastCardAccumulator[size]`
+
     component isEqualToLastIndex[size];
     signal lastCardAccumulator[size+1];
     lastCardAccumulator[0] <== 0;
+
     for (var i = 0; i < size; i++) {
+
         // (isEqualToLastIndex[i].out == 1) <=> (lastIndex == i)
         isEqualToLastIndex[i] = IsEqual();
         isEqualToLastIndex[i].in[0] <== i;
@@ -57,42 +64,54 @@ template RemoveCard(size) {
         // if lastIndex == i, add cardList[i] to accumulator
         lastCardAccumulator[i+1] <== lastCardAccumulator[i] + (isEqualToLastIndex[i].out * cardList[i]);
     }
+
+    // lastCard == cardList[lastIndex]
     signal lastCard <== lastCardAccumulator[size];
 
-    // cardList[i] will get added to `accumulator` once, and nothing else will get added.
-    // So after the loop:
-    //    `accumulator[i] == 0` for all `i <= index`
-    //    `accumulator[i] == cardList[i]` for all `i > index`
-    //     and we can read `cardList[i]` from `accumulator[size]`
-    component muxIndex[size];
-    component muxLastIndex[size];
+    // In the following loop, we:
+    // - Use the same technique as above to select the card at `selectedIndex` (cardList[selectedIndex])
+    // - Replace the selected card with the last card, and the last card with 255.
+
+    // Used to select the card at `selectedIndex`.
     component isEqualToIndex[size];
-    signal accumulator[size+1];
+    signal selectedCardAccumulator[size+1];
+    selectedCardAccumulator[0] <== 0;
+
+    // Used to output `cardList[lastIndex]` if `selectedIndex == i` else `cardList[i]`
+    // Goal: replace selected card with last card in the list.
+    component muxIndex[size];
+
+    // Used to output `255` if `lastIndex == i` else `cardList[i]`
+    // Goal: replace last card in the list with `255`.
+    component muxLastIndex[size];
+
+    // Successive version of the card list, with the selected card replaced by the last card in the
+    // list, and the last card replaced by `255`, once there respective indexes have been iterated
+    // over.
     signal intermediateCardList[size];
-    accumulator[0] <== 0;
 
     for (var i = 0; i < size; i++) {
 
-        // (isEqualToIndex[i].out == 1) <=> (index == i)
+        // (isEqualToIndex[i].out == 1) <=> (selectedIndex == i)
         isEqualToIndex[i] = IsEqual();
         isEqualToIndex[i].in[0] <== i;
-        isEqualToIndex[i].in[1] <== index;
+        isEqualToIndex[i].in[1] <== selectedIndex;
 
-        // if index == i, add cardList[i] to accumulator
-        accumulator[i+1] <== accumulator[i] + (isEqualToIndex[i].out * cardList[i]);
+        // if selectedIndex == i, add cardList[i] to selectedCardAccumulator
+        selectedCardAccumulator[i+1] <== selectedCardAccumulator[i] + (isEqualToIndex[i].out * cardList[i]);
 
-        // muxIndex[i].out[0] == index == i ? cardList[lastIndex] : cardList[i]
+        // muxIndex[i].out[0] == selectedIndex == i ? cardList[lastIndex] : cardList[i]
         muxIndex[i] = DualMux();
         muxIndex[i].in[0] <== cardList[i];
         muxIndex[i].in[1] <== lastCard;
         muxIndex[i].s <== isEqualToIndex[i].out;
 
-        // intermediateCardList[i] = cardList[lastIndex]     if i == index
+        // intermediateCardList[i] = cardList[lastIndex]     if i == selectedIndex
         // intermediateCardList[i] = cardList[i]             otherwise
         intermediateCardList[i] <== muxIndex[i].out[0];
 
         // (isEqualToLastIndex[i].out == 1) <=> (lastIndex == i)
-        // muxLastIndex[i].out[0] == lastIndex == i ? de : cardList[i]
+        // muxLastIndex[i].out[0] == lastIndex == i ? 255 : cardList[i]
         muxLastIndex[i] = DualMux();
         muxLastIndex[i].in[0] <== intermediateCardList[i];
         muxLastIndex[i].in[1] <== 255;
@@ -103,7 +122,8 @@ template RemoveCard(size) {
         updatedCardList[i] <== muxLastIndex[i].out[0];
     }
 
-    selectedCard <== accumulator[size];
+    // lastCard == cardList[selectedIndex]
+    selectedCard <== selectedCardAccumulator[size];
 }
 
 template AddCard(size) {
