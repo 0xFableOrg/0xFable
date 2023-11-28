@@ -27,16 +27,17 @@ import {
   DndContext,
   DragEndEvent,
   DragOverlay,
+  MeasuringStrategy,
   MouseSensor,
   UniqueIdentifier,
   closestCenter,
   useSensor,
   useSensors,
 } from "@dnd-kit/core"
-import PlayerBoard from "src/components/game-board/playerBoard"
+import PlayerBoard from "src/components/playerBoard"
 import { createPortal } from "react-dom"
 import useDragEvents from "src/hooks/useDragEvents"
-import { HandCard } from "src/components/handCard"
+import BaseCard from "src/components/cards/baseCard"
 
 const Play: FablePage = ({ isHydrated }) => {
   const [ gameID, setGameID ] = store.useGameID()
@@ -49,7 +50,7 @@ const Play: FablePage = ({ isHydrated }) => {
   const gameData = store.useGameData()
   const [ playedCards, addCard ] = usePlayedCards()
   const [ hasVisitedBoard, visitBoard ] = store.useHasVisitedBoard()
-  const { useDragStart } = useDragEvents()
+  const { useDragStart, handleDragEnd } = useDragEvents()
   useEffect(visitBoard, [visitBoard, hasVisitedBoard])
 
   const [ loading, setLoading ] = useState<string|null>(null)
@@ -165,33 +166,6 @@ const Play: FablePage = ({ isHydrated }) => {
 
   const ctrl = useModalController({ displayed: true, closeable: false })
 
-  function handleDragEnd(event: DragEndEvent) {
-    const { over } = event
-    if (over && over.id === "player-board") {
-      // @todo need a naming convention for board refs + id
-      const cardId = event.active.id as unknown as number
-      const playedCard: CardInPlay = {
-        cardId: cardId,
-        owner: playerAddress as Address,
-      }
-      addCard(playedCard)
-      if(playerHand) {
-        // remove vard from hand since it's been added to play
-        setPlayerHand(currentHand => {
-          if (cardId >= 0 && cardId < currentHand.length) {
-            const newHand = [...currentHand];
-            newHand.splice(cardId, 1);
-            return newHand;
-          }
-          return currentHand; 
-        });
-      }
-    } else if (over && over.id === "player-hand") {
-      // don't add card to playedCards if the user brings it back to the hand
-      return
-    }
-  }
-
   const sensors = useSensors(
     // waits for a drag of 20 pixels before the UX assumes a card is being played
     useSensor(MouseSensor, { activationConstraint: { distance: 20 } }),
@@ -210,6 +184,11 @@ const Play: FablePage = ({ isHydrated }) => {
       onDragEnd={handleDragEnd}
       sensors={sensors}
       collisionDetection={closestCenter}
+      measuring={{
+        droppable: {
+          strategy: MeasuringStrategy.Always,
+        },
+      }}
     >
       
       {loading && !ended && (
@@ -276,11 +255,7 @@ const Play: FablePage = ({ isHydrated }) => {
               duration: 100,
               easing: 'cubic-bezier(0.18, 0.67, 0.6, 1.22)',
               }}>
-                <HandCard 
-                  key={activeId} 
-                  id={activeId as number ?? 0} 
-                  className={`flex flex-col items-start space-y-3 relative`} 
-                />
+                <BaseCard id={activeId as number} placement={CardPlacement.DRAGGED} />
             </DragOverlay>,
           document.body)}
         </div>

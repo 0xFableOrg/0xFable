@@ -1,18 +1,19 @@
 import { useEffect, useRef, useState } from "react"
 import { AiOutlineLeft, AiOutlineRight } from "react-icons/ai"
 import useScrollBox from "../hooks/useScrollBox"
-import * as store from "src/store/hooks"
-import { CancellationHandler } from "src/components/lib/loadingModal"
-import { HandCard } from "./handCard"
-import { useDroppable } from "@dnd-kit/core"
-import { SortableContext, horizontalListSortingStrategy } from "@dnd-kit/sortable"
+import {
+  SortableContext,
+  horizontalListSortingStrategy,
+  useSortable,
+} from "@dnd-kit/sortable"
 import { CardPlacement } from "src/store/types"
+import CardContainer from "./cards/cardContainer"
+import { convertBigIntArrayToStringArray } from "src/utils/js-utils"
+import { CancellationHandler } from "src/components/lib/loadingModal"
 
 const Hand = ({
   cards,
   className,
-  setLoading,
-  cancellationHandler
 }: {
   cards: readonly bigint[] | null
   className?: string
@@ -20,36 +21,16 @@ const Hand = ({
   cancellationHandler: CancellationHandler
 }) => {
   const [ isFocused, setIsFocused ] = useState<boolean>(false)
-
-  const hand: any = []
   const scrollWrapperRef = useRef<any>()
   const { showLeftArrow, scrollLeft, showRightArrow, scrollRight } =
     useScrollBox(scrollWrapperRef)
 
-  const gameID = store.useGameID()[0]!
-  const playerAddress = store.usePlayerAddress()!
+  const { setNodeRef } = useSortable({
+    id: CardPlacement.HAND,
+  })
 
-  let range: number[] = [];
-
-  if (cards && cards.length > 0) {
-    for (let i = 0; i < cards?.length; i++) {
-      hand.push(
-        <div key={i}>
-          <HandCard
-            id={i}
-            gameID={gameID}
-            playerAddress={playerAddress}
-            className="transitional-all duration-200 hover:scale-[100%] hover:border-yellow-500"
-            handHovered={isFocused}
-            setLoading={setLoading}
-            cancellationHandler={cancellationHandler}
-            placement={CardPlacement.HAND}
-          />
-        </div>
-      )
-    }
-    range = Array.from({ length: cards.length }, (_, index) => index + 1);
-  }
+  const convertedCards = convertBigIntArrayToStringArray(cards)
+  const range = convertedCards?.map((_, index) => index + 1) ?? []
 
   useEffect(() => {
     const handleResize = () => {
@@ -84,8 +65,18 @@ const Hand = ({
         <div className="overflow-x-scroll no-scrollbar" ref={scrollWrapperRef}>
           <div className="relative flex w-max">
             <div className="flex flex-row items-end justify-center space-x-4 px-2">
-              <SortableContext items={range} strategy={horizontalListSortingStrategy}>
-                {hand}
+              <SortableContext
+                items={range}
+                strategy={horizontalListSortingStrategy}
+              >
+                {range.map((index) => (
+                  <div key={index}>
+                    <CardContainer
+                      id={convertedCards[index - 1]}
+                      placement={CardPlacement.HAND}
+                    />
+                  </div>
+                ))}
               </SortableContext>
             </div>
           </div>

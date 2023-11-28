@@ -1,4 +1,4 @@
-import { DragStartEvent, DragEndEvent, UniqueIdentifier } from "@dnd-kit/core"
+import { DragStartEvent, DragEndEvent,  DragOverEvent, UniqueIdentifier } from "@dnd-kit/core"
 import * as store from "src/store/hooks"
 import { usePlayedCards } from "src/store/hooks"
 import { CardInPlay } from "src/store/types"
@@ -6,22 +6,20 @@ import { Address } from "viem"
 import { useCallback } from "react"
 
 function useDragEvents () {
-    // test that drag start picks up the right ID 
-
-
 	const [ _, addCard ] = usePlayedCards()
 	const playerAddress = store.usePlayerAddress()
 
 	const useDragStart = (setActiveIdCallback: (id: UniqueIdentifier) => void) => {
 		const handleDragStart = useCallback(({ active }: DragStartEvent) => {
-			console.log({active})
-				setActiveIdCallback(active.id);
+			setActiveIdCallback(active.id);
 		}, [setActiveIdCallback]);
 		
 		return handleDragStart;
 	};
 	
-	// const handleDragOver = (event: DragOverEvent) => {}
+	const handleDragOver = (event: DragOverEvent) => {
+		const { over, active } = event;
+	}
 
 	const handleDragEnd = (event: DragEndEvent) => {
 		const { over } = event
@@ -36,6 +34,8 @@ function useDragEvents () {
 					owner: playerAddress as Address,
 			}
 			addCard(playedCard)
+			// @todo remove card from hand once placed in board
+			// @todo void playCard :: tx for card being placed on player board
 		} else if (over && over.id === "player-hand") {
 			// don't add card to playedCards if the user brings it back to the hand
 			return
@@ -43,7 +43,7 @@ function useDragEvents () {
 	}
 	return {
 		useDragStart,
-		// handleDragOver,  
+		handleDragOver,
 		handleDragEnd
 	}
 }
