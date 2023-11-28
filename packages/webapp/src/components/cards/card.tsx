@@ -7,8 +7,10 @@ import { cards } from "src/utils/card-list"
 import { useSortable } from "@dnd-kit/sortable"
 import { CardPlacement } from "src/store/types"
 import { CSS } from "@dnd-kit/utilities"
+import { Address } from "src/chain"
+import { playCard } from "src/actions/playCard"
 
-export const HandCard = ({
+export const Card = ({
   id,
   gameID,
   playerAddress,
@@ -17,6 +19,7 @@ export const HandCard = ({
   setLoading,
   cancellationHandler,
   placement,
+  setLoading
 }: {
   // TODO id has a double role as ID and card index in hand
   id: number
@@ -28,10 +31,9 @@ export const HandCard = ({
   cancellationHandler: CancellationHandler
   placement?: CardPlacement
 }) => {
-  // @todo cleanup
   const { attributes, listeners, setNodeRef, isDragging, transform, transition } =
     useSortable({
-      id: id, // currently the IDs used to reference the hard coded cards
+      id: id,
     })
 
   const sortableStyle = {
@@ -40,7 +42,7 @@ export const HandCard = ({
   }
 
   const [ isDetailsVisible, setIsDetailsVisible ] = useState<boolean>(false)
-  const [ cardHover, setCardHover]  = useState<boolean>(false)
+  const [ cardHover, setCardHover ]  = useState<boolean>(false)
   const [ showCardName, setShowCardName ] = useState<boolean>(false)
 
   const showingDetails = isDetailsVisible && !isDragging
@@ -84,11 +86,11 @@ export const HandCard = ({
               : "hidden"
         }
       >
-        {cards[id]?.name}
+        {testCards[id]?.name}
       </span>
       <Image
         alt={`${id}`}
-        src={cards[id]?.image}
+        src={testCards[id]?.image}
         width={showingDetails ? 375 : 200}
         height={showingDetails ? 375 : 200}
         className="pointer-events-none rounded-xl border select-none"
@@ -100,12 +102,12 @@ export const HandCard = ({
       {showingDetails && (
         <>
           <p className="-mt-10 rounded-b-xl border border-t-0 bg-slate-900 font-mono font-semibold italic p-2 text-center select-none">
-            {cards[id]?.description}
+            {testCards[id]?.description}
           </p>
           <hr className="w-full border-slate-500" />
           <div className="flex w-full justify-between font-mono text-2xl">
-            <p className="select-none">⚔️ {cards[id]?.attack}</p>
-            <p className="select-none">🛡 {cards[id]?.defense}</p>
+            <p className="select-none">⚔️ {testCards[id]?.attack}</p>
+            <p className="select-none">🛡 {testCards[id]?.defense}</p>
           </div>
         </>
       )}
@@ -124,7 +126,7 @@ export const HandCard = ({
     >
       <Image
         alt={`${id}`}
-        src={cards[id]?.image}
+        src={testCards[id]?.image}
         width={200}
         height={200}
         className="pointer-events-none rounded-xl border select-none"
@@ -137,10 +139,10 @@ export const HandCard = ({
         <>
           <div className="flex w-full justify-between px-2 absolute top-0 left-0 right-0">
             <div className="flex items-center justify-center h-8 w-8 rounded-full bg-yellow-400 text-gray-900 font-bold text-lg select-none">
-              {`${cards[id]?.attack}`}
+              {`${testCards[id]?.attack}`}
             </div>
             <div className="flex items-center justify-center h-8 w-8 rounded-full bg-red-600 text-gray-900 font-bold text-lg select-none">
-              {`${cards[id]?.defense}`}
+              {`${testCards[id]?.defense}`}
             </div>
           </div>
 
@@ -149,7 +151,7 @@ export const HandCard = ({
               showCardName ? "opacity-100" : "opacity-0"
             } hover:whitespace-normal hover:overflow-visible`}
           >
-            {`${cards[id]?.name}`}
+            {`${testCards[id]?.name}`}
           </span>
         </>
       )}

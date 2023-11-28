@@ -4,9 +4,10 @@ import {
   horizontalListSortingStrategy,
   SortableContext,
   useSortable,
+  arrayMove
 } from "@dnd-kit/sortable"
-import { HandCard } from "../handCard"
 import { CardPlacement } from "src/store/types"
+import BaseCard from "./cards/baseCard"
 
 interface PlayerBoardProps {
   playerAddress: `0x${string}`|undefined|null, // opponent on top, current player below
@@ -48,13 +49,7 @@ const PlayerBoard: React.FC<PlayerBoardProps> = ({
           <div className={`absolute top-[150%] flex flex-row p-4 space-x-4 rounded-xl mx-4 items-center justify-center min-h-[220px] min-w-[95%] ${playerActive ? "bg-green-700 opacity-50" : null}`}>
             <SortableContext items={playedCards} strategy={horizontalListSortingStrategy}>
               {playedCards?.map((card) => (
-                // @todo rename HandCard to Card
-                <HandCard 
-                  key={card} 
-                  id={card} 
-                  className={`flex flex-col items-start space-y-3 relative`} 
-                  placement={CardPlacement.BOARD} 
-                />
+                <BaseCard key={card} id={card} placement={CardPlacement.BOARD} />
               ))}
             </SortableContext>
             

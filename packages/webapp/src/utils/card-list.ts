@@ -1,6 +1,7 @@
 // quick fix for hackathon
-export const cards = [
+export const testCards = [
   {
+    id: 1,
     name: "Goblin Spawn, The Damned",
     description: "A small, green, mean, and ugly creature.",
     attack: 1,
@@ -8,6 +9,7 @@ export const cards = [
     image: "/card_art/0.jpg",
   },
   {
+    id: 2,
     name: "Eternal Smite, Unborn Legacy",
     description: "A small, green, mean, and ugly creature.",
     attack: 1,
@@ -15,6 +17,7 @@ export const cards = [
     image: "/card_art/1.jpg",
   },
   {
+    id: 3,
     name: "Goblin",
     description: "A small, green, mean, and ugly creature.",
     attack: 1,
@@ -22,6 +25,7 @@ export const cards = [
     image: "/card_art/2.jpg",
   },
   {
+    id: 4,
     name: "Goblin",
     description: "A small, green, mean, and ugly creature.",
     attack: 1,
@@ -29,6 +33,7 @@ export const cards = [
     image: "/card_art/3.jpg",
   },
   {
+    id: 5,
     name: "Goblin",
     description: "A small, green, mean, and ugly creature.",
     attack: 1,
@@ -36,6 +41,7 @@ export const cards = [
     image: "/card_art/4.jpg",
   },
   {
+    id: 6,
     name: "Goblin",
     description: "A small, green, mean, and ugly creature.",
     attack: 1,
@@ -43,6 +49,7 @@ export const cards = [
     image: "/card_art/5.jpg",
   },
   {
+    id: 7,
     name: "Goblin",
     description: "A small, green, mean, and ugly creature.",
     attack: 1,
@@ -50,6 +57,7 @@ export const cards = [
     image: "/card_art/6.jpg",
   },
   {
+    id: 8,
     name: "Goblin",
     description: "A small, green, mean, and ugly creature.",
     attack: 1,
@@ -57,6 +65,7 @@ export const cards = [
     image: "/card_art/7.jpg",
   },
   {
+    id: 9,
     name: "Goblin",
     description: "A small, green, mean, and ugly creature.",
     attack: 1,
@@ -64,6 +73,7 @@ export const cards = [
     image: "/card_art/8.jpg",
   },
   {
+    id: 10,
     name: "Goblin",
     description: "A small, green, mean, and ugly creature.",
     attack: 1,
@@ -71,6 +81,7 @@ export const cards = [
     image: "/card_art/9.jpg",
   },
   {
+    id: 11,
     name: "Goblin",
     description: "A small, green, mean, and ugly creature.",
     attack: 1,
@@ -78,6 +89,7 @@ export const cards = [
     image: "/card_art/0.jpg",
   },
   {
+    id: 12,
     name: "Goblin",
     description: "A small, green, mean, and ugly creature.",
     attack: 1,

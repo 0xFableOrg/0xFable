@@ -181,7 +181,8 @@ export type ErrorConfig = {
 /** Represent placement of cards when in game. */
 export enum CardPlacement {
   HAND,
-  BOARD
+  BOARD,
+  DRAGGED
 }
 
 // =================================================================================================
