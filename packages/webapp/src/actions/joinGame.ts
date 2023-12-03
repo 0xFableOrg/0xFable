@@ -34,9 +34,15 @@ import {
   getPrivateInfo
 } from "src/store/read"
 import { FetchedGameData, GameStatus, PlayerData, PrivateInfo } from "src/store/types"
-import { SHOULD_GENERATE_PROOFS, FAKE_PROOF, ProofOutput, proveInWorker } from "src/utils/zkproofs"
+import {
+  SHOULD_GENERATE_PROOFS,
+  FAKE_PROOF,
+  ProofOutput,
+  proveInWorker
+} from "src/utils/zkproofs"
 import { NUM_CARDS_FOR_PROOF } from "src/game/constants"
 import { packCards } from "src/game/fableProofs"
+import { DRAW_HAND_PROOF_TIMEOUT } from "src/constants"
 
 // =================================================================================================
 
@@ -209,7 +215,7 @@ async function generateDrawInitialHandProof(
     salt: privateInfo.salt,
     deck: packCards(privateInfo.deckIndexes),
     hand: packCards(privateInfo.handIndexes)
-  })
+  }, DRAW_HAND_PROOF_TIMEOUT)
 }
 
 // -------------------------------------------------------------------------------------------------

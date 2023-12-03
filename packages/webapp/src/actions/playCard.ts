@@ -23,6 +23,7 @@ import { GameStep, PrivateInfo } from "src/store/types"
 import { FAKE_PROOF, proveInWorker, SHOULD_GENERATE_PROOFS } from "src/utils/zkproofs"
 import { bigintToHexString } from "src/utils/js-utils"
 import { mimcHash } from "src/utils/hashing"
+import { PLAY_CARD_PROOF_TIMEOUT } from "src/constants"
 
 // =================================================================================================
 
@@ -45,7 +46,7 @@ export async function playCard(args: PlayGameArgs): Promise<boolean> {
     return await playCardImpl(args)
   } catch (err) {
     args.setLoading(null)
-    return defaultErrorHandling("joinGame", err)
+    return defaultErrorHandling("playCard", err)
   }
 }
 
@@ -80,20 +81,6 @@ async function playCardImpl(args: PlayGameArgs): Promise<boolean> {
   const cards = getCards()!
   console.log(`played card ${cards[card]}`)
 
-  console.dir({
-    // public inputs
-    handRoot: oldHandRoot,
-    newHandRoot: newHandRoot,
-    saltHash: privateInfo.saltHash,
-    cardIndex: BigInt(args.cardIndexInHand),
-    lastIndex: BigInt(lastIndex),
-    playedCard: BigInt(card),
-    // private inputs
-    salt: privateInfo.salt,
-    hand: packCards(privateInfo.handIndexes),
-    newHand: packCards(hand)
-  })
-
   args.setLoading("Generating play proof ...")
 
   const { proof } = !SHOULD_GENERATE_PROOFS
@@ -110,7 +97,7 @@ async function playCardImpl(args: PlayGameArgs): Promise<boolean> {
         salt: privateInfo.salt,
         hand: packCards(privateInfo.handIndexes),
         newHand: packCards(hand)
-      })))
+    }, PLAY_CARD_PROOF_TIMEOUT)))
 
   checkFresh(await freshWrap(
     contractWriteThrowing({
