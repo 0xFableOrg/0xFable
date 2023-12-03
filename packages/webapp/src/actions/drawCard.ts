@@ -23,6 +23,7 @@ import { GameStep, PrivateInfo } from "src/store/types"
 import { FAKE_PROOF, proveInWorker, SHOULD_GENERATE_PROOFS } from "src/utils/zkproofs"
 import { bigintToHexString, parseBigInt } from "src/utils/js-utils"
 import { mimcHash } from "src/utils/hashing"
+import { DRAW_CARD_PROOF_TIMEOUT } from "src/constants"
 
 // =================================================================================================
 
@@ -45,7 +46,7 @@ export async function drawCard(args: DrawCardArgs): Promise<boolean> {
     return await drawCardImpl(args)
   } catch (err) {
     args.setLoading(null)
-    return defaultErrorHandling("joinGame", err)
+    return defaultErrorHandling("drawCard", err)
   }
 }
 
@@ -85,16 +86,6 @@ async function drawCardImpl(args: DrawCardArgs): Promise<boolean> {
   const newHandRoot: HexString = `0x${bigintToHexString(mimcHash(handRootInputs), 32)}`
 
   const cards = getCards()!
-  console.dir({
-    cards,
-    selectedCard,
-    deckIndexes: privateInfo.deckIndexes,
-    handIndexes: privateInfo.handIndexes,
-    deckSize,
-    newHand,
-    newDeck,
-    newHandLastIndex,
-  })
   console.log(`drew card ${cards[selectedCard]}`)
 
   args.setLoading("Generating draw proof ...")
@@ -141,7 +132,7 @@ async function drawCardImpl(args: DrawCardArgs): Promise<boolean> {
         hand: packCards(privateInfo.handIndexes),
         newDeck: packCards(newDeck),
         newHand: packCards(newHand)
-    })))
+    }, DRAW_CARD_PROOF_TIMEOUT)))
 
   checkFresh(await freshWrap(
     contractWriteThrowing({

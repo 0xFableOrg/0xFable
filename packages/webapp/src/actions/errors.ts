@@ -78,7 +78,7 @@ export function defaultErrorHandling(actionName: string, err: unknown): false {
 
   if (err instanceof ProofTimeoutError) {
     setError({
-      title: "ZK proof timed out.",
+      title: "ZK proof generation timed out.",
       message: "Please try again.",
       buttons: [DISMISS_BUTTON]
     })
