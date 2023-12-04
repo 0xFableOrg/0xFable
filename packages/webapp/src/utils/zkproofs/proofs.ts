@@ -109,6 +109,17 @@ export class ProofTimeoutError extends TimeoutError {
   }
 }
 
+// -------------------------------------------------------------------------------------------------
+
+/**
+ * Thrown when a proof is cancelled
+ */
+export class ProofCancelled extends Error {
+  constructor(msg: string) {
+    super(msg)
+  }
+}
+
 // =================================================================================================
 // VERIFYING
 

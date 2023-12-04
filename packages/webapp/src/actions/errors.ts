@@ -16,7 +16,7 @@ import { setError } from "src/store/actions"
 
 import { StaleError } from "src/store/read"
 import { TimeoutError } from "src/utils/errors"
-import { ProofError, ProofTimeoutError } from "src/utils/zkproofs/proofs"
+import { ProofCancelled, ProofError, ProofTimeoutError } from "src/utils/zkproofs/proofs"
 
 // =================================================================================================
 // ERRORS
@@ -93,6 +93,11 @@ export function defaultErrorHandling(actionName: string, err: unknown): false {
     })
     // This is most likely gibberish, but you never known.
     console.error(err.cause)
+    return false
+  }
+
+  if (err instanceof ProofCancelled) {
+    // This is actually not an error, do nothing except signal the action failed.
     return false
   }
 
