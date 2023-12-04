@@ -107,7 +107,7 @@ function setupFiltering(
     const msgStr = msg?.toString()
 
     const filteredMsg = filteredMessages.some((filter) => matchFilter(msgStr, filter))
-    const filteredCode = filteredCodes || filteredErrorCodes.includes(msg?.code)
+    const filteredCode = filteredCodes && filteredCodes.includes(msg?.code)
 
     if (filteredMsg || filteredCode) {
       const suppressed = `suppressed${level[0].toUpperCase()}${level.slice(1)}s`
