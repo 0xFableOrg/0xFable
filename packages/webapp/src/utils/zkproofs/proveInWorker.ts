@@ -7,7 +7,12 @@
  * Import this from {@link module:utils/zkproofs} instead.
  */
 
-import { isProofOutput, ProofOutput, ProofTimeoutError } from "src/utils/zkproofs/proofs"
+import {
+  isProofOutput,
+  ProofCancelled,
+  ProofOutput,
+  ProofTimeoutError
+} from "src/utils/zkproofs/proofs"
 
 // =================================================================================================
 
@@ -28,8 +33,11 @@ export function proveInWorker
   const proofWorker = new Worker(new URL("proofWorker.ts", import.meta.url))
 
   let timeoutID: ReturnType<typeof setTimeout>|undefined = undefined
+  let reject: (reason: Error) => void
 
-  const promise = new Promise<ProofOutput>((resolve, reject) => {
+  const promise = new Promise<ProofOutput>((resolve, _reject) => {
+    reject = _reject
+
     proofWorker.onmessage = (event: MessageEvent<ProofOutput|Error>) => {
       if (isProofOutput(event.data))
         resolve(event.data)
@@ -50,6 +58,7 @@ export function proveInWorker
     promise, cancel: () => {
       if (timeoutID !== undefined) clearTimeout(timeoutID)
       proofWorker.terminate()
+      reject(new ProofCancelled("proof cancelled by user"))
     }
   }
 }
