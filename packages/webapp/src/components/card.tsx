@@ -2,6 +2,7 @@ import { useState } from "react"
 import Image from "next/image"
 import { playCard } from "src/actions/playCard"
 import { Address } from "src/chain"
+import { CancellationHandler } from "src/components/lib/loadingModal"
 
 // quick fix for hackathon
 const cards = [
@@ -98,6 +99,7 @@ export const Card = ({
   className,
   handHovered,
   setLoading,
+  cancellationHandler
 }: {
   // TODO id has a double role as ID and card index in hand
   id: number
@@ -106,6 +108,7 @@ export const Card = ({
   className?: string
   handHovered?: boolean
   setLoading: (label: string | null) => void
+  cancellationHandler: CancellationHandler
 }) => {
   // const [ , addToBoard ] = useAtom(store.addToBoard)
   const [isDetailsVisible, setIsDetailsVisible] = useState<boolean>(false)
@@ -123,7 +126,8 @@ export const Card = ({
           gameID,
           playerAddress,
           cardIndexInHand: id,
-          setLoading
+          setLoading,
+          cancellationHandler
         })
       }}
       onMouseEnter={() => setCardHover(true)}

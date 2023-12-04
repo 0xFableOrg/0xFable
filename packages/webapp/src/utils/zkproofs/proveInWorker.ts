@@ -12,16 +12,22 @@ import { isProofOutput, ProofOutput, ProofTimeoutError } from "src/utils/zkproof
 // =================================================================================================
 
 /**
- * Just like `prove`, but runs the proof in a dedicated web worker.
+ * Just like {@link module:utils/zkproofs/proofs#prove}, but runs the proof in a dedicated web
+ * worker.
  *
  * A timeout (in seconds) can be supplied, in which case the worker will be terminated if the proof
  * takes longer than the timeout. If set to 0 (the default), no timeout is used.
+ *
+ * In additiona to the promise, this returns a `cancel` function which can be used to terminate the
+ * worker (and hence cancel the proof).
  */
-export async function proveInWorker
+export function proveInWorker
 (circuitName: string, inputs: Record<string, bigint|bigint[]|string>, timeout: number = 0)
-  : Promise<ProofOutput> {
-
+  : { promise: Promise<ProofOutput>, cancel: () => void }
+{
   const proofWorker = new Worker(new URL("proofWorker.ts", import.meta.url))
+
+  let timeoutID: ReturnType<typeof setTimeout>|undefined = undefined
 
   const promise = new Promise<ProofOutput>((resolve, reject) => {
     proofWorker.onmessage = (event: MessageEvent<ProofOutput|Error>) => {
@@ -32,7 +38,7 @@ export async function proveInWorker
     }
 
     if (timeout > 0)
-      setTimeout(() => {
+      timeoutID = setTimeout(() => {
         proofWorker.terminate()
         reject(new ProofTimeoutError(`proof timed out after ${timeout}s`))
       }, timeout * 1000)
@@ -40,7 +46,12 @@ export async function proveInWorker
 
   proofWorker.postMessage({ circuitName, inputs })
 
-  return promise
+  return {
+    promise, cancel: () => {
+      if (timeoutID !== undefined) clearTimeout(timeoutID)
+      proofWorker.terminate()
+    }
+  }
 }
 
 // =================================================================================================

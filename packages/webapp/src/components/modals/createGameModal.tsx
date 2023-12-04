@@ -12,6 +12,7 @@ import * as store from "src/store/hooks"
 import { joinGame, reportInconsistentGameState } from "src/actions"
 import { GameStatus } from "src/store/types"
 import { navigate } from "src/utils/navigate"
+import { useCancellationHandler } from "src/hooks/useCancellationHandler"
 
 // =================================================================================================
 
@@ -92,6 +93,8 @@ const CreateGameModalContent = ({ ctrl }: { ctrl: ModalController }) => {
     }
   })
 
+  const cancellationHandler = useCancellationHandler(loading)
+
   const join = async () => {
     if (gameID === null || playerAddress === null)
       return reportInconsistentGameState("Not tracking a game or player disconnected.")
@@ -99,7 +102,8 @@ const CreateGameModalContent = ({ ctrl }: { ctrl: ModalController }) => {
     const success = await joinGame({
       gameID,
       playerAddress,
-      setLoading
+      setLoading,
+      cancellationHandler
     })
 
     if (success)
@@ -132,7 +136,12 @@ const CreateGameModalContent = ({ ctrl }: { ctrl: ModalController }) => {
 
   // -----------------------------------------------------------------------------------------------
 
-  if (loading) return <LoadingModalContent loading={loading} setLoading={setLoading} />
+  if (loading)
+    return <LoadingModalContent
+      loading={loading}
+      setLoading={setLoading}
+      cancellationHandler={cancellationHandler}
+    />
 
   if (!created) return <>
     <ModalTitle>Create Game</ModalTitle>
