@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useState } from "react"
 
 import Hand from "src/components/hand"
-import { CancellationHandler, LoadingModal } from "src/components/lib/loadingModal"
+import { LoadingModal } from "src/components/lib/loadingModal"
 import { useModalController } from "src/components/lib/modal"
 import { GameEndedModal } from "src/components/modals/gameEndedModal"
 import { Navbar } from "src/components/navbar"
