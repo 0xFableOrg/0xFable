@@ -9,7 +9,7 @@ import { readContract } from "wagmi/actions"
 
 import { gameABI, inventoryABI } from "src/generated"
 import { deployment } from "src/deployment"
-import { type Fetched, throttledFetch } from "src/utils/throttled-fetch"
+import { type Fetched, throttledFetch } from "src/utils/throttledFetch"
 import { type FetchedGameDataWithCards } from "src/store/types"
 import { Address } from "src/chain"
 
