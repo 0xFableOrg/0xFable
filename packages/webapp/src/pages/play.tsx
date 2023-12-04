@@ -65,6 +65,13 @@ const Play: FablePage = ({ isHydrated }) => {
 
   const ended = gameStatus === GameStatus.ENDED || concedeCompleted
 
+  useEffect(() => {
+    // This avoids overlapping the concede loading modal with the game ended modal. This tends to
+    // happen because we receive the game ended event before the confirmation that the concede
+    // transaction succeeded.
+    if (ended) setLoading(null)
+  }, [ended])
+
   const { write: concede } = useGameWrite({
     functionName: "concedeGame",
     args: [gameID],
