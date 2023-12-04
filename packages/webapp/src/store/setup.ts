@@ -16,6 +16,10 @@ import { gameIDListener, updateNetwork, updatePlayerAddress } from "src/store/up
 
 export function setupStore() {
 
+  if (typeof window === "undefined")
+    // Do not set up subscriptions and timers on the server.
+    return
+
   // Whenever the connected wallet address changes, update the player address.
   watchAccount(updatePlayerAddress)
 
