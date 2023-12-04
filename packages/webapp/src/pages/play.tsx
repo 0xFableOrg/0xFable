@@ -46,7 +46,8 @@ const Play: FablePage = ({ isHydrated }) => {
         functionName: "inGame",
         args: [playerAddress as Address],
       })
-      if (gameID !== null)
+      console.log("fetchedGameID", fetchedGameID)
+      if (fetchedGameID > 0n)
         setGameID(fetchedGameID)
       else
         void navigate(router, "/")
