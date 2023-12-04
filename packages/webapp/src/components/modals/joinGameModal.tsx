@@ -1,6 +1,6 @@
 import debounce from "lodash/debounce"
 import { useRouter } from "next/router"
-import { useEffect, useMemo, useState } from "react"
+import React, { useEffect, useMemo, useState } from "react"
 import { ModalMenuButton, ModalTitle, Spinner } from "src/components/lib/modalElements"
 import { InGameMenuModalContent } from "src/components/modals/inGameMenuModalContent"
 
@@ -13,6 +13,7 @@ import { joinGame, reportInconsistentGameState } from "src/actions"
 import { setError } from "src/store/actions"
 import { GameStatus } from "src/store/types"
 import { navigate } from "src/utils/navigate"
+import { useCancellationHandler } from "src/hooks/useCancellationHandler"
 
 // =================================================================================================
 
@@ -66,6 +67,8 @@ const JoinGameModalContent = ({ ctrl }: { ctrl: ModalController }) => {
   //   game ID. This is fine. Alternatively, we could validate the input game ID and enable the hook
   //   only when the ID is valid.
 
+  const cancellationHandler = useCancellationHandler(loading)
+
   const join = async () => {
     if (inputGameID === null || playerAddress === null)
       return reportInconsistentGameState("Not tracking a game or player disconnected.")
@@ -81,7 +84,8 @@ const JoinGameModalContent = ({ ctrl }: { ctrl: ModalController }) => {
     const success = await joinGame({
       gameID: parsedGameID,
       playerAddress,
-      setLoading
+      setLoading,
+      cancellationHandler
     })
 
     if (success) {
@@ -111,7 +115,12 @@ const JoinGameModalContent = ({ ctrl }: { ctrl: ModalController }) => {
 
   // -----------------------------------------------------------------------------------------------
 
-  if (loading) return <LoadingModalContent loading={loading} setLoading={setLoading} />
+  if (loading)
+    return <LoadingModalContent
+      loading={loading}
+      cancellationHandler={cancellationHandler}
+      setLoading={setLoading}
+    />
 
   if (started) return <InGameMenuModalContent concede={concede} />
 

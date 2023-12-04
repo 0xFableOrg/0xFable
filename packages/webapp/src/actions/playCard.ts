@@ -24,6 +24,7 @@ import { FAKE_PROOF, proveInWorker, SHOULD_GENERATE_PROOFS } from "src/utils/zkp
 import { bigintToHexString } from "src/utils/js-utils"
 import { mimcHash } from "src/utils/hashing"
 import { PLAY_CARD_PROOF_TIMEOUT } from "src/constants"
+import { CancellationHandler } from "src/components/lib/loadingModal"
 
 // =================================================================================================
 
@@ -32,6 +33,7 @@ export type PlayGameArgs = {
   playerAddress: Address
   cardIndexInHand: number
   setLoading: (label: string | null) => void
+  cancellationHandler: CancellationHandler
 }
 
 // =================================================================================================
@@ -83,21 +85,27 @@ async function playCardImpl(args: PlayGameArgs): Promise<boolean> {
 
   args.setLoading("Generating play proof ...")
 
-  const { proof } = !SHOULD_GENERATE_PROOFS
-    ? { proof: FAKE_PROOF }
-    : checkFresh(await freshWrap(proveInWorker("Play", {
-        // public inputs
-        handRoot: oldHandRoot,
-        newHandRoot: newHandRoot,
-        saltHash: privateInfo.saltHash,
-        cardIndex: BigInt(args.cardIndexInHand),
-        lastIndex: BigInt(lastIndex),
-        playedCard: BigInt(card),
-        // private inputs
-        salt: privateInfo.salt,
-        hand: packCards(privateInfo.handIndexes),
-        newHand: packCards(hand)
-    }, PLAY_CARD_PROOF_TIMEOUT)))
+  let proof = FAKE_PROOF
+
+  if (SHOULD_GENERATE_PROOFS) {
+    const { promise, cancel } = proveInWorker("Play", {
+      // public inputs
+      handRoot: oldHandRoot,
+      newHandRoot: newHandRoot,
+      saltHash: privateInfo.saltHash,
+      cardIndex: BigInt(args.cardIndexInHand),
+      lastIndex: BigInt(lastIndex),
+      playedCard: BigInt(card),
+      // private inputs
+      salt: privateInfo.salt,
+      hand: packCards(privateInfo.handIndexes),
+      newHand: packCards(hand)
+    }, PLAY_CARD_PROOF_TIMEOUT)
+
+    args.cancellationHandler.register(cancel)
+    proof = checkFresh(await freshWrap(promise)).proof
+    args.cancellationHandler.deregister(cancel)
+  }
 
   checkFresh(await freshWrap(
     contractWriteThrowing({

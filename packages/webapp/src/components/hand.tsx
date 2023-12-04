@@ -3,15 +3,18 @@ import { AiOutlineLeft, AiOutlineRight } from "react-icons/ai"
 import useScrollBox from "../hooks/useScrollBox"
 import { Card } from "./card"
 import * as store from "src/store/hooks"
+import { CancellationHandler } from "src/components/lib/loadingModal"
 
 const Hand = ({
   cards,
   className,
   setLoading,
+  cancellationHandler
 }: {
   cards?: bigint[] | null
   className?: string
   setLoading: (label: string | null) => void
+  cancellationHandler: CancellationHandler
 }) => {
   const [isFocused, setIsFocused] = useState<boolean>(false)
 
@@ -34,6 +37,7 @@ const Hand = ({
             className="transitional-all duration-200 hover:scale-[100%] hover:border-yellow-500"
             handHovered={isFocused}
             setLoading={setLoading}
+            cancellationHandler={cancellationHandler}
           />
         </div>
       )

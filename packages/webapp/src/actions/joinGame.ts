@@ -43,6 +43,7 @@ import {
 import { NUM_CARDS_FOR_PROOF } from "src/game/constants"
 import { packCards } from "src/game/fableProofs"
 import { DRAW_HAND_PROOF_TIMEOUT } from "src/constants"
+import { CancellationHandler } from "src/components/lib/loadingModal"
 
 // =================================================================================================
 
@@ -50,6 +51,7 @@ export type JoinGameArgs = {
   gameID: bigint
   playerAddress: Address
   setLoading: (label: string | null) => void
+  cancellationHandler: CancellationHandler
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -135,7 +137,9 @@ async function joinGameImpl(args: JoinGameArgs): Promise<boolean> {
   args.setLoading("Generating draw proof — may take a minute ...")
 
   const { proof } = SHOULD_GENERATE_PROOFS
-    ? await generateDrawInitialHandProof(deck, privateInfo, gameData, playerData)
+    ? await generateDrawInitialHandProof(
+        deck, privateInfo, gameData, playerData,
+        args.cancellationHandler)
     : { proof: FAKE_PROOF }
 
   await doDrawInitialHandTransaction(args, privateInfo, proof)
@@ -194,7 +198,8 @@ async function generateDrawInitialHandProof(
     deck: bigint[],
     privateInfo: PrivateInfo,
     gameData: FetchedGameData,
-    playerData: PlayerData)
+    playerData: PlayerData,
+    cancellationHandler: CancellationHandler)
     : Promise<ProofOutput> {
 
   const initialDeckOrdering = new Array(NUM_CARDS_FOR_PROOF)
@@ -203,7 +208,7 @@ async function generateDrawInitialHandProof(
   for (let i = 0; i < deck.length; i++) initialDeckOrdering[i] = playerData.deckStart + i
   for (let i = deck.length; i < initialDeckOrdering.length; i++) initialDeckOrdering[i] = 255
 
-  return proveInWorker("DrawHand", {
+  const { promise, cancel } = proveInWorker("DrawHand", {
     // public inputs
     initialDeck: packCards(initialDeckOrdering),
     lastIndex: BigInt(deck.length - 1),
@@ -216,6 +221,11 @@ async function generateDrawInitialHandProof(
     deck: packCards(privateInfo.deckIndexes),
     hand: packCards(privateInfo.handIndexes)
   }, DRAW_HAND_PROOF_TIMEOUT)
+
+  cancellationHandler.register(cancel)
+  await promise
+  cancellationHandler.deregister(cancel)
+  return promise
 }
 
 // -------------------------------------------------------------------------------------------------

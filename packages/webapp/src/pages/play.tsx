@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 
 import Hand from "src/components/hand"
-import { LoadingModal } from "src/components/lib/loadingModal"
+import { CancellationHandler, LoadingModal } from "src/components/lib/loadingModal"
 import { useModalController } from "src/components/lib/modal"
 import { GameEndedModal } from "src/components/modals/gameEndedModal"
 import { Navbar } from "src/components/navbar"
@@ -20,6 +20,7 @@ import { navigate } from "src/utils/navigate"
 import { drawCard } from "src/actions/drawCard"
 import { endTurn } from "src/actions/endTurn"
 import { currentPlayer, isEndingTurn } from "src/game/misc"
+import { useCancellationHandler } from "src/hooks/useCancellationHandler"
 
 const Play: FablePage = ({ isHydrated }) => {
   const [ gameID, setGameID ] = store.useGameID()
@@ -77,12 +78,15 @@ const Play: FablePage = ({ isHydrated }) => {
   const cantDoThings = gameID === null|| playerAddress === null || gameData === null
     || currentPlayer(gameData) !== playerAddress
 
+  const cancellationHandler = useCancellationHandler(loading)
+
   const doDrawCard = cantDoThings || gameData.currentStep !== GameStep.DRAW
     ? undefined
     : () => drawCard({
         gameID,
         playerAddress,
-        setLoading
+        setLoading,
+        cancellationHandler
       })
 
   const doEndTurn = cantDoThings || !isEndingTurn(gameData.currentStep)
@@ -90,7 +94,7 @@ const Play: FablePage = ({ isHydrated }) => {
     : () => endTurn({
       gameID,
       playerAddress,
-      setLoading
+      setLoading,
     })
 
   useEffect(() => {
@@ -133,6 +137,7 @@ const Play: FablePage = ({ isHydrated }) => {
         <Hand
           cards={playerHand}
           setLoading={setLoading}
+          cancellationHandler={cancellationHandler}
           className="absolute left-0 right-0 mx-auto z-[100] translate-y-1/2 transition-all duration-500 rounded-xl ease-in-out hover:translate-y-0"
         />
         <div className="grid-col-1 relative mx-6 mb-6 grid grow grid-rows-[6]">

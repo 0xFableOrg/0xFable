@@ -24,6 +24,7 @@ import { FAKE_PROOF, proveInWorker, SHOULD_GENERATE_PROOFS } from "src/utils/zkp
 import { bigintToHexString, parseBigInt } from "src/utils/js-utils"
 import { mimcHash } from "src/utils/hashing"
 import { DRAW_CARD_PROOF_TIMEOUT } from "src/constants"
+import { CancellationHandler } from "src/components/lib/loadingModal"
 
 // =================================================================================================
 
@@ -31,6 +32,7 @@ export type DrawCardArgs = {
   gameID: bigint
   playerAddress: Address
   setLoading: (label: string | null) => void
+  cancellationHandler: CancellationHandler
 }
 
 // =================================================================================================
@@ -114,25 +116,31 @@ async function drawCardImpl(args: DrawCardArgs): Promise<boolean> {
     newHand: packCards(newHand)
   })
 
-  const { proof } = !SHOULD_GENERATE_PROOFS
-    ? { proof: FAKE_PROOF }
-    : checkFresh(await freshWrap(proveInWorker("Draw", {
-        // public inputs
-        deckRoot: privateInfo.deckRoot,
-        newDeckRoot: newDeckRoot,
-        handRoot: privateInfo.handRoot,
-        newHandRoot: newHandRoot,
-        saltHash: privateInfo.saltHash,
-        publicRandom: gameData.publicRandomness,
-        initialHandSize,
-        lastIndex: BigInt(deckSize - 1),
-        // private inputs
-        salt: privateInfo.salt,
-        deck: packCards(privateInfo.deckIndexes),
-        hand: packCards(privateInfo.handIndexes),
-        newDeck: packCards(newDeck),
-        newHand: packCards(newHand)
-    }, DRAW_CARD_PROOF_TIMEOUT)))
+  let proof = FAKE_PROOF
+
+  if (SHOULD_GENERATE_PROOFS) {
+    const { promise, cancel } = proveInWorker("Draw", {
+      // public inputs
+      deckRoot: privateInfo.deckRoot,
+      newDeckRoot: newDeckRoot,
+      handRoot: privateInfo.handRoot,
+      newHandRoot: newHandRoot,
+      saltHash: privateInfo.saltHash,
+      publicRandom: gameData.publicRandomness,
+      initialHandSize,
+      lastIndex: BigInt(deckSize - 1),
+      // private inputs
+      salt: privateInfo.salt,
+      deck: packCards(privateInfo.deckIndexes),
+      hand: packCards(privateInfo.handIndexes),
+      newDeck: packCards(newDeck),
+      newHand: packCards(newHand)
+    }, DRAW_CARD_PROOF_TIMEOUT)
+
+    args.cancellationHandler.register(cancel)
+    proof = checkFresh(await freshWrap(promise)).proof
+    args.cancellationHandler.deregister(cancel)
+  }
 
   checkFresh(await freshWrap(
     contractWriteThrowing({
