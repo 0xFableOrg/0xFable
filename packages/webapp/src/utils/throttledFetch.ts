@@ -1,15 +1,12 @@
 /**
  * cf. {@link throttledFetch}
  *
- * @module fetch
+ * @module throttledFetch
  */
 
 // =================================================================================================
 
-/** The default throttle period () in milliseconds. */
-const defaultThrottlePeriod = 2000
-
-// -------------------------------------------------------------------------------------------------
+import { DEFAULT_THROTTLE_PERIOD } from "src/constants"
 
 /** Returned by {@link throttledFetch} when a rejected because of throttling. */
 export const THROTTLED = Symbol("THROTTLED")
@@ -47,7 +44,7 @@ export type Fetched<Result> = Result | typeof THROTTLED | typeof ZOMBIE
  */
 export function throttledFetch
     <Params extends any[], Result>
-    (fetchFn: (...args: Params) => Promise<Result>, throttlePeriod: number = defaultThrottlePeriod)
+    (fetchFn: (...args: Params) => Promise<Result>, throttlePeriod: number = DEFAULT_THROTTLE_PERIOD)
     : (...args: Params) => Promise<Fetched<Result>> {
 
   // Used for throttling
