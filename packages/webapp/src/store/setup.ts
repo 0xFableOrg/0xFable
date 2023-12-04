@@ -10,7 +10,13 @@
 import { getAccount, watchAccount, watchNetwork } from "wagmi/actions"
 
 import * as store from "src/store/atoms"
-import { gameIDListener, updateNetwork, updatePlayerAddress } from "src/store/update"
+import {
+  gameIDListener,
+  refreshGameData,
+  updateNetwork,
+  updatePlayerAddress
+} from "src/store/update"
+import { GAME_DATA_REFRESH_INTERVAL } from "src/constants"
 
 // =================================================================================================
 
@@ -39,6 +45,14 @@ export function setupStore() {
   const gameID = store.get(store.gameID)
   if (gameID !== null)
     gameIDListener(gameID)
+
+  setInterval(() => {
+      const gameID = store.get(store.gameID)
+      const player = store.get(store.playerAddress)
+      if (gameID !== null && player !== null)
+        void refreshGameData()
+    },
+    GAME_DATA_REFRESH_INTERVAL)
 }
 
 // =================================================================================================
