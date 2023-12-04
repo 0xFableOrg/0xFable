@@ -15,3 +15,6 @@ export const DRAW_CARD_PROOF_TIMEOUT = 30
 
 /** Proof generation timeout (in seconds) for the proof of playing a card. */
 export const PLAY_CARD_PROOF_TIMEOUT = 30
+
+/** The default throttle period (minimum time between two on-chain fetches) in milliseconds. */
+export const DEFAULT_THROTTLE_PERIOD  = 2000
