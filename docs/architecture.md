@@ -146,7 +146,7 @@ player) in `InventoryCardsCollection.sol`. This enables the UI (and other contra
 use the usual NFT tools to determine the cards a player owns, which comprises both its regular cards
 and the cards staked in the inventory.
 
-The inventory contract does not allow players to removed cards from the inventory while they are
+The inventory contract does not allow players to remove cards from the inventory while they are
 participating in a game.
 
 Beyond solving this issue, the inventory contract also manages deck listings. Players can use any
@@ -257,7 +257,7 @@ randomness mixes the public randomness with the salt.
 ### Consequences of the Randomness Scheme
 
 The necessity of committing to a salt explains why joining a game requires two transactions
-(`joinGame` and `drawInitialHand`): during the first transactions, players commit to their salt, and
+(`joinGame` and `drawInitialHand`): during the first transaction, players commit to their salt, and
 during the second, they submit a commitment to the hand they draw (more on this soon) & a
 zero-knowledge proof that they used the correct randomness to select this hand.
 
@@ -292,7 +292,7 @@ unavailable and the game is therefore timed out.
 
 Whenever a game is timed out, anybody can call the `timeout` function in order to restore order. If
 the game has started, the player whose turn it is loses. If the game has not started (not every
-player has submitted theri `drawInitialHand` transaction), the game is cancelled.
+player has submitted their `drawInitialHand` transaction), the game is cancelled.
 
 [In the future](https://github.com/0xFableOrg/0xFable/issues/75), we will add more stringent
 timeouts, especially for game actions. Maybe a chess timer.
@@ -407,7 +407,7 @@ update the hand and deck roots.
 Incidentally, this means that if the zero-knowledge circuits are under development, or broken, or we
 don't generate the proofs yet, we can still test the game by just bypassing the proof verification.
 
-Let's dive into each of the three circuits work.
+Let's dive into how each of the three circuits works.
 
 TODO: These explanations are outdated and refer to the old version of the circuits.
 
@@ -469,7 +469,7 @@ you can recompute the root. Obtaining the root passed in means the proof checks 
 It then uses the value in the Merkle proofs to verify that the new roots are correct transformations
 of the old roots.
 
-One thing that this circuit needs to do, but doesn't curently, is derive the random index to draw
+One thing that this circuit needs to do, but doesn't currently, is derive the random index to draw
 from. This should be done in exactly the same way as in the `DrawHand` proof.
 
 ### `Play.circom`
