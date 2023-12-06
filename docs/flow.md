@@ -158,7 +158,7 @@ Additionally, the frontend derives the following boolean properties:
 - `isGameJoiner`
     - `gdata.players` includes the player, but `gdata.gameCreator != playerAddress`
 - `allPlayersJoined`
-    - After all `joinGame` have been received, at which point the game can't be cancelled by the
+    - After all `joinGame` have been received, at which point the game can't be canceled by the
       creator anymore.
     - `gdata.playersLeftToJoin == 0`
 
