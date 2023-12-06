@@ -231,7 +231,7 @@ transactions on the chain that a player may not be able to guess what the blockh
 blockchains that have something like Ethereum's PREVRANDAO, this is an even better solution. It's
 probably a good thing to implement inside a custom rollup implementation.
 
-(Side note: verifiable randomness (VRF) oracles are another solutions, but they're only really
+(Side note: verifiable randomness (VRF) oracles are another solution, but they're only really
 practical insofar that they don't add latency to the game, which is the case because they work via
 request & response, and so require to wait for at least one extra block — they're also not available
 for appchains.)
@@ -292,7 +292,7 @@ unavailable and the game is therefore timed out.
 
 Whenever a game is timed out, anybody can call the `timeout` function in order to restore order. If
 the game has started, the player whose turn it is loses. If the game has not started (not every
-player has submitted their `drawInitialHand` transaction), the game is cancelled.
+player has submitted their `drawInitialHand` transaction), the game is canceled.
 
 [In the future](https://github.com/0xFableOrg/0xFable/issues/75), we will add more stringent
 timeouts, especially for game actions. Maybe a chess timer.
