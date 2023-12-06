@@ -13,7 +13,7 @@ Tooling required:
 Run `make setup` and customize `.env` if necessary.
 
 By default:
-- `PRIVATE_KEY_LOCAL` is set the to the first Anvil devnet account (seeded by ETH)
+- `PRIVATE_KEY_LOCAL` is set to the first Anvil devnet account (seeded by ETH)
 
 ## Makefile Commands
 
