@@ -15,7 +15,7 @@ See also the README files of the various subpackages:
    - Node.js & [PNPM](https://pnpm.io/) (`npm install -g pnpm`)
      - Tested with Node v20.1.0
      - The appropriate pnpm version is listed under the "packageManager key in [`package.json`](./package.json)
-     - If you have any issues while installing dependencies with pnpm you can try to use `corepack` to make sure you use correct version of pnpm.
+     - If you have any issues while installing dependencies with pnpm you can try to use `corepack` to make sure you use the correct version of pnpm.
        - `corepack enable`
        - `corepack pnpm install`
    - [Circom](https://docs.circom.io/getting-started/installation/)
@@ -29,7 +29,7 @@ See also the README files of the various subpackages:
 ## IDEs
 
 If you're using Visual Studio Code, the contract remappings will only be picked up if you set the
-root of the project to the `contracts` package. Otherwise, you'll add to manually add the remappings
+root of the project to the `contracts` package. Otherwise, you'll have to manually add the remappings
 (from `remappings.txt`) to the Solidity plugin configuration.
 
 ## Running
@@ -81,7 +81,7 @@ every time a transaction is made!**
 game with two different accounts. It may work to some extent with two different tabs, but any
 reload will reset the address.
 
-If you would like to skip proof generation and verification, you can replace `makde deploy` and
+If you would like to skip proof generation and verification, you can replace `make deploy` and
 `make dev` with the following commands:
 - `cd packages/contracts && make deploy-noproofs`
 - `cd packages/webapp && make dev-noproofs`
