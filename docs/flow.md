@@ -6,7 +6,7 @@ and how it can be observed contract-side and frontend-side.
 Let's assume two players, A and B, where A is the game creator.
 
 Note that the contracts allow for a third party to be the game creator, but the frontend assumes
-that the game creator will one of the two players.
+that the game creator will be one of the two players.
 
 ## Table of Contents
 
@@ -39,7 +39,7 @@ Below we review how each successful transaction (== "received transaction") affe
 and generates events.
 
 - `createGame` causes the `GameData` (`gdata`) structure to be initialized.
-    - The game creator specifies a number of player. The frontend assumes this to be 2.
+    - The game creator specifies a number of players. The frontend assumes this to be 2.
         - This value is assigned to `gdata.playersLeftToJoin`.
     - The game creator is recorded in `gdata.gameCreator`.
     - `gdata.lastBlockNum` is set to the current block number.
@@ -119,7 +119,7 @@ Let's now see how some of these values are used to perform contract-side checks
     - In combination, `gdata.playersLeftToJoin == 0 && gdata.players.length ==
       gdata.livePlayers.length` is used to check whether the game can start.
     - `gdata.currentStep` is used to check whether the game already started / ended.
-    - `pdata.joinBlockNum` behing non-zero is used to check whether a player has already joined the
+    - `pdata.joinBlockNum` being non-zero is used to check whether a player has already joined the
       game or not.
     - `pdata.handRoot` being non-zero is used to check whether a player has already drawn
       his hand or not.
