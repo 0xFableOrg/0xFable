@@ -6,7 +6,7 @@
 
 // =================================================================================================
 
-
+import { getBlock } from "viem/actions"
 import { getAccount, getNetwork, getPublicClient } from "wagmi/actions"
 
 import { AccountResult, Address, chains, NetworkResult, ZeroHash } from "src/chain"
@@ -16,7 +16,6 @@ import * as net from "src/store/network"
 import { THROTTLED, ZOMBIE } from "src/utils/throttledFetch"
 import { formatTimestamp, parseBigInt } from "src/utils/js-utils"
 import { GameStatus } from "src/store/types"
-import { getBlock } from "viem/actions"
 import { setError } from "src/store/actions"
 import { getGameStatus } from "src/game/status"
 import { contractWriteThrowing } from "src/actions/libContractWrite"
@@ -143,6 +142,8 @@ function isStaleVerbose(ID: bigint, player: Address): boolean {
  * ignored.
  *
  * If necessary, also fetches the cards.
+ *
+ * Can throw wagmi/actions/GetBlockErrorType errors.
  */
 export async function refreshGameData() {
   const gameID = store.get(store.gameID)
@@ -197,7 +198,7 @@ export async function refreshGameData() {
     const pdata = getPlayerData(gameData, player)!
 
     const blockNum = pdata.saltHash != 0n && pdata.handRoot == ZeroHash
-      ? pdata!.joinBlockNum // joined, but hand not drawn
+      ? pdata.joinBlockNum // joined, but hand not drawn
       : gameData.lastBlockNum
 
     if (blockNum < block.number - 256n) {
