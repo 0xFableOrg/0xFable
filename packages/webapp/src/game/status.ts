@@ -15,8 +15,11 @@ import { FetchedGameData, GameStatus, GameStep } from "src/store/types"
  */
 export function getGameStatus(gdata: FetchedGameData|null, player: Address|null): GameStatus {
 
-  if (gdata === null || player === null || gdata.lastBlockNum === 0n)
+  if (gdata === null || player === null)
     return GameStatus.UNKNOWN
+
+  if  (gdata.lastBlockNum === 0n)
+    throw new Error("Empty game data object — shouldn't be from Game contract which checks this.")
 
   if (gdata.currentStep === GameStep.UNINITIALIZED)
     if (!gdata.players.includes(player))

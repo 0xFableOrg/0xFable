@@ -143,7 +143,7 @@ function isStaleVerbose(ID: bigint, player: Address): boolean {
  *
  * If necessary, also fetches the cards.
  *
- * Can throw wagmi/actions/GetBlockErrorType errors.
+ * Can throw wagmi/actions/GetBlockErrorType errors and wagmi/actions/ReadContractErrorType errors.
  */
 export async function refreshGameData() {
   const gameID = store.get(store.gameID)
@@ -176,6 +176,7 @@ export async function refreshGameData() {
     return oldGameData
 
   status = getGameStatus(gameData, player)
+  // It should be impossible for this to be UNKNOWN (needs null gameData or null player).
 
   if (status === GameStatus.ENDED && gameData.playersLeftToJoin > 0) {
     // The game was cancelled before starting.
