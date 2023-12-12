@@ -9,7 +9,7 @@
 
 import { getAccount, getNetwork, getPublicClient } from "wagmi/actions"
 
-import { AccountResult, Address, chains, NetworkResult } from "src/chain"
+import { AccountResult, Address, chains, NetworkResult, ZeroHash } from "src/chain"
 import { subscribeToGame } from "src/store/subscriptions"
 import * as store from "src/store/atoms"
 import * as net from "src/store/network"
@@ -23,6 +23,7 @@ import { contractWriteThrowing } from "src/actions/libContractWrite"
 import { deployment } from "src/deployment"
 import { gameABI } from "src/generated"
 import { PROOF_CURVE_ORDER } from "src/game/constants"
+import { getPlayerData } from "src/store/read"
 
 // =================================================================================================
 // CHANGE LISTENERS
@@ -193,8 +194,13 @@ export async function refreshGameData() {
     //    chain. In this case we need to recompute the public randomness ourselves.
 
     const block = await getBlock(getPublicClient())
+    const pdata = getPlayerData(gameData, player)!
 
-    if (gameData.lastBlockNum < block.number - 256n) {
+    const blockNum = pdata.saltHash != 0n && pdata.handRoot == ZeroHash
+      ? pdata!.joinBlockNum // joined, but hand not drawn
+      : gameData.lastBlockNum
+
+    if (blockNum < block.number - 256n) {
       // Scenario 1 (see above)
 
       // TODO This is a kludge and needs to be handled differently.
