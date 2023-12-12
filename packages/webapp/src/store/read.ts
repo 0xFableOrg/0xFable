@@ -12,6 +12,7 @@ import { type Address } from "src/chain"
 import * as store from "src/store/atoms"
 import type { FetchedGameData, PlayerData, PrivateInfo } from "src/store/types"
 import { GameStatus } from "src/store/types"
+import { gameData, playerAddress } from "src/store/atoms"
 
 // =================================================================================================
 // BASIC STORE ACCESS
@@ -80,16 +81,49 @@ export function currentPlayerAddress(): Address|null {
  * Returns the player data for the given player if available (the player has joined the game we're
  * tracking / whose data we've passed in), or null.
  */
-export function getPlayerData(gdata: FetchedGameData|null = getGameData(), player: Address)
-    : PlayerData | null {
+export function getPlayerData(
+  gdata: FetchedGameData|null = getGameData(),
+  player: Address | null = getPlayerAddress())
+: PlayerData | null {
 
-  if (gdata === null) return null
+  if (gdata === null || player === null) return null
   const index = gdata.players.indexOf(player)
   if (index < 0) return null
   return gdata.playerData[index] ?? null
 }
 
 // -------------------------------------------------------------------------------------------------
+
+/** Returns the address of the opponent (assumes a two-player game). */
+export function getOpponentAddress(
+  gdata: FetchedGameData|null = getGameData(),
+  localPlayer: Address|null = getPlayerAddress())
+: Address | null {
+
+  if (gdata == null || localPlayer == null) return null
+  if (gdata.players.length !== 2)
+    throw new Error("Wrong assumption: game doesn't have exactly 2 players.")
+  const localIndex = gdata.players.indexOf(localPlayer)
+  if (localIndex < 0) return null
+  return gdata.players[(localIndex + 1) % 2]
+}
+
+// -------------------------------------------------------------------------------------------------
+
+/**
+ * Returns the {@link PlayerData} for the opponent (assumes a two-player game). Returns null if the
+ * local player is not set, game data is missing, or the local player is not in the game.
+ */
+export function getOpponentData(
+  gdata: FetchedGameData|null = getGameData(),
+  localPlayer: Address | null = getPlayerAddress())
+: PlayerData | null {
+  const oppponentAddress = getOpponentAddress(gdata, localPlayer)
+  return getPlayerData(gdata, oppponentAddress)
+}
+
+// -------------------------------------------------------------------------------------------------
+
 
 /**
  * Returns the player's deck if available (the player has joined the game we're tracking / whose

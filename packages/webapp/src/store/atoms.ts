@@ -12,6 +12,7 @@ import { Address } from "src/chain"
 import { atomWithStorage } from "jotai/utils"
 import type { ErrorConfig, FetchedGameData, PlayerData, PrivateInfoStore } from "src/store/types"
 import { getGameStatus } from "src/game/status"
+import { getOpponentAddress, getPlayerData } from "src/store/read"
 
 // =================================================================================================
 // STORE
@@ -111,6 +112,40 @@ export const isGameJoiner = atom<boolean>((get) => {
 // -------------------------------------------------------------------------------------------------
 
 /**
+ * Returns the {@link PlayerData} for the local player, or null if the player is not set, game
+ * data is missing, or the player is not in the game.
+ */
+export const playerData = atom<PlayerData|null>((get) => {
+  const address = get(playerAddress)
+  if (address == null) return null
+  const gdata = get(gameData)
+  return getPlayerData(gdata, address)
+})
+
+// -------------------------------------------------------------------------------------------------
+
+/** Returns the address of the opponent (assumes a two-player game). */
+export const opponentAddress = atom<Address|null>((get) => {
+  const gdata = get(gameData)
+  const localPlayer = get(playerAddress)
+  return getOpponentAddress(gdata, localPlayer)
+})
+
+// -------------------------------------------------------------------------------------------------
+
+/**
+ * Returns the {@link PlayerData} for the opponent (assumes a two-player game). Returns null if the
+ * local player is not set, game data is missing, or the local player is not in the game.
+ */
+export const opponentData = atom<PlayerData|null>((get) => {
+  const gdata = get(gameData)
+  const localPlayer = get(playerAddress)
+  return getPlayerData(gdata, localPlayer)
+})
+
+// -------------------------------------------------------------------------------------------------
+
+/**
  * The cards currently in the game.
  */
 export const cards = atom<readonly bigint[]|null>((get) => {
@@ -131,6 +166,9 @@ gameStatus.debugLabel       = "gameStatus"
 allPlayersJoined.debugLabel = "allPlayersJoined"
 isGameCreator.debugLabel    = "isGameCreator"
 isGameJoiner.debugLabel     = "isGameJoiner"
+playerData.debugLabel       = "playerData"
+opponentAddress.debugLabel  = "opponentAddress"
+opponentData.debugLabel     = "opponentData"
 cards.debugLabel            = "cards"
 
 // =================================================================================================
