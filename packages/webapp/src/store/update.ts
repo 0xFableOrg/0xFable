@@ -186,16 +186,30 @@ export async function refreshGameData() {
   }
 
   if (gameData.publicRandomness === 0n && status !== GameStatus.ENDED) {
+    // A public randomness of 0 on an otherwise live game can mean two things:
+    // 1. The block used for randomness is too old (> 256 blocks in the past), meaning the game
+    //    is timed out.
+    // 2. The blockhash is not available because the `fetchGameData` contract call was made in the
+    //    context of the block `gameData.lastBlockNum`, meaning the block hash wasn't available on
+    //    chain. In this case we need to recompute the public randomness ourselves.
+
     const block = await getBlock(getPublicClient())
 
     if (gameData.lastBlockNum < block.number - 256n) {
-      // The block used for randomness is too old (> 256 blocks in the past), meaning the game
-      // is timed out.
+      // Scenario 1 (see above)
+
+      // TODO This is a kludge and needs to be handled differently.
+      //  - We shouldn't use the global setError, instead set values in the store, and let the
+      //    pages display the relevant info.
+      //  - This logic throws exceptions which we do not handle.
+
+      // NOTE: We could handle timeouts slightly more gracefully. For instance, if we're on the
+      // block right before the timeout, then enabling player action is meaningless, since the
+      // timeout will trigger on the next block, failing the action. We should check that boundary
+      // condition. Similarly, we should handle failures of in-flight actions due to timeouts.
 
       const status = getGameStatus(gameData, player)
       const currentPlayer = gameData.players[gameData.currentPlayer]
-
-      // TODO these things throw exception which we do not handle
 
       const sendTimeout = async () => {
         // TODO: this has no loading indicators while the game is cancelling
@@ -240,8 +254,7 @@ export async function refreshGameData() {
         }
       }
     } else {
-      // The `eth_call` RPC call executes in the context of the last block, so it's likely that
-      // `gameData.lastBlockNum` is the very last block and onchain its blockhash is not available.
+      // Scenario 2 (see above)
 
       const lastGameBlock = block.number === gameData.lastBlockNum
         ? block

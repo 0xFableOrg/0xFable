@@ -494,24 +494,24 @@ contract Game {
     // This can also return 0 in case of a timeout. In this scenario, anyone can call the
     // `timeout()` function to boot the timed out player from the game, or cancel the game if not
     // everyone joined and drew the initial hand yet.
+    //
+    // When the player is specified (non-0), they're in the game and their hand hasn't been drawn
+    // yet, we set the publicRandomness based on the block at which their joinGame transaction was
+    // received. This enables all players to draw their hands and generate the zk proof locally,
+    // without incurring race conditions between players.
+    //
+    // This is currently the only time in the game when player can perform concurrent
+    // randomness-dependent actions.
     function getPublicRandomness(uint256 gameID, address player) public view returns (uint256) {
-        // When the player is specified, they're in the game and their hand hasn't been drawn yet,
-        // we set the publicRandomness based on the block at which their joinGame transaction was
-        // received. This enables all players to draw their hands and generate the zk proof locally,
-        // without incurring race conditions between players.
-        //
-        // This is currently the only time in the game when player can perform concurrent
-        // randomness-dependent actions.
-
         GameData storage gdata = gameData[gameID];
         if (player != address(0)) {
-            // player specified
             PlayerData storage pdata = gdata.playerData[player];
             if (pdata.saltHash != 0 && pdata.handRoot == 0) {
+                // joinGame received (saltHash), but drawInitialHand not received yet (handRoot)
                 if (noRandomCounter > 0) {
+                    // This is always 1!
                     return noRandomCounter;
                 }
-                // player in the game & hand not drawn yet
                 return uint256(blockhash(pdata.joinBlockNum)) % PROOF_CURVE_ORDER;
             }
         }
