@@ -101,7 +101,6 @@ export function gameIDListener(ID: bigint|null) {
 
   // avoid using inconsistent data
   store.set(store.gameData, null)
-  store.set(store.cards, null)
   store.set(store.hasVisitedBoard, false)
 
   subscribeToGame(ID) // will unusubscribe if ID is null
@@ -267,9 +266,11 @@ export async function refreshGameData() {
     }
   }
 
-  store.set(store.gameData, gameData)
+
   if (gameData.cards.length > 0)
-    store.set(store.cards, gameData.cards)
+    store.set(store.gameData, gameData)
+  else
+    store.set(store.gameData, { ...gameData, cards: store.get(store.cards) as any })
 
   const timestamp = Date.now()
   console.groupCollapsed(

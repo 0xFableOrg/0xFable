@@ -71,9 +71,8 @@ export type FetchedGameData = {
   currentPlayer: number
   currentStep: GameStep
   attackingPlayer: Address
+  cards: readonly bigint[]
 }
-
-export type FetchedGameDataWithCards = FetchedGameData & { cards: readonly bigint[] }
 
 // -------------------------------------------------------------------------------------------------
 
@@ -114,12 +113,12 @@ export type PrivateInfo = {
   deck: readonly bigint[]
   /**
    * The player's current's hand ordering (indexes into the game's card array ({@link
-   * FetchedGameDataWithCards.cards}). Used for proofs.
+   * FetchedGameData.cards}). Used for proofs.
    */
   handIndexes: number[]
   /**
    * The player's current's deck ordering (indexes into the game's card array ({@link
-   * FetchedGameDataWithCards.cards}). Used for proofs.
+   * FetchedGameData.cards}). Used for proofs.
    */
   deckIndexes: number[]
   /**
