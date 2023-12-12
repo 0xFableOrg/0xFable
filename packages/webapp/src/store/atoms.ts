@@ -10,7 +10,7 @@
 import { atom, getDefaultStore } from "jotai"
 import { Address } from "src/chain"
 import { atomWithStorage } from "jotai/utils"
-import { ErrorConfig, FetchedGameData, PrivateInfoStore } from "src/store/types"
+import type { ErrorConfig, FetchedGameData, PlayerData, PrivateInfoStore } from "src/store/types"
 import { getGameStatus } from "src/game/status"
 
 // =================================================================================================
@@ -42,16 +42,6 @@ export const gameID = atom(null as bigint|null)
 
 /** The current state of the game. */
 export const gameData = atom(null as FetchedGameData|null)
-
-// -------------------------------------------------------------------------------------------------
-
-/**
- * The cards currently in the game.
- *
- * This is updated atomically with {@link gameData}, when necessary, so it both are always null
- * at the same time.
- */
-export const cards = atom(null as readonly bigint[]|null)
 
 // -------------------------------------------------------------------------------------------------
 
@@ -118,13 +108,21 @@ export const isGameJoiner = atom((get) => {
   return !!(address != null && !get(isGameCreator) && get(gameData)?.players?.includes(address))
 })
 
+// -------------------------------------------------------------------------------------------------
+
+/**
+ * The cards currently in the game.
+ */
+export const cards = atom<readonly bigint[]|null>((get) => {
+  return get(gameData)?.cards ?? null
+})
+
 // =================================================================================================
 // DEBUG LABELS
 
 playerAddress.debugLabel    = "playerAddress"
 gameID.debugLabel           = "gameID"
 gameData.debugLabel         = "gameData"
-cards.debugLabel            = "cards"
 hasVisitedBoard.debugLabel  = "hasVisitedBoard"
 gameStatus.debugLabel       = "gameStatus"
 privateInfoStore.debugLabel = "privateInfoStore"
@@ -133,5 +131,6 @@ gameStatus.debugLabel       = "gameStatus"
 allPlayersJoined.debugLabel = "allPlayersJoined"
 isGameCreator.debugLabel    = "isGameCreator"
 isGameJoiner.debugLabel     = "isGameJoiner"
+cards.debugLabel            = "cards"
 
 // =================================================================================================

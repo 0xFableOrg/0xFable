@@ -133,7 +133,6 @@ export function getOrInitPrivateInfo(gameID: bigint, playerAddress: Address): Pr
 export function quitGame() {
   set(store.gameID, null)
   set(store.gameData, null)
-  set(store.cards, null)
   set(store.hasVisitedBoard, false)
 }
 
