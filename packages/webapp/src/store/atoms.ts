@@ -90,12 +90,12 @@ export const gameStatus = atom((get) => getGameStatus(get(gameData), get(playerA
  * True if all players have joined the game (they may not have drawn hands yet), at which point the
  * game creator can no longer cancel the game.
  */
-export const allPlayersJoined = atom((get) => get(gameData)?.playersLeftToJoin === 0)
+export const allPlayersJoined = atom<boolean>((get) => get(gameData)?.playersLeftToJoin === 0)
 
 // -------------------------------------------------------------------------------------------------
 
 /** True if we have created the current game. */
-export const isGameCreator = atom ((get) => {
+export const isGameCreator = atom<boolean>((get) => {
   const address = get(playerAddress)
   return address != null && address === get(gameData)?.gameCreator
 })
@@ -103,7 +103,7 @@ export const isGameCreator = atom ((get) => {
 // -------------------------------------------------------------------------------------------------
 
 /** True if we have have joined BUT are not the creator of the current game. */
-export const isGameJoiner = atom((get) => {
+export const isGameJoiner = atom<boolean>((get) => {
   const address = get(playerAddress)
   return !!(address != null && !get(isGameCreator) && get(gameData)?.players?.includes(address))
 })
