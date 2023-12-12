@@ -162,6 +162,14 @@ Additionally, the frontend derives the following boolean properties:
       creator anymore.
     - `gdata.playersLeftToJoin == 0`
 
+It also defines the function `isGameReadyToStart(gameData, blockNumber)`, which is fed the currently
+known game data and a block number. It returns true if the game is ready to start, i.e. if all
+players have drawn their hands. This is used to control the transition to the `play` page.
+
+The block number is used to modulate the check on the game data for the case here the block number
+is the one at which we included our `drawInitialHand` proof, and the game data hasn't updated
+accordingly yet.
+
 ## TODO
 
 - How are the various frontend pages driven by these values?
