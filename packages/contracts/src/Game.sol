@@ -785,7 +785,6 @@ contract Game {
         // they could chose the most advantageous one to join a game.
 
         pdata.joinBlockNum = block.number;
-        // NOTE: This could be removed, its only effect at this stage is pushing back the timeout.
         gdata.lastBlockNum = block.number;
 
         // Add the player's cards to `gdata.cards`.
@@ -855,12 +854,9 @@ contract Game {
 
         emit PlayerDrewHand(gameID, msg.sender);
 
-        // NOTE: We're not updating gdata.lastBlockNum until the game starts. This means that all
-        // players must join within a 256-block window or they won't be able to get the blockhash to
-        // generate the randomness. In that case, anybody can call `timeout()` to cancel the game.
-
         if (gdata.playersLeftToJoin == 0 && gdata.players.length == gdata.livePlayers.length) {
-            // Start the game!
+            // Start the game! First player chosen randomly.
+            randomness = getPubRandomness(gdata.lastBlockNum);
             gdata.currentPlayer = uint8(randomness % gdata.players.length);
             gdata.currentStep = GameStep.PLAY; // first player doesn't draw
             gdata.lastBlockNum = block.number;
