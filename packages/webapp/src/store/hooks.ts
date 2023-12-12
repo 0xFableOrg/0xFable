@@ -11,7 +11,7 @@ import { useAtom, useAtomValue } from "jotai"
 
 import { Address } from "src/chain"
 import * as store from "src/store/atoms"
-import { ErrorConfig, FetchedGameData, GameStatus, PrivateInfo } from "src/store/types"
+import { ErrorConfig, FetchedGameData, GameStatus, PlayerData, PrivateInfo } from "src/store/types"
 
 // =================================================================================================
 
@@ -98,6 +98,26 @@ export function usePrivateInfo(gameID: bigint|null, playerAddress: Address|null)
   return gameID === null || playerAddress === null
     ? null
     : privateInfoStore?.[gameID.toString()]?.[playerAddress]
+}
+
+// -------------------------------------------------------------------------------------------------
+
+/**
+ * Returns the {@link PlayerData} for the local player, or null if the player is not set, game
+ * data is missing, or the player is not in the game.
+ */
+export function usePlayerData(): PlayerData|null {
+  return useAtomValue(store.playerData)
+}
+
+// -------------------------------------------------------------------------------------------------
+
+/**
+ * Returns the {@link PlayerData} for the opponent (assumes a two-player game). Returns null if the
+ * local player is not set, game data is missing, or the local player is not in the game.
+ */
+export function useOpponentData(): PlayerData|null {
+  return useAtomValue(store.opponentData)
 }
 
 // =================================================================================================
