@@ -46,7 +46,7 @@ const Play: FablePage = ({ isHydrated }) => {
         functionName: "inGame",
         args: [playerAddress as Address],
       })
-      console.log("fetchedGameID", fetchedGameID)
+
       if (fetchedGameID > 0n)
         setGameID(fetchedGameID)
       else
