@@ -99,7 +99,7 @@ export class BurnerConnector extends Connector {
     // via the wallet, as there is no way to detect how we are connected via a specific connector.
     //
     // It's actually possible to fix this by setting up a listener on the address, and disconnecting
-    // whenever we encounter a chaange that was not triggered by this class. But this is a debugging
+    // whenever we encounter a change that was not triggered by this class. But this is a debugging
     // help anyway, let's just assume that you'll disconnect the Anvil account from your wallet.
 
     if (this.#privKey !== privateKeys[keyIndex])
