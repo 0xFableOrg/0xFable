@@ -120,4 +120,10 @@ export function useOpponentData(): PlayerData|null {
   return useAtomValue(store.opponentData)
 }
 
+// -------------------------------------------------------------------------------------------------
+
+export function usePlayerHand(): readonly bigint[]|null {
+  return useAtomValue(store.playerHand)
+}
+
 // =================================================================================================
