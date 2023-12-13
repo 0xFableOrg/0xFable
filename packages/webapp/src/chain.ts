@@ -51,6 +51,10 @@ const metaConfig = {
 export const wagmiConfig = createConfig(
   getDefaultConfig({
     ...metaConfig,
+    // In dev, we probably want to use the ?index=X parameters, and autoconnect causes
+    // race conditions, leading to connecting via the parameter, disconnecting via autoconnect,
+    // then reconnecting via the parameter.
+    autoConnect: process.env.NODE_ENV !== "development",
     connectors: [
       ...getDefaultConnectors(metaConfig),
       ...burnerConnectors],
