@@ -84,7 +84,6 @@ export function subscribeToGame(ID: bigint|null) {
         onLogs: logs => gameEventListener(eventName, logs)
       }))
     })
-    console.log(`subscribed to game events for game ID ${ID}`)
   }
 }
 
