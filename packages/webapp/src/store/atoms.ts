@@ -145,11 +145,20 @@ export const opponentData = atom<PlayerData|null>((get) => {
 
 // -------------------------------------------------------------------------------------------------
 
-/**
- * The cards currently in the game.
- */
+/** The cards currently in the game. */
 export const cards = atom<readonly bigint[]|null>((get) => {
   return get(gameData)?.cards ?? null
+})
+
+// -------------------------------------------------------------------------------------------------
+
+/** Returns the local player's hand, or null if data is missing. */
+export const playerHand = atom<readonly bigint[]|null>((get) => {
+  const privStore = get(privateInfoStore)
+  const id = get(gameID)
+  const address = get(playerAddress)
+  if (id == null || address == null) return null
+  return privStore[id.toString()]?.[address]?.hand ?? null
 })
 
 // =================================================================================================
@@ -170,5 +179,6 @@ playerData.debugLabel       = "playerData"
 opponentAddress.debugLabel  = "opponentAddress"
 opponentData.debugLabel     = "opponentData"
 cards.debugLabel            = "cards"
+playerHand.debugLabel       = "playerHand"
 
 // =================================================================================================

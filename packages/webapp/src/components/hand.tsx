@@ -11,7 +11,7 @@ const Hand = ({
   setLoading,
   cancellationHandler
 }: {
-  cards?: bigint[] | null
+  cards: readonly bigint[] | null
   className?: string
   setLoading: (label: string | null) => void
   cancellationHandler: CancellationHandler

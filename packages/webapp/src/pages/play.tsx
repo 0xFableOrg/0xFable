@@ -21,6 +21,7 @@ import { drawCard } from "src/actions/drawCard"
 import { endTurn } from "src/actions/endTurn"
 import { currentPlayer, isEndingTurn } from "src/game/misc"
 import { useCancellationHandler } from "src/hooks/useCancellationHandler"
+import { usePlayerHand } from "src/store/hooks"
 
 const Play: FablePage = ({ isHydrated }) => {
   const [ gameID, setGameID ] = store.useGameID()
@@ -39,6 +40,7 @@ const Play: FablePage = ({ isHydrated }) => {
   useEffect(() => {
     // If the game ID is null, fetch it from the contract. If still null, we're not in a game,
     // navigate back to homepage.
+
     const fetchGameID = async () => {
       const fetchedGameID = await readContract({
         address: deployment.Game,
@@ -56,13 +58,12 @@ const Play: FablePage = ({ isHydrated }) => {
     // Back to home screen if player disconnects.
     if (playerAddress === null)
       void navigate(router, "/")
-
-    if (gameID === null && playerAddress !== null)
+    else if (gameID === null)
       void fetchGameID()
 
   }, [gameID, setGameID, playerAddress, router])
 
-  const playerHand: bigint[] | null = privateInfo?.deck as bigint[] ?? null
+  const playerHand = usePlayerHand()
 
   const ended = gameStatus === GameStatus.ENDED || concedeCompleted
 
