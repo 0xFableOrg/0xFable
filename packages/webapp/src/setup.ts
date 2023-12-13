@@ -58,7 +58,9 @@ const filteredWarningMessages = [
   // React in dev mode, in Playwright
   "Please install/enable Redux devtools extension",
   // WalletConnect
-  "SingleFile is hooking the IntersectionObserver API to detect and load deferred images"
+  "SingleFile is hooking the IntersectionObserver API to detect and load deferred images",
+  // NextJS — I can tell and things should be designed to work
+  "[Fast Refresh] performing full reload"
 ]
 
 const filteredInfoMessages = [
@@ -67,11 +69,15 @@ const filteredInfoMessages = [
 ]
 
 const filteredLogMessages = [
+  // NextJS — used by FastRefresh
   "[HMR] connected"
 ]
 
 // Logs I can't suppress:
 //
+// - "[HMR] connected"
+//     - from NextJS (Hot Module Replacement), loaded before my code
+
 // - "Ignoring unsupported entryTypes: largest-contentful-paint."
 //     - only on Firefox
 //     - Origin unknown, seems to be from Firefox via a performance observer, but pinpointed in the
@@ -82,7 +88,10 @@ const filteredLogMessages = [
 //    the third-party context and dynamic state partitioning is enabled.'
 //      - only on Firefox, URL varies
 //
-// You can hide those with the filter: -/Partitioned|entryTypes/
+// - Source map error: Error: NetworkError when attempting to fetch resource.
+//    - only on Firefox
+//
+// You can hide those with the filter: -/HMR.*connected|Partitioned|entryTypes|Source map error/
 
 // -------------------------------------------------------------------------------------------------
 
