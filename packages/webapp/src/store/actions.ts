@@ -111,8 +111,6 @@ export function getOrInitPrivateInfo(gameID: bigint, playerAddress: Address): Pr
     salt,
     saltHash: mimcHash([salt]),
     // dummy values
-    hand: [],
-    deck: [],
     handIndexes: [],
     deckIndexes: [],
     handRoot: `0x0`,

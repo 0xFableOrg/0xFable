@@ -152,13 +152,29 @@ export const cards = atom<readonly bigint[]|null>((get) => {
 
 // -------------------------------------------------------------------------------------------------
 
+let playerHandCache: readonly bigint[]|null = null
+
 /** Returns the local player's hand, or null if data is missing. */
 export const playerHand = atom<readonly bigint[]|null>((get) => {
+  const gdata = get(gameData)
   const privStore = get(privateInfoStore)
   const id = get(gameID)
   const address = get(playerAddress)
-  if (id == null || address == null) return null
-  return privStore[id.toString()]?.[address]?.hand ?? null
+  if (gdata === null || id === null || address === null) return null
+  const handIndexes = privStore[id.toString()]?.[address]?.handIndexes
+  if (handIndexes === undefined) return null
+  const handSize = handIndexes.indexOf(255)
+
+  const hand = handIndexes
+    .slice(0, handSize < 0 ? handIndexes.length : handSize)
+    .map((index) => gdata.cards[index])
+
+  // We cache the hand, so that not any old change in the game data / private store causes a new
+  // object to be allowed and the component to re-render.
+  if (playerHandCache === null || !hand.every((card, i) => card === playerHandCache![i]))
+    return playerHandCache = hand
+  else
+    return playerHandCache
 })
 
 // =================================================================================================

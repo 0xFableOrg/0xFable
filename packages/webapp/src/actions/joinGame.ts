@@ -133,7 +133,7 @@ async function joinGameImpl(args: JoinGameArgs): Promise<boolean> {
 
   setPrivateInfo(args.gameID, args.playerAddress, privateInfo)
 
-  console.log(`drew initial hand: ${handDeckInfo.hand}`)
+  console.log(`drew initial hand indexes: ${handDeckInfo.handIndexes}`)
   args.setLoading("Generating draw proof — may take a minute ...")
 
   const { proof } = SHOULD_GENERATE_PROOFS

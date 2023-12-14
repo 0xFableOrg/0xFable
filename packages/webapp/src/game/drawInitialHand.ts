@@ -26,25 +26,21 @@ export function drawInitialHand
   const randomness = mimcHash([salt, publicRandomness])
 
   // draw cards and update deck
-  const deck = [...initialDeck]
-  const hand = []
+
   const deckIndexes = new Array(MAX_DECK_SIZE)
   const handIndexes = new Array(MAX_HAND_SIZE)
 
-  for (let i = 0; i < deck.length; i++)
+  for (let i = 0; i < initialDeck.length; i++)
     deckIndexes[i] = deckStartIndex + i
-  for (let i = deck.length; i < deckIndexes.length; i++)
+  for (let i = initialDeck.length; i < deckIndexes.length; i++)
     deckIndexes[i] = 255
   handIndexes.fill(255)
 
   for (let i = 0; i < INITIAL_HAND_SIZE; i++) {
-    const cardIndex = Number(randomness % BigInt(deck.length))
-    hand.push(deck[cardIndex])
+    const cardIndex = Number(randomness % BigInt(initialDeck.length))
     handIndexes[i] = deckIndexes[cardIndex]
-    deck[cardIndex] = deck[deck.length - 1]
-    deck.pop()
-    deckIndexes[cardIndex] = deckIndexes[deck.length]
-    deckIndexes[deck.length] = 255
+    deckIndexes[cardIndex] = deckIndexes[initialDeck.length]
+    deckIndexes[initialDeck.length] = 255
   }
 
   const deckRootInputs = []
@@ -64,7 +60,7 @@ export function drawInitialHand
   const deckRoot: Hash = `0x${bigintToHexString(mimcHash(deckRootInputs), 32)}`
   const handRoot: Hash = `0x${bigintToHexString(mimcHash(handRootInputs), 32)}`
 
-  return { hand, deck, handIndexes, deckIndexes, deckRoot, handRoot }
+  return { handIndexes, deckIndexes, deckRoot, handRoot }
 }
 
 // =================================================================================================
