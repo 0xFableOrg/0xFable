@@ -12,7 +12,6 @@ import { type Address } from "src/chain"
 import * as store from "src/store/atoms"
 import type { FetchedGameData, PlayerData, PrivateInfo } from "src/store/types"
 import { GameStatus } from "src/store/types"
-import { gameData, playerAddress } from "src/store/atoms"
 
 // =================================================================================================
 // BASIC STORE ACCESS

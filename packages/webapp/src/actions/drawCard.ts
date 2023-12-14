@@ -92,29 +92,10 @@ async function drawCardImpl(args: DrawCardArgs): Promise<boolean> {
 
   args.setLoading("Generating draw proof ...")
 
-  // TODO reuse this logic
   const tmpHandSize = privateInfo.handIndexes.indexOf(255)
   const initialHandSize = tmpHandSize < 0
     ? BigInt(privateInfo.handIndexes.length)
     : BigInt(tmpHandSize)
-
-  console.dir({
-    // public inputs
-    deckRoot: parseBigInt(privateInfo.deckRoot),
-    newDeckRoot: parseBigInt(newDeckRoot),
-    handRoot: parseBigInt(privateInfo.handRoot),
-    newHandRoot: parseBigInt(newHandRoot),
-    saltHash: privateInfo.saltHash,
-    publicRandom: gameData.publicRandomness,
-    initialHandSize,
-    lastIndex: BigInt(deckSize - 1),
-    // private inputs
-    salt: privateInfo.salt,
-    deck: packCards(privateInfo.deckIndexes),
-    hand: packCards(privateInfo.handIndexes),
-    newDeck: packCards(newDeck),
-    newHand: packCards(newHand)
-  })
 
   let proof = FAKE_PROOF
 

@@ -123,7 +123,6 @@ async function playCardImpl(args: PlayGameArgs): Promise<boolean> {
     })))
 
   // TODO: This should be put in an optimistic store before sending the transaction.
-  ///      CAREFUL to check the values from here passed to the various functions.
   setPrivateInfo(gameID, playerAddress, {
     ...privateInfo,
     handIndexes: hand,

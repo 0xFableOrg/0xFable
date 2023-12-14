@@ -122,6 +122,7 @@ export function useOpponentData(): PlayerData|null {
 
 // -------------------------------------------------------------------------------------------------
 
+/** Returns the local player's hand, or null if data is missing. */
 export function usePlayerHand(): readonly bigint[]|null {
   return useAtomValue(store.playerHand)
 }

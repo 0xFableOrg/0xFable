@@ -107,10 +107,6 @@ export type PrivateInfo = {
   salt: bigint
   /** MimcHash of {@link salt}. */
   saltHash: bigint
-  /** The player's current hand. */
-  hand: readonly bigint[]
-  /** The player's current deck. */
-  deck: readonly bigint[]
   /**
    * The player's current's hand ordering (indexes into the game's card array ({@link
    * FetchedGameData.cards}). Used for proofs.
