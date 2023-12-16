@@ -17,12 +17,11 @@ import { THROTTLED, ZOMBIE } from "src/utils/throttledFetch"
 import { formatTimestamp, parseBigInt } from "src/utils/js-utils"
 import { GameStatus } from "src/store/types"
 import { setError } from "src/store/actions"
-import { getGameStatus } from "src/game/status"
 import { contractWriteThrowing } from "src/actions/libContractWrite"
 import { deployment } from "src/deployment"
 import { gameABI } from "src/generated"
 import { PROOF_CURVE_ORDER } from "src/game/constants"
-import { getPlayerData } from "src/store/read"
+import { getGameStatus, getPlayerData } from "src/store/read"
 
 // =================================================================================================
 // CHANGE LISTENERS

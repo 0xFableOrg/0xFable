@@ -61,30 +61,19 @@ export function useErrorConfig(): ErrorConfig|null {
 
 // -------------------------------------------------------------------------------------------------
 
-/** Current game status (CREATED, JOINED, STARTED, etc) */
+/**
+ * The current {@link GameStatus game status} based on the game data.
+ * Will be {@link GameStatus.UNKNOWN} (= 0) if the some data is missing.
+ */
 export function useGameStatus(): GameStatus {
   return useAtomValue(store.gameStatus)
 }
 
 // -------------------------------------------------------------------------------------------------
 
-/** True if we have created the current game. */
-export function useIsGameCreator(): boolean {
-  return useAtomValue(store.isGameCreator)
-}
-
-// -------------------------------------------------------------------------------------------------
-
-/** True if we have have joined BUT are not the creator of the current game. */
-export function useIsGameJoiner(): boolean {
-  return useAtomValue(store.isGameJoiner)
-}
-
-// -------------------------------------------------------------------------------------------------
-
 /**
  * True if all players have joined the game (they may not have drawn hands yet), at which point the
- * game creator can no longer cancel the game.
+ * game creator can no longer cancel the game. False if data is missing.
  */
 export function useAllPlayersJoined(): boolean {
   return useAtomValue(store.allPlayersJoined)
@@ -92,22 +81,51 @@ export function useAllPlayersJoined(): boolean {
 
 // -------------------------------------------------------------------------------------------------
 
-/** Returns the private information pertaining to the current game. */
-export function usePrivateInfo(gameID: bigint|null, playerAddress: Address|null): PrivateInfo|null {
-  const privateInfoStore = useAtomValue(store.privateInfoStore)
-  return gameID === null || playerAddress === null
-    ? null
-    : privateInfoStore?.[gameID.toString()]?.[playerAddress]
+/**
+ * True if the local player is the game creator. False if data is missing.
+ */
+export function useIsGameCreator(): boolean {
+  return useAtomValue(store.isGameCreator)
+}
+
+// -------------------------------------------------------------------------------------------------
+
+/**
+ * True if the local player has joined BUT is not the creator of the current game.
+ * False if data is missing.
+ */
+export function useIsGameJoiner(): boolean {
+  return useAtomValue(store.isGameJoiner)
+}
+
+// -------------------------------------------------------------------------------------------------
+
+/**
+ * The address of the current player (whose turn it is in the game). Will be null if data is
+ * missing. This value is only meaningful if the game status is >= {@link GameStatus.STARTED}.
+ */
+export function useCurrentPlayerAddress(): Address|null {
+  return useAtomValue(store.currentPlayerAddress)
 }
 
 // -------------------------------------------------------------------------------------------------
 
 /**
  * Returns the {@link PlayerData} for the local player, or null if the player is not set, game
- * data is missing, or the player is not in the game.
+ * data is missing, or the player is not in the game. Returns null if data is missing.
  */
 export function usePlayerData(): PlayerData|null {
   return useAtomValue(store.playerData)
+}
+
+// -------------------------------------------------------------------------------------------------
+
+/**
+ * The address of the opponent of the local player (assumes a two-player game).
+ * Returns null if data is missing.
+ */
+export function useOpponentAddress(): Address|null {
+  return useAtomValue(store.opponentAddress)
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -122,9 +140,21 @@ export function useOpponentData(): PlayerData|null {
 
 // -------------------------------------------------------------------------------------------------
 
-/** Returns the local player's hand, or null if data is missing. */
+/**
+ * Returns the local player's hand, or null if data is missing.
+ */
 export function usePlayerHand(): readonly bigint[]|null {
   return useAtomValue(store.playerHand)
+}
+
+// -------------------------------------------------------------------------------------------------
+
+/**
+ * Returns the private information pertaining to the current game and local player.
+ * Returns null if data is missing.
+ */
+export function usePrivateInfo(): PrivateInfo|null {
+  return useAtomValue(store.privateInfo)
 }
 
 // =================================================================================================

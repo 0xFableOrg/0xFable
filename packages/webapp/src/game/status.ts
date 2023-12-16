@@ -5,37 +5,9 @@
  * @module game/status
  */
 
-import { Address } from "src/chain"
-import { FetchedGameData, GameStatus, GameStep } from "src/store/types"
+import { FetchedGameData } from "src/store/types"
 
 // =================================================================================================
-
-/**
- * Returns the game status ({@link GameStatus)} based on the game data.
- */
-export function getGameStatus(gdata: FetchedGameData|null, player: Address|null): GameStatus {
-
-  if (gdata === null || player === null)
-    return GameStatus.UNKNOWN
-
-  if  (gdata.lastBlockNum === 0n)
-    throw new Error("Empty game data object — shouldn't be from Game contract which checks this.")
-
-  if (gdata.currentStep === GameStep.UNINITIALIZED)
-    if (!gdata.players.includes(player))
-      return GameStatus.CREATED
-    else if (gdata.livePlayers.includes(gdata.players.indexOf(player)))
-      return GameStatus.HAND_DRAWN
-    else
-      return GameStatus.JOINED
-
-  if (gdata.currentStep === GameStep.ENDED)
-    return GameStatus.ENDED
-  else
-    return GameStatus.STARTED
-}
-
-// -------------------------------------------------------------------------------------------------
 
 /**
  * Whether all player have joined and drawn their initial hands, given available block info and a
