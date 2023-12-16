@@ -13,18 +13,20 @@ import { packCards } from "src/game/fableProofs"
 import { gameABI } from "src/generated"
 import { getOrInitPrivateInfo, setPrivateInfo } from "src/store/actions"
 import {
-  checkFresh,
-  freshWrap, getCards, getCurrentPlayerAddress, getDeckSize,
+  getCards,
+  getCurrentPlayerAddress,
+  getDeckSize,
   getGameData,
   getGameID,
   getPlayerAddress
 } from "src/store/read"
 import { GameStep, PrivateInfo } from "src/store/types"
 import { FAKE_PROOF, proveInWorker, SHOULD_GENERATE_PROOFS } from "src/utils/zkproofs"
-import { bigintToHexString, parseBigInt } from "src/utils/js-utils"
+import { bigintToHexString } from "src/utils/js-utils"
 import { mimcHash } from "src/utils/hashing"
 import { DRAW_CARD_PROOF_TIMEOUT } from "src/constants"
 import { CancellationHandler } from "src/components/lib/loadingModal"
+import { checkFresh, freshWrap } from "src/store/checkFresh"
 
 // =================================================================================================
 
