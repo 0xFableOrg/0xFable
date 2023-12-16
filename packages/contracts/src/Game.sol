@@ -697,7 +697,9 @@ contract Game {
         PlayerData storage pdata,
         uint256 randomness,
         uint256 saltHash,
-        uint256[24] memory proof
+        uint[2] calldata proofA,
+        uint[2][2] calldata proofB,
+        uint[2] calldata proofC
     ) internal view {
         // - The proof requires a deck packed onto two field elements.
         // - We obtain it by write the index of each card in the `gdata.cards` array to a byte
@@ -741,7 +743,12 @@ contract Game {
         pubSignals[6] = randomness;
 
         if (checkProofs) {
-            if (!drawHandVerifier.verifyProof(proof, pubSignals)) {
+            if (!drawHandVerifier.verifyProof(
+                proofA,
+                proofB,
+                proofC,
+                pubSignals
+            )) {
                 revert InvalidProof();
             }
         }
@@ -816,7 +823,14 @@ contract Game {
     //
     // This can be called after joining the game, and must be called by all players before the game
     // can start.
-    function drawInitialHand(uint256 gameID, bytes32 handRoot, bytes32 deckRoot, uint256[24] memory proof)
+    function drawInitialHand(
+        uint256 gameID,
+        bytes32 handRoot,
+        bytes32 deckRoot,
+        uint[2] calldata proofA,
+        uint[2][2] calldata proofB,
+        uint[2] calldata proofC
+    )
         external
         exists(gameID)
     {
@@ -835,7 +849,7 @@ contract Game {
         pdata.handSize = INITIAL_HAND_SIZE;
 
         uint256 randomness = getPubRandomnessForInitialHand(pdata.joinBlockNum);
-        checkInitialHandProof(pdata, randomness, pdata.saltHash, proof);
+        checkInitialHandProof(pdata, randomness, pdata.saltHash, proofA, proofB, proofC);
 
         uint256 deckStart = pdata.deckStart;
         uint256 deckEnd = pdata.deckEnd;
@@ -977,7 +991,9 @@ contract Game {
         bytes32 deckRoot,
         uint256 saltHash,
         uint256 randomness,
-        uint256[24] memory proof
+        uint[2] calldata proofA,
+        uint[2][2] calldata proofB,
+        uint[2] calldata proofC
     ) internal view {
         uint256[8] memory pubSignals;
         pubSignals[0] = uint256(pdata.deckRoot);
@@ -990,7 +1006,12 @@ contract Game {
         pubSignals[7] = pdata.deckSize - 1;
 
         if (checkProofs) {
-            if (!drawVerifier.verifyProof(proof, pubSignals)) {
+            if (!drawVerifier.verifyProof(
+                proofA,
+                proofB,
+                proofC,
+                pubSignals
+            )) {
                 revert InvalidProof();
             }
         }
@@ -999,14 +1020,21 @@ contract Game {
     // ---------------------------------------------------------------------------------------------
 
     // Submit updated hand and deck roots after having drawn a card from the deck.
-    function drawCard(uint256 gameID, bytes32 handRoot, bytes32 deckRoot, uint256[24] memory proof)
+    function drawCard(
+        uint256 gameID,
+        bytes32 handRoot,
+        bytes32 deckRoot,
+        uint[2] calldata proofA,
+        uint[2][2] calldata proofB,
+        uint[2] calldata proofC
+    )
         external
         step(gameID, GameStep.DRAW)
     {
         GameData storage gdata = gameData[gameID];
         PlayerData storage pdata = gdata.playerData[msg.sender];
         uint256 randomness = getPubRandomness(gdata.lastBlockNum);
-        checkDrawProof(pdata, handRoot, deckRoot, pdata.saltHash, randomness, proof);
+        checkDrawProof(pdata, handRoot, deckRoot, pdata.saltHash, randomness, proofA, proofB, proofC);
         pdata.handRoot = handRoot;
         pdata.deckRoot = deckRoot;
         pdata.handSize++;
@@ -1033,7 +1061,9 @@ contract Game {
         uint256 saltHash,
         uint256 cardIndexInHand,
         uint256 cardIndex,
-        uint256[24] memory proof
+        uint[2] calldata proofA,
+        uint[2][2] calldata proofB,
+        uint[2] calldata proofC
     ) internal view {
         uint256[6] memory pubSignals;
         pubSignals[0] = uint256(pdata.handRoot);
@@ -1044,7 +1074,12 @@ contract Game {
         pubSignals[5] = cardIndex;
 
         if (checkProofs) {
-            if (!playVerifier.verifyProof(proof, pubSignals)) {
+            if (!playVerifier.verifyProof(
+                proofA,
+                proofB,
+                proofC,
+                pubSignals
+            )) {
                 revert InvalidProof();
             }
         }
@@ -1058,14 +1093,16 @@ contract Game {
         bytes32 handRoot,
         uint8 cardIndexInHand,
         uint8 cardIndex,
-        uint256[24] memory proof
+        uint[2] calldata proofA,
+        uint[2][2] calldata proofB,
+        uint[2] calldata proofC
     ) external step(gameID, GameStep.PLAY) {
         GameData storage gdata = gameData[gameID];
         PlayerData storage pdata = gdata.playerData[msg.sender];
         if (cardIndex > gdata.cards.length) {
             revert CardIndexTooHigh();
         }
-        checkPlayProof(pdata, handRoot, pdata.saltHash, cardIndexInHand, cardIndex, proof);
+        checkPlayProof(pdata, handRoot, pdata.saltHash, cardIndexInHand, cardIndex, proofA, proofB, proofC);
         pdata.handRoot = handRoot;
         pdata.handSize--;
         pdata.battlefield |= 1 << cardIndex;

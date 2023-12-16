@@ -58,7 +58,9 @@ contract Integration is Test {
     }
 
     function testGame() public {
-        uint256[24] memory proof;
+        uint[2] memory proofA;
+        uint[2][2] memory proofB;
+        uint[2] memory proofC;
 
         // don't check zk proofs
         vm.prank(address(0));
@@ -73,12 +75,12 @@ contract Integration is Test {
 
         vm.startPrank(player1);
         game.joinGame(gameID, DECK_ID, SALT_HASH, JOIN_DATA);
-        game.drawInitialHand(gameID, HAND_ROOT, DECK_ROOT, proof);
+        game.drawInitialHand(gameID, HAND_ROOT, DECK_ROOT, proofA, proofB, proofC);
         vm.stopPrank();
 
         vm.startPrank(player2);
         game.joinGame(gameID, DECK_ID, SALT_HASH, JOIN_DATA);
-        game.drawInitialHand(gameID, HAND_ROOT, DECK_ROOT, proof);
+        game.drawInitialHand(gameID, HAND_ROOT, DECK_ROOT, proofA, proofB, proofC);
         vm.stopPrank();
 
         Game.PlayerData memory pdata;
@@ -99,7 +101,7 @@ contract Integration is Test {
         // and we don't check the proofs which would detect this index error.
 
         // play Horrible Gremlin (0)
-        game.playCard(gameID, HAND_ROOT, 0, 0, proof);
+        game.playCard(gameID, HAND_ROOT, 0, 0, proofA, proofB, proofC);
         pdata = game.playerData(gameID, player1);
         assertEq(pdata.battlefield, 1);
 
@@ -120,8 +122,8 @@ contract Integration is Test {
         assertEq(pdata.health, 19);
 
         // draw card then play Fire Fighter (8)
-        game.drawCard(gameID, HAND_ROOT, DECK_ROOT, proof);
-        game.playCard(gameID, HAND_ROOT, 0, 8, proof);
+        game.drawCard(gameID, HAND_ROOT, DECK_ROOT, proofA, proofB, proofC);
+        game.playCard(gameID, HAND_ROOT, 0, 8, proofA, proofB, proofC);
         pdata = game.playerData(gameID, player2);
         assertEq(pdata.battlefield, 1 << 8);
 
@@ -133,8 +135,8 @@ contract Integration is Test {
         changePrank(player1);
 
         // draw card then play Wise Elf (4)
-        game.drawCard(gameID, HAND_ROOT, DECK_ROOT, proof);
-        game.playCard(gameID, HAND_ROOT, 0, 4, proof);
+        game.drawCard(gameID, HAND_ROOT, DECK_ROOT, proofA, proofB, proofC);
+        game.playCard(gameID, HAND_ROOT, 0, 4, proofA, proofB, proofC);
         pdata = game.playerData(gameID, player1);
         assertEq(pdata.battlefield, (1 << 4) + 1);
 
@@ -157,8 +159,8 @@ contract Integration is Test {
         assertEq(pdata.graveyard, 0);
 
         // draw card then play Mana Fiend (16)
-        game.drawCard(gameID, HAND_ROOT, DECK_ROOT, proof);
-        game.playCard(gameID, HAND_ROOT, 0, 16, proof);
+        game.drawCard(gameID, HAND_ROOT, DECK_ROOT, proofA, proofB, proofC);
+        game.playCard(gameID, HAND_ROOT, 0, 16, proofA, proofB, proofC);
 
         // attack with Fire Fighter (8)
         size1array[0] = 8;
@@ -178,8 +180,8 @@ contract Integration is Test {
         assertEq(pdata.graveyard, 1);
 
         // draw card then play Goblin Queen (20)
-        game.drawCard(gameID, HAND_ROOT, DECK_ROOT, proof);
-        game.playCard(gameID, HAND_ROOT, 0, 20, proof);
+        game.drawCard(gameID, HAND_ROOT, DECK_ROOT, proofA, proofB, proofC);
+        game.playCard(gameID, HAND_ROOT, 0, 20, proofA, proofB, proofC);
 
         // attack with both Wise Elf (4) and Goblin Queen (20)
         size2array[0] = 4;
