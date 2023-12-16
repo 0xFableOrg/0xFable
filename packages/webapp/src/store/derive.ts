@@ -176,3 +176,17 @@ export function getDeck(
 }
 
 // -------------------------------------------------------------------------------------------------
+
+/**
+ * @see module:store/read#isGameReadyToStart
+ */
+export function isGameReadyToStart(gameData: FetchedGameData, blockNumber: bigint): boolean {
+  return gameData.playersLeftToJoin === 0 &&
+    (gameData.lastBlockNum >= blockNumber
+      // Depending on whether the game data has already been updated with the results of the
+      // drawInitialHand call.
+      ? gameData.livePlayers.length === gameData.players.length
+      : gameData.livePlayers.length === gameData.players.length - 1)
+}
+
+// -------------------------------------------------------------------------------------------------

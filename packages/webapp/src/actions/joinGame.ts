@@ -16,7 +16,6 @@ import { contractWriteThrowing } from "src/actions/libContractWrite"
 import { Address } from "src/chain"
 import { deployment } from "src/deployment"
 import { drawInitialHand } from "src/game/drawInitialHand"
-import { isGameReadyToStart } from "src/game/status"
 import { gameABI } from "src/generated"
 import {
   getOrInitPrivateInfo,
@@ -31,7 +30,8 @@ import {
   getGameID,
   getGameStatus,
   getPlayerData,
-  getPrivateInfo
+  getPrivateInfo,
+  isGameReadyToStart
 } from "src/store/read"
 import { FetchedGameData, GameStatus, PlayerData, PrivateInfo } from "src/store/types"
 import {
