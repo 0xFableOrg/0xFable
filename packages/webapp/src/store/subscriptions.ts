@@ -19,7 +19,7 @@ import { gameABI } from "src/generated"
 import * as store from "src/store/atoms"
 import { refreshGameData } from "src/store/update"
 import { format } from "src/utils/js-utils"
-import { quitGame, setError } from "src/store/actions"
+import { quitGame, setError } from "src/store/write"
 import { DISMISS_BUTTON } from "src/actions/errors"
 
 // =================================================================================================

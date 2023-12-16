@@ -1,5 +1,6 @@
 /**
- * Reading from the store from the UI, when not done via hooks (usually from async actions).
+ * Reading from the store, when not done via hooks (async actions, either user-initiated, or
+ * subscriptions etc).
  *
  * @module store/read
  */

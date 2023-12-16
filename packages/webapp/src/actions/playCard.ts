@@ -11,7 +11,7 @@ import { Address, type HexString } from "src/chain"
 import { deployment } from "src/deployment"
 import { packCards } from "src/game/fableProofs"
 import { gameABI } from "src/generated"
-import { getOrInitPrivateInfo, setPrivateInfo } from "src/store/actions"
+import { getOrInitPrivateInfo, setPrivateInfo } from "src/store/write"
 import {
   getCards,
   getCurrentPlayerAddress,

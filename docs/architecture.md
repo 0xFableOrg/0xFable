@@ -509,8 +509,8 @@ follows:
 
 - `atoms.ts` — This defines the atoms that actually store the state. These atoms *should not* be
   read directly. Instead, use `hooks.ts` to read them from React, and functions from `read.ts` and
-  `actions.ts` to read or write the store.
-- `hooks.ts`, `read.ts`, `actions.ts` — These define React hooks and function that abstract over the
+  `write.ts` to read or write the store.
+- `hooks.ts`, `read.ts`, `write.ts` — These define React hooks and function that abstract over the
   store, which will let us swap the store management library in the future if required.
 - `network.ts` — Defines functions to fetch blockchain data, taking care of various things such as
   retries, throttling, filtering zombies (i.e., a request completing after a more recent one

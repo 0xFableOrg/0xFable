@@ -22,7 +22,7 @@ import {
   setGameID,
   setPrivateInfo,
   waitForUpdate
-} from "src/store/actions"
+} from "src/store/write"
 import {
   getCards,
   getDeck,
