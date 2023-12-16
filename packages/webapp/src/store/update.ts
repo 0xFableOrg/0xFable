@@ -15,7 +15,7 @@ import * as store from "src/store/atoms"
 import * as net from "src/store/network"
 import { THROTTLED, ZOMBIE } from "src/utils/throttledFetch"
 import { formatTimestamp, parseBigInt } from "src/utils/js-utils"
-import { GameStatus } from "src/store/types"
+import { FetchedGameData, GameStatus } from "src/store/types"
 import { setError } from "src/store/write"
 import { contractWriteThrowing } from "src/actions/libContractWrite"
 import { deployment } from "src/deployment"
@@ -288,6 +288,44 @@ export async function refreshGameData() {
   console.groupEnd()
 
   return gameData
+}
+
+// =================================================================================================
+// WAIT FOR UPDATE
+
+/**
+ * Wait for the game data to be updated to the given block number (or beyond), resolving to the game
+ * data. If the game is set to null at any point (indicating some kind of reset in the game state),
+ * or if the timeout is reached, the promise resolves to null instead.
+ *
+ * Note that some operations (e.g. `drawInitialHand`) do not update the `lastBlockNum` field of the
+ * game data and as such `waitForUpdate` is not suitable for use with these operations.
+ */
+export async function waitForUpdate(blockNum: bigint, timeout: number = 15)
+  : Promise<FetchedGameData|null> {
+
+  return new Promise<FetchedGameData|null>((resolve, _reject) => {
+
+    const unsubAndResolve = (result: FetchedGameData|null) => {
+      unsub()
+      resolve(result)
+    }
+
+    // Subscribe to the game data, resolve when receiving a state that satisfies blockNum req.
+    const unsub = store.store.sub(store.gameData, () => {
+      const gameData = store.get(store.gameData)
+      if (gameData === null || gameData.lastBlockNum >= blockNum)
+        unsubAndResolve(gameData)
+    })
+
+    // Maybe the game data is already up to date.
+    const gameData = store.get(store.gameData)
+    if (gameData !== null && gameData.lastBlockNum >= blockNum)
+      return unsubAndResolve(gameData)
+
+    // Initiate timeout.
+    setTimeout(() => unsubAndResolve(null), timeout * 1000)
+  })
 }
 
 // =================================================================================================

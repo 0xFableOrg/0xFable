@@ -17,11 +17,11 @@ import { Address } from "src/chain"
 import { deployment } from "src/deployment"
 import { drawInitialHand } from "src/game/drawInitialHand"
 import { gameABI } from "src/generated"
+import { waitForUpdate } from "src/store/update"
 import {
   getOrInitPrivateInfo,
   setGameID,
-  setPrivateInfo,
-  waitForUpdate
+  setPrivateInfo
 } from "src/store/write"
 import {
   getCards,
