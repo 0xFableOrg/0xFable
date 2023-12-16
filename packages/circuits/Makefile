@@ -200,7 +200,7 @@ out/%.r1cs out/%.wasm out/%.sym: src/instantiated/%.circom
 # Generates the proving key
 out/%.zkey: out/%.r1cs trusted_setup/$(SETUP_FILE)
 	@echo "## Generating $@"
-	pnpm snarkjs plonk setup $< trusted_setup/$(SETUP_FILE) $@
+	pnpm snarkjs groth16 setup $< trusted_setup/$(SETUP_FILE) $@
 
 # Generates the verifying key
 out/%.vkey.json: out/%.zkey
@@ -232,7 +232,7 @@ out/%.wtns: out/%.r1cs
 # Generate proof & public signal files
 out/%.proof.json out/%.public.json: out/%.zkey out/%.wtns out/%.vkey.json
 	@echo "## Generating $* proof"
-	pnpm snarkjs plonk prove out/$*.zkey out/$*.wtns out/$*.proof.json out/$*.public.json
-	pnpm snarkjs plonk verify out/$*.vkey.json out/$*.public.json out/$*.proof.json
+	pnpm snarkjs groth16 prove out/$*.zkey out/$*.wtns out/$*.proof.json out/$*.public.json
+	pnpm snarkjs groth16 verify out/$*.vkey.json out/$*.public.json out/$*.proof.json
 
 ####################################################################################################

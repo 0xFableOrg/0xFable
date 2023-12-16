@@ -6,9 +6,9 @@ import {DeckAirdrop} from "../DeckAirdrop.sol";
 import {Game} from "../Game.sol";
 import {Inventory} from "../Inventory.sol";
 import {InventoryCardsCollection} from "../InventoryCardsCollection.sol";
-import {PlonkVerifier as DrawVerifier} from "../verifiers/DrawVerifier.sol";
-import {PlonkVerifier as DrawHandVerifier} from "../verifiers/DrawHandVerifier.sol";
-import {PlonkVerifier as PlayVerifier} from "../verifiers/PlayVerifier.sol";
+import {Groth16Verifier as DrawVerifier} from "../verifiers/DrawVerifier.sol";
+import {Groth16Verifier as DrawHandVerifier} from "../verifiers/DrawHandVerifier.sol";
+import {Groth16Verifier as PlayVerifier} from "../verifiers/PlayVerifier.sol";
 
 import {Script, console2} from "forge-std/Script.sol";
 // import {Multicall3} from "multicall/Multicall3.sol";

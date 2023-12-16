@@ -3,9 +3,9 @@ pragma solidity ^0.8.0;
 
 import {Inventory} from "./Inventory.sol";
 import {CardsCollection, Stats} from "./CardsCollection.sol";
-import {PlonkVerifier as DrawVerifier} from "./verifiers/DrawVerifier.sol";
-import {PlonkVerifier as DrawHandVerifier} from "./verifiers/DrawHandVerifier.sol";
-import {PlonkVerifier as PlayVerifier} from "./verifiers/PlayVerifier.sol";
+import {Groth16Verifier as DrawVerifier} from "./verifiers/DrawVerifier.sol";
+import {Groth16Verifier as DrawHandVerifier} from "./verifiers/DrawHandVerifier.sol";
+import {Groth16Verifier as PlayVerifier} from "./verifiers/PlayVerifier.sol";
 
 // Data + logic to play a game.
 // NOTE: We try to lay the groundwork to support games with over 2 players, however they are not
