@@ -13,8 +13,8 @@ import { packCards } from "src/game/fableProofs"
 import { gameABI } from "src/generated"
 import { getOrInitPrivateInfo, setPrivateInfo } from "src/store/actions"
 import {
-  checkFresh,
-  freshWrap, getCards, getCurrentPlayerAddress,
+  getCards,
+  getCurrentPlayerAddress,
   getGameData,
   getGameID,
   getPlayerAddress
@@ -25,6 +25,7 @@ import { bigintToHexString } from "src/utils/js-utils"
 import { mimcHash } from "src/utils/hashing"
 import { PLAY_CARD_PROOF_TIMEOUT } from "src/constants"
 import { CancellationHandler } from "src/components/lib/loadingModal"
+import { checkFresh, freshWrap } from "src/store/checkFresh"
 
 // =================================================================================================
 

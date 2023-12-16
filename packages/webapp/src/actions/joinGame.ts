@@ -25,8 +25,8 @@ import {
   waitForUpdate
 } from "src/store/actions"
 import {
-  checkFresh,
-  freshWrap, getCards, getDeck,
+  getCards,
+  getDeck,
   getGameData,
   getGameID,
   getGameStatus,
@@ -44,6 +44,7 @@ import { NUM_CARDS_FOR_PROOF } from "src/game/constants"
 import { packCards } from "src/game/fableProofs"
 import { DRAW_HAND_PROOF_TIMEOUT } from "src/constants"
 import { CancellationHandler } from "src/components/lib/loadingModal"
+import { checkFresh, freshWrap } from "src/store/checkFresh"
 
 // =================================================================================================
 

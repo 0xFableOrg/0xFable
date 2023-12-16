@@ -11,13 +11,13 @@ import { Address } from "src/chain"
 import { deployment } from "src/deployment"
 import { gameABI } from "src/generated"
 import {
-  checkFresh,
-  freshWrap, getCurrentPlayerAddress,
+  getCurrentPlayerAddress,
   getGameData,
   getGameID,
   getPlayerAddress
 } from "src/store/read"
 import { GameStep } from "src/store/types"
+import { checkFresh, freshWrap } from "src/store/checkFresh"
 
 
 // =================================================================================================
