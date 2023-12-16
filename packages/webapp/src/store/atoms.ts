@@ -2,7 +2,7 @@
  * This package contains all the Jotai atoms that comprises our store.
  *
  * Do *NOT* use these atoms directly from React, instead use the hooks in {@link
- * module:store/hooks}, and the actions in {@link module:store/actions}.
+ * module:store/hooks}, and the actions in {@link module:store/write}.
  *
  * @module store/atoms
  */

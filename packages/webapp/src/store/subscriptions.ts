@@ -19,7 +19,7 @@ import { gameABI } from "src/generated"
 import * as store from "src/store/atoms"
 import { refreshGameData } from "src/store/update"
 import { format } from "src/utils/js-utils"
-import { quitGame, setError } from "src/store/write"
+import { setError } from "src/store/write"
 import { DISMISS_BUTTON } from "src/actions/errors"
 
 // =================================================================================================
@@ -167,7 +167,7 @@ function handleEvent(name: string, args: GameEventArgs) {
           "the game got cancelled as a result.",
         buttons: [DISMISS_BUTTON]
       })
-      quitGame()
+      store.set(store.gameID, null) // clears game data
       break
     }
     case "GameCancelled": {
