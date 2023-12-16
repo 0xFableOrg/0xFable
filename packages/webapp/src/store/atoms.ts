@@ -190,6 +190,24 @@ export const playerHand = cachedAtom<readonly bigint[]|null>((get) => {
   return derive.getPlayerHand(get(gameData), get(privateInfo))
 })
 
+// -------------------------------------------------------------------------------------------------
+
+/**
+ * @see module:store/hooks#usePlayerBattlefield
+ */
+export const playerBattlefield = cachedAtom<readonly bigint[]|null>((get) => {
+  return derive.getBattlefield(get(playerData), get(cards))
+})
+
+// -------------------------------------------------------------------------------------------------
+
+/**
+ * @see module:store/hooks#useOpponentBattlefield
+ */
+export const opponentBattlefield = cachedAtom<readonly bigint[]|null>((get) => {
+  return derive.getBattlefield(get(opponentData), get(cards))
+})
+
 // =================================================================================================
 // DEBUG LABELS
 
@@ -211,5 +229,7 @@ opponentAddress.debugLabel      = "opponentAddress"
 opponentData.debugLabel         = "opponentData"
 privateInfo.debugLabel          = "privateInfo"
 playerHand.debugLabel           = "playerHand"
+playerBattlefield.debugLabel    = "playerBattlefield"
+opponentBattlefield.debugLabel  = "opponentBattlefield"
 
 // =================================================================================================
