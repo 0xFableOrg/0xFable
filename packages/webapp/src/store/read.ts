@@ -10,11 +10,12 @@
 
 import { type Address } from "src/chain"
 import * as store from "src/store/atoms"
+import * as derive from "src/store/derive"
 import type { FetchedGameData, PlayerData, PrivateInfo } from "src/store/types"
 import { GameStatus } from "src/store/types"
 
 // =================================================================================================
-// BASIC STORE ACCESS
+// DIRECT STORE ACCESS
 
 // -------------------------------------------------------------------------------------------------
 
@@ -37,89 +38,72 @@ export function getGameData(): FetchedGameData|null {
   return store.get(store.gameData)
 }
 
-// -------------------------------------------------------------------------------------------------
-
-/** All cards that may be used in the game. */
-export function getCards(): readonly bigint[]|null {
-  return store.get(store.cards)
-}
-
-// -------------------------------------------------------------------------------------------------
-
-/** The current game status (CREATED, JOINED, STARTED, etc). */
-export function getGameStatus(): GameStatus {
-  return store.get(store.gameStatus)
-}
+// =================================================================================================
+// PARAMETERIZED STORE ACCESS
 
 // -------------------------------------------------------------------------------------------------
 
 /**
- * Return the private info for the given game and player, if we have it, null otherwise.
+ * Returns the {@link GameStatus game status} based on the game data.
+ * Returns {@link GameStatus.UNKNOWN} (= 0) if the some data is missing.
  */
-export function getPrivateInfo(gameID: bigint, player: Address): PrivateInfo|null {
-  const privateInfoStore = store.get(store.privateInfoStore)
-  return privateInfoStore[gameID.toString()]?.[player] ?? null
+export function getGameStatus(
+    gdata: FetchedGameData|null = store.get(store.gameData),
+    player: Address|null = store.get(store.playerAddress)
+): GameStatus {
+  return derive.getGameStatus(gdata, player)
 }
 
 // -------------------------------------------------------------------------------------------------
 
 /**
- * Returns the address of the current player (whose turn it is in the game!) according to the passed
- * game data. Returns null if there is no game being tracked or if the game hasn't started yet
- * (player still joining / drawing).
+ * The list of cards that can be used in the game, or null if data is missing.
  */
-export function currentPlayerAddress(): Address|null {
-  const gdata = store.get(store.gameData)
-  if (gdata === null || getGameStatus() < GameStatus.STARTED) return null
-  return gdata.players[gdata.currentPlayer]
+export function getCards(
+    gdata: FetchedGameData|null = store.get(store.gameData)
+): readonly bigint[]|null {
+  return derive.getCards(gdata)
 }
 
 // -------------------------------------------------------------------------------------------------
 
 /**
- * Returns the player data for the given player if available (the player has joined the game we're
- * tracking / whose data we've passed in), or null.
+ * Returns the address of the current player (whose turn it is in the game). Returns null if data is
+ * missing. This value is only meaningful if the game status is >= {@link GameStatus.STARTED}.
+ */
+export function getCurrentPlayerAddress(
+  gdata: FetchedGameData|null = store.get(store.gameData)
+): Address|null {
+  return derive.getCurrentPlayerAddress(gdata)
+}
+
+// -------------------------------------------------------------------------------------------------
+
+/**
+ * Returns the {@link PlayerData} for the given player if available (the player has joined the game
+ * we're tracking / whose data we've passed in), or null (also if data is missing).
  */
 export function getPlayerData(
-  gdata: FetchedGameData|null = getGameData(),
-  player: Address | null = getPlayerAddress())
-: PlayerData | null {
-
-  if (gdata === null || player === null) return null
-  const index = gdata.players.indexOf(player)
-  if (index < 0) return null
-  return gdata.playerData[index] ?? null
-}
-
-// -------------------------------------------------------------------------------------------------
-
-/** Returns the address of the opponent (assumes a two-player game). */
-export function getOpponentAddress(
-  gdata: FetchedGameData|null = getGameData(),
-  localPlayer: Address|null = getPlayerAddress())
-: Address | null {
-
-  if (gdata == null || localPlayer == null) return null
-  if (gdata.players.length !== 2)
-    throw new Error("Wrong assumption: game doesn't have exactly 2 players.")
-  const localIndex = gdata.players.indexOf(localPlayer)
-  if (localIndex < 0) return null
-  return gdata.players[(localIndex + 1) % 2]
+    gdata: FetchedGameData|null = getGameData(),
+    player: Address | null = getPlayerAddress()
+): PlayerData | null {
+  return derive.getPlayerData(gdata, player)
 }
 
 // -------------------------------------------------------------------------------------------------
 
 /**
- * Returns the {@link PlayerData} for the opponent (assumes a two-player game). Returns null if the
- * local player is not set, game data is missing, or the local player is not in the game.
+ * Returns the private info for the given game and player, or null if some data is missing.
  */
-export function getOpponentData(
-  gdata: FetchedGameData|null = getGameData(),
-  localPlayer: Address | null = getPlayerAddress())
-: PlayerData | null {
-  const oppponentAddress = getOpponentAddress(gdata, localPlayer)
-  return getPlayerData(gdata, oppponentAddress)
+export function getPrivateInfo(
+    gameID: bigint|null = store.get(store.gameID),
+    player: Address|null = store.get(store.playerAddress)
+): PrivateInfo|null {
+  return derive.getPrivateInfo(gameID, player)
 }
+
+// =================================================================================================
+// FUNCTIONS WITHOUT CORRESPONDING ATOMS
 
 // -------------------------------------------------------------------------------------------------
 
@@ -129,36 +113,21 @@ export function getOpponentData(
  * data we've passed in), or null.
  */
 export function getDeck(
-    gdata: FetchedGameData|null = getGameData(),
-    cards: readonly bigint[]|null = getCards(),
-    player: Address)
-    : bigint[]|null {
-
-  if (gdata === null || cards === null) return null
-  const pdata = getPlayerData(gdata, player)
-  if (pdata === null) return null
-
-  return cards.slice(pdata.deckStart, pdata.deckEnd)
-}
-
-// =================================================================================================
-// DERIVED DATA
-
-/**
- * Returns the number of cards left in the deck.
- */
-export function getDeckSize(privateInfo: PrivateInfo): number {
-  const size = privateInfo.deckIndexes.indexOf(255)
-  return size < 0 ? privateInfo.deckIndexes.length : size
+    pdata: PlayerData|null = getPlayerData(),
+    cards: readonly bigint[]|null = getCards()
+): bigint[]|null {
+  return derive.getDeck(pdata, cards)
 }
 
 // -------------------------------------------------------------------------------------------------
 
 /**
- * Returns the address of the player whose turn it is.
+ * Returns the number of cards left in the deck.
+ * Returns -1 if data is missing.
  */
-export function getCurrentPlayerAddress(gameData: FetchedGameData) {
-  return gameData.players[gameData.currentPlayer]
+export function getDeckSize(privateInfo: PrivateInfo|null = getPrivateInfo()): number {
+  if (privateInfo === null) return -1
+  return derive.getDeckSize(privateInfo)
 }
 
 // =================================================================================================

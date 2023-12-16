@@ -31,7 +31,7 @@ const Play: FablePage = ({ isHydrated }) => {
   const [ concedeCompleted, setConcedeCompleted ] = useState(false)
   const playerAddress = store.usePlayerAddress()
   const router = useRouter()
-  const privateInfo = store.usePrivateInfo(gameID, playerAddress)
+  const privateInfo = store.usePrivateInfo()
   const gameData = store.useGameData()
 
   const [ hasVisitedBoard, visitBoard ] = store.useHasVisitedBoard()

@@ -20,7 +20,7 @@ import { GAME_DATA_REFRESH_INTERVAL } from "src/constants"
 
 // =================================================================================================
 
-export function setupStore() {
+function setupStore() {
 
   if (typeof window === "undefined")
     // Do not set up subscriptions and timers on the server.
@@ -35,8 +35,7 @@ export function setupStore() {
   // Make sure we don't miss the initial value, if already set.
   updatePlayerAddress(getAccount())
 
-  // The game ID can change from actions in this tab, but also in other tabs, or can be retrieved
-  // from the storage upon boot, so we need to listen to the storage.
+  // Update / clear game data whenever the game ID changes.
   store.store.sub(store.gameID, () => {
     gameIDListener(store.get(store.gameID))
   })
@@ -46,6 +45,7 @@ export function setupStore() {
   if (gameID !== null)
     gameIDListener(gameID)
 
+  // Periodically refresh game data.
   setInterval(() => {
       const gameID = store.get(store.gameID)
       const player = store.get(store.playerAddress)

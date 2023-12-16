@@ -118,7 +118,7 @@ async function joinGameImpl(args: JoinGameArgs): Promise<boolean> {
   if (playerData === null)
     throw new InconsistentGameStateError("Missing player data.")
 
-  const deck = getDeck(gameData, cards, args.playerAddress)
+  const deck = getDeck(playerData, cards)
   if (deck === null) // should be impossible due to checkFresh usage
     throw new InconsistentGameStateError("Missing player deck.")
 
