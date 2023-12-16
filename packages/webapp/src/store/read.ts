@@ -126,4 +126,18 @@ export function getDeckSize(privateInfo: PrivateInfo|null = getPrivateInfo()): n
   return derive.getDeckSize(privateInfo)
 }
 
+// -------------------------------------------------------------------------------------------------
+
+/**
+ * Whether all player have joined and drawn their initial hands, given available block info and a
+ * block number.
+ *
+ * Note that the block number might not be in sync with the game data. This is only so that we can
+ * handle the case where the block number is the one at which we included our `drawInitialHand`
+ * proof, and the game data hasn't updated accordingly yet.
+ */
+export function isGameReadyToStart(gameData: FetchedGameData, blockNumber: bigint): boolean {
+  return derive.isGameReadyToStart(gameData, blockNumber)
+}
+
 // =================================================================================================
