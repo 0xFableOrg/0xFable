@@ -12,7 +12,7 @@ import { ContractFunctionRevertedError, UserRejectedRequestError } from "viem"
 
 import { ContractWriteError } from "src/actions/libContractWrite"
 import { GIT_ISSUES } from "src/constants"
-import { setError } from "src/store/actions"
+import { setError } from "src/store/write"
 
 import { StaleError } from "src/store/checkFresh"
 import { TimeoutError } from "src/utils/errors"
