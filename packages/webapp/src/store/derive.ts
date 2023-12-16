@@ -11,7 +11,7 @@ import { Address } from "src/chain"
 import * as store from "src/store/atoms"
 import { FetchedGameData, GameStatus, GameStep, PlayerData, PrivateInfo } from "src/store/types"
 
-// -------------------------------------------------------------------------------------------------
+// =================================================================================================
 
 /**
  * @see module:store/read#getGameStatus
@@ -180,13 +180,31 @@ export function getDeck(
 /**
  * @see module:store/read#isGameReadyToStart
  */
-export function isGameReadyToStart(gameData: FetchedGameData, blockNumber: bigint): boolean {
-  return gameData.playersLeftToJoin === 0 &&
-    (gameData.lastBlockNum >= blockNumber
+export function isGameReadyToStart(gdata: FetchedGameData, blockNumber: bigint): boolean {
+  return gdata.playersLeftToJoin === 0 &&
+    (gdata.lastBlockNum >= blockNumber
       // Depending on whether the game data has already been updated with the results of the
       // drawInitialHand call.
-      ? gameData.livePlayers.length === gameData.players.length
-      : gameData.livePlayers.length === gameData.players.length - 1)
+      ? gdata.livePlayers.length === gdata.players.length
+      : gdata.livePlayers.length === gdata.players.length - 1)
 }
 
 // -------------------------------------------------------------------------------------------------
+
+/**
+ * @see module:store/hooks#usePlayerBattlefield
+ * @see module:store/hooks#useOpponentBattlefield
+ */
+export function getBattlefield(
+    pdata: PlayerData|null,
+    cards: readonly bigint[]|null
+): readonly bigint[]|null {
+  if (pdata === null || cards === null) return null
+  const battlefield = []
+  for (let i = pdata.deckStart; i < pdata.deckEnd; i++)
+    if (pdata.battlefield & (1n << BigInt(i)))
+      battlefield.push(cards[i])
+  return battlefield
+}
+
+// =================================================================================================

@@ -150,11 +150,30 @@ export function usePlayerHand(): readonly bigint[]|null {
 // -------------------------------------------------------------------------------------------------
 
 /**
- * Returns the private information pertaining to the current game and local player.
- * Returns null if data is missing.
+ * The private information pertaining to the local player.
+ * Will be null if data is missing.
  */
 export function usePrivateInfo(): PrivateInfo|null {
   return useAtomValue(store.privateInfo)
+}
+
+// -------------------------------------------------------------------------------------------------
+
+/**
+ * The cards controlled by the local player on the battlefield.
+ */
+export function usePlayerBattlefield(): readonly bigint[]|null {
+  return useAtomValue(store.playerBattlefield)
+}
+
+// -------------------------------------------------------------------------------------------------
+
+/**
+ * The cards controlled by the opponent on the battlefield.
+ * Will be null if data is missing.
+ */
+export function useOpponentBattlefield(): readonly bigint[]|null {
+  return useAtomValue(store.opponentBattlefield)
 }
 
 // =================================================================================================
