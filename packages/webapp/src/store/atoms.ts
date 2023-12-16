@@ -19,6 +19,7 @@ import type {
   PrivateInfoStore
 } from "src/store/types"
 import { GameStatus } from "src/store/types"
+import { cachedAtom } from "src/utils/jotai"
 
 // =================================================================================================
 // STORE
@@ -129,6 +130,7 @@ export const isGameJoiner = atom<boolean>((get) => {
  * @see module:store/read#getCards
  */
 export const cards = atom<readonly bigint[]|null>((get) => {
+  // No need to cache: the array is copied over by {@link fetchGameData} when it doesn't change.
   return derive.getCards(get(gameData))
 })
 
@@ -138,7 +140,7 @@ export const cards = atom<readonly bigint[]|null>((get) => {
  * @see module:store/read#getCurrentPlayerAddress
  * @see module:store/hooks#useCurrentPlayerAddress
  */
-export const currentPlayerAddress = atom<Address|null>((get) => {
+export const currentPlayerAddress = cachedAtom<Address|null>((get) => {
   return derive.getCurrentPlayerAddress(get(gameData))
 })
 
@@ -148,7 +150,7 @@ export const currentPlayerAddress = atom<Address|null>((get) => {
  * @see module:store/read#getPlayerData
  * @see module:store/hooks#usePlayerData
  */
-export const playerData = atom<PlayerData|null>((get) => {
+export const playerData = cachedAtom<PlayerData|null>((get) => {
   return derive.getPlayerData(get(gameData), get(playerAddress))
 })
 
@@ -157,7 +159,7 @@ export const playerData = atom<PlayerData|null>((get) => {
 /**
  * @see module:store/hooks#useOpponentAddress
  */
-export const opponentAddress = atom<Address|null>((get) => {
+export const opponentAddress = cachedAtom<Address|null>((get) => {
   return derive.getOpponentAddress(get(gameData), get(playerAddress))
 })
 
@@ -166,7 +168,7 @@ export const opponentAddress = atom<Address|null>((get) => {
 /**
  * @see module:store/hooks#useOpponentData
  */
-export const opponentData = atom<PlayerData|null>((get) => {
+export const opponentData = cachedAtom<PlayerData|null>((get) => {
   return derive.getOpponentData(get(gameData), get(playerAddress))
 })
 
@@ -175,27 +177,17 @@ export const opponentData = atom<PlayerData|null>((get) => {
 /**
  * @see module:store/hooks#usePrivateInfo
  */
-export const privateInfo = atom<PrivateInfo|null>((get) => {
+export const privateInfo = cachedAtom<PrivateInfo|null>((get) => {
   return derive.getPrivateInfo(get(gameID), get(playerAddress))
 })
 
 // -------------------------------------------------------------------------------------------------
 
-let playerHandCache: readonly bigint[]|null = null
-
 /**
  * @see module:store/hooks#usePlayerHand
  */
-export const playerHand = atom<readonly bigint[]|null>((get) => {
-  const hand = derive.getPlayerHand(get(gameData), get(privateInfo))
-
-  // We cache the hand, so that not any change in the game data / private store causes a new
-  // object to be allocated and the component to re-render.
-  if (hand == null || playerHandCache === null
-  || !hand.every((card, i) => card === playerHandCache![i]))
-    return playerHandCache = hand
-  else
-    return playerHandCache
+export const playerHand = cachedAtom<readonly bigint[]|null>((get) => {
+  return derive.getPlayerHand(get(gameData), get(privateInfo))
 })
 
 // =================================================================================================
