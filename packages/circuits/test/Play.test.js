@@ -44,9 +44,9 @@ describe("Play Card Test", () => {
             handRoot: mimcsponge.F.toObject(handRoot),
             newHandRoot: mimcsponge.F.toObject(newHandRoot),
             saltHash: mimcsponge.F.toObject(mimcsponge.multiHash([salt])),
-            publicRandom: publicRandom,
+            cardIndex: drawnIndex,
             lastIndex: lastIndex,
-            playedCardLeaf: selectedCard,
+            playedCard: selectedCard,
             // private inputs
             salt: salt,
             hand: initialHand,

@@ -36,7 +36,7 @@ describe("Draw Hand Test", () => {
         let lastIndex = deckSize - 1;
         let drawnIndex;
         for (let i = 0; i < cardCount; i++) {
-            drawnIndex = randomness % BigInt(lastIndex);
+            drawnIndex = randomness % BigInt(lastIndex + 1);
             hand[i] = deck[drawnIndex];
             deck[drawnIndex] = deck[lastIndex];
             deck[lastIndex] = BigInt(255);
