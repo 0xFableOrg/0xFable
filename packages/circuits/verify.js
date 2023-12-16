@@ -5,7 +5,7 @@ const fs = require("fs")
 
 async function run(circuitName, inputs) {
 
-  const { proof, publicSignals } = await snarkjs.plonk.fullProve(inputs,
+  const { proof, publicSignals } = await snarkjs.groth16.fullProve(inputs,
     `out/${circuitName}_js/${circuitName}.wasm`,
     `out/${circuitName}.zkey`)
 
@@ -13,7 +13,7 @@ async function run(circuitName, inputs) {
 
   const vKey = JSON.parse(fs.readFileSync(`out/${circuitName}.vkey.json`))
 
-  const res = await snarkjs.plonk.verify(vKey, publicSignals, proof)
+  const res = await snarkjs.groth16.verify(vKey, publicSignals, proof)
 
   if (res === true) {
     console.log("Verification OK")
