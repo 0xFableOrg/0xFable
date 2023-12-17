@@ -136,11 +136,11 @@ async function joinGameImpl(args: JoinGameArgs): Promise<boolean> {
   console.log(`drew initial hand indexes: ${handDeckInfo.handIndexes}`)
   args.setLoading("Generating draw proof — may take a minute ...")
 
-  const { proof } = SHOULD_GENERATE_PROOFS
+  const proof = SHOULD_GENERATE_PROOFS
     ? await generateDrawInitialHandProof(
         deck, privateInfo, gameData, playerData,
         args.cancellationHandler)
-    : { proof: FAKE_PROOF }
+    : FAKE_PROOF
 
   await doDrawInitialHandTransaction(args, privateInfo, proof)
   return true
@@ -235,7 +235,7 @@ async function generateDrawInitialHandProof(
  * the game is ready to start.
  */
 async function doDrawInitialHandTransaction
-    (args: JoinGameArgs, privateInfo: PrivateInfo, proof: readonly bigint[]) {
+    (args: JoinGameArgs, privateInfo: PrivateInfo, proof: ProofOutput) {
 
   // function drawInitialHand(uint256 gameID, bytes32 handRoot, bytes32 deckRoot, bytes calldata proof)
   const result = checkFresh(await freshWrap(
@@ -247,7 +247,9 @@ async function doDrawInitialHandTransaction
         args.gameID,
         privateInfo.handRoot,
         privateInfo.deckRoot,
-        proof as any // coerce because signature wants precise length
+        proof.proof_a,
+        proof.proof_b,
+        proof.proof_c
       ],
       setLoading: args.setLoading
     })))
