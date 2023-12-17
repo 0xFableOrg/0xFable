@@ -86,9 +86,13 @@ export async function prove
     // NOTE: proof can be verified with
     //       `verify(circuitName, publicSignals, proof)`
 
+    // Parse proof outputs
     const generated_proof: ProofOutput =  { 
       proof_a: proof["pi_a"].slice(0,2) as [bigint, bigint],
-      proof_b: proof["pi_b"].slice(0,2) as [[bigint, bigint], [bigint, bigint]],
+      proof_b: [
+        [proof["pi_b"][0][1], proof["pi_b"][0][0]],
+        [proof["pi_b"][1][1], proof["pi_b"][1][0]]
+      ] as [[bigint, bigint], [bigint, bigint]],
       proof_c: proof["pi_c"].slice(0,2) as [bigint, bigint]
     }
     return generated_proof
