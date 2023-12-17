@@ -23,7 +23,11 @@ export const SHOULD_GENERATE_PROOFS = !process.env["NEXT_PUBLIC_NO_PROOFS"]
 /**
  * Stand-in value for proofs, used when {@link SHOULD_GENERATE_PROOFS} is false.
  */
-export const FAKE_PROOF: readonly bigint[] = Array(24).fill(1n)
+export const FAKE_PROOF: ProofOutput = {
+  proof_a: [1n, 1n] as const,
+  proof_b: [[1n, 1n] as const, [1n, 1n] as const],
+  proof_c: [1n, 1n] as const
+}
 
 // =================================================================================================
 
@@ -32,7 +36,9 @@ export type ProofInputs = Record<string, bigint|bigint[]|string>
 // -------------------------------------------------------------------------------------------------
 
 export type ProofOutput = {
-  proof: readonly bigint[]
+  proof_a: readonly [bigint, bigint],
+  proof_b: readonly [readonly [bigint, bigint], readonly [bigint, bigint]],
+  proof_c: readonly [bigint, bigint]
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -68,7 +74,7 @@ export async function prove
   console.log(`start proving (at ${formatTimestamp(timestampStart)})`)
 
   try {
-    const { publicSignals, proof } = await snarkjs.plonk.fullProve(inputs,
+    const { publicSignals, proof } = await snarkjs.groth16.fullProve(inputs,
       `${self.origin}/proofs/${circuitName}.wasm`,
       `${self.origin}/proofs/${circuitName}.zkey`)
 
@@ -79,12 +85,12 @@ export async function prove
     // NOTE: proof can be verified with
     //       `verify(circuitName, publicSignals, proof)`
 
-    // Probably because they were high, the snarkjs author decided to return a string here,
-    // formatted as '["proofItem1", "proofItem2", ...]["publicSignal1", "publicSignal2", ...]'.
-    const calldata = await snarkjs.plonk.exportSolidityCallData(proof, publicSignals)
-
-    // Clean this fucking mess up.
-    return { proof: JSON.parse(calldata.split("][", 1)[0] + "]").map(BigInt) }
+    const generated_proof: ProofOutput =  { 
+      proof_a: proof["pi_a"].slice(0,2) as [bigint, bigint],
+      proof_b: proof["pi_b"].slice(0,2) as [[bigint, bigint], [bigint, bigint]],
+      proof_c: proof["pi_c"].slice(0,2) as [bigint, bigint]
+    }
+    return generated_proof
 
     // NOTE: We could have copied the ordering of proof items from the `exportSolidityCallData`
     // function and read them from the `proof` object directly. The risk is we need to change the
@@ -133,7 +139,7 @@ export async function verify(circuitName: string, publicSignals: readonly string
 
   // If this were to be used in production, we would need to cache the vkey.
   const vKey = await fetch(`${self.origin}/proofs/${circuitName}.vkey.json`).then(it => it.json())
-  return await snarkjs.plonk.verify(vKey, publicSignals, proof)
+  return await snarkjs.groth16.verify(vKey, publicSignals, proof)
 }
 
 // =================================================================================================

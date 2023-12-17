@@ -37,10 +37,11 @@ export function drawInitialHand
   handIndexes.fill(255)
 
   for (let i = 0; i < INITIAL_HAND_SIZE; i++) {
-    const cardIndex = Number(randomness % BigInt(initialDeck.length))
+    const deckLength = initialDeck.length - i
+    const cardIndex = Number(randomness % BigInt(deckLength))
     handIndexes[i] = deckIndexes[cardIndex]
-    deckIndexes[cardIndex] = deckIndexes[initialDeck.length]
-    deckIndexes[initialDeck.length] = 255
+    deckIndexes[cardIndex] = deckIndexes[deckLength - 1]
+    deckIndexes[deckLength - 1] = 255
   }
 
   const deckRootInputs = []

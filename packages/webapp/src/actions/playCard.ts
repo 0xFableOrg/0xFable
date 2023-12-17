@@ -103,7 +103,7 @@ async function playCardImpl(args: PlayGameArgs): Promise<boolean> {
     }, PLAY_CARD_PROOF_TIMEOUT)
 
     args.cancellationHandler.register(cancel)
-    proof = checkFresh(await freshWrap(promise)).proof
+    proof = checkFresh(await freshWrap(promise))
     args.cancellationHandler.deregister(cancel)
   }
 
@@ -117,7 +117,9 @@ async function playCardImpl(args: PlayGameArgs): Promise<boolean> {
         newHandRoot,
         args.cardIndexInHand,
         card,
-        proof as any // coerce because signature wants precise length
+        proof.proof_a,
+        proof.proof_b,
+        proof.proof_c
       ],
       setLoading: args.setLoading
     })))
