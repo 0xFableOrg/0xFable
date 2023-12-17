@@ -89,6 +89,7 @@ export async function prove
     // Parse proof outputs
     const generated_proof: ProofOutput =  { 
       proof_a: proof["pi_a"].slice(0,2) as [bigint, bigint],
+      // note: solidity verifier requires using a different Endian, hence the manual parsing
       proof_b: [
         [proof["pi_b"][0][1], proof["pi_b"][0][0]],
         [proof["pi_b"][1][1], proof["pi_b"][1][0]]
