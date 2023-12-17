@@ -44,7 +44,8 @@ export type ProofOutput = {
 // -------------------------------------------------------------------------------------------------
 
 export function isProofOutput(value: any): value is ProofOutput {
-  return value !== undefined && value.proof !== undefined
+  return value !== undefined && value.proof_a !== undefined && 
+    value.proof_b !== undefined && value.proof_c !== undefined
 }
 
 // -------------------------------------------------------------------------------------------------
