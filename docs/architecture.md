@@ -497,57 +497,13 @@ We're investigating changing many parts of that stack:
   probably only if a Solid.js fan pops up to help)
 - [using MUD](https://github.com/norswap/0xFable/issues/29) — a full stack web3 framework that
   simplifies syncing the frontend with the blockchain
-- [using ConnectKit instead of Web3Modal for wallet interaction](https://github.com/norswap/0xFable/issues/18)
 
 (Crucially, no final decisions have been made on any of those things.)
 
-### Store Structure
+### Store Structure & State Synchronization
 
-Beyond the stack, the most important thing to understand in the frontend is how blockchain
-interaction is structured. This mostly happens in the `store` module, which is structured as
-follows:
-
-- `atoms.ts` — This defines the atoms that actually store the state. These atoms *should not* be
-  read directly. Instead, use `hooks.ts` to read them from React, and functions from `read.ts` and
-  `write.ts` to read or write the store.
-- `hooks.ts`, `read.ts`, `write.ts` — These define React hooks and function that abstract over the
-  store, which will let us swap the store management library in the future if required.
-- `network.ts` — Defines functions to fetch blockchain data, taking care of various things such as
-  retries, throttling, filtering zombies (i.e., a request completing after a more recent one
-  completed for the same data). These functions are used by `update.ts` or called directly by
-  the implementation of user-defined actions (`actions` directory).
-- `update.ts` — Responsible to refresh/synchronize the local state with the blockchain state. (See
-  important notes about this below.)
-- `subscriptions.ts` — Manages event subscriptions. Currently, we simply use them to trigger an
-  update to the game data via `update.ts`.
-- `store.ts` — types for data kept in the store.
-
-### State Synchronization
-
-An important insight in understanding the relationship between frontend and blockchain is that the
-goal is to keep the frontend synchronized to the chain, which is the source of truth.
-
-The absolute simplest way to do that is to use a pure derivation: fetch all the game data from
-the chain, and re-derive the local state from it. And that's exactly what we do right now.
-
-The whole game state (minus the private parts, which we need to preciously conserve locally) can be
-fetched by calling the `fetchGameState` view function from `Game.sol`.
-
-This is the main role of `update.ts`: ensure all the atoms are updated correctly with respect to
-this data.
-
-But `update.ts` also ensures we do not end in mixed or aberrant state. For instance, it resets the
-state if we switch the wallet address or the blockchain network. The key mandate is that at any time
-that the state can be read (e.g. by React hooks) or written (e.g. by actions), the state presented
-should be fully consistent.
-
-In the future, we will introduce "optimistic updates", where we update the local state before having
-had confirmation that the state changed on the blockchain. This helps make the game feel more
-snappy, but must be handled carefully.
-
-These optimistic updates can be triggered once the player initiates an action, or when we receive an
-event from our chain subscriptions (normally we'd have to wait an extra roundtrip to the blockchain
-to fetch the new state in both of these cases).
+See the [store module README](../packages/webapp/src/store/README.md) for information about the
+structure of the store, and how state is synchronized from the chain to the frontend.
 
 ### Source Layout
 
