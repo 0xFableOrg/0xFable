@@ -24,9 +24,9 @@ export const SHOULD_GENERATE_PROOFS = !process.env["NEXT_PUBLIC_NO_PROOFS"]
  * Stand-in value for proofs, used when {@link SHOULD_GENERATE_PROOFS} is false.
  */
 export const FAKE_PROOF: ProofOutput = {
-  proof_a: [1n, 1n] as const,
-  proof_b: [[1n, 1n] as const, [1n, 1n] as const],
-  proof_c: [1n, 1n] as const
+  proof_a: [1n, 1n],
+  proof_b: [[1n, 1n], [1n, 1n]],
+  proof_c: [1n, 1n]
 }
 
 // =================================================================================================
@@ -75,7 +75,7 @@ export async function prove
   console.log(`start proving (at ${formatTimestamp(timestampStart)})`)
 
   try {
-    const { publicSignals, proof } = await snarkjs.groth16.fullProve(inputs,
+    const { _publicSignals, proof } = await snarkjs.groth16.fullProve(inputs,
       `${self.origin}/proofs/${circuitName}.wasm`,
       `${self.origin}/proofs/${circuitName}.zkey`)
 
@@ -84,19 +84,18 @@ export async function prove
       `time: ${(timestampEnd - timestampStart) / 1000}s)`)
 
     // NOTE: proof can be verified with
-    //       `verify(circuitName, publicSignals, proof)`
+    //       `verify(circuitName, _publicSignals, proof)`
 
-    // Parse proof outputs
-    const generated_proof: ProofOutput =  { 
-      proof_a: proof["pi_a"].slice(0,2) as [bigint, bigint],
-      // note: solidity verifier requires using a different Endian, hence the manual parsing
+    return {
+      proof_a: proof["pi_a"].slice(0,2),
       proof_b: [
+        // The snarkjs-generated verifier uses a different endianess than the one used by the
+        // snarkjs-generated prover.
         [proof["pi_b"][0][1], proof["pi_b"][0][0]],
         [proof["pi_b"][1][1], proof["pi_b"][1][0]]
-      ] as [[bigint, bigint], [bigint, bigint]],
-      proof_c: proof["pi_c"].slice(0,2) as [bigint, bigint]
+      ],
+      proof_c: proof["pi_c"].slice(0,2)
     }
-    return generated_proof
 
     // NOTE: We could have copied the ordering of proof items from the `exportSolidityCallData`
     // function and read them from the `proof` object directly. The risk is we need to change the
