@@ -45,6 +45,7 @@ import { packCards } from "src/game/fableProofs"
 import { DRAW_HAND_PROOF_TIMEOUT } from "src/constants"
 import { CancellationHandler } from "src/components/lib/loadingModal"
 import { checkFresh, freshWrap } from "src/store/checkFresh"
+import { getPlayerHand } from "src/store/derive"
 
 // =================================================================================================
 
@@ -134,7 +135,8 @@ async function joinGameImpl(args: JoinGameArgs): Promise<boolean> {
 
   setPrivateInfo(args.gameID, args.playerAddress, privateInfo)
 
-  console.log(`drew initial hand indexes: ${handDeckInfo.handIndexes}`)
+  const hand = getPlayerHand(gameData, privateInfo)
+  console.log(`drew initial hand: ${hand}`)
   args.setLoading("Generating draw proof — may take a minute ...")
 
   const proof = SHOULD_GENERATE_PROOFS
