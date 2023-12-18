@@ -5,7 +5,6 @@ import { LoadingModal } from "src/components/lib/loadingModal"
 import { useModalController } from "src/components/lib/modal"
 import { GameEndedModal } from "src/components/modals/gameEndedModal"
 import { Navbar } from "src/components/navbar"
-import { useGameWrite } from "src/hooks/useFableWrite"
 import * as store from "src/store/hooks"
 import { GameStatus, GameStep } from "src/store/types"
 import { FablePage } from "src/pages/_app"
@@ -17,6 +16,7 @@ import { useRouter } from "next/router"
 import { setError } from "src/store/write"
 import { DISMISS_BUTTON } from "src/actions/errors"
 import { navigate } from "src/utils/navigate"
+import { concede } from "src/actions/concede"
 import { drawCard } from "src/actions/drawCard"
 import { endTurn } from "src/actions/endTurn"
 import { currentPlayer, isEndingTurn } from "src/game/misc"
@@ -74,22 +74,12 @@ const Play: FablePage = ({ isHydrated }) => {
     if (ended) setLoading(null)
   }, [ended])
 
-  const { write: concede } = useGameWrite({
-    functionName: "concedeGame",
-    args: [gameID],
-    enabled: gameID !== null,
-    setLoading,
-    // Optimistically update the UX, as we know the transaction succeeded and the data refresh
-    // will follow.
-    onSuccess: () => setConcedeCompleted(true),
-  })
-
-  const cantDoThings = gameID === null|| playerAddress === null || gameData === null
-    || currentPlayer(gameData) !== playerAddress
+  const missingData = gameID === null|| playerAddress === null || gameData === null
+  const cantTakeActions = missingData || currentPlayer(gameData) !== playerAddress
 
   const cancellationHandler = useCancellationHandler(loading)
 
-  const doDrawCard = cantDoThings || gameData.currentStep !== GameStep.DRAW
+  const doDrawCard = cantTakeActions || gameData.currentStep !== GameStep.DRAW
     ? undefined
     : () => drawCard({
         gameID,
@@ -98,13 +88,22 @@ const Play: FablePage = ({ isHydrated }) => {
         cancellationHandler
       })
 
-  const doEndTurn = cantDoThings || !isEndingTurn(gameData.currentStep)
+  const doEndTurn = cantTakeActions || !isEndingTurn(gameData.currentStep)
     ? undefined
     : () => endTurn({
-      gameID,
-      playerAddress,
-      setLoading,
-    })
+        gameID,
+        playerAddress,
+        setLoading,
+      })
+
+  const doConcede = missingData
+    ? undefined
+    : () => concede({
+        gameID,
+        playerAddress,
+        setLoading,
+        onSuccess: () => setConcedeCompleted(true),
+      })
 
   useEffect(() => {
     if (gameID !== null && playerAddress !== null && !privateInfo) {
@@ -113,7 +112,7 @@ const Play: FablePage = ({ isHydrated }) => {
         message: "Keep playing on the device where you started the game, and do not clear your "
           + "browser data while a game is in progress.",
         buttons: [DISMISS_BUTTON, { text: "Concede", onClick: () => {
-          void concede!()
+          void doConcede!()
           setError(null)
           }
         }]
@@ -175,8 +174,8 @@ const Play: FablePage = ({ isHydrated }) => {
 
               <button
                 className="btn-warning btn-lg btn absolute right-4 bottom-1/2 z-50 !translate-y-1/2 rounded-lg border-[.1rem] border-base-300 font-mono hover:scale-105"
-                disabled={!concede}
-                onClick={concede}
+                disabled={!doConcede}
+                onClick={doConcede}
               >
                 CONCEDE
               </button>

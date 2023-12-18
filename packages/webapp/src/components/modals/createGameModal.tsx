@@ -13,6 +13,7 @@ import { joinGame, reportInconsistentGameState } from "src/actions"
 import { GameStatus } from "src/store/types"
 import { navigate } from "src/utils/navigate"
 import { useCancellationHandler } from "src/hooks/useCancellationHandler"
+import { concede } from "src/actions/concede"
 
 // =================================================================================================
 
@@ -123,16 +124,17 @@ const CreateGameModalContent = ({ ctrl }: { ctrl: ModalController }) => {
     }
   })
 
-  const { write: concede } = useGameWrite({
-    functionName: "concedeGame",
-    args: [gameID],
-    enabled: started,
-    setLoading,
-    onSuccess() {
-      setGameID(null)
-      ctrl.close()
-    }
-  })
+  const doConcede = !started
+    ? undefined
+    : () => concede({
+      gameID: gameID!,
+      playerAddress: playerAddress!,
+      setLoading,
+      onSuccess: () => {
+        setGameID(null)
+        ctrl.close()
+      }
+    })
 
   // -----------------------------------------------------------------------------------------------
 
@@ -179,7 +181,7 @@ const CreateGameModalContent = ({ ctrl }: { ctrl: ModalController }) => {
     </div>}
   </>
 
-  if (started) return <InGameMenuModalContent concede={concede} />
+  if (started) return <InGameMenuModalContent concede={doConcede} />
 }
 
 // =================================================================================================
