@@ -4,7 +4,6 @@ import React, { useEffect, useMemo, useState } from "react"
 import { ModalMenuButton, ModalTitle, Spinner } from "src/components/lib/modalElements"
 import { InGameMenuModalContent } from "src/components/modals/inGameMenuModalContent"
 
-import { useGameWrite } from "src/hooks/useFableWrite"
 import * as store from "src/store/hooks"
 import { isStringPositiveInteger, parseBigIntOrNull } from "src/utils/js-utils"
 import { Modal, ModalController, useModalController } from "src/components/lib/modal"
@@ -14,6 +13,7 @@ import { setError } from "src/store/write"
 import { GameStatus } from "src/store/types"
 import { navigate } from "src/utils/navigate"
 import { useCancellationHandler } from "src/hooks/useCancellationHandler"
+import { concede } from "src/actions/concede"
 
 // =================================================================================================
 
@@ -94,16 +94,17 @@ const JoinGameModalContent = ({ ctrl }: { ctrl: ModalController }) => {
     }
   }
 
-  const { write: concede } = useGameWrite({
-    functionName: "concedeGame",
-    args: [gameID],
-    enabled: started,
-    setLoading,
-    onSuccess() {
-      setGameID(null)
-      ctrl.close()
-    }
-  })
+  const doConcede = !started
+    ? undefined
+    : () => concede({
+      gameID: gameID!,
+      playerAddress: playerAddress!,
+      setLoading,
+      onSuccess: () => {
+        setGameID(null)
+        ctrl.close()
+      }
+    })
 
   function handleInputChangeBouncy(e: React.ChangeEvent<HTMLInputElement>) {
     e.stopPropagation()
@@ -122,7 +123,7 @@ const JoinGameModalContent = ({ ctrl }: { ctrl: ModalController }) => {
       setLoading={setLoading}
     />
 
-  if (started) return <InGameMenuModalContent concede={concede} />
+  if (started) return <InGameMenuModalContent concede={doConcede} />
 
   return <>
     {joined && <>
