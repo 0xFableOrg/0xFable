@@ -130,7 +130,10 @@ const Play: FablePage = ({ isHydrated }) => {
 
   return (
     <>
-      {loading && (
+      {/* The !ended here hides the loading modal to avoid it superimposing with the game ending
+          modal, which can happen when we learn the game has ended because of a data refresh that
+          precedes the inclusion confirmation. */}
+      {loading && !ended && (
         <LoadingModal ctrl={ctrl} loading={loading} setLoading={setLoading} />)}
 
       {gameID === 0n && (
