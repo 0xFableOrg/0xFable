@@ -165,6 +165,20 @@ export function getDeckSize(privateInfo: PrivateInfo): number {
 // -------------------------------------------------------------------------------------------------
 
 /**
+ * @see module:store/read#getOpponentIndex
+ */
+export function getOpponentIndex(gdata: FetchedGameData|null, player: Address|null): number|null {
+  if (gdata == null || player == null) return null
+  if (gdata.players.length !== 2)
+    throw new Error("Wrong assumption: game doesn't have exactly 2 players.")
+  const localIndex = gdata.players.indexOf(player)
+  if (localIndex < 0) return null
+  return (localIndex + 1) % 2
+}
+
+// -------------------------------------------------------------------------------------------------
+
+/**
  * @see module:store/read#getDeck
  */
 export function getDeck(
