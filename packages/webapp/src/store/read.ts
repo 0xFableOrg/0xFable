@@ -104,6 +104,18 @@ export function getPrivateInfo(
 
 // -------------------------------------------------------------------------------------------------
 
+/**
+ * Return the index of the opponent in {@link FetchGameData#players the players array}, or null if
+ * data is missing.
+ */
+export function getOpponentIndex(
+  gdata: FetchedGameData|null = getGameData(),
+  player: Address|null = getPlayerAddress()
+): number|null {
+  return derive.getOpponentIndex(gdata, player)
+}
+
+// -------------------------------------------------------------------------------------------------
 
 /**
  * Returns the player's deck if available (the player has joined the game we're tracking / whose

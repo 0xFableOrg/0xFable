@@ -40,7 +40,7 @@ export type DrawCardArgs = {
 // =================================================================================================
 
 /**
- * Makes the player draw a card (as part of the normal course of his turne), by sending the
+ * Makes the player draw a card (as part of the normal course of his turn), by sending the
  * `drawCard` transactions.
  *
  * Returns `true` iff the player successfully drew the card.
