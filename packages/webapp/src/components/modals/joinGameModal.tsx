@@ -63,10 +63,6 @@ const JoinGameModalContent = ({ ctrl }: { ctrl: ModalController }) => {
     ctrl.closeableAndSurroundCloseable = loading === null
   }, [ctrl, loading])
 
-  // NOTE(norswap): Right now, the hook can cause error when you type a number that is not a valid
-  //   game ID. This is fine. Alternatively, we could validate the input game ID and enable the hook
-  //   only when the ID is valid.
-
   const cancellationHandler = useCancellationHandler(loading)
 
   const join = async () => {
