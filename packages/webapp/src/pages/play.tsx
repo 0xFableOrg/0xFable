@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 
 import Hand from "src/components/hand"
 import { LoadingModal } from "src/components/lib/loadingModal"
@@ -76,34 +76,39 @@ const Play: FablePage = ({ isHydrated }) => {
 
   const missingData = gameID === null|| playerAddress === null || gameData === null
   const cantTakeActions = missingData || currentPlayer(gameData) !== playerAddress
-
   const cancellationHandler = useCancellationHandler(loading)
 
-  const doDrawCard = cantTakeActions || gameData.currentStep !== GameStep.DRAW
-    ? undefined
-    : () => drawCard({
-        gameID,
-        playerAddress,
-        setLoading,
-        cancellationHandler
-      })
+  const cantDrawCard = cantTakeActions || gameData.currentStep !== GameStep.DRAW
+  const doDrawCard = useCallback(
+    () => drawCard({
+      gameID: gameID!,
+      playerAddress: playerAddress!,
+      setLoading,
+      cancellationHandler
+    }),
+    [gameID, playerAddress, setLoading, cancellationHandler])
 
-  const doEndTurn = cantTakeActions || !isEndingTurn(gameData.currentStep)
-    ? undefined
-    : () => endTurn({
-        gameID,
-        playerAddress,
-        setLoading,
-      })
+  const cantEndTurn = cantTakeActions || !isEndingTurn(gameData.currentStep)
+  const doEndTurn = useCallback(
+    () => endTurn({
+      gameID: gameID!,
+      playerAddress: playerAddress!,
+      setLoading,
+    }),
+    [gameID, playerAddress, setLoading])
 
-  const doConcede = missingData
-    ? undefined
-    : () => concede({
-        gameID,
-        playerAddress,
-        setLoading,
-        onSuccess: () => setConcedeCompleted(true),
-      })
+  const cantConcede = missingData
+  const doConcede = useCallback(
+    () => concede({
+      gameID: gameID!,
+      playerAddress: playerAddress!,
+      setLoading,
+      onSuccess: () => setConcedeCompleted(true),
+    }),
+    [gameID, playerAddress, setLoading])
+
+  const doHideResults = useCallback(() => setHideResults(true), [setHideResults])
+  const doShowResults = useCallback(() => setHideResults(false), [setHideResults])
 
   useEffect(() => {
     if (gameID !== null && playerAddress !== null && !privateInfo) {
@@ -140,7 +145,7 @@ const Play: FablePage = ({ isHydrated }) => {
         <LoadingModal ctrl={ctrl} loading="Fetching game ..." setLoading={setLoading} />)}
 
       {ended && !hideResults && (
-        <GameEndedModal closeCallback={() => setHideResults(true)} />)}
+        <GameEndedModal closeCallback={doHideResults} />)}
 
       <main className="flex min-h-screen flex-col">
         <Navbar />
@@ -163,21 +168,21 @@ const Play: FablePage = ({ isHydrated }) => {
           {!ended && (
             <>
               <button className="btn-warning btn-lg btn absolute right-96 bottom-1/2 z-50 !translate-y-1/2 rounded-lg border-[.1rem] border-base-300 font-mono hover:scale-105"
-                disabled={!doDrawCard}
+                disabled={cantDrawCard}
                 onClick={doDrawCard}>
                 DRAW
               </button>
 
               <button
                 className="btn-warning btn-lg btn absolute right-48 bottom-1/2 z-50 !translate-y-1/2 rounded-lg border-[.1rem] border-base-300 font-mono hover:scale-105"
-                disabled={!doEndTurn}
+                disabled={cantEndTurn}
                 onClick={doEndTurn}>
                 END TURN
               </button>
 
               <button
                 className="btn-warning btn-lg btn absolute right-4 bottom-1/2 z-50 !translate-y-1/2 rounded-lg border-[.1rem] border-base-300 font-mono hover:scale-105"
-                disabled={!doConcede}
+                disabled={cantConcede}
                 onClick={doConcede}
               >
                 CONCEDE
@@ -190,7 +195,7 @@ const Play: FablePage = ({ isHydrated }) => {
             <>
               <button
                 className="btn-warning btn-lg btn absolute right-4 bottom-1/2 z-50 !translate-y-1/2 rounded-lg border-[.1rem] border-base-300 font-mono hover:scale-105"
-                onClick={() => setHideResults(false)}
+                onClick={doShowResults}
               >
                 SEE RESULTS & EXIT
               </button>

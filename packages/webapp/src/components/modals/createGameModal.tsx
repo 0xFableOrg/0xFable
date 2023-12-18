@@ -1,5 +1,5 @@
 import { useRouter } from "next/router"
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { decodeEventLog } from "viem"
 
 import { LoadingModalContent } from "src/components/lib/loadingModal"
@@ -96,22 +96,23 @@ const CreateGameModalContent = ({ ctrl }: { ctrl: ModalController }) => {
 
   const cancellationHandler = useCancellationHandler(loading)
 
-  const join = async () => {
-    if (gameID === null || playerAddress === null)
-      return reportInconsistentGameState("Not tracking a game or player disconnected.")
+  const join = useCallback(async () => {
+      if (gameID === null || playerAddress === null)
+        return reportInconsistentGameState("Not tracking a game or player disconnected.")
 
-    const success = await joinGame({
-      gameID,
-      playerAddress,
-      setLoading,
-      cancellationHandler
-    })
+      const success = await joinGame({
+        gameID,
+        playerAddress,
+        setLoading,
+        cancellationHandler
+      })
 
-    if (success)
-      // Optimistically transition to the next modal state as we know the tx succeeded, and the
-      // game data refresh will follow.
-      setDrawCompleted(true)
-  }
+      if (success)
+        // Optimistically transition to the next modal state as we know the tx succeeded, and the
+        // game data refresh will follow.
+        setDrawCompleted(true)
+    },
+    [gameID, playerAddress, setLoading, cancellationHandler])
 
   const { write: cancel } = useGameWrite({
     functionName: "cancelGame",
@@ -124,9 +125,8 @@ const CreateGameModalContent = ({ ctrl }: { ctrl: ModalController }) => {
     }
   })
 
-  const doConcede = !started
-    ? undefined
-    : () => concede({
+  const doConcede = useCallback(
+    () => concede({
       gameID: gameID!,
       playerAddress: playerAddress!,
       setLoading,
@@ -134,7 +134,8 @@ const CreateGameModalContent = ({ ctrl }: { ctrl: ModalController }) => {
         setGameID(null)
         ctrl.close()
       }
-    })
+    }),
+    [gameID, playerAddress, setGameID, ctrl])
 
   // -----------------------------------------------------------------------------------------------
 
