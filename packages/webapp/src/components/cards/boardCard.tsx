@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { forwardRef, useState } from 'react'
 import Image from 'next/image'
 import React from 'react'
 import { testCards } from 'src/utils/card-list'
@@ -7,7 +7,7 @@ interface BoardCardProps {
 	id: number
 } 
 
-const BoardCard: React.FC<BoardCardProps> = ({ id }) => {
+const BoardCard = forwardRef<HTMLDivElement, BoardCardProps>(({ id }, ref) => {
 	const [ showCardName, setShowCardName ] = useState<boolean>(false)
 
 	return (
@@ -48,6 +48,8 @@ const BoardCard: React.FC<BoardCardProps> = ({ id }) => {
       )}
 		</div>
 	)
-}
+})
+
+BoardCard.displayName = "BoardCard"
 
 export default BoardCard
