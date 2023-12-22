@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { forwardRef, useState } from 'react'
 import Image from "next/image"
 import { testCards } from "src/utils/card-list"
 
@@ -9,7 +9,7 @@ interface HandCardProps {
   isDetailsVisible: boolean
 }
 
-const HandCard: React.FC<HandCardProps> = ({ id, isDragging, handHovered, isDetailsVisible }) => {
+const HandCard = forwardRef<HTMLDivElement, HandCardProps>(({ id, isDragging, handHovered, isDetailsVisible }, ref) => {
   const [ cardHover, setCardHover ]  = useState<boolean>(false)
   const showingDetails = isDetailsVisible && !isDragging
  
@@ -24,6 +24,7 @@ const HandCard: React.FC<HandCardProps> = ({ id, isDragging, handHovered, isDeta
       onMouseLeave={() => {
         setCardHover(false)
       }}
+      ref={ref}
     >
       <span
         className={
@@ -61,6 +62,8 @@ const HandCard: React.FC<HandCardProps> = ({ id, isDragging, handHovered, isDeta
       )}
     </div>
   )
-}
+})
+
+HandCard.displayName = "HandCard"
 
 export default HandCard

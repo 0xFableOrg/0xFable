@@ -185,7 +185,35 @@ export function randomUint256(): bigint {
 /** Truncates an address into a shorter representation by displaying a specified number of characters. */
 export const shortenAddress = (address?: `0x${string}` | null, digits = 5) => {
   if (!address) return ""
-  return (address.substring(0, digits) + "..." + address.substring(address.length - digits))
+  return (
+    address.substring(0, digits) +
+    "..." +
+    address.substring(address.length - digits)
+  )
 }
 
 // =================================================================================================
+
+/** Takes a string as input and returns the first sequence of digits found in the string, or null if no digits are present.  */
+export const extractCardID = (idString: string) => {
+  // @todo BN needs to be handled
+  const numberMatch = idString.match(/\d+/)
+  return numberMatch ? numberMatch[0] : null
+}
+
+// =================================================================================================
+
+/** Checks for bigint values that are within the limits of the Number type and returns them in an array.  */
+export const filterAndConvertBigInts = (
+  bigintArray: bigint[] | null | undefined
+): number[] => {
+  if (bigintArray)
+    return bigintArray
+      .filter(
+        (bi) =>
+          bi >= BigInt(Number.MIN_SAFE_INTEGER) &&
+          bi <= BigInt(Number.MAX_SAFE_INTEGER)
+      ) 
+      .map((bi) => Number(bi)) 
+  else return []
+}

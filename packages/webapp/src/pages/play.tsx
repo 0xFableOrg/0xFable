@@ -25,12 +25,13 @@ import { usePlayerHand } from "src/store/hooks"
 import { usePlayedCards } from "src/store/hooks"
 import {
   DndContext,
-  DragEndEvent,
   DragOverlay,
+  DropAnimation,
   MeasuringStrategy,
   MouseSensor,
   UniqueIdentifier,
   closestCenter,
+  defaultDropAnimationSideEffects,
   useSensor,
   useSensors,
 } from "@dnd-kit/core"
@@ -50,16 +51,31 @@ const Play: FablePage = ({ isHydrated }) => {
   const gameData = store.useGameData()
   const [ playedCards, addCard ] = usePlayedCards()
   const [ hasVisitedBoard, visitBoard ] = store.useHasVisitedBoard()
-  const { useDragStart, handleDragEnd } = useDragEvents()
+  const { useDragStart, useDragEnd, useDragCancel } = useDragEvents()
   useEffect(visitBoard, [visitBoard, hasVisitedBoard])
 
   const [ loading, setLoading ] = useState<string|null>(null)
   const [ hideResults, setHideResults ] = useState(false)
   const [ concedeCompleted, setConcedeCompleted ] = useState(false)
   const [ playerHand, setPlayerHand ] = useState<bigint[]>(privateInfo?.deck as bigint[] ?? []);
-  const [ activeId, setActiveId ] = useState<UniqueIdentifier | null>(null);
+  const [ activeId, setActiveId ] = useState<UniqueIdentifier|null>(null);
+  
+  const gameData = store.useGameData()
 
+  // dnd setup
   const handleDragStart = useDragStart(setActiveId);
+  const handleDragEnd = useDragEnd(playerHand, setPlayerHand)
+  const handleDragCancel = useDragCancel(setActiveId)
+  
+  const dropAnimation: DropAnimation = {
+    sideEffects: defaultDropAnimationSideEffects({
+      styles: {
+        active: {
+          opacity: '0.5'
+        }
+      }
+    })
+  }
 
   useEffect(() => {
     // If the game ID is null, fetch it from the contract. If still null, we're not in a game,
@@ -182,6 +198,7 @@ const Play: FablePage = ({ isHydrated }) => {
     <DndContext
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
+      onDragCancel={handleDragCancel}
       sensors={sensors}
       collisionDetection={closestCenter}
       measuring={{
@@ -250,14 +267,13 @@ const Play: FablePage = ({ isHydrated }) => {
           )}
 
           <PlayerBoard playerAddress={playerAddress} playedCards={currentPlayerCards} />
+
           {createPortal(
-            <DragOverlay dropAnimation={{
-              duration: 100,
-              easing: 'cubic-bezier(0.18, 0.67, 0.6, 1.22)',
-              }}>
+            <DragOverlay dropAnimation={dropAnimation}>
                 <BaseCard id={activeId as number} placement={CardPlacement.DRAGGED} />
             </DragOverlay>,
-          document.body)}
+            document.body
+          )}
         </div>
         
       </main>

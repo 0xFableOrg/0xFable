@@ -1,51 +1,80 @@
-import { DragStartEvent, DragEndEvent,  DragOverEvent, UniqueIdentifier } from "@dnd-kit/core"
+import {
+  DragStartEvent,
+  DragEndEvent,
+  UniqueIdentifier,
+} from "@dnd-kit/core"
 import * as store from "src/store/hooks"
 import { usePlayedCards } from "src/store/hooks"
-import { CardInPlay } from "src/store/types"
+import { CardInPlay, CardPlacement } from "src/store/types"
 import { Address } from "viem"
 import { useCallback } from "react"
+import { extractCardID } from "src/utils/js-utils"
 
-function useDragEvents () {
-	const [ _, addCard ] = usePlayedCards()
-	const playerAddress = store.usePlayerAddress()
+function useDragEvents() {
+  const [ _, addCard ] = usePlayedCards()
+  const playerAddress = store.usePlayerAddress()
 
-	const useDragStart = (setActiveIdCallback: (id: UniqueIdentifier) => void) => {
-		const handleDragStart = useCallback(({ active }: DragStartEvent) => {
-			setActiveIdCallback(active.id);
-		}, [setActiveIdCallback]);
-		
-		return handleDragStart;
-	};
-	
-	const handleDragOver = (event: DragOverEvent) => {
-		const { over, active } = event;
-	}
+  const useDragStart = (setActiveId: (id: UniqueIdentifier | null) => void) => {
+    const handleDragStart = useCallback(
+      ({ active }: DragStartEvent) => {
+        const matchedCardId = extractCardID(active.id as unknown as string)
+        setActiveId(matchedCardId)
+      },
+      [setActiveId]
+    )
 
-	const handleDragEnd = (event: DragEndEvent) => {
-		const { over } = event
-		if (over && over.id === "player-board") {
-			// @todo need a naming convention for board refs + id
-			const eventStr = event.active.id as unknown as string
-			if (eventStr.match(/playedCard/)) return
+    return handleDragStart
+  }
 
-			const cardId = Number((eventStr.match(/^card-(\d+)/) || [, undefined])[1]) // card being moved from hand, still unplayed
-			const playedCard: CardInPlay = {
-					cardId: cardId,
-					owner: playerAddress as Address,
-			}
-			addCard(playedCard)
-			// @todo remove card from hand once placed in board
-			// @todo void playCard :: tx for card being placed on player board
-		} else if (over && over.id === "player-hand") {
-			// don't add card to playedCards if the user brings it back to the hand
-			return
-		}
-	}
-	return {
-		useDragStart,
-		handleDragOver,
-		handleDragEnd
-	}
+  const useDragEnd = (
+    playerHand: bigint[],
+    setPlayerHand: React.Dispatch<React.SetStateAction<bigint[]>>
+  ) => {
+    const handleDragEnd = useCallback(
+      (event: DragEndEvent) => {
+        const { over, active } = event
+        if (over && over.id === CardPlacement.BOARD) {
+          const cardId = extractCardID(active.id as unknown as string)
+          const playedCard: CardInPlay = {
+            cardId: cardId as unknown as number,
+            owner: playerAddress as Address,
+          }
+          addCard(playedCard)
+          setPlayerHand(
+            playerHand.filter(
+              (card) => card !== BigInt(cardId as unknown as number)
+            )
+          ) // remove card from hand
+
+          // @todo void playCard :: tx for card being placed on player board
+        } else if (over && over.id === "player-hand") {
+          return
+        }
+      },
+      [playerHand, setPlayerHand]
+    )
+
+    return handleDragEnd
+  }
+
+  const useDragCancel = (
+    setActiveIdCallback: (id: UniqueIdentifier | null) => void
+  ) => {
+    const handleDragCancel = useCallback(
+      ({}: DragStartEvent) => {
+        setActiveIdCallback(null)
+      },
+      [setActiveIdCallback]
+    )
+
+    return handleDragCancel
+  }
+
+  return {
+    useDragStart,
+    useDragEnd,
+    useDragCancel,
+  }
 }
 
 export default useDragEvents
