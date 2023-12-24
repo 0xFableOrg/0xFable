@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React from "react"
 import { CardPlacement } from "src/store/types"
 import { useSortable } from "@dnd-kit/sortable"
 import DraggedCard from "./draggedCard"
@@ -15,11 +15,9 @@ interface BaseCardProps {
 
 const BaseCard: React.FC<BaseCardProps> = ({
   id,
-  className,
   handHovered,
   placement,
 }) => {
-  const [ isDetailsVisible, setIsDetailsVisible ] = useState<boolean>(false)
   const {
     attributes,
     listeners,
@@ -30,8 +28,6 @@ const BaseCard: React.FC<BaseCardProps> = ({
   } = useSortable({
     id: placement === CardPlacement.BOARD ? `B-${id}` : `H-${id}`,
   })
-
-  const showingDetails = isDetailsVisible && !isDragging
 
   const sortableStyle = {
     transform: CSS.Transform.toString(transform),
@@ -46,7 +42,6 @@ const BaseCard: React.FC<BaseCardProps> = ({
             id={id as number}
             handHovered={handHovered}
             isDragging={isDragging}
-            isDetailsVisible={isDetailsVisible}
             ref={setNodeRef}
           />
         )
@@ -60,18 +55,7 @@ const BaseCard: React.FC<BaseCardProps> = ({
   }
   return (
     <div
-      className={`${className} ${
-        showingDetails
-          ? "shadow-2xl z-[50] flex h-[33rem] max-w-[24rem] scale-[65%] cursor-pointer flex-col items-center justify-evenly rounded-lg border-4 bg-gray-900 p-5 transform translateY-[-50%]"
-          : "flex flex-col space-y-1 max-w-[200px]"
-      }`} // account for additional styles for HAND cards
-      onClick={() => {
-        placement === CardPlacement.HAND ??
-          setIsDetailsVisible(!isDetailsVisible)
-      }}
-      onMouseLeave={() => {
-        placement === CardPlacement.HAND ?? setIsDetailsVisible(false)
-      }}
+      className={`${"shadow-2xl z-[50] flex  max-w-[24rem] cursor-pointer flex-col items-center justify-evenly rounded-lg bg-gray-900 transform translateY-[-50%]"}`}
       style={sortableStyle}
       ref={setNodeRef}
       {...attributes}
