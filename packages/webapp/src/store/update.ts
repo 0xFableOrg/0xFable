@@ -101,7 +101,6 @@ export function gameIDListener(ID: bigint|null) {
   // avoid using inconsistent data
   store.set(store.gameData, null)
   store.set(store.hasVisitedBoard, false)
-  store.set(store.playedCards, [])
 
   subscribeToGame(ID) // will unusubscribe if ID is null
   if (ID === null) return // no need to refresh data

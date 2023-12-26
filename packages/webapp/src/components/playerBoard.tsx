@@ -1,5 +1,5 @@
 import * as store from "src/store/hooks"
-import { shortenAddress } from "src/utils/js-utils"
+import { filterAndConvertBigInts, shortenAddress } from "src/utils/js-utils"
 import {
   horizontalListSortingStrategy,
   SortableContext,
@@ -9,8 +9,8 @@ import { CardPlacement } from "src/store/types"
 import BaseCard from "./cards/baseCard"
 
 interface PlayerBoardProps {
-  playerAddress: `0x${string}` | undefined | null // opponent on top, current player below
-  playedCards: number[] // ids of cards they have in play
+  playerAddress: `0x${string}`|undefined|null 
+  playedCards: readonly bigint[]|null
 }
 
 const PlayerBoard: React.FC<PlayerBoardProps> = ({
@@ -21,8 +21,11 @@ const PlayerBoard: React.FC<PlayerBoardProps> = ({
     id: CardPlacement.BOARD,
   })
 
+  const playedCardNumberIds = filterAndConvertBigInts(playedCards)
+
   const currentPlayerAddress = store.usePlayerAddress()
   const playerActive = isOver && playerAddress === currentPlayerAddress
+
   return (
     <div
       className={`relative row-span-6 rounded-xl bg-base-300 shadow-inner overflow-hidden ${
@@ -51,10 +54,10 @@ const PlayerBoard: React.FC<PlayerBoardProps> = ({
           }`}
         >
           <SortableContext
-            items={playedCards}
+            items={playedCardNumberIds}
             strategy={horizontalListSortingStrategy}
           >
-            {playedCards?.map((card) => (
+            {playedCardNumberIds?.map((card) => (
               <BaseCard key={card} id={card} placement={CardPlacement.BOARD} />
             ))}
           </SortableContext>
