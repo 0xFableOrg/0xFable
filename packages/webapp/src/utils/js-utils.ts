@@ -205,7 +205,7 @@ export const extractCardID = (idString: string) => {
 
 /** Checks for bigint values that are within the limits of the Number type and returns them in an array.  */
 export const filterAndConvertBigInts = (
-  bigintArray: bigint[] | null | undefined
+  bigintArray: readonly bigint[]|null|undefined
 ): number[] => {
   if (bigintArray)
     return bigintArray

@@ -6,7 +6,7 @@ import { useModalController } from "src/components/lib/modal"
 import { GameEndedModal } from "src/components/modals/gameEndedModal"
 import { Navbar } from "src/components/navbar"
 import * as store from "src/store/hooks"
-import { GameStatus, GameStep } from "src/store/types"
+import { CardPlacement, GameStatus, GameStep } from "src/store/types"
 import { FablePage } from "src/pages/_app"
 import { Address } from "viem"
 import { readContract } from "wagmi/actions"
@@ -22,7 +22,6 @@ import { endTurn } from "src/actions/endTurn"
 import { currentPlayer, isEndingTurn } from "src/game/misc"
 import { useCancellationHandler } from "src/hooks/useCancellationHandler"
 import { usePlayerHand } from "src/store/hooks"
-import { usePlayedCards } from "src/store/hooks"
 import {
   DndContext,
   DragOverlay,
@@ -38,43 +37,37 @@ import {
 import PlayerBoard from "src/components/playerBoard"
 import { createPortal } from "react-dom"
 import useDragEvents from "src/hooks/useDragEvents"
-import BaseCard from "src/components/cards/baseCard"
+import CardContainer from "src/components/cards/cardContainer"
 
 const Play: FablePage = ({ isHydrated }) => {
   const [ gameID, setGameID ] = store.useGameID()
   const gameStatus = store.useGameStatus()
 
   const playerAddress = store.usePlayerAddress()
-  const opponentAddress = store.useGameData()?.players.find(address => address !== playerAddress)
+  const opponentAddress = store.useOpponentAddress()
+  const playerBattlefield = store.usePlayerBattlefield()
+  const opponentBattlefield = store.useOpponentBattlefield()
   const router = useRouter()
   const privateInfo = store.usePrivateInfo()
-  const gameData = store.useGameData()
-  const [ playedCards, addCard ] = usePlayedCards()
   const [ hasVisitedBoard, visitBoard ] = store.useHasVisitedBoard()
-  const { useDragStart, useDragEnd, useDragCancel } = useDragEvents()
   useEffect(visitBoard, [visitBoard, hasVisitedBoard])
 
-  const [ loading, setLoading ] = useState<string|null>(null)
+  const [ loading, setLoading ] = useState<string | null>(null)
   const [ hideResults, setHideResults ] = useState(false)
   const [ concedeCompleted, setConcedeCompleted ] = useState(false)
-  const [ playerHand, setPlayerHand ] = useState<bigint[]>(privateInfo?.deck as bigint[] ?? []);
-  const [ activeId, setActiveId ] = useState<UniqueIdentifier|null>(null);
-  
   const gameData = store.useGameData()
+  const [ activeId, setActiveId ] = useState<UniqueIdentifier|null>(null)
 
-  // dnd setup
-  const handleDragStart = useDragStart(setActiveId);
-  const handleDragEnd = useDragEnd(playerHand, setPlayerHand)
-  const handleDragCancel = useDragCancel(setActiveId)
-  
+  const playerHand = usePlayerHand()
+
   const dropAnimation: DropAnimation = {
     sideEffects: defaultDropAnimationSideEffects({
       styles: {
         active: {
-          opacity: '0.5'
-        }
-      }
-    })
+          opacity: "0.5",
+        },
+      },
+    }),
   }
 
   useEffect(() => {
@@ -89,35 +82,14 @@ const Play: FablePage = ({ isHydrated }) => {
         args: [playerAddress as Address],
       })
 
-      if (fetchedGameID > 0n)
-        setGameID(fetchedGameID)
-      else
-        void navigate(router, "/")
+      if (fetchedGameID > 0n) setGameID(fetchedGameID)
+      else void navigate(router, "/")
     }
 
     // Back to home screen if player disconnects.
-    if (playerAddress === null)
-      void navigate(router, "/")
-    else if (gameID === null)
-      void fetchGameID()
-
+    if (playerAddress === null) void navigate(router, "/")
+    else if (gameID === null) void fetchGameID()
   }, [gameID, setGameID, playerAddress, router])
-
-  const playerHand = usePlayerHand()
-
-  const currentPlayerCards = useMemo(() => {
-    if (!playedCards) return []
-    return playedCards
-      .filter((card) => card.owner === playerAddress)
-      .map((card) => card.cardId)
-  }, [playerAddress, playedCards])
-
-  const opponentPlayerCards = useMemo(() => {
-    if (!playedCards) return []
-    return playedCards
-      .filter((card) => card.owner === opponentAddress)
-      .map((card) => card.cardId)
-  }, [opponentAddress, playedCards])
 
   const ended = gameStatus === GameStatus.ENDED || concedeCompleted
 
@@ -159,11 +131,10 @@ const Play: FablePage = ({ isHydrated }) => {
       setLoading,
       onSuccess: () => setConcedeCompleted(true),
     }),
-    [gameID, playerAddress, setLoading])
+    [gameID, playerAddress])
 
   const doHideResults = useCallback(() => setHideResults(true), [setHideResults])
-  const doShowResults = useCallback(() => setHideResults(false), [setHideResults])
-
+  const doShowResults = useCallback(() => setHideResults(false), [setHideResults])  
   useEffect(() => {
     if (gameID !== null && playerAddress !== null && !privateInfo) {
       setError({
@@ -182,9 +153,13 @@ const Play: FablePage = ({ isHydrated }) => {
 
   const ctrl = useModalController({ displayed: true, closeable: false })
 
+  // dnd setup
+  const { 
+    handleDragStart, handleDragEnd, handleDragCancel 
+  } = useDragEvents(setActiveId, setLoading, cancellationHandler)
   const sensors = useSensors(
     // waits for a drag of 20 pixels before the UX assumes a card is being played
-    useSensor(MouseSensor, { activationConstraint: { distance: 20 } }),
+    useSensor(MouseSensor, { activationConstraint: { distance: 20 } })
   )
   // -----------------------------------------------------------------------------------------------
 
@@ -192,92 +167,109 @@ const Play: FablePage = ({ isHydrated }) => {
 
   return (
     <>
-      {/* The !ended here hides the loading modal to avoid it superimposing with the game ending
+      <DndContext
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
+        onDragCancel={handleDragCancel}
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        measuring={{
+          droppable: {
+            strategy: MeasuringStrategy.Always,
+          },
+        }}
+      >
+        {/* The !ended here hides the loading modal to avoid it superimposing with the game ending
           modal, which can happen when we learn the game has ended because of a data refresh that
           precedes the inclusion confirmation. */}
-    <DndContext
-      onDragStart={handleDragStart}
-      onDragEnd={handleDragEnd}
-      onDragCancel={handleDragCancel}
-      sensors={sensors}
-      collisionDetection={closestCenter}
-      measuring={{
-        droppable: {
-          strategy: MeasuringStrategy.Always,
-        },
-      }}
-    >
-      
-      {loading && !ended && (
-        <LoadingModal ctrl={ctrl} loading={loading} setLoading={setLoading} />)}
+        {loading && !ended && (
+          <LoadingModal ctrl={ctrl} loading={loading} setLoading={setLoading} />
+        )}
 
-      {gameID === 0n && (
-        <LoadingModal ctrl={ctrl} loading="Fetching game ..." setLoading={setLoading} />)}
+        {gameID === 0n && (
+          <LoadingModal
+            ctrl={ctrl}
+            loading="Fetching game ..."
+            setLoading={setLoading}
+          />
+        )}
 
-      {ended && !hideResults && (
-        <GameEndedModal closeCallback={doHideResults} />)}
+        {ended && !hideResults && (
+          <GameEndedModal closeCallback={doHideResults} />
+        )}
 
-      <main className="flex min-h-screen flex-col">
-        <Navbar />
+        <main className="flex min-h-screen flex-col">
+          <Navbar />
 
-        <Hand
-          cards={playerHand}
-          setLoading={setLoading}
-          cancellationHandler={cancellationHandler}
-          className="absolute left-0 right-0 mx-auto z-[100] translate-y-1/2 transition-all duration-500 rounded-xl ease-in-out hover:translate-y-0"
-        />
-        <div className="grid-col-1 relative mx-6 mb-6 grid grow grid-rows-[6]">
-          <PlayerBoard playerAddress={opponentAddress} playedCards={opponentPlayerCards} />
+          <Hand
+            cards={playerHand as readonly bigint[]}
+            setLoading={setLoading}
+            cancellationHandler={cancellationHandler}
+            className="absolute left-0 right-0 mx-auto z-[100] translate-y-1/2 transition-all duration-500 rounded-xl ease-in-out hover:translate-y-0"
+          />
+          <div className="grid-col-1 relative mx-6 mb-6 grid grow grid-rows-[6]">
+            <PlayerBoard
+              playerAddress={opponentAddress}
+              playedCards={opponentBattlefield}
+            />
 
-          {!ended && (
-            <>
-              <button className="btn-warning btn-lg btn absolute right-96 bottom-1/2 z-50 !translate-y-1/2 rounded-lg border-[.1rem] border-base-300 font-mono hover:scale-105"
-                disabled={cantDrawCard}
-                onClick={doDrawCard}>
-                DRAW
-              </button>
+            {!ended && (
+              <>
+                <button
+                  className="btn-warning btn-lg btn absolute right-96 bottom-1/2 z-50 !translate-y-1/2 rounded-lg border-[.1rem] border-base-300 font-mono hover:scale-105"
+                  disabled={cantDrawCard}
+                  onClick={doDrawCard}
+                >
+                  DRAW
+                </button>
 
-              <button
-                className="btn-warning btn-lg btn absolute right-48 bottom-1/2 z-50 !translate-y-1/2 rounded-lg border-[.1rem] border-base-300 font-mono hover:scale-105"
-                disabled={cantEndTurn}
-                onClick={doEndTurn}>
-                END TURN
-              </button>
+                <button
+                  className="btn-warning btn-lg btn absolute right-48 bottom-1/2 z-50 !translate-y-1/2 rounded-lg border-[.1rem] border-base-300 font-mono hover:scale-105"
+                  disabled={cantEndTurn}
+                  onClick={doEndTurn}
+                >
+                  END TURN
+                </button>
 
-              <button
-                className="btn-warning btn-lg btn absolute right-4 bottom-1/2 z-50 !translate-y-1/2 rounded-lg border-[.1rem] border-base-300 font-mono hover:scale-105"
-                disabled={cantConcede}
-                onClick={doConcede}
-              >
-                CONCEDE
-              </button>
-            </>
-          )}
+                <button
+                  className="btn-warning btn-lg btn absolute right-4 bottom-1/2 z-50 !translate-y-1/2 rounded-lg border-[.1rem] border-base-300 font-mono hover:scale-105"
+                  disabled={cantConcede}
+                  onClick={doConcede}
+                >
+                  CONCEDE
+                </button>
+              </>
+            )}
 
-          {/* TODO avoid the bump by grouping buttons in a container that is translated, then no need for the translation here and the important */}
-          {ended && (
-            <>
-              <button
-                className="btn-warning btn-lg btn absolute right-4 bottom-1/2 z-50 !translate-y-1/2 rounded-lg border-[.1rem] border-base-300 font-mono hover:scale-105"
-                onClick={doShowResults}
-              >
-                SEE RESULTS & EXIT
-              </button>
-            </>
-          )}
+            {/* TODO avoid the bump by grouping buttons in a container that is translated, then no need for the translation here and the important */}
+            {ended && (
+              <>
+                <button
+                  className="btn-warning btn-lg btn absolute right-4 bottom-1/2 z-50 !translate-y-1/2 rounded-lg border-[.1rem] border-base-300 font-mono hover:scale-105"
+                  onClick={doShowResults}
+                >
+                  SEE RESULTS & EXIT
+                </button>
+              </>
+            )}
 
-          <PlayerBoard playerAddress={playerAddress} playedCards={currentPlayerCards} />
+            <PlayerBoard
+              playerAddress={playerAddress}
+              playedCards={playerBattlefield}
+            />
 
-          {createPortal(
-            <DragOverlay dropAnimation={dropAnimation}>
-                <BaseCard id={activeId as number} placement={CardPlacement.DRAGGED} />
-            </DragOverlay>,
-            document.body
-          )}
-        </div>
-        
-      </main>
-    </DndContext>
+            {createPortal(
+              <DragOverlay dropAnimation={dropAnimation}>
+                <CardContainer
+                  id={activeId as string}
+                  placement={CardPlacement.DRAGGED}
+                />
+              </DragOverlay>,
+              document.body
+            )}
+          </div>
+        </main>
+      </DndContext>
     </>
   )
 }
