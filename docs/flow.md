@@ -29,6 +29,8 @@ that the game creator will be one of the two players.
       - TODO: This is not good, should be within his own thing. 
 - Once both `drawInitialHand` have been received, the game starts.
 
+![Create Game Activity Diagram](https://www.plantuml.com/plantuml/png/pLHDZzD03BtFh_2n-nVI0zjq9UWD8IJEeyHDl4piCdPKzTyp7oMGHa822R4v9VOyl-Vtb7bMyz7cARZoubppCVWRHY0c8s-eq4NqXk_zX7lN74TF30Conj8SKldqidSiXX1f6Asvru0KMAxWLQNBatguaerW8rKOAAgIi7DdYLyTfES7-G6y6KuNKp21Lo6kY5c9XuKp8-WCkvF2Jro8wFjRmM3_xYdH8SFkXlhauFuqd_0LEwjp8twRKQrEmw08EvPwTgr8aNk5FlhhgLWJFdZkAsmhf0KVLEug81tCS7j4R-KjjDdkx63TnWHAF9LkgtI1VV5asQBaw29b0IqwNmGLLej1vxd3a5ctebOCntAmPB3VTDNaiYgcqNHssw_wbdC7FtZYLVhjNwRV_hFqspzB__1sqZ_yFltsFwQVYSkVxxAgppIXp0QTfAQHC4neMpNDKTY8PomQu1AbGzMzMplI7FWcd0h4NPZxx8cD57ku-6YKPjtpj4fQL_dr2ZkT7zFAxHfZliM88T14vkeghgp-d3xcANm7.png)
+
 Note that it isn't possible to concede until the game starts, nor is it possible to cancel the game
 after all `joinGame` transactions have been received. This needs to be fixed, as a non-joiner
 can lock other players in place for 8 minutes right now.
