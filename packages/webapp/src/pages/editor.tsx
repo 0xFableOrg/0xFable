@@ -29,15 +29,15 @@ const initialTypeMap = Object.assign({}, ...types.map(name => ({[name]: false}))
 const Collection: FablePage = ({ isHydrated }) => {
 
   const { address } = useAccount()
-  //const [ selectedCard, setSelectedCard ] = useState<Card|null>(null)
+  const [ selectedCard, setSelectedCard ] = useState<Card|null>(null)
   const [ searchInput, setSearchInput ] = useState('')
   const [ effectMap, setEffectMap ] = useState(initialEffectMap)
   const [ typeMap, setTypeMap ] = useState(initialTypeMap)
   const [ deckName, setDeckName ] = useState('')
 
 
-  const cardName = selectedCard?.lore.name || "Select a card"
-  const cardFlavor = selectedCard?.lore.flavor || "Select a card to see its details"
+  const cardName = selectedCard?.lore.name || "Hover a card"
+  const cardFlavor = selectedCard?.lore.flavor || "Hover a card to see its details"
 
   const activeEffects = Object.keys(effectMap).filter(key => effectMap[key])
   const activeTypes = Object.keys(typeMap).filter(key => typeMap[key])
@@ -203,7 +203,10 @@ const Collection: FablePage = ({ isHydrated }) => {
                   className={`m-4 bg-slate-900/50 ${isCardInDeck(card) ? 'bg-slate-800' : 'hover:bg-slate-800'} rounded-lg p-4 border-4 border-slate-900`}
                   key={`${card.id}`}
                   style={{height: 'fit-content'}}
-                  onClick={() => addToDeck(card)}> 
+                  onClick={() => addToDeck(card)}
+                  onMouseEnter={() => setSelectedCard(card)}
+                  >
+                  
                   <Image src="/card_art/0.jpg" alt={card.lore.name} width={256} height={256} />
                   <div className="text-center">{card.lore.name}</div>
                   <div className="flex items-end justify-between p-2 relative">
@@ -253,7 +256,8 @@ const Collection: FablePage = ({ isHydrated }) => {
                   <div 
                     key={index} // Using index as key since cards can be duplicated
                     className="mb-4 bg-slate-900/50 hover:bg-slate-800 rounded-lg p-4 border-4 border-slate-900"
-                    onClick={() => removeFromDeck(index)}> 
+                    onClick={() => removeFromDeck(index)}
+                    onMouseEnter={() => setSelectedCard(card)}> 
                   
                     {/* Card Content */}
                     <Image src="/card_art/0.jpg" alt={card.lore.name} width={256} height={256} />
