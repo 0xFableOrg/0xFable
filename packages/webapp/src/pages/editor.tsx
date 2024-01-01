@@ -126,7 +126,11 @@ const Collection: FablePage = ({ isHydrated }) => {
       <Head>
         <title>0xFable: My Collection</title>
       </Head>
-
+      <style jsx>{`
+        .card-in-deck {
+          box-shadow: 0 0 10px orange; 
+        }
+      `}</style>
       {jotaiDebug()}
       <main className="flex h-screen flex-col">
         <Navbar />
@@ -200,7 +204,7 @@ const Collection: FablePage = ({ isHydrated }) => {
               <div className="grid grid-cols-4 overflow-y-auto pb-4">
               {cards.map(card => (
                 <div 
-                  className={`m-4 bg-slate-900/50 ${isCardInDeck(card) ? 'bg-slate-800' : 'hover:bg-slate-800'} rounded-lg p-4 border-4 border-slate-900`}
+                className={`m-4 bg-slate-900/50 ${isCardInDeck(card) ? 'card-in-deck' : ''} hover:bg-slate-800 rounded-lg p-4 border-4 border-slate-900`}
                   key={`${card.id}`}
                   style={{height: 'fit-content'}}
                   onClick={() => addToDeck(card)}
