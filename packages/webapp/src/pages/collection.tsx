@@ -151,7 +151,7 @@ const Collection: FablePage = ({ decks, isHydrated }) => {
               </div>}
 
             { isHydrated && cards.length > 0 &&
-              <div className="grid grid-cols-4 gap-4 overflow-y-auto pb-4">
+              <div className="grid grid-cols-4 overflow-y-auto pb-4">
               {cards.map(card => (
                 <div className="m-4 bg-slate-900/50 hover:bg-slate-800 rounded-lg p-4 border-4 border-slate-900"
                      key={`${card.id}`}
