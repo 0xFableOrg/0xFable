@@ -14,6 +14,7 @@ import { useInventoryCardsCollectionGetCollection } from "src/generated"
 import { Card } from "src/store/types"
 import { Address } from "src/chain"
 import { FablePage } from "src/pages/_app"
+import Link from "next/link"
 
 // NOTE(norswap & geniusgarlic): Just an example, when the game actually has effects & types,
 //   fetch those from the chain instead of hardcoding them here.
@@ -230,9 +231,9 @@ const Collection: FablePage = ({ isHydrated }) => {
           <div className="col-span-2 flex rounded-xl border overflow-y-auto">
             <div className="w-full flex flex-col items-center p-3">
               {/* New Deck Button */}
-              <button className="w-full px-4 py-2 mb-2 border rounded-md text-gray-100 bg-purple-900 hover:bg-gray-500 font-bold text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                New Deck
-              </button>
+              <Link className="w-full px-4 py-2 mb-2 border rounded-md text-gray-100 bg-purple-900 hover:bg-gray-500 font-bold text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" href={"/editor"}>
+                New Deck →
+              </Link>
 
               {/* Deck Buttons */}
               {decks.map((deck, index) => (
