@@ -74,6 +74,7 @@ const Collection: FablePage = ({ isHydrated }) => {
         return prevDeck.filter(cardInDeck => cardInDeck.id !== card.id);
       } else {
         // Add the card to the deck
+        console.log(card);
         return [...prevDeck, card];
       }
     });

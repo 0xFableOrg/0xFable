@@ -75,12 +75,65 @@ const Collection: FablePage = ({ isHydrated }) => {
     setTypeMap({...typeMap, [type]: !typeMap[type]})
   }
 
+  // todo @eviterin: would be good to have something in read.ts that allows me to fetch all decks by address
+  const testCards = [
+    {
+      id: BigInt(57),
+      lore: {
+        name: "Fire Fighter",
+        flavor: "",
+        URL: ""
+      },
+      stats: {
+        attack: 2,
+        defense: 2
+      },
+      cardTypeID: 57
+    },
+    {
+      id: BigInt(31),
+      lore: {
+        name: "Wise Elf",
+        flavor: "",
+        URL: ""
+      },
+      stats: {
+        attack: 1,
+        defense: 3
+      },
+      cardTypeID: 31
+    },
+    {
+      id: BigInt(38),
+      lore: {
+        name: "Grave Digger",
+        flavor: "",
+        URL: ""
+      },
+      stats: {
+        attack: 2,
+        defense: 3
+      },
+      cardTypeID: 38
+    }
+  ];
+  const [decks, setDecks] = useState([
+    {
+      name: "Mystical Creatures",
+      cards: testCards // Assuming 'cards' contains the array of card objects
+    },
+    {
+      name: "Empty Deck",
+      cards: [] // An empty deck for testing
+    }
+  ]);
+
+
   return (
     <>
       <Head>
         <title>0xFable: My Collection</title>
       </Head>
-
       {jotaiDebug()}
       <main className="flex h-screen flex-col">
         <Navbar />
@@ -141,10 +194,10 @@ const Collection: FablePage = ({ isHydrated }) => {
               <div className="text-center m-2">{cardFlavor}</div>
             </div>
           </div>
-        </div>
+          </div>
 
           {/* Card Collection Display */}
-          <div className="col-span-9 flex rounded-xl border overflow-y-auto">
+          <div className="col-span-7 flex rounded-xl border overflow-y-auto">
             { isHydrated && cards.length == 0 &&
               <div className="flex flex-row w-full justify-center items-center">
                 <MintDeckModal callback={refetch} />
@@ -171,6 +224,27 @@ const Collection: FablePage = ({ isHydrated }) => {
                 </div>
               ))}
             </div>}
+          </div>
+
+          {/* Deck Panel */}
+          <div className="col-span-2 flex rounded-xl border overflow-y-auto">
+            <div className="w-full flex flex-col items-center p-3">
+              {/* New Deck Button */}
+              <button className="w-full px-4 py-2 mb-2 border rounded-md text-gray-100 bg-purple-900 hover:bg-gray-500 font-bold text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                New Deck
+              </button>
+
+              {/* Deck Buttons */}
+              {decks.map((deck, index) => (
+                <button 
+                  key={index} 
+                  className="w-full px-4 py-2 mb-2 border rounded-md text-gray-100 bg-purple-900 hover:bg-gray-500 font-bold text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  onClick={() => {/* handle deck selection or other action */}}
+                >
+                  {deck.name}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </main>
