@@ -199,7 +199,6 @@ export const shortenAddress = (address?: `0x${string}` | null, digits = 5) => {
 
 /** Takes a string as input and returns the first sequence of digits found in the string, or null if no digits are present.  */
 export const extractCardID = (idString: string) => {
-  // @todo BN needs to be handled
   const numberMatch = idString.match(/\d+/)
   return numberMatch ? numberMatch[0] : null
 }
