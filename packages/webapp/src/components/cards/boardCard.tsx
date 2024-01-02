@@ -14,8 +14,12 @@ const BoardCard = forwardRef<HTMLDivElement, BoardCardProps>(({ id }, ref) => {
 		<div 
       className="relative w-full h-full"
       ref={ref}
-      onMouseEnter={() => setShowCardName(true)}
-      onMouseLeave={() => setShowCardName(false)}
+      onMouseEnter={() => 
+        setShowCardName(true)
+      }
+      onMouseLeave={() =>
+        setShowCardName(false)
+      }
     >
 			<Image 
 				alt={`${id}`} 

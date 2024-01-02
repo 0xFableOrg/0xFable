@@ -9,7 +9,7 @@ import { CardPlacement } from "src/store/types"
 import BaseCard from "./cards/baseCard"
 
 interface PlayerBoardProps {
-  playerAddress: `0x${string}`|undefined|null 
+  playerAddress: `0x${string}`|undefined|null
   playedCards: readonly bigint[]|null
 }
 
@@ -41,9 +41,8 @@ const PlayerBoard: React.FC<PlayerBoardProps> = ({
     >
       <div className="relative flex flex-col items-center space-y-4">
         <div className="flex flex-row p-2 space-x-3 self-start items-center">
-          <p className="z-0 m-2 font-mono font-bold select-none">
-            {" "}
-            {`🛡 ${shortenAddress(playerAddress)}`}{" "}
+          <p className="z-0 m-2 font-mono font-bold select-none px-2">
+            {`🛡 ${shortenAddress(playerAddress)}`}
           </p>
           <p className="z-0 m-3 font-mono font-bold select-none"> ♥️ 100 </p>
         </div>

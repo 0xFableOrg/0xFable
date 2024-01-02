@@ -182,7 +182,10 @@ export function randomUint256(): bigint {
 
 // =================================================================================================
 
-/** Truncates an address into a shorter representation by displaying a specified number of characters. */
+/**
+ * Truncates an address into a shorter representation by displaying the first `digits` character
+ * and the last `digits` characters.
+ */
 export const shortenAddress = (address?: `0x${string}` | null, digits = 5) => {
   if (!address) return ""
   return (
@@ -217,3 +220,5 @@ export const filterAndConvertBigInts = (
       .map((bi) => Number(bi)) 
   else return []
 }
+
+// =================================================================================================
