@@ -156,7 +156,7 @@ const Collection: FablePage = ({ isHydrated }) => {
                 <div className="m-4 bg-slate-900/50 hover:bg-slate-800 rounded-lg p-4 border-4 border-slate-900"
                      key={`${card.id}`}
                      style={{height: 'fit-content'}}
-                     onClick={() => setSelectedCard(card)}>
+                     onMouseEnter={() => setSelectedCard(card)}>
                   {/*TODO handle the image*/}
                   <Image src="/card_art/0.jpg" alt={card.lore.name} width={256} height={256} />
                   <div className="text-center">{card.lore.name}</div>
