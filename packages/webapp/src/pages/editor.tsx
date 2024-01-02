@@ -14,7 +14,7 @@ import { useInventoryCardsCollectionGetCollection } from "src/generated"
 import { Card } from "src/store/types"
 import { Address } from "src/chain"
 import { FablePage } from "src/pages/_app"
-import { useRouter } from 'next/router';
+import { router } from 'next/router';
 
 // NOTE(norswap & geniusgarlic): Just an example, when the game actually has effects & types,
 //   fetch those from the chain instead of hardcoding them here.
@@ -27,7 +27,7 @@ const initialEffectMap = Object.assign({}, ...effects.map(name => ({[name]: fals
 const types = ['Creature', 'Magic', 'Weapon']
 const initialTypeMap = Object.assign({}, ...types.map(name => ({[name]: false})))
 
-const Editor: FablePage = ({ isHydrated }) => {
+const Editor: FablePage = ({ decks, setDecks, isHydrated }) => {
 
   const { address } = useAccount()
   const [ selectedCard, setSelectedCard ] = useState<Card|null>(null)
