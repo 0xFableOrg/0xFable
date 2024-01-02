@@ -14,6 +14,7 @@ import { useInventoryCardsCollectionGetCollection } from "src/generated"
 import { Card } from "src/store/types"
 import { Address } from "src/chain"
 import { FablePage } from "src/pages/_app"
+import { useRouter } from 'next/router';
 
 // NOTE(norswap & geniusgarlic): Just an example, when the game actually has effects & types,
 //   fetch those from the chain instead of hardcoding them here.
@@ -26,15 +27,15 @@ const initialEffectMap = Object.assign({}, ...effects.map(name => ({[name]: fals
 const types = ['Creature', 'Magic', 'Weapon']
 const initialTypeMap = Object.assign({}, ...types.map(name => ({[name]: false})))
 
-const Collection: FablePage = ({ isHydrated }) => {
+const Editor: FablePage = ({ isHydrated }) => {
 
   const { address } = useAccount()
   const [ selectedCard, setSelectedCard ] = useState<Card|null>(null)
   const [ searchInput, setSearchInput ] = useState('')
   const [ effectMap, setEffectMap ] = useState(initialEffectMap)
   const [ typeMap, setTypeMap ] = useState(initialTypeMap)
-  const [ deckName, setDeckName ] = useState('')
-
+  const [ deckName, setDeckName ] = useState('') //todo @eviterin: start using Deck type in types.ts 
+  const [ deck, setDeck ] = useState<Card[]>([]); //todo @eviterin: start using Deck type in types.ts 
 
   const cardName = selectedCard?.lore.name || "Hover a card"
   const cardFlavor = selectedCard?.lore.flavor || "Hover a card to see its details"
@@ -63,8 +64,6 @@ const Collection: FablePage = ({ isHydrated }) => {
       && activeTypes.every(type => cardTypes.includes(type))
       && card.lore.name.toLowerCase().includes(searchInput.toLowerCase())
   })
-
-  const [deck, setDeck] = useState<Card[]>([]);
 
   const addToDeck = (card: Card) => {
     setDeck(prevDeck => {
@@ -107,9 +106,17 @@ const Collection: FablePage = ({ isHydrated }) => {
       return; // Prevent further actions
     }
     setIsDeckNameValid(true);
-    console.log("Saving deck:", deckName);
-    // todo @eviterin: Add logic to actually save the deck
+  
+    // Create a new deck object
+    const newDeck = { name: deckName, cards: deck };
+  
+    // Update the decks state to include the new deck
+    setDecks(prevDecks => [...prevDecks, newDeck]);
+  
+    // Redirect to the collections page
+    router.push('/collection');
   };
+  
   const handleInputChange = useMemo(() => debounce(handleInputChangeBouncy, 300), [])
 
   const handleEffectClick = (effectIndex: number) => {
@@ -246,12 +253,12 @@ const Collection: FablePage = ({ isHydrated }) => {
                   >
                     X
                   </button>
+
                   <button 
                     onClick={handleSave}
-                    className="flex-shrink-2 flex items-center justify-center w-10 h-10 text-white bg-green-500 hover:bg-green-600 rounded-r-md"
-                  >
-                    ✓
-                  </button>
+                    className="flex-shrink-2 flex items-center justify-center w-10 h-10 text-white bg-green-500 hover:bg-green-600 rounded-r-md">
+                      ✓
+                    </button>
                 </div>
 
 
@@ -279,4 +286,4 @@ const Collection: FablePage = ({ isHydrated }) => {
   )
 }
 
-export default Collection
+export default Editor

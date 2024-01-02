@@ -9,7 +9,7 @@ import { NextPage } from "next"
 import type { AppType } from "next/app"
 import Head from "next/head"
 import { useAccount, WagmiConfig } from "wagmi"
-
+import { useState } from "react"
 import { ensureLocalAccountIndex, wagmiConfig } from "src/chain"
 import jotaiDebug from "src/components/lib/jotaiDebug"
 import { GlobalErrorModal } from "src/components/modals/globalErrorModal"
@@ -31,6 +31,7 @@ export type FablePage = NextPage<{ isHydrated: boolean }>
 // =================================================================================================
 
 const MyApp: AppType = ({ Component, pageProps }) => {
+
   return (
     <>
       <Head>
@@ -67,6 +68,59 @@ const ComponentWrapper = ({
   const isHydrated = useIsHydrated()
   const errorConfig = useErrorConfig()
 
+    // todo @eviterin: would be good to have something in read.ts that allows me to fetch all decks by address
+    const testCards = [
+      {
+        id: BigInt(57),
+        lore: {
+          name: "Fire Fighter",
+          flavor: "",
+          URL: ""
+        },
+        stats: {
+          attack: 2,
+          defense: 2
+        },
+        cardTypeID: 57
+      },
+      {
+        id: BigInt(31),
+        lore: {
+          name: "Wise Elf",
+          flavor: "",
+          URL: ""
+        },
+        stats: {
+          attack: 1,
+          defense: 3
+        },
+        cardTypeID: 31
+      },
+      {
+        id: BigInt(38),
+        lore: {
+          name: "Grave Digger",
+          flavor: "",
+          URL: ""
+        },
+        stats: {
+          attack: 2,
+          defense: 3
+        },
+        cardTypeID: 38
+      }
+    ];
+    const [decks, setDecks] = useState([
+      {
+        name: "Mystical Creatures",
+        cards: testCards // Assuming 'cards' contains the array of card objects
+      },
+      {
+        name: "Empty Deck",
+        cards: [] // An empty deck for testing
+      }
+    ]);
+
   if (process.env.NODE_ENV === "development") { // constant
     // eslint-disable-next-line react-hooks/rules-of-hooks
     const router = useRouter()
@@ -87,7 +141,7 @@ const ComponentWrapper = ({
   }
 
   return <>
-    <Component { ...pageProps } isHydrated={isHydrated} />
+    <Component { ...pageProps } isHydrated={isHydrated} decks={decks}/>
     {/* Global error modal for errors that don't have obvious in-flow resolutions. */}
     {isHydrated && errorConfig && <GlobalErrorModal config={errorConfig} />}
   </>
