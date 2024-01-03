@@ -15,6 +15,7 @@ import { Card } from "src/store/types"
 import { Address } from "src/chain"
 import { FablePage } from "src/pages/_app"
 import { router } from 'next/router';
+import { useEffect} from 'react';
 
 // NOTE(norswap & geniusgarlic): Just an example, when the game actually has effects & types,
 //   fetch those from the chain instead of hardcoding them here.
@@ -28,7 +29,6 @@ const types = ['Creature', 'Magic', 'Weapon']
 const initialTypeMap = Object.assign({}, ...types.map(name => ({[name]: false})))
 
 const Editor: FablePage = ({ decks, setDecks, isHydrated }) => {
-
   const { address } = useAccount()
   const [ selectedCard, setSelectedCard ] = useState<Card|null>(null)
   const [ searchInput, setSearchInput ] = useState('')
@@ -36,6 +36,8 @@ const Editor: FablePage = ({ decks, setDecks, isHydrated }) => {
   const [ typeMap, setTypeMap ] = useState(initialTypeMap)
   const [ deckName, setDeckName ] = useState('') //todo @eviterin: start using Deck type in types.ts 
   const [ deck, setDeck ] = useState<Card[]>([]); //todo @eviterin: start using Deck type in types.ts 
+
+  
 
   const cardName = selectedCard?.lore.name || "Hover a card"
   const cardFlavor = selectedCard?.lore.flavor || "Hover a card to see its details"
@@ -73,11 +75,20 @@ const Editor: FablePage = ({ decks, setDecks, isHydrated }) => {
         return prevDeck.filter(cardInDeck => cardInDeck.id !== card.id);
       } else {
         // Add the card to the deck
-        console.log(card);
+        console.log("adding: ", card);
         return [...prevDeck, card];
       }
     });
   };
+
+  // Check url for an index, which is passed if the user wants to modify an existing deck
+  // Now useEffect can safely use `addToDeck`
+  useEffect(() => {
+    const deckIndex = parseInt(router.query.index);
+    if (!isNaN(deckIndex) && decks[deckIndex] != null) {
+      setDeck(decks[deckIndex].cards);
+    }
+  }, [router.query.index, decks]);
 
   const isCardInDeck = (cardToCheck: Card) => {
     return deck.some(cardInDeck => cardInDeck.id === cardToCheck.id);

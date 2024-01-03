@@ -68,9 +68,10 @@ const ComponentWrapper = ({
   const isHydrated = useIsHydrated()
   const errorConfig = useErrorConfig()
 
-    // todo @eviterin: would be good to have something in read.ts that allows me to fetch all decks by address
+    // todo @eviterin: i've understood it so that decks are stored on chain. thus, below part is not going to be needed.
     const testCards = [];
     const [decks, setDecks] = useState([]);
+    //
 
   if (process.env.NODE_ENV === "development") { // constant
     // eslint-disable-next-line react-hooks/rules-of-hooks
