@@ -29,11 +29,6 @@ that the game creator will be one of the two players.
       - TODO: This is not good, should be within his own thing. 
 - Once both `drawInitialHand` have been received, the game starts.
 
-<<<<<<< HEAD
-=======
-![New Game Activity Diagram](assets/NewGame.png)
-
->>>>>>> DiagramUpdate
 Note that it isn't possible to concede until the game starts, nor is it possible to cancel the game
 after all `joinGame` transactions have been received. This needs to be fixed, as a non-joiner
 can lock other players in place for 8 minutes right now.
