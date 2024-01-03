@@ -13,7 +13,7 @@ interface BaseCardProps {
   placement: CardPlacement
 }
 
-const BaseCard: React.FC<BaseCardProps> = ({
+const CardContainer: React.FC<BaseCardProps> = ({
   id,
   handHovered,
   placement,
@@ -66,4 +66,4 @@ const BaseCard: React.FC<BaseCardProps> = ({
   )
 }
 
-export default BaseCard
+export default CardContainer
