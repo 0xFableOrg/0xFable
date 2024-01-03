@@ -6,11 +6,11 @@ import {
   useSortable,
 } from "@dnd-kit/sortable"
 import { CardPlacement } from "src/store/types"
-import BaseCard from "./cards/baseCard"
+import CardContainer from "./cards/cardContainer"
 
 interface PlayerBoardProps {
-  playerAddress: `0x${string}`|undefined|null
-  playedCards: readonly bigint[]|null
+  playerAddress: `0x${string}` | undefined | null
+  playedCards: readonly bigint[] | null
 }
 
 const PlayerBoard: React.FC<PlayerBoardProps> = ({
@@ -57,7 +57,11 @@ const PlayerBoard: React.FC<PlayerBoardProps> = ({
             strategy={horizontalListSortingStrategy}
           >
             {playedCardNumberIds?.map((card) => (
-              <BaseCard key={card} id={card} placement={CardPlacement.BOARD} />
+              <CardContainer
+                key={card}
+                id={card}
+                placement={CardPlacement.BOARD}
+              />
             ))}
           </SortableContext>
         </div>
