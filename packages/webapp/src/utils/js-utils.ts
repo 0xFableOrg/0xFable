@@ -205,19 +205,26 @@ export const extractCardID = (idString: string) => {
 
 // =================================================================================================
 
-/** Checks for bigint values that are within the limits of the Number type and returns them in an array.  */
-export const filterAndConvertBigInts = (
-  bigintArray: readonly bigint[]|null|undefined
-): number[] => {
-  if (bigintArray)
-    return bigintArray
-      .filter(
-        (bi) =>
-          bi >= BigInt(Number.MIN_SAFE_INTEGER) &&
-          bi <= BigInt(Number.MAX_SAFE_INTEGER)
-      ) 
-      .map((bi) => Number(bi)) 
-  else return []
-}
+// =================================================================================================
+
+/** Converts a string to a number if within the JavaScript safe integer range. */
+export const convertStringToSafeNumber = (str: string): number => {
+  const num = BigInt(str);
+  if (num >= BigInt(Number.MIN_SAFE_INTEGER) && num <= BigInt(Number.MAX_SAFE_INTEGER)) {
+    return Number(num);
+  }
+  return 0;
+};
+
+
+
+// =================================================================================================
+
+/** Converts an array of bigints to their string representations, returns an empty array if input is null. */
+export const convertBigIntArrayToStringArray = (
+  cardsList: readonly bigint[] | null
+): string[] => {
+  return cardsList?.map(bigIntValue => bigIntValue.toString()) || [];
+};
 
 // =================================================================================================
