@@ -5,9 +5,10 @@ import DraggedCard from "./draggedCard"
 import BoardCard from "./boardCard"
 import HandCard from "./handCard"
 import { CSS } from "@dnd-kit/utilities"
+import { convertStringToSafeNumber } from "src/utils/js-utils"
 
 interface BaseCardProps {
-  id: number
+  id: string
   className?: string
   handHovered?: boolean
   placement: CardPlacement
@@ -34,21 +35,23 @@ const CardContainer: React.FC<BaseCardProps> = ({
     transition,
   }
 
+  const idAsNum = convertStringToSafeNumber(id); // to refer to cards in JSON file
+
   const renderCardContent = () => {
     switch (placement) {
       case CardPlacement.HAND:
         return (
           <HandCard
-            id={id as number}
+            id={idAsNum}
             handHovered={handHovered}
             isDragging={isDragging}
             ref={setNodeRef}
           />
         )
       case CardPlacement.BOARD:
-        return <BoardCard id={id} ref={setNodeRef} />
+        return <BoardCard id={idAsNum} ref={setNodeRef} />
       case CardPlacement.DRAGGED:
-        return <DraggedCard id={id} ref={setNodeRef} />
+        return <DraggedCard id={idAsNum} ref={setNodeRef} />
       default:
         return null
     }

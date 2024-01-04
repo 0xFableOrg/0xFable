@@ -1,5 +1,5 @@
 import * as store from "src/store/hooks"
-import { filterAndConvertBigInts, shortenAddress } from "src/utils/js-utils"
+import { convertBigIntArrayToStringArray, shortenAddress } from "src/utils/js-utils"
 import {
   horizontalListSortingStrategy,
   SortableContext,
@@ -21,11 +21,10 @@ const PlayerBoard: React.FC<PlayerBoardProps> = ({
     id: CardPlacement.BOARD,
   })
 
-  const playedCardNumberIds = filterAndConvertBigInts(playedCards)
 
   const currentPlayerAddress = store.usePlayerAddress()
   const playerActive = isOver && playerAddress === currentPlayerAddress
-
+  const convertedCards = convertBigIntArrayToStringArray(playedCards)
   return (
     <div
       className={`relative row-span-6 rounded-xl bg-base-300 shadow-inner overflow-hidden ${
@@ -53,13 +52,13 @@ const PlayerBoard: React.FC<PlayerBoardProps> = ({
           }`}
         >
           <SortableContext
-            items={playedCardNumberIds}
+            items={convertedCards}
             strategy={horizontalListSortingStrategy}
           >
-            {playedCardNumberIds?.map((card) => (
+            {convertedCards?.map((card) => (
               <CardContainer
                 key={card}
-                id={card}
+                id={card.toString()}
                 placement={CardPlacement.BOARD}
               />
             ))}
