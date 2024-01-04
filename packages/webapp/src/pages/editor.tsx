@@ -83,10 +83,10 @@ const Editor: FablePage = ({ decks, setDecks, isHydrated }) => {
   useEffect(() => {
     const deckIndex = parseInt(router.query.index);
     if (!isNaN(deckIndex) && decks[deckIndex] != null) {
+      console.log("Loaded Deck:", decks[deckIndex]);
       const selectedDeck = decks[deckIndex];
       setDeckName(selectedDeck.name);
-      // Initialize the deck by simulating adding each card
-      selectedDeck.cards.forEach(card => addToDeck(card, true));
+      setDeck(selectedDeck.cards); // Directly set the deck with the loaded cards
     }
   }, [router.query.index, decks]);
 
@@ -118,12 +118,22 @@ const Editor: FablePage = ({ decks, setDecks, isHydrated }) => {
     }
     setIsDeckNameValid(true);
   
-    // Create a new deck object
-    const newDeck = { name: deckName, cards: deck };
-  
-    // Update the decks state to include the new deck
-    setDecks(prevDecks => [...prevDecks, newDeck]);
-  
+    // Check if a deck with the same name already exists
+    const existingDeckIndex = decks.findIndex(d => d.name === deckName);
+
+    if (existingDeckIndex !== -1) {
+      // Deck with the same name exists, replace it
+      const updatedDecks = [...decks];
+      updatedDecks[existingDeckIndex] = { name: deckName, cards: deck };
+      setDecks(updatedDecks);
+    } else {
+      // Create a new deck object
+      const newDeck = { name: deckName, cards: deck };
+    
+      // Add the new deck to the decks state
+      setDecks(prevDecks => [...prevDecks, newDeck]);
+    }
+    
     // Redirect to the collections page
     router.push('/collection');
   };
