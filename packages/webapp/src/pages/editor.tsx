@@ -37,8 +37,6 @@ const Editor: FablePage = ({ decks, setDecks, isHydrated }) => {
   const [ deckName, setDeckName ] = useState('') //todo @eviterin: start using Deck type in types.ts 
   const [ deck, setDeck ] = useState<Card[]>([]); //todo @eviterin: start using Deck type in types.ts 
 
-  
-
   const cardName = selectedCard?.lore.name || "Hover a card"
   const cardFlavor = selectedCard?.lore.flavor || "Hover a card to see its details"
 
@@ -87,6 +85,7 @@ const Editor: FablePage = ({ decks, setDecks, isHydrated }) => {
     const deckIndex = parseInt(router.query.index);
     if (!isNaN(deckIndex) && decks[deckIndex] != null) {
       setDeck(decks[deckIndex].cards);
+      setDeckName(decks[deckIndex].name);
     }
   }, [router.query.index, decks]);
 

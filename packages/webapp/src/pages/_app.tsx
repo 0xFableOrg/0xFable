@@ -70,7 +70,7 @@ const ComponentWrapper = ({
 
     // todo @eviterin: i've understood it so that decks are stored on chain. thus, below part is not going to be needed.
     const testCards = [];
-    const [decks, setDecks] = useState([]);
+    const [decks, setDecks] = useState<Deck[]>([]);
     //
 
   if (process.env.NODE_ENV === "development") { // constant
