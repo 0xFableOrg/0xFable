@@ -248,31 +248,22 @@ const Editor: FablePage = ({ decks, setDecks, isHydrated }) => {
 
           {/* Deck Panel */}
           <div className="col-span-2 flex rounded-xl border overflow-y-auto">
-              {/* name, discard and save */}
-              <div className="w-full p-3">
-                <div className="flex items-center">
-                  <input 
-                    type="text"
-                    placeholder="Deck name"
-                    value={deckName}
-                    onChange={handleDeckNameChange}
-                    className={`flex-grow px-1 py-2 border ${isDeckNameValid ? 'rounded-l-md' : 'border-red-500 rounded-l-md'} text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
-                  />
-                  <button 
-                    onClick={handleDiscard}
-                    className="flex-shrink-2 flex items-center justify-center w-10 h-10 text-white bg-gray-500 hover:bg-gray-600 rounded-l-none rounded-r-md"
-                  >
-                    X
+            {/* name and save */}
+            <div className="w-full p-3">
+              <div className="flex items-center">
+                <input 
+                  type="text"
+                  placeholder="Deck name"
+                  value={deckName}
+                  onChange={handleDeckNameChange}
+                  className={`flex-grow px-1 py-2 border ${isDeckNameValid ? 'rounded-l-md' : 'border-red-500 rounded-l-md'} text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+                />
+                <button 
+                  onClick={handleSave}
+                  className="flex-shrink-0 flex items-center justify-center w-10 h-10 text-white bg-green-500 hover:bg-green-600 rounded-r-md">
+                    ✓
                   </button>
-
-                  <button 
-                    onClick={handleSave}
-                    className="flex-shrink-2 flex items-center justify-center w-10 h-10 text-white bg-green-500 hover:bg-green-600 rounded-r-md">
-                      ✓
-                    </button>
-                </div>
-
-
+              </div>
               {/* Container for the Cards */}
               <div className="flex flex-col items-center justify-center pt-3">
                 {deck.map((card, index) => (
