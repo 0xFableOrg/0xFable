@@ -73,7 +73,6 @@ const Editor: FablePage = ({ decks, setDecks, isHydrated }) => {
         return prevDeck.filter(cardInDeck => cardInDeck.id !== card.id);
       } else {
         // Add the card to the deck
-        console.log("adding: ", card);
         return [...prevDeck, card];
       }
     });
@@ -84,8 +83,10 @@ const Editor: FablePage = ({ decks, setDecks, isHydrated }) => {
   useEffect(() => {
     const deckIndex = parseInt(router.query.index);
     if (!isNaN(deckIndex) && decks[deckIndex] != null) {
-      setDeck(decks[deckIndex].cards);
-      setDeckName(decks[deckIndex].name);
+      const selectedDeck = decks[deckIndex];
+      setDeckName(selectedDeck.name);
+      // Initialize the deck by simulating adding each card
+      selectedDeck.cards.forEach(card => addToDeck(card, true));
     }
   }, [router.query.index, decks]);
 
@@ -147,6 +148,14 @@ const Editor: FablePage = ({ decks, setDecks, isHydrated }) => {
       <style jsx>{`
         .card-in-deck {
           box-shadow: 0 0 10px orange; 
+        }
+
+        .card-name-container {
+          width: 100%; /* Full width */
+          background-color: #333; /* Darker shade of grey */
+          margin-bottom: 8px; /* Spacing between items */
+          padding: 10px 0; /* Vertical padding */
+          border-radius: 5px; /* Rounded corners */
         }
       `}</style>
       {jotaiDebug()}
@@ -249,33 +258,33 @@ const Editor: FablePage = ({ decks, setDecks, isHydrated }) => {
           <div className="col-span-2 flex rounded-xl border overflow-y-auto">
             {/* name and save */}
             <div className="w-full p-3">
-              <div className="flex items-center">
-                <input 
-                  type="text"
-                  placeholder="Deck name"
-                  value={deckName}
-                  onChange={handleDeckNameChange}
-                  className={`flex-grow px-1 py-2 border ${isDeckNameValid ? 'rounded-l-md' : 'border-red-500 rounded-l-md'} text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
-                />
-                <button 
-                  onClick={handleSave}
-                  className="flex-shrink-0 flex items-center justify-center w-10 h-10 text-white bg-green-500 hover:bg-green-600 rounded-r-md">
-                    ✓
+              <div style={{ marginBottom: '20px' }}>
+                <div className="flex items-center">
+                  <input 
+                    type="text"
+                    placeholder="Deck name"
+                    value={deckName}
+                    onChange={handleDeckNameChange}
+                    className={`flex-grow px-1 py-1 border ${isDeckNameValid ? 'rounded-l-md' : 'border-red-500 rounded-l-md'} text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+                  />
+                  <button 
+                    onClick={handleSave}
+                    className="flex-shrink-0 flex items-center justify-center w-10 h-10 text-white bg-green-500 hover:bg-green-600 rounded-r-md">
+                      ✓
                   </button>
+                </div>
               </div>
-              {/* Container for the Cards */}
-              <div className="flex flex-col items-center justify-center pt-3">
+   
+              {/* Container for the Card Names */}
+              <div className="flex flex-col w-full">
                 {deck.map((card, index) => (
                   <div 
                     key={index} // Using index as key since cards can be duplicated
-                    className="mb-4 bg-slate-900/50 hover:bg-slate-800 rounded-lg p-4 border-4 border-slate-900"
+                    className="card-name-container"
                     onClick={() => removeFromDeck(index)}
-                    onMouseEnter={() => setSelectedCard(card)}> 
-                  
-                    {/* Card Content */}
-                    <Image src="/card_art/0.jpg" alt={card.lore.name} width={256} height={256} />
-                    <div className="text-center">{card.lore.name}</div>
-                    {/* ... other card details ... */}
+                    onMouseEnter={() => setSelectedCard(card)}
+                  > 
+                    <div className="text-center text-white">{card.lore.name}</div>
                   </div>
                 ))}
               </div>
