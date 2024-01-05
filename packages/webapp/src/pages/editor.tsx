@@ -34,10 +34,9 @@ const Editor: FablePage = ({ decks, setDecks, isHydrated }) => {
   const [ searchInput, setSearchInput ] = useState('')
   const [ effectMap, setEffectMap ] = useState(initialEffectMap)
   const [ typeMap, setTypeMap ] = useState(initialTypeMap)
-  const [ deckName, setDeckName ] = useState('') //todo @eviterin: start using Deck type in types.ts 
-  const [ deck, setDeck ] = useState<Card[]>([]); //todo @eviterin: start using Deck type in types.ts 
-
-  
+  const [ deckName, setDeckName ] = useState('') 
+  const [ deck, setDeck ] = useState<Card[]>([]); 
+  const [ originalDeckIndex, setOriginalDeckIndex ] = useState(null);
 
   const cardName = selectedCard?.lore.name || "Hover a card"
   const cardFlavor = selectedCard?.lore.flavor || "Hover a card to see its details"
@@ -45,7 +44,7 @@ const Editor: FablePage = ({ decks, setDecks, isHydrated }) => {
   const activeEffects = Object.keys(effectMap).filter(key => effectMap[key])
   const activeTypes = Object.keys(typeMap).filter(key => typeMap[key])
 
-  const [isDeckNameValid, setIsDeckNameValid] = useState(true);
+  const [isDeckValid, setIsDeckValid] = useState(true);
 
   const { data: unfilteredCards, refetch } = useInventoryCardsCollectionGetCollection({
     address: deployment.InventoryCardsCollection,
@@ -75,7 +74,6 @@ const Editor: FablePage = ({ decks, setDecks, isHydrated }) => {
         return prevDeck.filter(cardInDeck => cardInDeck.id !== card.id);
       } else {
         // Add the card to the deck
-        console.log("adding: ", card);
         return [...prevDeck, card];
       }
     });
@@ -86,7 +84,12 @@ const Editor: FablePage = ({ decks, setDecks, isHydrated }) => {
   useEffect(() => {
     const deckIndex = parseInt(router.query.index);
     if (!isNaN(deckIndex) && decks[deckIndex] != null) {
-      setDeck(decks[deckIndex].cards);
+      setOriginalDeckIndex(deckIndex); // Store the original index
+      const selectedDeck = decks[deckIndex];
+      setDeckName(selectedDeck.name);
+      setDeck(selectedDeck.cards);
+    } else {
+      setOriginalDeckIndex(null); // Reset if not editing an existing deck
     }
   }, [router.query.index, decks]);
 
@@ -106,24 +109,39 @@ const Editor: FablePage = ({ decks, setDecks, isHydrated }) => {
     setDeckName(event.target.value); // Update deck name state
   }
 
-  const handleDiscard = () => {
-    setDeck([]); // Clear all cards from the deck
+  const handleCancel = () => {
+    router.push('/collection');
   };
 
   const handleSave = () => {
-    if (!deckName.trim()) {
-      // Deck name is empty or only whitespace
-      setIsDeckNameValid(false);
-      return; // Prevent further actions
+    // Check if deck name is empty OR if the deck doesn't have any cards
+    if (!deckName.trim() || deck.length === 0) {
+      setIsDeckValid(false);
+      return;
     }
-    setIsDeckNameValid(true);
+
+    setIsDeckValid(true);
   
-    // Create a new deck object
-    const newDeck = { name: deckName, cards: deck };
+    let updatedDecks = [...decks];
   
-    // Update the decks state to include the new deck
-    setDecks(prevDecks => [...prevDecks, newDeck]);
+    // Check if editing an existing deck and the name has changed
+    if (originalDeckIndex !== null && decks[originalDeckIndex].name !== deckName) {
+      // Remove the old deck
+      updatedDecks.splice(originalDeckIndex, 1);
+    }
   
+    // Find if a deck with the new name already exists
+    const existingDeckIndex = updatedDecks.findIndex(d => d.name === deckName);
+  
+    if (existingDeckIndex !== -1) {
+      // Replace existing deck with the new name
+      updatedDecks[existingDeckIndex] = { name: deckName, cards: deck };
+    } else {
+      // Add as a new deck
+      updatedDecks.push({ name: deckName, cards: deck });
+    }
+  
+    setDecks(updatedDecks);
     // Redirect to the collections page
     router.push('/collection');
   };
@@ -148,6 +166,14 @@ const Editor: FablePage = ({ decks, setDecks, isHydrated }) => {
       <style jsx>{`
         .card-in-deck {
           box-shadow: 0 0 10px orange; 
+        }
+
+        .card-name-container {
+          width: 100%; /* Full width */
+          background-color: #333; /* Darker shade of grey */
+          margin-bottom: 8px; /* Spacing between items */
+          padding: 10px 0; /* Vertical padding */
+          border-radius: 5px; /* Rounded corners */
         }
       `}</style>
       {jotaiDebug()}
@@ -248,44 +274,41 @@ const Editor: FablePage = ({ decks, setDecks, isHydrated }) => {
 
           {/* Deck Panel */}
           <div className="col-span-2 flex rounded-xl border overflow-y-auto">
-              {/* name, discard and save */}
-              <div className="w-full p-3">
+            {/* name and save */}
+            <div className="w-full p-3">
+              <div style={{ marginBottom: '20px' }}>
                 <div className="flex items-center">
                   <input 
                     type="text"
                     placeholder="Deck name"
                     value={deckName}
                     onChange={handleDeckNameChange}
-                    className={`flex-grow px-1 py-2 border ${isDeckNameValid ? 'rounded-l-md' : 'border-red-500 rounded-l-md'} text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+                    className={`flex-grow h-10 px-1 py-1 border ${isDeckValid ? 'rounded-l-md' : 'border-red-500 rounded-l-md'} text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
                   />
                   <button 
-                    onClick={handleDiscard}
-                    className="flex-shrink-2 flex items-center justify-center w-10 h-10 text-white bg-gray-500 hover:bg-gray-600 rounded-l-none rounded-r-md"
-                  >
-                    X
+                    onClick={handleSave}
+                    className="flex-shrink-0 flex items-center justify-center w-10 h-10 text-white bg-green-500 hover:bg-green-600">
+                      ✓
                   </button>
 
                   <button 
-                    onClick={handleSave}
-                    className="flex-shrink-2 flex items-center justify-center w-10 h-10 text-white bg-green-500 hover:bg-green-600 rounded-r-md">
-                      ✓
-                    </button>
+                    onClick={handleCancel}
+                    className="flex-shrink-0 flex items-center justify-center w-10 h-10 text-white bg-red-500 hover:bg-green-600">
+                      X
+                  </button>
                 </div>
-
-
-              {/* Container for the Cards */}
-              <div className="flex flex-col items-center justify-center pt-3">
+              </div>
+   
+              {/* Container for the Card Names */}
+              <div className="flex flex-col w-full">
                 {deck.map((card, index) => (
                   <div 
                     key={index} // Using index as key since cards can be duplicated
-                    className="mb-4 bg-slate-900/50 hover:bg-slate-800 rounded-lg p-4 border-4 border-slate-900"
+                    className="card-name-container"
                     onClick={() => removeFromDeck(index)}
-                    onMouseEnter={() => setSelectedCard(card)}> 
-                  
-                    {/* Card Content */}
-                    <Image src="/card_art/0.jpg" alt={card.lore.name} width={256} height={256} />
-                    <div className="text-center">{card.lore.name}</div>
-                    {/* ... other card details ... */}
+                    onMouseEnter={() => setSelectedCard(card)}
+                  > 
+                    <div className="text-center text-white">{card.lore.name}</div>
                   </div>
                 ))}
               </div>
