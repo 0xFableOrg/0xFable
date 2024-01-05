@@ -34,8 +34,9 @@ const Editor: FablePage = ({ decks, setDecks, isHydrated }) => {
   const [ searchInput, setSearchInput ] = useState('')
   const [ effectMap, setEffectMap ] = useState(initialEffectMap)
   const [ typeMap, setTypeMap ] = useState(initialTypeMap)
-  const [ deckName, setDeckName ] = useState('') //todo @eviterin: start using Deck type in types.ts 
-  const [ deck, setDeck ] = useState<Card[]>([]); //todo @eviterin: start using Deck type in types.ts 
+  const [ deckName, setDeckName ] = useState('') 
+  const [ deck, setDeck ] = useState<Card[]>([]); 
+  const [ originalDeckIndex, setOriginalDeckIndex ] = useState(null);
 
   const cardName = selectedCard?.lore.name || "Hover a card"
   const cardFlavor = selectedCard?.lore.flavor || "Hover a card to see its details"
@@ -83,10 +84,12 @@ const Editor: FablePage = ({ decks, setDecks, isHydrated }) => {
   useEffect(() => {
     const deckIndex = parseInt(router.query.index);
     if (!isNaN(deckIndex) && decks[deckIndex] != null) {
-      console.log("Loaded Deck:", decks[deckIndex]);
+      setOriginalDeckIndex(deckIndex); // Store the original index
       const selectedDeck = decks[deckIndex];
       setDeckName(selectedDeck.name);
-      setDeck(selectedDeck.cards); // Directly set the deck with the loaded cards
+      setDeck(selectedDeck.cards);
+    } else {
+      setOriginalDeckIndex(null); // Reset if not editing an existing deck
     }
   }, [router.query.index, decks]);
 
@@ -112,28 +115,31 @@ const Editor: FablePage = ({ decks, setDecks, isHydrated }) => {
 
   const handleSave = () => {
     if (!deckName.trim()) {
-      // Deck name is empty or only whitespace
       setIsDeckNameValid(false);
-      return; // Prevent further actions
+      return;
     }
     setIsDeckNameValid(true);
   
-    // Check if a deck with the same name already exists
-    const existingDeckIndex = decks.findIndex(d => d.name === deckName);
-
-    if (existingDeckIndex !== -1) {
-      // Deck with the same name exists, replace it
-      const updatedDecks = [...decks];
-      updatedDecks[existingDeckIndex] = { name: deckName, cards: deck };
-      setDecks(updatedDecks);
-    } else {
-      // Create a new deck object
-      const newDeck = { name: deckName, cards: deck };
-    
-      // Add the new deck to the decks state
-      setDecks(prevDecks => [...prevDecks, newDeck]);
+    let updatedDecks = [...decks];
+  
+    // Check if editing an existing deck and the name has changed
+    if (originalDeckIndex !== null && decks[originalDeckIndex].name !== deckName) {
+      // Remove the old deck
+      updatedDecks.splice(originalDeckIndex, 1);
     }
-    
+  
+    // Find if a deck with the new name already exists
+    const existingDeckIndex = updatedDecks.findIndex(d => d.name === deckName);
+  
+    if (existingDeckIndex !== -1) {
+      // Replace existing deck with the new name
+      updatedDecks[existingDeckIndex] = { name: deckName, cards: deck };
+    } else {
+      // Add as a new deck
+      updatedDecks.push({ name: deckName, cards: deck });
+    }
+  
+    setDecks(updatedDecks);
     // Redirect to the collections page
     router.push('/collection');
   };
