@@ -44,7 +44,7 @@ const Editor: FablePage = ({ decks, setDecks, isHydrated }) => {
   const activeEffects = Object.keys(effectMap).filter(key => effectMap[key])
   const activeTypes = Object.keys(typeMap).filter(key => typeMap[key])
 
-  const [isDeckNameValid, setIsDeckNameValid] = useState(true);
+  const [isDeckValid, setIsDeckValid] = useState(true);
 
   const { data: unfilteredCards, refetch } = useInventoryCardsCollectionGetCollection({
     address: deployment.InventoryCardsCollection,
@@ -114,11 +114,13 @@ const Editor: FablePage = ({ decks, setDecks, isHydrated }) => {
   };
 
   const handleSave = () => {
-    if (!deckName.trim()) {
-      setIsDeckNameValid(false);
+    // Check if deck name is empty OR if the deck doesn't have any cards
+    if (!deckName.trim() || deck.length === 0) {
+      setIsDeckValid(false);
       return;
     }
-    setIsDeckNameValid(true);
+
+    setIsDeckValid(true);
   
     let updatedDecks = [...decks];
   
@@ -281,7 +283,7 @@ const Editor: FablePage = ({ decks, setDecks, isHydrated }) => {
                     placeholder="Deck name"
                     value={deckName}
                     onChange={handleDeckNameChange}
-                    className={`flex-grow h-10 px-1 py-1 border ${isDeckNameValid ? 'rounded-l-md' : 'border-red-500 rounded-l-md'} text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+                    className={`flex-grow h-10 px-1 py-1 border ${isDeckValid ? 'rounded-l-md' : 'border-red-500 rounded-l-md'} text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
                   />
                   <button 
                     onClick={handleSave}
