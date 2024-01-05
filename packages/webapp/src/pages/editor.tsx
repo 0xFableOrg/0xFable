@@ -109,8 +109,8 @@ const Editor: FablePage = ({ decks, setDecks, isHydrated }) => {
     setDeckName(event.target.value); // Update deck name state
   }
 
-  const handleDiscard = () => {
-    setDeck([]); // Clear all cards from the deck
+  const handleCancel = () => {
+    router.push('/collection');
   };
 
   const handleSave = () => {
@@ -281,12 +281,18 @@ const Editor: FablePage = ({ decks, setDecks, isHydrated }) => {
                     placeholder="Deck name"
                     value={deckName}
                     onChange={handleDeckNameChange}
-                    className={`flex-grow px-1 py-1 border ${isDeckNameValid ? 'rounded-l-md' : 'border-red-500 rounded-l-md'} text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+                    className={`flex-grow h-10 px-1 py-1 border ${isDeckNameValid ? 'rounded-l-md' : 'border-red-500 rounded-l-md'} text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
                   />
                   <button 
                     onClick={handleSave}
-                    className="flex-shrink-0 flex items-center justify-center w-10 h-10 text-white bg-green-500 hover:bg-green-600 rounded-r-md">
+                    className="flex-shrink-0 flex items-center justify-center w-10 h-10 text-white bg-green-500 hover:bg-green-600">
                       ✓
+                  </button>
+
+                  <button 
+                    onClick={handleCancel}
+                    className="flex-shrink-0 flex items-center justify-center w-10 h-10 text-white bg-red-500 hover:bg-green-600">
+                      X
                   </button>
                 </div>
               </div>
