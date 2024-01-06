@@ -2,7 +2,13 @@
 pragma solidity ^0.8.0;
 
 import {Inventory} from "./Inventory.sol";
-import {CardsCollection, Stats} from "./CardsCollection.sol";
+import {CardsCollection} from "./CardsCollection.sol";
+import {Constants} from "./libraries/Constants.sol";
+import {GameEventsLib as Events} from "./libraries/GameEventsLib.sol";
+import {GameErrorsLib as Errors} from "./libraries/GameErrorsLib.sol";
+import {GameInternalLib} from "./libraries/GameInternalLib.sol";
+import {GameStepLib} from "./libraries/GameStepLib.sol";
+import {GameStep, PlayerData, GameData, FetchedGameData} from "./libraries/GameStructsAndEnums.sol";
 import {Groth16Verifier as DrawVerifier} from "./verifiers/DrawVerifier.sol";
 import {Groth16Verifier as DrawHandVerifier} from "./verifiers/DrawHandVerifier.sol";
 import {Groth16Verifier as PlayVerifier} from "./verifiers/PlayVerifier.sol";
@@ -11,258 +17,7 @@ import {Groth16Verifier as PlayVerifier} from "./verifiers/PlayVerifier.sol";
 // NOTE: We try to lay the groundwork to support games with over 2 players, however they are not
 //   supported and will not work in the current state.
 contract Game {
-    // =============================================================================================
-    // ERRORS
-
-    // TODO This is an error from the inventory contract, but we need to reproduce it here
-    //      so that it is included in the ABI, which allows the frontend to parse the error.
-    //      We need to figure out a way to systematically import all errors that we may revert with
-    //      from other contracts.
-    // Using an unknown deck ID.
-    error DeckDoesNotExist(address player, uint8 deckID);
-
-    // The game doesn't exist or has already ended.
-    error NoGameNoLife();
-
-    // The game hasn't started yet (at least one player hasn't joined or drawn his initial hand).
-    error FalseStart();
-
-    // Trying to take an action when it's not your turn.
-    error WrongPlayer();
-
-    // Player is trying to take a game action but hasn't drawn his initial hand yet.
-    error PlayerHasntDrawn();
-
-    // Trying to take a game action that is not allowed right now.
-    error WrongStep();
-
-    // Trying to start a game with fewer than 2 people.
-    error YoullNeverPlayAlone();
-
-    // Trying to create a game while already being in one.
-    error OvereagerCreator();
-
-    // Game creators didn't supply the same number of decks than the number of players.
-    error WrongNumberOfDecks();
-
-    // Trying to join or decline a game that you already joined.
-    error AlreadyJoined();
-
-    // Trying to draw an initial hand again.
-    error AlreadyDrew();
-
-    // Trying to cancel a game you didn't create.
-    error OvereagerCanceller();
-
-    // Trying to join a full game (total number of players reached).
-    error GameIsFull();
-
-    // Trying to cancel or join a game where all the players have already joined.
-    // (We don't use the term "started", which we reserve for when all players have drawn their
-    // initial hand.)
-    error GameAlreadyLocked();
-
-    // Trying to do actions in a game that has already ended.
-    error GameAlreadyEnded();
-
-    // ZK proof didn't verify.
-    error WrongProof();
-
-    // Attempt to join game was rejected by the join check.
-    error NotAllowedToJoin();
-
-    // Trying to concede a game that you are not participating in.
-    error PlayerNotInGame();
-
-    // Trying to play a card whose index is invalid (bigger than card array size).
-    error CardIndexTooHigh();
-
-    // Trying to attack a player whose index is out of range, or trying to attack oneself.
-    error WrongAttackTarget();
-
-    // Signals that an attacker was specified that is not on the player's battlefield.
-    error AttackerNotOnBattlefield();
-
-    // Mismatch between the number of specified attackers and defenders.
-    error AttackerDefenderMismatch();
-
-    // Specifiying the same attacking creature multiple time.
-    error DuplicateAttacker();
-
-    // Specifiying the same defending creature multiple time.
-    error DuplicateDefender();
-
-    // Specifying a defender with an index bigger than the number of creatures on the battlefield.
-    error DefenderIndexTooHigh(uint8 index);
-
-    // Specifying an attacker with an index bigger than the number of attacking creatures.
-    error AttackerIndexTooHigh(uint8 index);
-
-    // Signals that a defender was specified that is not on the player's battlefield.
-    error DefenderNotOnBattlefield();
-
-    // Trying to defend with an attacker (on the battlefield at the given index).
-    error DefenderAttacking(uint8 index);
-
-    // ZK proof generated is incorrect
-    error InvalidProof();
-
-    // Trying to boot a timed out player when the timeout hasn't elapsed yet.
-    error GameNotTimedOut();
-
-    // Should only revert with this error if the implementation is erroneous.
-    error ImplementationError();
-
-    // =============================================================================================
-    // EVENTS
-
-    // Replace player indexes in all of those by addresses.
-
-    // NOTE(norswap): we represented players as an address when the event can contribute to their
-    //  match stats, and as a uint8 index when these are internal game events.
-
-    // The player took to long to submit an action and lost as a consequence.
-    event PlayerTimedOut(uint256 indexed gameID, address indexed player);
-
-    // Not all players joined and drew their hands within the time limit, the game is cancelled
-    // as a consequence.
-    event MissingPlayers(uint256 indexed gameID);
-
-    // A game was created by the given creator.
-    event GameCreated(uint256 gameID, address indexed creator);
-
-    // The game was cancelled by its creator before it is started.
-    event GameCancelled(uint256 indexed gameID);
-
-    // A player joined the game.
-    event PlayerJoined(uint256 indexed gameID, address player);
-
-    // A player drew his initial hand.
-    event PlayerDrewHand(uint256 indexed gameID, address player);
-
-    // All players joined (total number of players reached).
-    // A game can be cancelled by its creator up until this point.
-    event FullHouse(uint256 indexed gameID);
-
-    // The game started (all players joined + drew their initial hands).
-    event GameStarted(uint256 indexed gameID);
-
-    // A player drew a card.
-    event CardDrawn(uint256 indexed gameID, uint8 player);
-
-    // A player played a card.
-    event CardPlayed(uint256 indexed gameID, uint8 player, uint256 card);
-
-    // The given player ended his turn.
-    event TurnEnded(uint256 indexed gameID, address player);
-
-    // A player attacked another player.
-    event PlayerAttacked(uint256 indexed gameID, address attackingPlayer, address defendingPlayer);
-
-    // A player defended against another player.
-    event PlayerDefended(uint256 indexed gameID, address attackingPlayer, address defendingPlayer);
-
-    // Someone won!
-    event Champion(uint256 indexed gameID, address indexed player);
-
-    // The player conceded the game.
-    event PlayerConceded(uint256 indexed gameID, address indexed player);
-
-    // A creature was destroyed at the given index in the attacker/defender's battlefield.
-    // The battlefield index matches the battlefield before the battle (defender defending),
-    // which will not match the on-chain battlefield after the battle (because the destroyed
-    // creatures are removed).
-    event CreatureDestroyed(uint256 indexed gameID, address player, uint8 cardIndex);
-
-    // A player was defeated by an ennemy attack.
-    event PlayerDefeated(uint256 indexed gameID, address indexed player);
-
-    // =============================================================================================
-    // CONSTANTS
-
-    uint8 private constant INITIAL_HAND_SIZE = 7;
-
-    uint16 private constant STARTING_HEALTH = 20;
-
-    // Marks the absence of index inside an index array.
-    uint8 private constant NONE = 255;
-
-    // =============================================================================================
-    // TYPES
-
-    // Action that can be taken in the game.
-    enum GameStep {
-        UNINITIALIZED,
-        DRAW,
-        PLAY,
-        ATTACK,
-        DEFEND,
-        END_TURN,
-        ENDED
-    }
-
-    // Per-player game data.
-    struct PlayerData {
-        uint16 health;
-        bool defeated;
-        uint8 deckStart;
-        uint8 deckEnd;
-        uint8 handSize;
-        uint8 deckSize;
-        // The block number at which the player's joinGame transaction landed.
-        // NOTE: Since this is only used at the start of the game, it could be packed into another
-        //       uint256 value (e.g. battlefield).
-        uint256 joinBlockNum;
-        // Hash of a secret salt value that the players uses to generate the hand and deck roots.
-        uint256 saltHash;
-        // A hash of the content of the player's hand + the player's secret salt.
-        bytes32 handRoot;
-        // A hash of the content of the player's deck + the player's secret salt.
-        bytes32 deckRoot;
-        // Bitfield of cards in the player's battlefield, for each bit: 1 if the card at the same
-        // index as the bit in `GameData.cards` is on the battlefield, 0 otherwise.
-        uint256 battlefield;
-        // Bitfield of cards in the player's graveyard (same thing as `battlefield`).
-        uint256 graveyard;
-        uint8[] attacking;
-    }
-
-    // All the data for a single game instance.
-    struct GameData {
-        address gameCreator;
-        mapping(address => PlayerData) playerData;
-        address[] players;
-        // Last block number at which the game data changed, updated in player actions via the
-        // `step` modifier, as well as in createGame, joinGame, cancelGame and concedeGame.
-        uint256 lastBlockNum;
-        uint8 playersLeftToJoin;
-        uint8[] livePlayers;
-        function (uint256, address, uint8, bytes memory) external returns (bool) joinCheck;
-        uint8 currentPlayer;
-        GameStep currentStep;
-        address attackingPlayer;
-        // Array of playable cards in this game (NFT IDs) — concatenation of players' initial decks
-        // used in this game.
-        uint256[] cards;
-    }
-
-    // A read-friendly version of `GameData`, adding the gameID, flattening the player data into an
-    // arary, excluding the joinCheck predicate, as well as the cards array that never changes. Use
-    // `getCards()` to read them instead.
-    struct FetchedGameData {
-        uint256 gameID;
-        address gameCreator;
-        address[] players;
-        PlayerData[] playerData;
-        uint256 lastBlockNum;
-        uint256 publicRandomness;
-        uint8 playersLeftToJoin;
-        uint8[] livePlayers;
-        uint8 currentPlayer;
-        GameStep currentStep;
-        address attackingPlayer;
-        uint256[] cards;
-    }
+    using GameInternalLib for GameData;
 
     // =============================================================================================
     // FIELDS
@@ -294,20 +49,12 @@ contract Game {
     DrawHandVerifier public drawHandVerifier;
 
     // =============================================================================================
-    // CONSTANTS
-
-    // The prime that bounds the field used by our proof scheme of choice.
-    // Currently, this is for Plonk.
-    uint256 private constant PROOF_CURVE_ORDER =
-        21888242871839275222246405745257275088548364400416034343698204186575808495617;
-
-    // =============================================================================================
     // MODIFIERS
 
     // Check that the game exists (has been created and is not finished).
     modifier exists(uint256 gameID) {
         if (gameData[gameID].lastBlockNum == 0) {
-            revert NoGameNoLife();
+            revert Errors.NoGameNoLife();
         }
         _;
     }
@@ -330,23 +77,23 @@ contract Game {
         uint8 currentPlayer = gdata.currentPlayer;
 
         if (gdata.lastBlockNum == 0) {
-            revert NoGameNoLife();
+            revert Errors.NoGameNoLife();
         }
         if (gdata.currentStep == GameStep.UNINITIALIZED) {
-            revert FalseStart();
+            revert Errors.FalseStart();
         }
         if (gdata.currentStep == GameStep.ENDED) {
-            revert GameAlreadyEnded();
+            revert Errors.GameAlreadyEnded();
         }
         if (gdata.players[gdata.currentPlayer] != msg.sender) {
-            revert WrongPlayer();
+            revert Errors.WrongPlayer();
         }
         if (noRandomCounter == 0 && block.number > 256 && gdata.lastBlockNum < block.number - 256) {
             // TODO(LATER): This is the max timeout, make shorter + implement a chess clock.
             // Action timed out: the player loses.
             address timedOutPlayer = gdata.players[gdata.currentPlayer];
-            emit PlayerTimedOut(gameID, timedOutPlayer);
-            playerDefeated(gameID, timedOutPlayer);
+            emit Events.PlayerTimedOut(gameID, timedOutPlayer);
+            gdata.playerDefeated(gameID, inGame, timedOutPlayer);
             return;
         }
 
@@ -360,14 +107,14 @@ contract Game {
         if (gdata.currentStep == GameStep.PLAY) {
             GameStep reqStep = requestedStep;
             if (reqStep != GameStep.PLAY && reqStep != GameStep.ATTACK && reqStep != GameStep.END_TURN) {
-                revert WrongStep();
+                revert Errors.WrongStep();
             }
         } else if (gdata.currentStep == GameStep.ATTACK) {
             if (requestedStep != GameStep.ATTACK && requestedStep != GameStep.END_TURN) {
-                revert WrongStep();
+                revert Errors.WrongStep();
             }
         } else if (gdata.currentStep != requestedStep) {
-            revert WrongStep();
+            revert Errors.WrongStep();
         }
 
         _;
@@ -382,31 +129,16 @@ contract Game {
                 gdata.currentStep = GameStep.ATTACK;
             } else if (requestedStep == GameStep.ATTACK) {
                 gdata.currentStep = GameStep.DEFEND;
-                gdata.currentPlayer = nextPlayer(gdata);
+                gdata.currentPlayer = gdata.nextPlayer();
             } else if (requestedStep == GameStep.DEFEND) {
                 gdata.currentStep = GameStep.DRAW; // enum wraparound
             } else if (requestedStep == GameStep.END_TURN) {
                 gdata.currentStep = GameStep.DRAW;
-                gdata.currentPlayer = nextPlayer(gdata);
+                gdata.currentPlayer = gdata.nextPlayer();
             }
         }
 
         gdata.lastBlockNum = block.number;
-    }
-
-    // ---------------------------------------------------------------------------------------------
-
-    // Returns the next player in the game (index in `gdata.players`). This relies on
-    // `gdata.currentPlayer` pointing to a player whose index is still present in
-    // `gdata.livePlayers`.
-    function nextPlayer(GameData storage gdata) internal view returns (uint8) {
-        uint8 currentPlayer = gdata.currentPlayer;
-        for (uint256 i = 0; i < gdata.livePlayers.length; ++i) {
-            if (gdata.livePlayers[i] == currentPlayer) {
-                return gdata.livePlayers[(i + 1) % gdata.livePlayers.length];
-            }
-        }
-        revert ImplementationError();
     }
 
     // =============================================================================================
@@ -443,7 +175,7 @@ contract Game {
         GameData storage gdata = gameData[gameID];
 
         if (gdata.lastBlockNum == 0) {
-            revert NoGameNoLife();
+            revert Errors.NoGameNoLife();
         }
 
         PlayerData[] memory pData = new PlayerData[](gdata.players.length);
@@ -512,13 +244,13 @@ contract Game {
                     // This is always 1!
                     return noRandomCounter;
                 }
-                return uint256(blockhash(pdata.joinBlockNum)) % PROOF_CURVE_ORDER;
+                return uint256(blockhash(pdata.joinBlockNum)) % Constants.PROOF_CURVE_ORDER;
             }
         }
         if (noRandomCounter > 0) {
             return noRandomCounter + 1;
         }
-        return uint256(blockhash(gdata.lastBlockNum)) % PROOF_CURVE_ORDER;
+        return uint256(blockhash(gdata.lastBlockNum)) % Constants.PROOF_CURVE_ORDER;
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -530,7 +262,7 @@ contract Game {
             // do not increase, first increase will be before the first card played or first draw
             return noRandomCounter;
         }
-        return uint256(blockhash(joinBlockNum)) % PROOF_CURVE_ORDER;
+        return uint256(blockhash(joinBlockNum)) % Constants.PROOF_CURVE_ORDER;
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -541,7 +273,7 @@ contract Game {
         if (noRandomCounter > 0) {
             return ++noRandomCounter;
         }
-        return uint256(blockhash(lastBlockNum)) % PROOF_CURVE_ORDER;
+        return uint256(blockhash(lastBlockNum)) % Constants.PROOF_CURVE_ORDER;
     }
     // ---------------------------------------------------------------------------------------------
 
@@ -595,11 +327,11 @@ contract Game {
         }
 
         if (inGame[msg.sender] != 0) {
-            revert OvereagerCreator();
+            revert Errors.OvereagerCreator();
         }
 
         if (numberOfPlayers < 2) {
-            revert YoullNeverPlayAlone();
+            revert Errors.YoullNeverPlayAlone();
         }
 
         GameData storage gdata = gameData[gameID];
@@ -615,42 +347,7 @@ contract Game {
         // `gdata.currentPlayer` is initialized when the game is started. This needs to happen in
         // another block so that the blockhash of this block can be used as randomness.
 
-        emit GameCreated(gameID, msg.sender);
-    }
-
-    // ---------------------------------------------------------------------------------------------
-
-    // Clear (zero) the contents of the array and make it zero-sized.
-    function clear(uint8[] storage array) internal {
-        // TODO should be done in assembly, avoiding to overwrite the size on every pop
-        for (uint256 i = 0; i < array.length; ++i) {
-            array.pop();
-        }
-    }
-
-    // ---------------------------------------------------------------------------------------------
-
-    // Deletes the game that we do not need anymore.
-    // TODO: think about we might want to keep or not
-    function deleteGame(GameData storage gdata, uint256 /*gameID*/ ) internal {
-        // clear cards
-        for (uint256 i = 0; i < gdata.cards.length; ++i) {
-            delete gdata.cards[i];
-        }
-
-        // clear players and player data
-        for (uint256 i = 0; i < gdata.players.length; ++i) {
-            PlayerData storage pdata = gdata.playerData[gdata.players[i]];
-            clear(pdata.attacking);
-            delete gdata.playerData[gdata.players[i]];
-
-            // NOTE: See note below.
-            // delete gdata.players[i];
-        }
-
-        // NOTE: Keeping the static game data makes it easier for the client to handle the end
-        // of the game gracefully, for now.
-        // delete gameData[gameID];
+        emit Events.GameCreated(gameID, msg.sender);
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -665,19 +362,19 @@ contract Game {
     function cancelGame(uint256 gameID) external {
         GameData storage gdata = gameData[gameID];
         if (gdata.gameCreator != msg.sender) {
-            revert OvereagerCanceller();
+            revert Errors.OvereagerCanceller();
         }
         if (gdata.playersLeftToJoin == 0) {
-            revert GameAlreadyLocked();
+            revert Errors.GameAlreadyLocked();
         }
-        emit GameCancelled(gameID);
+        emit Events.GameCancelled(gameID);
         endGameBeforeStart(gameID, gdata);
     }
 
     // ---------------------------------------------------------------------------------------------
 
     function endGameBeforeStart(uint256 gameID, GameData storage gdata) internal {
-        deleteGame(gdata, gameID);
+        gdata.deleteGame(gameID);
         for (uint256 i = 0; i < gdata.players.length; ++i) {
             delete inGame[gdata.players[i]];
         }
@@ -697,9 +394,9 @@ contract Game {
         PlayerData storage pdata,
         uint256 randomness,
         uint256 saltHash,
-        uint[2] calldata proofA,
-        uint[2][2] calldata proofB,
-        uint[2] calldata proofC
+        uint256[2] calldata proofA,
+        uint256[2][2] calldata proofB,
+        uint256[2] calldata proofC
     ) internal view {
         // - The proof requires a deck packed onto two field elements.
         // - We obtain it by write the index of each card in the `gdata.cards` array to a byte
@@ -743,13 +440,8 @@ contract Game {
         pubSignals[6] = randomness;
 
         if (checkProofs) {
-            if (!drawHandVerifier.verifyProof(
-                proofA,
-                proofB,
-                proofC,
-                pubSignals
-            )) {
-                revert InvalidProof();
+            if (!drawHandVerifier.verifyProof(proofA, proofB, proofC, pubSignals)) {
+                revert Errors.InvalidProof();
             }
         }
     }
@@ -769,13 +461,13 @@ contract Game {
         PlayerData storage pdata = gdata.playerData[msg.sender];
 
         if (pdata.joinBlockNum != 0) {
-            revert AlreadyJoined();
+            revert Errors.AlreadyJoined();
         }
         if (gdata.playersLeftToJoin == 0) {
-            revert GameIsFull();
+            revert Errors.GameIsFull();
         }
         if (!gdata.joinCheck(gameID, msg.sender, deckID, data)) {
-            revert NotAllowedToJoin();
+            revert Errors.NotAllowedToJoin();
         }
 
         // Update gdata.players, but not gdata.livePlayers, which is used to determine if the
@@ -806,12 +498,12 @@ contract Game {
         pdata.deckEnd = uint8(cards.length);
 
         pdata.saltHash = saltHash;
-        pdata.health = STARTING_HEALTH;
+        pdata.health = Constants.STARTING_HEALTH;
 
         inGame[msg.sender] = gameID;
-        emit PlayerJoined(gameID, msg.sender);
+        emit Events.PlayerJoined(gameID, msg.sender);
         if (--gdata.playersLeftToJoin == 0) {
-            emit FullHouse(gameID);
+            emit Events.FullHouse(gameID);
         }
     }
 
@@ -827,72 +519,17 @@ contract Game {
         uint256 gameID,
         bytes32 handRoot,
         bytes32 deckRoot,
-        uint[2] calldata proofA,
-        uint[2][2] calldata proofB,
-        uint[2] calldata proofC
-    )
-        external
-        exists(gameID)
-    {
+        uint256[2] calldata proofA,
+        uint256[2][2] calldata proofB,
+        uint256[2] calldata proofC
+    ) external exists(gameID) {
         GameData storage gdata = gameData[gameID];
         PlayerData storage pdata = gdata.playerData[msg.sender];
 
-        if (pdata.joinBlockNum == 0) {
-            revert PlayerNotInGame();
-        }
-        if (pdata.handRoot != 0) {
-            revert AlreadyDrew();
-        }
-
-        pdata.handRoot = handRoot;
-        pdata.deckRoot = deckRoot;
-        pdata.handSize = INITIAL_HAND_SIZE;
-
-        uint256 randomness = getPubRandomnessForInitialHand(pdata.joinBlockNum);
-        checkInitialHandProof(pdata, randomness, pdata.saltHash, proofA, proofB, proofC);
-
-        uint256 deckStart = pdata.deckStart;
-        uint256 deckEnd = pdata.deckEnd;
-        pdata.deckSize = uint8(deckEnd - deckStart - INITIAL_HAND_SIZE);
-
-        // Add the player to the list of live players.
-        // Note that this loop is cheaper than passing the index to the function, as calldata is
-        // expensive on layer 2 rollups.
-        for (uint256 i = 0; i < gdata.players.length; i++) {
-            if (gdata.players[i] == msg.sender) {
-                gdata.livePlayers.push(uint8(i));
-                break;
-                // There will always be a match because we checked that the player is in the game.
-            }
-        }
-
-        emit PlayerDrewHand(gameID, msg.sender);
-
-        if (gdata.playersLeftToJoin == 0 && gdata.players.length == gdata.livePlayers.length) {
-            // Start the game! First player chosen randomly.
-            randomness = getPubRandomness(gdata.lastBlockNum);
-            gdata.currentPlayer = uint8(randomness % gdata.players.length);
-            gdata.currentStep = GameStep.PLAY; // first player doesn't draw
-            gdata.lastBlockNum = block.number;
-            emit GameStarted(gameID);
-        }
-    }
-
-    // ---------------------------------------------------------------------------------------------
-
-    // Function to be called after a player's health drops to 0, to check if only one player is
-    // left, in which case an event is emitted and the game data is deleted.
-    function maybeEndGame(GameData storage gdata, uint256 gameID) internal {
-        // TODO
-        //   In the future, consider the possibility of a draw if an effect were to reduce
-        //   the health of all remaining players to 0 at the same time.
-        if (gdata.livePlayers.length == 1) {
-            address winner = gdata.players[gdata.livePlayers[0]];
-            delete inGame[winner];
-            deleteGame(gdata, gameID);
-            gdata.currentStep = GameStep.ENDED;
-            emit Champion(gameID, winner);
-        }
+        checkInitialHandProof(
+            pdata, getPubRandomnessForInitialHand(pdata.joinBlockNum), pdata.saltHash, proofA, proofB, proofC
+        );
+        GameStepLib.drawInitialHand(gameID, gdata, pdata, handRoot, deckRoot, getPubRandomness(gdata.lastBlockNum));
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -901,13 +538,13 @@ contract Game {
     function concedeGame(uint256 gameID) public exists(gameID) {
         GameData storage gdata = gameData[gameID];
         if (gdata.playerData[msg.sender].handRoot == 0) {
-            revert PlayerNotInGame();
+            revert Errors.PlayerNotInGame();
         }
         if (gdata.currentStep == GameStep.UNINITIALIZED) {
-            revert FalseStart();
+            revert Errors.FalseStart();
         }
-        emit PlayerConceded(gameID, msg.sender);
-        playerDefeated(gameID, msg.sender);
+        emit Events.PlayerConceded(gameID, msg.sender);
+        gdata.playerDefeated(gameID, inGame, msg.sender);
         gdata.lastBlockNum = block.number;
     }
 
@@ -922,61 +559,20 @@ contract Game {
     function timeout(uint256 gameID) external exists(gameID) {
         GameData storage gdata = gameData[gameID];
         if (gdata.lastBlockNum > block.number - 256) {
-            revert GameNotTimedOut();
+            revert Errors.GameNotTimedOut();
         }
         if (gdata.currentStep == GameStep.ENDED) {
-            revert GameAlreadyEnded();
+            revert Errors.GameAlreadyEnded();
         }
         if (gdata.currentStep == GameStep.UNINITIALIZED) {
-            emit MissingPlayers(gameID);
+            emit Events.MissingPlayers(gameID);
             endGameBeforeStart(gameID, gdata);
         } else {
             address timedOutPlayer = gdata.players[gdata.currentPlayer];
-            emit PlayerTimedOut(gameID, timedOutPlayer);
-            playerDefeated(gameID, timedOutPlayer);
+            emit Events.PlayerTimedOut(gameID, timedOutPlayer);
+            gdata.playerDefeated(gameID, inGame, timedOutPlayer);
             gdata.lastBlockNum = block.number;
         }
-    }
-
-    // ---------------------------------------------------------------------------------------------
-
-    function playerDefeated(uint256 gameID, address player) internal {
-        GameData storage gdata = gameData[gameID];
-
-        if (gdata.players[gdata.currentPlayer] == player) {
-            // If the current player was defeated, shift next step and player.
-            // We need to do this before we remove the current player from `gdata.livePlayers`.
-            gdata.currentPlayer = nextPlayer(gdata);
-            gdata.currentStep = GameStep.DRAW;
-        }
-
-        // TODO: Move this out to a library, turn it to a uint8[32] bespoke data type that stores length in first slot?
-        //       This would enable to perform this in a single shift once the player is found.
-        // Remove the player from the livePlayers array.
-        // This is safe because we ascertained the player is in the game.
-        bool shifting = false;
-        uint8[] storage livePlayers = gdata.livePlayers;
-        for (uint256 i = 0; i < livePlayers.length - 1; i++) {
-            if (gdata.players[livePlayers[i]] == player) {
-                shifting = true;
-            }
-            if (shifting) {
-                livePlayers[i] = livePlayers[i + 1];
-            }
-        }
-        livePlayers.pop();
-
-        PlayerData storage pdata = gdata.playerData[player];
-        pdata.defeated = true;
-
-        if (pdata.health == 0) {
-            // If health is not zero, the player conceded or timed out,
-            // and different events are emitted for that.
-            emit PlayerDefeated(gameID, player);
-        }
-
-        delete inGame[player];
-        maybeEndGame(gdata, gameID);
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -991,9 +587,9 @@ contract Game {
         bytes32 deckRoot,
         uint256 saltHash,
         uint256 randomness,
-        uint[2] calldata proofA,
-        uint[2][2] calldata proofB,
-        uint[2] calldata proofC
+        uint256[2] calldata proofA,
+        uint256[2][2] calldata proofB,
+        uint256[2] calldata proofC
     ) internal view {
         uint256[8] memory pubSignals;
         pubSignals[0] = uint256(pdata.deckRoot);
@@ -1006,13 +602,8 @@ contract Game {
         pubSignals[7] = pdata.deckSize - 1;
 
         if (checkProofs) {
-            if (!drawVerifier.verifyProof(
-                proofA,
-                proofB,
-                proofC,
-                pubSignals
-            )) {
-                revert InvalidProof();
+            if (!drawVerifier.verifyProof(proofA, proofB, proofC, pubSignals)) {
+                revert Errors.InvalidProof();
             }
         }
     }
@@ -1024,22 +615,18 @@ contract Game {
         uint256 gameID,
         bytes32 handRoot,
         bytes32 deckRoot,
-        uint[2] calldata proofA,
-        uint[2][2] calldata proofB,
-        uint[2] calldata proofC
-    )
-        external
-        step(gameID, GameStep.DRAW)
-    {
+        uint256[2] calldata proofA,
+        uint256[2][2] calldata proofB,
+        uint256[2] calldata proofC
+    ) external step(gameID, GameStep.DRAW) {
         GameData storage gdata = gameData[gameID];
         PlayerData storage pdata = gdata.playerData[msg.sender];
-        uint256 randomness = getPubRandomness(gdata.lastBlockNum);
-        checkDrawProof(pdata, handRoot, deckRoot, pdata.saltHash, randomness, proofA, proofB, proofC);
-        pdata.handRoot = handRoot;
-        pdata.deckRoot = deckRoot;
-        pdata.handSize++;
-        pdata.deckSize--;
-        emit CardDrawn(gameID, gdata.currentPlayer);
+
+        checkDrawProof(
+            pdata, handRoot, deckRoot, pdata.saltHash, getPubRandomness(gdata.lastBlockNum), proofA, proofB, proofC
+        );
+
+        GameStepLib.drawCard(gameID, gdata, pdata, handRoot, deckRoot);
 
         // TODO(LATER) if you can't draw you lose the game!
     }
@@ -1048,7 +635,7 @@ contract Game {
 
     function endTurn(uint256 gameID) external step(gameID, GameStep.END_TURN) {
         // mostly empty: everything happens in the step function
-        emit TurnEnded(gameID, msg.sender);
+        emit Events.TurnEnded(gameID, msg.sender);
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -1061,9 +648,9 @@ contract Game {
         uint256 saltHash,
         uint256 cardIndexInHand,
         uint256 cardIndex,
-        uint[2] calldata proofA,
-        uint[2][2] calldata proofB,
-        uint[2] calldata proofC
+        uint256[2] calldata proofA,
+        uint256[2][2] calldata proofB,
+        uint256[2] calldata proofC
     ) internal view {
         uint256[6] memory pubSignals;
         pubSignals[0] = uint256(pdata.handRoot);
@@ -1074,13 +661,8 @@ contract Game {
         pubSignals[5] = cardIndex;
 
         if (checkProofs) {
-            if (!playVerifier.verifyProof(
-                proofA,
-                proofB,
-                proofC,
-                pubSignals
-            )) {
-                revert InvalidProof();
+            if (!playVerifier.verifyProof(proofA, proofB, proofC, pubSignals)) {
+                revert Errors.InvalidProof();
             }
         }
     }
@@ -1093,42 +675,13 @@ contract Game {
         bytes32 handRoot,
         uint8 cardIndexInHand,
         uint8 cardIndex,
-        uint[2] calldata proofA,
-        uint[2][2] calldata proofB,
-        uint[2] calldata proofC
+        uint256[2] calldata proofA,
+        uint256[2][2] calldata proofB,
+        uint256[2] calldata proofC
     ) external step(gameID, GameStep.PLAY) {
-        GameData storage gdata = gameData[gameID];
-        PlayerData storage pdata = gdata.playerData[msg.sender];
-        if (cardIndex > gdata.cards.length) {
-            revert CardIndexTooHigh();
-        }
+        PlayerData storage pdata = gameData[gameID].playerData[msg.sender];
         checkPlayProof(pdata, handRoot, pdata.saltHash, cardIndexInHand, cardIndex, proofA, proofB, proofC);
-        pdata.handRoot = handRoot;
-        pdata.handSize--;
-        pdata.battlefield |= 1 << cardIndex;
-        emit CardPlayed(gameID, gdata.currentPlayer, cardIndex);
-    }
-
-    // ---------------------------------------------------------------------------------------------
-
-    // Returns true iff the array contains the items.
-    function contains(uint8[] storage array, uint8 item) internal view returns (bool) {
-        for (uint256 i = 0; i < array.length; ++i) {
-            if (array[i] == item) return true;
-        }
-        return false;
-    }
-
-    // ---------------------------------------------------------------------------------------------
-
-    // Returns true iff the array contains duplicate elements (in O(n) time). 255 (NONE) is ignored.
-    function hasDuplicate(uint8[] calldata array) internal pure returns (bool) {
-        uint256 bitmap = 0;
-        for (uint256 i = 0; i < array.length; ++i) {
-            if (array[i] != NONE && (bitmap & (1 << array[i])) != 0) return true;
-            bitmap |= 1 << array[i];
-        }
-        return false;
+        GameStepLib.playCard(gameID, gameData, handRoot, cardIndex);
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -1138,28 +691,7 @@ contract Game {
         external
         step(gameID, GameStep.ATTACK)
     {
-        GameData storage gdata = gameData[gameID];
-        PlayerData storage pdata = gdata.playerData[msg.sender];
-
-        // NOTE: This allows attacking dead player in (unsupported) games with > 2 players.
-        if (gdata.currentPlayer == targetPlayer || targetPlayer > gdata.players.length) {
-            revert WrongAttackTarget();
-        }
-
-        if (hasDuplicate(attacking)) {
-            revert DuplicateAttacker();
-        }
-
-        for (uint256 i = 0; i < attacking.length; ++i) {
-            if ((pdata.battlefield & (1 << attacking[i])) == 0) {
-                revert AttackerNotOnBattlefield();
-            }
-        }
-
-        clear(pdata.attacking); // Delete old attacking array.
-        pdata.attacking = attacking;
-        gdata.attackingPlayer = msg.sender;
-        emit PlayerAttacked(gameID, msg.sender, gdata.players[targetPlayer]);
+        GameStepLib.attack(gameID, gameData, targetPlayer, attacking);
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -1167,67 +699,7 @@ contract Game {
     // Declare defenders & resolve combat: each creature in `defending` will block the
     // corresponding creature in the attacker's `attacking` array.
     function defend(uint256 gameID, uint8[] calldata defending) external step(gameID, GameStep.DEFEND) {
-        GameData storage gdata = gameData[gameID];
-        PlayerData storage defender = gdata.playerData[msg.sender];
-        PlayerData storage attacker = gdata.playerData[gdata.attackingPlayer];
-        uint8[] storage attacking = attacker.attacking;
-
-        if (attacking.length != defending.length) {
-            revert AttackerDefenderMismatch();
-        }
-
-        // TODO make sure duplicate 255 are ignored
-        if (hasDuplicate(defending)) {
-            revert DuplicateDefender();
-        }
-
-        // iterate over attackers
-        for (uint256 i = 0; i < attacking.length; ++i) {
-            if (defending[i] == NONE) {
-                // attacker not blocked
-                uint256 attackingCard = gdata.cards[attacking[i]];
-                uint8 damage = cardsCollection.stats(attackingCard).attack;
-                if (defender.health <= damage) {
-                    defender.health = 0;
-                    playerDefeated(gameID, msg.sender);
-                    break;
-                } else {
-                    defender.health -= damage;
-                }
-            } else {
-                // attacker blocked
-                if ((defender.battlefield & (1 << defending[i])) == 0) {
-                    revert DefenderNotOnBattlefield();
-                }
-                if (contains(defender.attacking, defending[i])) {
-                    revert DefenderAttacking(defending[i]);
-                }
-
-                Stats memory attackerStats;
-                Stats memory defenderStats;
-                {
-                    // avoid stack too deep
-                    uint256 attackingCard = gdata.cards[attacking[i]];
-                    uint256 defendingCard = gdata.cards[defending[i]];
-                    attackerStats = cardsCollection.stats(attackingCard);
-                    defenderStats = cardsCollection.stats(defendingCard);
-                }
-
-                if (attackerStats.attack >= defenderStats.defense) {
-                    defender.battlefield -= (1 << defending[i]);
-                    defender.graveyard |= (1 << defending[i]);
-                    emit CreatureDestroyed(gameID, msg.sender, defending[i]);
-                }
-
-                if (defenderStats.attack >= attackerStats.defense) {
-                    attacker.battlefield -= (1 << attacking[i]);
-                    attacker.graveyard |= (1 << attacking[i]);
-                    emit CreatureDestroyed(gameID, gdata.attackingPlayer, attacking[i]);
-                }
-            }
-        }
-
-        emit PlayerDefended(gameID, gdata.attackingPlayer, msg.sender);
+        GameStepLib.defend(gameID, gameData, inGame, defending, cardsCollection);
     }
 
     // ---------------------------------------------------------------------------------------------
