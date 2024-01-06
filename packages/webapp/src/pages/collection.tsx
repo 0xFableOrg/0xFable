@@ -15,7 +15,7 @@ import { Card } from "src/store/types"
 import { Address } from "src/chain"
 import { FablePage } from "src/pages/_app"
 import Link from "next/link"
-import { router } from 'next/router';
+import { router } from 'next/router'
 
 // NOTE(norswap & geniusgarlic): Just an example, when the game actually has effects & types,
 //   fetch those from the chain instead of hardcoding them here.
@@ -63,7 +63,7 @@ const Collection: FablePage = ({ decks, isHydrated }) => {
   })
 
   const handleInputChangeBouncy = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchInput(event.target.value);
+    setSearchInput(event.target.value)
   }
   const handleInputChange = useMemo(() => debounce(handleInputChangeBouncy, 300), [])
 
@@ -189,7 +189,7 @@ const Collection: FablePage = ({ decks, isHydrated }) => {
                   className="w-full px-4 py-2 mb-2 border rounded-md text-gray-100 bg-purple-900 hover:bg-gray-500 font-bold text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   onClick={() => { 
                     // Navigate to the editor view with the selected deck's index as a route parameter
-                    router.push(`/editor?index=${index}`);
+                    router.push(`/editor?index=${index}`)
                   }}
                 >
                   {deck.name}

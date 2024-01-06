@@ -14,8 +14,8 @@ import { useInventoryCardsCollectionGetCollection } from "src/generated"
 import { Card } from "src/store/types"
 import { Address } from "src/chain"
 import { FablePage } from "src/pages/_app"
-import { router } from 'next/router';
-import { useEffect} from 'react';
+import { router } from 'next/router'
+import { useEffect} from 'react'
 
 // NOTE(norswap & geniusgarlic): Just an example, when the game actually has effects & types,
 //   fetch those from the chain instead of hardcoding them here.
@@ -35,8 +35,8 @@ const Editor: FablePage = ({ decks, setDecks, isHydrated }) => {
   const [ effectMap, setEffectMap ] = useState(initialEffectMap)
   const [ typeMap, setTypeMap ] = useState(initialTypeMap)
   const [ deckName, setDeckName ] = useState('') 
-  const [ deck, setDeck ] = useState<Card[]>([]); 
-  const [ originalDeckIndex, setOriginalDeckIndex ] = useState(null);
+  const [ deck, setDeck ] = useState<Card[]>([]) 
+  const [ originalDeckIndex, setOriginalDeckIndex ] = useState(null)
 
   const cardName = selectedCard?.lore.name || "Hover a card"
   const cardFlavor = selectedCard?.lore.flavor || "Hover a card to see its details"
@@ -44,7 +44,7 @@ const Editor: FablePage = ({ decks, setDecks, isHydrated }) => {
   const activeEffects = Object.keys(effectMap).filter(key => effectMap[key])
   const activeTypes = Object.keys(typeMap).filter(key => typeMap[key])
 
-  const [isDeckValid, setIsDeckValid] = useState(true);
+  const [isDeckValid, setIsDeckValid] = useState(true)
 
   const { data: unfilteredCards, refetch } = useInventoryCardsCollectionGetCollection({
     address: deployment.InventoryCardsCollection,
@@ -68,83 +68,82 @@ const Editor: FablePage = ({ decks, setDecks, isHydrated }) => {
 
   const addToDeck = (card: Card) => {
     setDeck(prevDeck => {
-      const isAlreadyInDeck = prevDeck.some(cardInDeck => cardInDeck.id === card.id);
+      const isAlreadyInDeck = prevDeck.some(cardInDeck => cardInDeck.id === card.id)
       if (isAlreadyInDeck) {
         // Remove the card from the deck
-        return prevDeck.filter(cardInDeck => cardInDeck.id !== card.id);
+        return prevDeck.filter(cardInDeck => cardInDeck.id !== card.id)
       } else {
         // Add the card to the deck
-        return [...prevDeck, card];
+        return [...prevDeck, card]
       }
-    });
-  };
+    })
+  }
 
   // Check url for an index, which is passed if the user wants to modify an existing deck
-  // Now useEffect can safely use `addToDeck`
   useEffect(() => {
-    const deckIndex = parseInt(router.query.index);
+    const deckIndex = parseInt(router.query.index)
     if (!isNaN(deckIndex) && decks[deckIndex] != null) {
-      setOriginalDeckIndex(deckIndex); // Store the original index
-      const selectedDeck = decks[deckIndex];
-      setDeckName(selectedDeck.name);
-      setDeck(selectedDeck.cards);
+      setOriginalDeckIndex(deckIndex) // Store the original index
+      const selectedDeck = decks[deckIndex]
+      setDeckName(selectedDeck.name)
+      setDeck(selectedDeck.cards)
     } else {
-      setOriginalDeckIndex(null); // Reset if not editing an existing deck
+      setOriginalDeckIndex(null) // Reset if not editing an existing deck
     }
-  }, [router.query.index, decks]);
+  }, [router.query.index, decks])
 
   const isCardInDeck = (cardToCheck: Card) => {
-    return deck.some(cardInDeck => cardInDeck.id === cardToCheck.id);
-  };
+    return deck.some(cardInDeck => cardInDeck.id === cardToCheck.id)
+  }
 
   const removeFromDeck = (index: number) => {
-    setDeck(prevDeck => prevDeck.filter((_, i) => i !== index));
-  };
+    setDeck(prevDeck => prevDeck.filter((_, i) => i !== index))
+  }
 
   const handleInputChangeBouncy = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchInput(event.target.value);
+    setSearchInput(event.target.value)
   }
 
   const handleDeckNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setDeckName(event.target.value); // Update deck name state
+    setDeckName(event.target.value) // Update deck name state
   }
 
   const handleCancel = () => {
-    router.push('/collection');
-  };
+    router.push('/collection')
+  }
 
   const handleSave = () => {
     // Check if deck name is empty OR if the deck doesn't have any cards
     if (!deckName.trim() || deck.length === 0) {
-      setIsDeckValid(false);
-      return;
+      setIsDeckValid(false)
+      return
     }
 
-    setIsDeckValid(true);
+    setIsDeckValid(true)
   
-    let updatedDecks = [...decks];
+    let updatedDecks = [...decks]
   
     // Check if editing an existing deck and the name has changed
     if (originalDeckIndex !== null && decks[originalDeckIndex].name !== deckName) {
       // Remove the old deck
-      updatedDecks.splice(originalDeckIndex, 1);
+      updatedDecks.splice(originalDeckIndex, 1)
     }
   
     // Find if a deck with the new name already exists
-    const existingDeckIndex = updatedDecks.findIndex(d => d.name === deckName);
+    const existingDeckIndex = updatedDecks.findIndex(d => d.name === deckName)
   
     if (existingDeckIndex !== -1) {
       // Replace existing deck with the new name
-      updatedDecks[existingDeckIndex] = { name: deckName, cards: deck };
+      updatedDecks[existingDeckIndex] = { name: deckName, cards: deck }
     } else {
       // Add as a new deck
-      updatedDecks.push({ name: deckName, cards: deck });
+      updatedDecks.push({ name: deckName, cards: deck })
     }
   
-    setDecks(updatedDecks);
+    setDecks(updatedDecks)
     // Redirect to the collections page
-    router.push('/collection');
-  };
+    router.push('/collection')
+  }
   
   const handleInputChange = useMemo(() => debounce(handleInputChangeBouncy, 300), [])
 
@@ -165,15 +164,15 @@ const Editor: FablePage = ({ decks, setDecks, isHydrated }) => {
       </Head>
       <style jsx>{`
         .card-in-deck {
-          box-shadow: 0 0 10px orange; 
+          box-shadow: 0 0 10px orange 
         }
 
         .card-name-container {
-          width: 100%; /* Full width */
-          background-color: #333; /* Darker shade of grey */
-          margin-bottom: 8px; /* Spacing between items */
-          padding: 10px 0; /* Vertical padding */
-          border-radius: 5px; /* Rounded corners */
+          width: 100% /* Full width */
+          background-color: #333 /* Darker shade of grey */
+          margin-bottom: 8px /* Spacing between items */
+          padding: 10px 0 /* Vertical padding */
+          border-radius: 5px /* Rounded corners */
         }
       `}</style>
       {jotaiDebug()}
