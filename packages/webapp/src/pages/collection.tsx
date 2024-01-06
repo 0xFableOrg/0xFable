@@ -183,13 +183,13 @@ const Collection: FablePage = ({ decks, isHydrated }) => {
               </Link>
 
               {/* Deck Buttons */}
-              {decks.map((deck, index) => (
+              {decks.map((deck, deckID) => (
                 <button 
-                  key={index} 
+                  key={deckID} 
                   className="w-full px-4 py-2 mb-2 border rounded-md text-gray-100 bg-purple-900 hover:bg-gray-500 font-bold text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   onClick={() => { 
                     // Navigate to the editor view with the selected deck's index as a route parameter
-                    router.push(`/editor?index=${index}`)
+                    router.push(`/editor?deckID=${deckID}`)
                   }}
                 >
                   {deck.name}

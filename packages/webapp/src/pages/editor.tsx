@@ -81,7 +81,7 @@ const Editor: FablePage = ({ decks, setDecks, isHydrated }) => {
 
   // Check url for an index, which is passed if the user wants to modify an existing deck
   useEffect(() => {
-    const deckIndex = parseInt(router.query.index)
+    const deckIndex = parseInt(router.query.deckID)
     if (!isNaN(deckIndex) && decks[deckIndex] != null) {
       setOriginalDeckIndex(deckIndex) // Store the original index
       const selectedDeck = decks[deckIndex]
@@ -168,12 +168,21 @@ const Editor: FablePage = ({ decks, setDecks, isHydrated }) => {
         }
 
         .card-name-container {
-          width: 100% /* Full width */
-          background-color: #333 /* Darker shade of grey */
-          margin-bottom: 8px /* Spacing between items */
-          padding: 10px 0 /* Vertical padding */
-          border-radius: 5px /* Rounded corners */
+          width: 100%; /* Full width */
+          background-color: #4A5568; /* Dark grayish-blue background */
+          color: white; /* White text for better contrast */
+          margin-bottom: 8px; /* Spacing between items */
+          padding: 10px; /* Padding inside each card name container */
+          border-radius: 5px; /* Rounded corners */
+          border: 1px solid #2D3748; /* Slight border for depth */
+          cursor: pointer; /* Change cursor to indicate interactiveness */
+          transition: background-color 0.3s ease; /* Smooth transition for hover effect */
         }
+        
+        .card-name-container:hover {
+          background-color: #2D3748; /* Slightly darker background on hover */
+        }
+        
       `}</style>
       {jotaiDebug()}
       <main className="flex h-screen flex-col">
