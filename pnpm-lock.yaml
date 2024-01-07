@@ -96,6 +96,9 @@ importers:
       next-transpile-modules:
         specifier: ^10.0.1
         version: 10.0.1
+      permissionless:
+        specifier: ^0.0.20
+        version: 0.0.20(viem@1.16.6)
       react:
         specifier: 18.2.0
         version: 18.2.0
@@ -10697,6 +10700,14 @@ packages:
   /performance-now@2.1.0:
     resolution: {integrity: sha512-7EAHlyLHI56VEIdK57uwHdHKIaAGbnXPiw0yWbarQZOKaKpvUIgW0jWRVLiatnM+XXlSwsanIBH/hzGMJulMow==}
     dev: true
+
+  /permissionless@0.0.20(viem@1.16.6):
+    resolution: {integrity: sha512-vTlefC0I9Z41kxhpmyliaFLpqFqaD6xQU1DCedbL2xniXp2uHdCUiUAplKyv8FXAfyVoWeGkd5b8wU//iHxDDw==}
+    peerDependencies:
+      viem: ^1.19.4
+    dependencies:
+      viem: 1.16.6(typescript@5.2.2)(zod@3.22.2)
+    dev: false
 
   /picocolors@1.0.0:
     resolution: {integrity: sha512-1fygroTLlHu66zi26VoTDv8yRgm0Fccecssto+MhsZ0D/DGW2sm8E8AjW7NU5VVTRt5GxbeZ5qBuJr+HyLYkjQ==}
