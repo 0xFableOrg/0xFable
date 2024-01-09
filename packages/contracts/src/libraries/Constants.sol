@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 library Constants {
-    
+
     uint8 internal constant INITIAL_HAND_SIZE = 7;
 
     uint16 internal constant STARTING_HEALTH = 20;
@@ -11,13 +11,13 @@ library Constants {
     uint8 internal constant NONE = 255;
 
     // Max number of decks that each player can have.
-    uint256 public constant MAX_DECKS = 256;
+    uint256 internal constant MAX_DECKS = 256;
 
     // Min number of cards in a deck.
-    uint256 public constant MIN_DECK_SIZE = 10;
+    uint256 internal constant MIN_DECK_SIZE = 10;
 
     // Max number of cards in a deck.
-    uint256 public constant MAX_DECK_SIZE = 62;
+    uint256 internal constant MAX_DECK_SIZE = 62;
 
     // Max card copies in a deck.
     uint256 private constant MAX_CARD_COPY = 3;

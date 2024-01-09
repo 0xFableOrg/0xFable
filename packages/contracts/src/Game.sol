@@ -6,8 +6,7 @@ import {CardsCollection} from "./CardsCollection.sol";
 import {Constants} from "./libraries/Constants.sol";
 import {Events} from "./libraries/Events.sol";
 import {Errors} from "./libraries/Errors.sol";
-import {GameInternalLib} from "./libraries/GameInternalLib.sol";
-import {GameStepLib} from "./libraries/GameStepLib.sol";
+import {GameActionLib} from "./libraries/GameActionLib.sol";
 import {GameStep, PlayerData, GameData, FetchedGameData} from "./libraries/Structs.sol";
 import {Groth16Verifier as DrawVerifier} from "./verifiers/DrawVerifier.sol";
 import {Groth16Verifier as DrawHandVerifier} from "./verifiers/DrawHandVerifier.sol";
@@ -17,8 +16,6 @@ import {Groth16Verifier as PlayVerifier} from "./verifiers/PlayVerifier.sol";
 // NOTE: We try to lay the groundwork to support games with over 2 players, however they are not
 //   supported and will not work in the current state.
 contract Game {
-    using GameInternalLib for GameData;
-
     // =============================================================================================
     // FIELDS
 
@@ -93,7 +90,7 @@ contract Game {
             // Action timed out: the player loses.
             address timedOutPlayer = gdata.players[gdata.currentPlayer];
             emit Events.PlayerTimedOut(gameID, timedOutPlayer);
-            gdata.playerDefeated(gameID, inGame, timedOutPlayer);
+            GameActionLib.playerDefeated(gdata, gameID, inGame, timedOutPlayer);
             return;
         }
 
@@ -129,12 +126,12 @@ contract Game {
                 gdata.currentStep = GameStep.ATTACK;
             } else if (requestedStep == GameStep.ATTACK) {
                 gdata.currentStep = GameStep.DEFEND;
-                gdata.currentPlayer = gdata.nextPlayer();
+                gdata.currentPlayer = GameActionLib.nextPlayer(gdata);
             } else if (requestedStep == GameStep.DEFEND) {
                 gdata.currentStep = GameStep.DRAW; // enum wraparound
             } else if (requestedStep == GameStep.END_TURN) {
                 gdata.currentStep = GameStep.DRAW;
-                gdata.currentPlayer = gdata.nextPlayer();
+                gdata.currentPlayer = GameActionLib.nextPlayer(gdata);
             }
         }
 
@@ -368,18 +365,7 @@ contract Game {
             revert Errors.GameAlreadyLocked();
         }
         emit Events.GameCancelled(gameID);
-        endGameBeforeStart(gameID, gdata);
-    }
-
-    // ---------------------------------------------------------------------------------------------
-
-    function endGameBeforeStart(uint256 gameID, GameData storage gdata) internal {
-        gdata.deleteGame(gameID);
-        for (uint256 i = 0; i < gdata.players.length; ++i) {
-            delete inGame[gdata.players[i]];
-        }
-        gdata.lastBlockNum = block.number;
-        gdata.currentStep = GameStep.ENDED;
+        GameActionLib.endGameBeforeStart(gameID, gdata, inGame);
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -529,23 +515,14 @@ contract Game {
         checkInitialHandProof(
             pdata, getPubRandomnessForInitialHand(pdata.joinBlockNum), pdata.saltHash, proofA, proofB, proofC
         );
-        GameStepLib.drawInitialHand(gameID, gdata, pdata, handRoot, deckRoot, getPubRandomness(gdata.lastBlockNum));
+        GameActionLib.drawInitialHand(gameID, gdata, pdata, handRoot, deckRoot, getPubRandomness(gdata.lastBlockNum));
     }
 
     // ---------------------------------------------------------------------------------------------
 
     // Let a player concede defeat.
     function concedeGame(uint256 gameID) public exists(gameID) {
-        GameData storage gdata = gameData[gameID];
-        if (gdata.playerData[msg.sender].handRoot == 0) {
-            revert Errors.PlayerNotInGame();
-        }
-        if (gdata.currentStep == GameStep.UNINITIALIZED) {
-            revert Errors.FalseStart();
-        }
-        emit Events.PlayerConceded(gameID, msg.sender);
-        gdata.playerDefeated(gameID, inGame, msg.sender);
-        gdata.lastBlockNum = block.number;
+        GameActionLib.concedeGame(gameID, gameData, inGame);
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -557,22 +534,7 @@ contract Game {
     // Note that in the first scenario, the timed out player will lose anyway if he tries to take an
     // action.
     function timeout(uint256 gameID) external exists(gameID) {
-        GameData storage gdata = gameData[gameID];
-        if (gdata.lastBlockNum > block.number - 256) {
-            revert Errors.GameNotTimedOut();
-        }
-        if (gdata.currentStep == GameStep.ENDED) {
-            revert Errors.GameAlreadyEnded();
-        }
-        if (gdata.currentStep == GameStep.UNINITIALIZED) {
-            emit Events.MissingPlayers(gameID);
-            endGameBeforeStart(gameID, gdata);
-        } else {
-            address timedOutPlayer = gdata.players[gdata.currentPlayer];
-            emit Events.PlayerTimedOut(gameID, timedOutPlayer);
-            gdata.playerDefeated(gameID, inGame, timedOutPlayer);
-            gdata.lastBlockNum = block.number;
-        }
+        GameActionLib.timeout(gameID, gameData, inGame);
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -626,7 +588,7 @@ contract Game {
             pdata, handRoot, deckRoot, pdata.saltHash, getPubRandomness(gdata.lastBlockNum), proofA, proofB, proofC
         );
 
-        GameStepLib.drawCard(gameID, gdata, pdata, handRoot, deckRoot);
+        GameActionLib.drawCard(gameID, gdata, pdata, handRoot, deckRoot);
 
         // TODO(LATER) if you can't draw you lose the game!
     }
@@ -681,7 +643,7 @@ contract Game {
     ) external step(gameID, GameStep.PLAY) {
         PlayerData storage pdata = gameData[gameID].playerData[msg.sender];
         checkPlayProof(pdata, handRoot, pdata.saltHash, cardIndexInHand, cardIndex, proofA, proofB, proofC);
-        GameStepLib.playCard(gameID, gameData, handRoot, cardIndex);
+        GameActionLib.playCard(gameID, gameData, handRoot, cardIndex);
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -691,7 +653,7 @@ contract Game {
         external
         step(gameID, GameStep.ATTACK)
     {
-        GameStepLib.attack(gameID, gameData, targetPlayer, attacking);
+        GameActionLib.attack(gameID, gameData, targetPlayer, attacking);
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -699,7 +661,7 @@ contract Game {
     // Declare defenders & resolve combat: each creature in `defending` will block the
     // corresponding creature in the attacker's `attacking` array.
     function defend(uint256 gameID, uint8[] calldata defending) external step(gameID, GameStep.DEFEND) {
-        GameStepLib.defend(gameID, gameData, inGame, defending, cardsCollection);
+        GameActionLib.defend(gameID, gameData, inGame, defending, cardsCollection);
     }
 
     // ---------------------------------------------------------------------------------------------
