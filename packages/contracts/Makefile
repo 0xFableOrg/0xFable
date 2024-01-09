@@ -49,15 +49,15 @@ check: lint format-check
 .PHONY: check
 
 format-check:
-	forge fmt --check src/*.sol src/test/*.sol src/deploy/*.sol
+	forge fmt --check src/*.sol src/test/*.sol src/deploy/*.sol src/libraries/*.sol
 .PHONY: format-check
 
 lint:
-	pnpm solhint --config ./.solhint.json "src/*.sol" "src/test/*.sol" "src/deploy/*.sol"
+	pnpm solhint --config ./.solhint.json "src/*.sol" "src/test/*.sol" "src/deploy/*.sol" "src/libraries/*.sol"
 .PHONY: lint
 
 format:
-	forge fmt src/*.sol src/test/*.sol src/deploy/*.sol
+	forge fmt src/*.sol src/test/*.sol src/deploy/*.sol src/libraries/*.sol
 .PHONY: format
 
 # The 1337 chain id matches "localhost" in Wagmi & "Localhost 8545" in MetaMask.

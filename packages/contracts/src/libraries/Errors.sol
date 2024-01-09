@@ -2,7 +2,6 @@
 pragma solidity ^0.8.0;
 
 library Errors {
-
     // TODO This is an error from the inventory contract, but we need to reproduce it here
     //      so that it is included in the ABI, which allows the frontend to parse the error.
     //      We need to figure out a way to systematically import all errors that we may revert with
