@@ -5,7 +5,7 @@ import {CardsCollection} from "../CardsCollection.sol";
 import {DeckAirdrop} from "../DeckAirdrop.sol";
 import {Inventory} from "../Inventory.sol";
 import {InventoryCardsCollection} from "../InventoryCardsCollection.sol";
-import {PlayerData} from "../libraries/GameStructsAndEnums.sol";
+import {PlayerData} from "../libraries/Structs.sol";
 import {Game} from "../Game.sol";
 
 import {Test} from "forge-std/Test.sol";

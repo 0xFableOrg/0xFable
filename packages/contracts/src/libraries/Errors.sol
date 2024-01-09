@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 pragma solidity ^0.8.0;
 
-library GameErrorsLib {
-    // ERRORS
+library Errors {
 
     // TODO This is an error from the inventory contract, but we need to reproduce it here
     //      so that it is included in the ABI, which allows the frontend to parse the error.

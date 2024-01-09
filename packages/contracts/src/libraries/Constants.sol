@@ -2,9 +2,7 @@
 pragma solidity ^0.8.0;
 
 library Constants {
-    // =============================================================================================
-    // CONSTANTS
-
+    
     uint8 internal constant INITIAL_HAND_SIZE = 7;
 
     uint16 internal constant STARTING_HEALTH = 20;

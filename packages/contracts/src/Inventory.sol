@@ -6,7 +6,7 @@ import {DeckAirdrop} from "./DeckAirdrop.sol";
 import {Game} from "./Game.sol";
 import {InventoryCardsCollection} from "./InventoryCardsCollection.sol";
 
-import {GameUtils as Utils} from "./libraries/GameUtils.sol";
+import {Utils} from "./libraries/Utils.sol";
 
 import {Ownable} from "openzeppelin/access/Ownable.sol";
 

@@ -1,9 +1,7 @@
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 pragma solidity ^0.8.0;
 
-library GameEventsLib {
-    // =============================================================================================
-    // EVENTS
+library Events {
 
     // Replace player indexes in all of those by addresses.
 
