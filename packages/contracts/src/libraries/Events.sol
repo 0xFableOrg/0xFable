@@ -2,7 +2,6 @@
 pragma solidity ^0.8.0;
 
 library Events {
-
     // Replace player indexes in all of those by addresses.
 
     // NOTE(norswap): we represented players as an address when the event can contribute to their

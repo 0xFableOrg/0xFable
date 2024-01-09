@@ -4,12 +4,11 @@ pragma solidity ^0.8.0;
 import {CardsCollection, Stats} from "../CardsCollection.sol";
 import {Events} from "./Events.sol";
 import {Errors} from "./Errors.sol";
-import {GameStep,PlayerData, GameData} from "./Structs.sol";
+import {GameStep, PlayerData, GameData} from "./Structs.sol";
 import {Constants} from "./Constants.sol";
 import {Utils} from "./Utils.sol";
 
 library GameActionLib {
-
     function concedeGame(
         uint256 gameID,
         mapping(uint256 => GameData) storage gameData,
@@ -62,7 +61,6 @@ library GameActionLib {
         bytes32 deckRoot,
         uint256 randomness
     ) external {
-
         if (pdata.joinBlockNum == 0) {
             revert Errors.PlayerNotInGame();
         }
@@ -118,12 +116,9 @@ library GameActionLib {
 
     // ---------------------------------------------------------------------------------------------
 
-    function playCard(
-        uint256 gameID,
-        mapping(uint256 => GameData) storage gameData,
-        bytes32 handRoot,
-        uint8 cardIndex
-    ) external {
+    function playCard(uint256 gameID, mapping(uint256 => GameData) storage gameData, bytes32 handRoot, uint8 cardIndex)
+        external
+    {
         GameData storage gdata = gameData[gameID];
         PlayerData storage pdata = gdata.playerData[msg.sender];
         if (cardIndex > gdata.cards.length) {
@@ -139,9 +134,9 @@ library GameActionLib {
     // ---------------------------------------------------------------------------------------------
 
     function attack(
-        uint256 gameID, 
+        uint256 gameID,
         mapping(uint256 => GameData) storage gameData,
-        uint8 targetPlayer, 
+        uint8 targetPlayer,
         uint8[] calldata attacking
     ) external {
         GameData storage gdata = gameData[gameID];
@@ -248,7 +243,6 @@ library GameActionLib {
         mapping(address => uint256) storage inGame,
         address player
     ) internal {
-
         if (gdata.players[gdata.currentPlayer] == player) {
             // If the current player was defeated, shift next step and player.
             // We need to do this before we remove the current player from `gdata.livePlayers`.
@@ -284,7 +278,7 @@ library GameActionLib {
         delete inGame[player];
         maybeEndGame(gdata, gameID, inGame);
     }
-        
+
     // ---------------------------------------------------------------------------------------------
 
     // Returns the next player in the game (index in `gdata.players`). This relies on
@@ -298,17 +292,15 @@ library GameActionLib {
             }
         }
         revert Errors.ImplementationError();
-    } 
-    
+    }
+
     // ---------------------------------------------------------------------------------------------
 
     // Function to be called after a player's health drops to 0, to check if only one player is
     // left, in which case an event is emitted and the game data is deleted.
-    function maybeEndGame(
-        GameData storage gdata, 
-        uint256 gameID,
-        mapping(address => uint256) storage inGame
-    ) internal {
+    function maybeEndGame(GameData storage gdata, uint256 gameID, mapping(address => uint256) storage inGame)
+        internal
+    {
         // TODO
         //   In the future, consider the possibility of a draw if an effect were to reduce
         //   the health of all remaining players to 0 at the same time.
@@ -348,11 +340,9 @@ library GameActionLib {
 
     // ---------------------------------------------------------------------------------------------
 
-    function endGameBeforeStart(
-        uint256 gameID, 
-        GameData storage gdata, 
-        mapping(address => uint256) storage inGame
-    ) internal {
+    function endGameBeforeStart(uint256 gameID, GameData storage gdata, mapping(address => uint256) storage inGame)
+        internal
+    {
         deleteGame(gdata, gameID);
         for (uint256 i = 0; i < gdata.players.length; ++i) {
             delete inGame[gdata.players[i]];

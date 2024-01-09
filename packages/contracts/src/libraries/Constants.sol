@@ -2,7 +2,6 @@
 pragma solidity ^0.8.0;
 
 library Constants {
-
     uint8 internal constant INITIAL_HAND_SIZE = 7;
 
     uint16 internal constant STARTING_HEALTH = 20;
@@ -26,5 +25,4 @@ library Constants {
     // Currently, this is for Plonk.
     uint256 internal constant PROOF_CURVE_ORDER =
         21888242871839275222246405745257275088548364400416034343698204186575808495617;
-    
 }

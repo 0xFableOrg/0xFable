@@ -5,29 +5,31 @@ import {Constants} from "./Constants.sol";
 
 library Utils {
     // https://gist.github.com/subhodi/b3b86cc13ad2636420963e692a4d896f
-    function sort(uint[] memory data) internal view returns(uint[] memory) {
-       quickSort(data, int(0), int(data.length - 1));
-       return data;
+    function sort(uint256[] memory data) internal view returns (uint256[] memory) {
+        quickSort(data, int256(0), int256(data.length - 1));
+        return data;
     }
-    
-    function quickSort(uint[] memory arr, int left, int right) internal view {
-        int i = left;
-        int j = right;
-        if(i==j) return;
-        uint pivot = arr[uint(left + (right - left) / 2)];
+
+    function quickSort(uint256[] memory arr, int256 left, int256 right) internal view {
+        int256 i = left;
+        int256 j = right;
+        if (i == j) return;
+        uint256 pivot = arr[uint256(left + (right - left) / 2)];
         while (i <= j) {
-            while (arr[uint(i)] < pivot) i++;
-            while (pivot < arr[uint(j)]) j--;
+            while (arr[uint256(i)] < pivot) i++;
+            while (pivot < arr[uint256(j)]) j--;
             if (i <= j) {
-                (arr[uint(i)], arr[uint(j)]) = (arr[uint(j)], arr[uint(i)]);
+                (arr[uint256(i)], arr[uint256(j)]) = (arr[uint256(j)], arr[uint256(i)]);
                 i++;
                 j--;
             }
         }
-        if (left < j)
+        if (left < j) {
             quickSort(arr, left, j);
-        if (i < right)
+        }
+        if (i < right) {
             quickSort(arr, i, right);
+        }
     }
 
     // ---------------------------------------------------------------------------------------------
