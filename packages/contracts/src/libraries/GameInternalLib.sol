@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 pragma solidity ^0.8.0;
 
-import {GameEventsLib as Events} from "./GameEventsLib.sol";
-import {GameErrorsLib as Errors} from "./GameErrorsLib.sol";
-import {GameStep, PlayerData, GameData} from "./GameStructsAndEnums.sol";
-import {GameUtils as Utils} from "./GameUtils.sol";
+import {Events} from "./Events.sol";
+import {Errors} from "./Errors.sol";
+import {GameStep, PlayerData, GameData} from "./Structs.sol";
+import {Utils} from "./Utils.sol";
 
 library GameInternalLib {
 

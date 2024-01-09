@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 import {Constants} from "./Constants.sol";
 
-library GameUtils {
+library Utils {
     // https://gist.github.com/subhodi/b3b86cc13ad2636420963e692a4d896f
     function sort(uint[] memory data) internal view returns(uint[] memory) {
        quickSort(data, int(0), int(data.length - 1));

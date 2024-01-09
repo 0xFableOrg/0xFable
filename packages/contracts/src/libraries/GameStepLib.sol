@@ -2,12 +2,12 @@
 pragma solidity ^0.8.0;
 
 import {CardsCollection, Stats} from "../CardsCollection.sol";
-import {GameEventsLib as Events} from "./GameEventsLib.sol";
-import {GameErrorsLib as Errors} from "./GameErrorsLib.sol";
+import {Events} from "./Events.sol";
+import {Errors} from "./Errors.sol";
 import {GameInternalLib} from "./GameInternalLib.sol";
-import {GameStep,PlayerData, GameData} from "./GameStructsAndEnums.sol";
+import {GameStep,PlayerData, GameData} from "./Structs.sol";
 import {Constants} from "./Constants.sol";
-import {GameUtils as Utils} from "./GameUtils.sol";
+import {Utils} from "./Utils.sol";
 
 library GameStepLib {
     using GameInternalLib for GameData;
