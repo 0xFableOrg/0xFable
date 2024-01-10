@@ -2,13 +2,6 @@
 pragma solidity ^0.8.0;
 
 library Errors {
-    // TODO This is an error from the inventory contract, but we need to reproduce it here
-    //      so that it is included in the ABI, which allows the frontend to parse the error.
-    //      We need to figure out a way to systematically import all errors that we may revert with
-    //      from other contracts.
-    // Using an unknown deck ID.
-    error DeckDoesNotExist(address player, uint8 deckID);
-
     // The game doesn't exist or has already ended.
     error NoGameNoLife();
 
