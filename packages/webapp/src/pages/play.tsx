@@ -6,7 +6,7 @@ import { useModalController } from "src/components/lib/modal"
 import { GameEndedModal } from "src/components/modals/gameEndedModal"
 import { Navbar } from "src/components/navbar"
 import * as store from "src/store/hooks"
-import { GameStatus, GameStep } from "src/store/types"
+import { CardPlacement, GameStatus, GameStep } from "src/store/types"
 import { FablePage } from "src/pages/_app"
 import { Address } from "viem"
 import { readContract } from "wagmi/actions"
@@ -22,20 +22,53 @@ import { endTurn } from "src/actions/endTurn"
 import { currentPlayer, isEndingTurn } from "src/game/misc"
 import { useCancellationHandler } from "src/hooks/useCancellationHandler"
 import { usePlayerHand } from "src/store/hooks"
+import {
+  DndContext,
+  DragOverlay,
+  DropAnimation,
+  MeasuringStrategy,
+  MouseSensor,
+  UniqueIdentifier,
+  closestCenter,
+  defaultDropAnimationSideEffects,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core"
+import PlayerBoard from "src/components/playerBoard"
+import { createPortal } from "react-dom"
+import useDragEvents from "src/hooks/useDragEvents"
+import CardContainer from "src/components/cards/cardContainer"
 
 const Play: FablePage = ({ isHydrated }) => {
   const [ gameID, setGameID ] = store.useGameID()
   const gameStatus = store.useGameStatus()
-  const [ loading, setLoading ] = useState<string|null>(null)
-  const [ hideResults, setHideResults ] = useState(false)
-  const [ concedeCompleted, setConcedeCompleted ] = useState(false)
+
   const playerAddress = store.usePlayerAddress()
+  const opponentAddress = store.useOpponentAddress()
+  const playerBattlefield = store.usePlayerBattlefield()
+  const opponentBattlefield = store.useOpponentBattlefield()
   const router = useRouter()
   const privateInfo = store.usePrivateInfo()
-  const gameData = store.useGameData()
-
   const [ hasVisitedBoard, visitBoard ] = store.useHasVisitedBoard()
   useEffect(visitBoard, [visitBoard, hasVisitedBoard])
+
+  const [ loading, setLoading ] = useState<string | null>(null)
+  const [ hideResults, setHideResults ] = useState(false)
+  const [ concedeCompleted, setConcedeCompleted ] = useState(false)
+  const gameData = store.useGameData()
+  const [ activeId, setActiveId ] = useState<UniqueIdentifier|null>(null)
+
+  const playerHand = usePlayerHand()
+
+  const dropAnimation: DropAnimation = {
+    sideEffects: defaultDropAnimationSideEffects({
+      styles: {
+        active: {
+          opacity: "0.5",
+        },
+      },
+    }),
+  }
 
   useEffect(() => {
     // If the game ID is null, fetch it from the contract. If still null, we're not in a game,
@@ -49,21 +82,14 @@ const Play: FablePage = ({ isHydrated }) => {
         args: [playerAddress as Address],
       })
 
-      if (fetchedGameID > 0n)
-        setGameID(fetchedGameID)
-      else
-        void navigate(router, "/")
+      if (fetchedGameID > 0n) setGameID(fetchedGameID)
+      else void navigate(router, "/")
     }
 
     // Back to home screen if player disconnects.
-    if (playerAddress === null)
-      void navigate(router, "/")
-    else if (gameID === null)
-      void fetchGameID()
-
+    if (playerAddress === null) void navigate(router, "/")
+    else if (gameID === null) void fetchGameID()
   }, [gameID, setGameID, playerAddress, router])
-
-  const playerHand = usePlayerHand()
 
   const ended = gameStatus === GameStatus.ENDED || concedeCompleted
 
@@ -105,11 +131,10 @@ const Play: FablePage = ({ isHydrated }) => {
       setLoading,
       onSuccess: () => setConcedeCompleted(true),
     }),
-    [gameID, playerAddress, setLoading])
+    [gameID, playerAddress])
 
   const doHideResults = useCallback(() => setHideResults(true), [setHideResults])
-  const doShowResults = useCallback(() => setHideResults(false), [setHideResults])
-
+  const doShowResults = useCallback(() => setHideResults(false), [setHideResults])  
   useEffect(() => {
     if (gameID !== null && playerAddress !== null && !privateInfo) {
       setError({
@@ -126,91 +151,125 @@ const Play: FablePage = ({ isHydrated }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [privateInfo])
 
-
   const ctrl = useModalController({ displayed: true, closeable: false })
 
+  // dnd setup
+  const { 
+    handleDragStart, handleDragEnd, handleDragCancel 
+  } = useDragEvents(setActiveId, setLoading, cancellationHandler)
+  const sensors = useSensors(
+    // waits for a drag of 20 pixels before the UX assumes a card is being played
+    useSensor(MouseSensor, { activationConstraint: { distance: 20 } })
+  )
   // -----------------------------------------------------------------------------------------------
 
   if (!isHydrated) return <></>
 
   return (
     <>
-      {/* The !ended here hides the loading modal to avoid it superimposing with the game ending
+      <DndContext
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
+        onDragCancel={handleDragCancel}
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        measuring={{
+          droppable: {
+            strategy: MeasuringStrategy.Always,
+          },
+        }}
+      >
+        {/* The !ended here hides the loading modal to avoid it superimposing with the game ending
           modal, which can happen when we learn the game has ended because of a data refresh that
           precedes the inclusion confirmation. */}
-      {loading && !ended && (
-        <LoadingModal ctrl={ctrl} loading={loading} setLoading={setLoading} />)}
+        {loading && !ended && (
+          <LoadingModal ctrl={ctrl} loading={loading} setLoading={setLoading} />
+        )}
 
-      {gameID === 0n && (
-        <LoadingModal ctrl={ctrl} loading="Fetching game ..." setLoading={setLoading} />)}
+        {gameID === 0n && (
+          <LoadingModal
+            ctrl={ctrl}
+            loading="Fetching game ..."
+            setLoading={setLoading}
+          />
+        )}
 
-      {ended && !hideResults && (
-        <GameEndedModal closeCallback={doHideResults} />)}
+        {ended && !hideResults && (
+          <GameEndedModal closeCallback={doHideResults} />
+        )}
 
-      <main className="flex min-h-screen flex-col">
-        <Navbar />
+        <main className="flex min-h-screen flex-col">
+          <Navbar />
 
-        <Hand
-          cards={playerHand}
-          setLoading={setLoading}
-          cancellationHandler={cancellationHandler}
-          className="absolute left-0 right-0 mx-auto z-[100] translate-y-1/2 transition-all duration-500 rounded-xl ease-in-out hover:translate-y-0"
-        />
-        <div className="grid-col-1 relative mx-6 mb-6 grid grow grid-rows-[6]">
-          <div className="border-b-1 relative row-span-6 rounded-xl rounded-b-none border bg-base-300 shadow-inner">
-            <p className="z-0 m-2 font-mono font-bold"> 🛡 p2 address </p>
-            <p className="z-0 m-2 font-mono font-bold"> ♥️ 100 </p>
-            {/* <div className="absolute top-0 right-1/2 -mb-2 flex h-32 w-32 translate-x-1/2 items-center justify-center rounded-full border bg-slate-900  font-mono text-lg font-bold text-white">
-              100
-            </div> */}
+          <Hand
+            cards={playerHand as readonly bigint[]}
+            setLoading={setLoading}
+            cancellationHandler={cancellationHandler}
+            className="absolute left-0 right-0 mx-auto z-[100] translate-y-1/2 transition-all duration-500 rounded-xl ease-in-out hover:translate-y-0"
+          />
+          <div className="grid-col-1 relative mx-6 mb-6 grid grow grid-rows-[6]">
+            <PlayerBoard
+              playerAddress={opponentAddress}
+              playedCards={opponentBattlefield}
+            />
+
+            {!ended && (
+              <>
+                <button
+                  className="btn-warning btn-lg btn absolute right-96 bottom-1/2 z-50 !translate-y-1/2 rounded-lg border-[.1rem] border-base-300 font-mono hover:scale-105"
+                  disabled={cantDrawCard}
+                  onClick={doDrawCard}
+                >
+                  DRAW
+                </button>
+
+                <button
+                  className="btn-warning btn-lg btn absolute right-48 bottom-1/2 z-50 !translate-y-1/2 rounded-lg border-[.1rem] border-base-300 font-mono hover:scale-105"
+                  disabled={cantEndTurn}
+                  onClick={doEndTurn}
+                >
+                  END TURN
+                </button>
+
+                <button
+                  className="btn-warning btn-lg btn absolute right-4 bottom-1/2 z-50 !translate-y-1/2 rounded-lg border-[.1rem] border-base-300 font-mono hover:scale-105"
+                  disabled={cantConcede}
+                  onClick={doConcede}
+                >
+                  CONCEDE
+                </button>
+              </>
+            )}
+
+            {/* TODO avoid the bump by grouping buttons in a container that is translated, then no need for the translation here and the important */}
+            {ended && (
+              <>
+                <button
+                  className="btn-warning btn-lg btn absolute right-4 bottom-1/2 z-50 !translate-y-1/2 rounded-lg border-[.1rem] border-base-300 font-mono hover:scale-105"
+                  onClick={doShowResults}
+                >
+                  SEE RESULTS & EXIT
+                </button>
+              </>
+            )}
+
+            <PlayerBoard
+              playerAddress={playerAddress}
+              playedCards={playerBattlefield}
+            />
+
+            {createPortal(
+              <DragOverlay dropAnimation={dropAnimation}>
+                <CardContainer
+                  id={activeId as string}
+                  placement={CardPlacement.DRAGGED}
+                />
+              </DragOverlay>,
+              document.body
+            )}
           </div>
-
-          {!ended && (
-            <>
-              <button className="btn-warning btn-lg btn absolute right-96 bottom-1/2 z-50 !translate-y-1/2 rounded-lg border-[.1rem] border-base-300 font-mono hover:scale-105"
-                disabled={cantDrawCard}
-                onClick={doDrawCard}>
-                DRAW
-              </button>
-
-              <button
-                className="btn-warning btn-lg btn absolute right-48 bottom-1/2 z-50 !translate-y-1/2 rounded-lg border-[.1rem] border-base-300 font-mono hover:scale-105"
-                disabled={cantEndTurn}
-                onClick={doEndTurn}>
-                END TURN
-              </button>
-
-              <button
-                className="btn-warning btn-lg btn absolute right-4 bottom-1/2 z-50 !translate-y-1/2 rounded-lg border-[.1rem] border-base-300 font-mono hover:scale-105"
-                disabled={cantConcede}
-                onClick={doConcede}
-              >
-                CONCEDE
-              </button>
-            </>
-          )}
-
-          {/* TODO avoid the bump by grouping buttons in a container that is translated, then no need for the translation here and the important */}
-          {ended && (
-            <>
-              <button
-                className="btn-warning btn-lg btn absolute right-4 bottom-1/2 z-50 !translate-y-1/2 rounded-lg border-[.1rem] border-base-300 font-mono hover:scale-105"
-                onClick={doShowResults}
-              >
-                SEE RESULTS & EXIT
-              </button>
-            </>
-          )}
-
-          <div className="relative row-span-6 rounded-xl rounded-t-none border border-t-0 bg-base-300 shadow-inner">
-            <p className="z-0 m-2 font-mono font-bold"> ⚔️ p1 address </p>
-            <p className="-0 m-2 font-mono font-bold"> ♥️ 100 </p>
-            {/* <div className="absolute bottom-0 right-1/2 -mb-2 flex h-32 w-32 translate-x-1/2 items-center justify-center rounded-full border bg-slate-900  font-mono text-lg font-bold text-white">
-              100
-            </div> */}
-          </div>
-        </div>
-      </main>
+        </main>
+      </DndContext>
     </>
   )
 }

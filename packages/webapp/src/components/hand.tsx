@@ -1,48 +1,36 @@
 import { useEffect, useRef, useState } from "react"
 import { AiOutlineLeft, AiOutlineRight } from "react-icons/ai"
 import useScrollBox from "../hooks/useScrollBox"
-import { Card } from "./card"
-import * as store from "src/store/hooks"
+import {
+  SortableContext,
+  horizontalListSortingStrategy,
+  useSortable,
+} from "@dnd-kit/sortable"
+import { CardPlacement } from "src/store/types"
+import CardContainer from "./cards/cardContainer"
+import { convertBigIntArrayToStringArray } from "src/utils/js-utils"
 import { CancellationHandler } from "src/components/lib/loadingModal"
 
 const Hand = ({
   cards,
   className,
-  setLoading,
-  cancellationHandler
 }: {
   cards: readonly bigint[] | null
   className?: string
   setLoading: (label: string | null) => void
   cancellationHandler: CancellationHandler
 }) => {
-  const [isFocused, setIsFocused] = useState<boolean>(false)
-
-  const hand: any = []
+  const [ isFocused, setIsFocused ] = useState<boolean>(false)
   const scrollWrapperRef = useRef<any>()
   const { showLeftArrow, scrollLeft, showRightArrow, scrollRight } =
     useScrollBox(scrollWrapperRef)
 
-  const gameID = store.useGameID()[0]!
-  const playerAddress = store.usePlayerAddress()!
+  const { setNodeRef } = useSortable({
+    id: CardPlacement.HAND,
+  })
 
-  if (cards && cards.length > 0) {
-    for (let i = 0; i < cards?.length; i++) {
-      hand.push(
-        <div key={i}>
-          <Card
-            id={i}
-            gameID={gameID}
-            playerAddress={playerAddress}
-            className="transitional-all duration-200 hover:scale-[100%] hover:border-yellow-500"
-            handHovered={isFocused}
-            setLoading={setLoading}
-            cancellationHandler={cancellationHandler}
-          />
-        </div>
-      )
-    }
-  }
+  const convertedCards = convertBigIntArrayToStringArray(cards)
+  const range = convertedCards?.map((_, index) => index + 1) ?? []
 
   useEffect(() => {
     const handleResize = () => {
@@ -57,6 +45,7 @@ const Hand = ({
   return (
     <div
       className={`${className} flex flex-row items-center justify-evenly bottom-0 w-[95%] space-x-2`}
+      ref={setNodeRef}
       onMouseEnter={() => {
         setIsFocused(true)
       }}
@@ -76,7 +65,19 @@ const Hand = ({
         <div className="overflow-x-scroll no-scrollbar" ref={scrollWrapperRef}>
           <div className="relative flex w-max">
             <div className="flex flex-row items-end justify-center space-x-4 px-2">
-              {hand}
+              <SortableContext
+                items={range}
+                strategy={horizontalListSortingStrategy}
+              >
+                {range.map((index) => (
+                  <div key={index}>
+                    <CardContainer
+                      id={convertedCards[index - 1]}
+                      placement={CardPlacement.HAND}
+                    />
+                  </div>
+                ))}
+              </SortableContext>
             </div>
           </div>
         </div>

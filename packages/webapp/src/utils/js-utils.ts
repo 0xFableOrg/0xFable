@@ -181,3 +181,50 @@ export function randomUint256(): bigint {
 }
 
 // =================================================================================================
+
+/**
+ * Truncates an address into a shorter representation by displaying the first `digits` character
+ * and the last `digits` characters.
+ */
+export const shortenAddress = (address?: `0x${string}` | null, digits = 5) => {
+  if (!address) return ""
+  return (
+    address.substring(0, digits) +
+    "..." +
+    address.substring(address.length - digits)
+  )
+}
+
+// =================================================================================================
+
+/** Takes a string as input and returns the first sequence of digits found in the string, or null if no digits are present.  */
+export const extractCardID = (idString: string) => {
+  const numberMatch = idString.match(/\d+/)
+  return numberMatch ? numberMatch[0] : null
+}
+
+// =================================================================================================
+
+// =================================================================================================
+
+/** Converts a string to a number if within the JavaScript safe integer range. */
+export const convertStringToSafeNumber = (str: string): number => {
+  const num = BigInt(str);
+  if (num >= BigInt(Number.MIN_SAFE_INTEGER) && num <= BigInt(Number.MAX_SAFE_INTEGER)) {
+    return Number(num);
+  }
+  return 0;
+};
+
+
+
+// =================================================================================================
+
+/** Converts an array of bigints to their string representations, returns an empty array if input is null. */
+export const convertBigIntArrayToStringArray = (
+  cardsList: readonly bigint[] | null
+): string[] => {
+  return cardsList?.map(bigIntValue => bigIntValue.toString()) || [];
+};
+
+// =================================================================================================
