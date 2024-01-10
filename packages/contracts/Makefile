@@ -67,7 +67,7 @@ format:
 # where the public randomness is supposed to be derived from, which will yield a 0 blockhash and
 # random value.
 anvil:
-	anvil --chain-id 1337 --code-size-limit 30000 --block-time 2
+	anvil --chain-id 1337 --block-time 2
 .PHONY: anvil
 
 # Dumps function, event and error selectors to out/selectors.txt
