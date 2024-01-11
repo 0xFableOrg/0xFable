@@ -57,15 +57,18 @@ const Home: FablePage = ({ isHydrated }) => {
         {isWrongNetwork && <ConnectKitButton />}
 
         {isRightNetwork && <>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-4 md:gap-8">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-5 md:gap-8">
             <CreateGameModal />
             <JoinGameModal />
             <MintDeckModal />
             <Link className="hover:border-3 btn-lg btn btn-neutral border-2 border-green-900 text-2xl normal-case hover:scale-105 hover:border-green-800" href={"/collection"}>
               Collection →
             </Link>
-          </div>
 
+            <Link className="hover:border-3 btn-lg btn btn-neutral border-2 border-green-900 text-2xl normal-case hover:scale-105 hover:border-green-800" href={"/editor"}>
+              Editor →
+            </Link>
+          </div>  
           <ConnectKitButton />
         </>}
       </div>

@@ -14,6 +14,8 @@ import { useInventoryCardsCollectionGetCollection } from "src/generated"
 import { Card } from "src/store/types"
 import { Address } from "src/chain"
 import { FablePage } from "src/pages/_app"
+import Link from "next/link"
+import { router } from 'next/router'
 
 // NOTE(norswap & geniusgarlic): Just an example, when the game actually has effects & types,
 //   fetch those from the chain instead of hardcoding them here.
@@ -26,7 +28,7 @@ const initialEffectMap = Object.assign({}, ...effects.map(name => ({[name]: fals
 const types = ['Creature', 'Magic', 'Weapon']
 const initialTypeMap = Object.assign({}, ...types.map(name => ({[name]: false})))
 
-const Collection: FablePage = ({ isHydrated }) => {
+const Collection: FablePage = ({ decks, isHydrated }) => {
 
   const { address } = useAccount()
   const [ selectedCard, setSelectedCard ] = useState<Card|null>(null)
@@ -61,7 +63,7 @@ const Collection: FablePage = ({ isHydrated }) => {
   })
 
   const handleInputChangeBouncy = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchInput(event.target.value);
+    setSearchInput(event.target.value)
   }
   const handleInputChange = useMemo(() => debounce(handleInputChangeBouncy, 300), [])
 
@@ -80,7 +82,6 @@ const Collection: FablePage = ({ isHydrated }) => {
       <Head>
         <title>0xFable: My Collection</title>
       </Head>
-
       {jotaiDebug()}
       <main className="flex h-screen flex-col">
         <Navbar />
@@ -141,22 +142,22 @@ const Collection: FablePage = ({ isHydrated }) => {
               <div className="text-center m-2">{cardFlavor}</div>
             </div>
           </div>
-        </div>
+          </div>
 
           {/* Card Collection Display */}
-          <div className="col-span-9 flex rounded-xl border overflow-y-auto">
+          <div className="col-span-7 flex rounded-xl border overflow-y-auto">
             { isHydrated && cards.length == 0 &&
               <div className="flex flex-row w-full justify-center items-center">
                 <MintDeckModal callback={refetch} />
               </div>}
 
             { isHydrated && cards.length > 0 &&
-              <div className="grid grid-cols-4 gap-4 overflow-y-auto pb-4">
+              <div className="grid grid-cols-4 overflow-y-auto pb-4">
               {cards.map(card => (
                 <div className="m-4 bg-slate-900/50 hover:bg-slate-800 rounded-lg p-4 border-4 border-slate-900"
                      key={`${card.id}`}
                      style={{height: 'fit-content'}}
-                     onClick={() => setSelectedCard(card)}>
+                     onMouseEnter={() => setSelectedCard(card)}>
                   {/*TODO handle the image*/}
                   <Image src="/card_art/0.jpg" alt={card.lore.name} width={256} height={256} />
                   <div className="text-center">{card.lore.name}</div>
@@ -171,6 +172,30 @@ const Collection: FablePage = ({ isHydrated }) => {
                 </div>
               ))}
             </div>}
+          </div>
+
+          {/* Deck Panel */}
+          <div className="col-span-2 flex rounded-xl border overflow-y-auto">
+            <div className="w-full flex flex-col items-center p-3">
+              {/* New Deck Button */}
+              <Link className="w-full px-4 py-2 mb-2 border rounded-md text-gray-100 bg-purple-900 hover:bg-gray-500 font-bold text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" href={"/editor"}>
+                New Deck →
+              </Link>
+
+              {/* Deck Buttons */}
+              {decks.map((deck, deckID) => (
+                <button 
+                  key={deckID} 
+                  className="w-full px-4 py-2 mb-2 border rounded-md text-gray-100 bg-purple-900 hover:bg-gray-500 font-bold text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  onClick={() => { 
+                    // Navigate to the editor view with the selected deck's index as a route parameter
+                    router.push(`/editor?deckID=${deckID}`)
+                  }}
+                >
+                  {deck.name}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </main>

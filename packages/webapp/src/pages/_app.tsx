@@ -9,7 +9,7 @@ import { NextPage } from "next"
 import type { AppType } from "next/app"
 import Head from "next/head"
 import { useAccount, WagmiConfig } from "wagmi"
-
+import { useState } from "react"
 import { ensureLocalAccountIndex, wagmiConfig } from "src/chain"
 import jotaiDebug from "src/components/lib/jotaiDebug"
 import { GlobalErrorModal } from "src/components/modals/globalErrorModal"
@@ -31,6 +31,7 @@ export type FablePage = NextPage<{ isHydrated: boolean }>
 // =================================================================================================
 
 const MyApp: AppType = ({ Component, pageProps }) => {
+
   return (
     <>
       <Head>
@@ -67,6 +68,11 @@ const ComponentWrapper = ({
   const isHydrated = useIsHydrated()
   const errorConfig = useErrorConfig()
 
+    // todo @eviterin: i've understood it so that decks are stored on chain. thus, below part is not going to be needed.
+    const testCards = [];
+    const [decks, setDecks] = useState<Deck[]>([]);
+    //
+
   if (process.env.NODE_ENV === "development") { // constant
     // eslint-disable-next-line react-hooks/rules-of-hooks
     const router = useRouter()
@@ -87,7 +93,7 @@ const ComponentWrapper = ({
   }
 
   return <>
-    <Component { ...pageProps } isHydrated={isHydrated} />
+    <Component { ...pageProps } isHydrated={isHydrated} decks={decks} setDecks={setDecks}/>
     {/* Global error modal for errors that don't have obvious in-flow resolutions. */}
     {isHydrated && errorConfig && <GlobalErrorModal config={errorConfig} />}
   </>
