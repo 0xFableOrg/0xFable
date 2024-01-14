@@ -8,7 +8,9 @@ import {GameStep, PlayerData, GameData} from "./Structs.sol";
 import {Constants} from "./Constants.sol";
 import {Utils} from "./Utils.sol";
 
-library GameActionLib {
+library GameAction {
+    // ---------------------------------------------------------------------------------------------
+
     function concedeGame(
         uint256 gameID,
         mapping(uint256 => GameData) storage gameData,
@@ -194,7 +196,7 @@ library GameActionLib {
                 uint8 damage = cardsCollection.stats(attackingCard).attack;
                 if (defender.health <= damage) {
                     defender.health = 0;
-                    GameActionLib.playerDefeated(gdata, gameID, inGame, msg.sender);
+                    playerDefeated(gdata, gameID, inGame, msg.sender);
                     break;
                 } else {
                     defender.health -= damage;
@@ -350,4 +352,6 @@ library GameActionLib {
         gdata.lastBlockNum = block.number;
         gdata.currentStep = GameStep.ENDED;
     }
+
+    // ---------------------------------------------------------------------------------------------
 }
