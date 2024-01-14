@@ -19,6 +19,17 @@ anvil:
 	cd packages/contracts && make anvil
 .PHONY: anvil
 
+# Runs rollop
+rollop:
+	@if [ ! -d "roll-op" ]; then \
+        git clone https://github.com/0xFableOrg/roll-op.git; \
+    fi
+	cd roll-op && ./rollop setup && ./rollop devnet
+
+# Runs account abstraction bundler and paymaster
+account-abstraction:
+	cd roll-op && ./rollop aa
+
 # Runs the webapp in dev mode.
 webdev:
 	cd packages/webapp && make dev
