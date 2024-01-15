@@ -65,7 +65,7 @@ data".
 If you access the app via http://localhost:3000/, you can interact with it with your wallet.
 You'll need to "Claim Airdrop" in order to get a deck to play with.
 
-However, for testing, it's expected you'll the Anvil ("test ... junk" mnemonic) accounts. These come
+However, for testing, it's expected you'll use the Anvil ("test ... junk" mnemonic) accounts. These come
 preloaded with local testnet ETH, and as part of our deploy script, we pre-airdrop a deck to
 accounts 0 and 1.
 
