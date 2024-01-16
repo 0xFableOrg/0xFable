@@ -1,8 +1,7 @@
 import { useCallback, useEffect, useState } from "react"
 
 import Hand from "src/components/hand"
-import { LoadingModal } from "src/components/lib/loadingModal"
-import { useModalController } from "src/components/lib/modal"
+import { LoadingModal } from "src/components/modals/loadingModal"
 import { GameEndedModal } from "src/components/modals/gameEndedModal"
 import { Navbar } from "src/components/navbar"
 import * as store from "src/store/hooks"
@@ -38,6 +37,7 @@ import PlayerBoard from "src/components/playerBoard"
 import { createPortal } from "react-dom"
 import useDragEvents from "src/hooks/useDragEvents"
 import CardContainer from "src/components/cards/cardContainer"
+import { Button } from "src/components/ui/button"
 
 const Play: FablePage = ({ isHydrated }) => {
   const [ gameID, setGameID ] = store.useGameID()
@@ -53,8 +53,8 @@ const Play: FablePage = ({ isHydrated }) => {
   useEffect(visitBoard, [visitBoard, hasVisitedBoard])
 
   const [ loading, setLoading ] = useState<string | null>(null)
-  const [ hideResults, setHideResults ] = useState(false)
-  const [ concedeCompleted, setConcedeCompleted ] = useState(false)
+  const [ hideResults, setHideResults ] = useState<boolean>(false)
+  const [ concedeCompleted, setConcedeCompleted ] = useState<boolean>(false)
   const gameData = store.useGameData()
   const [ activeId, setActiveId ] = useState<UniqueIdentifier|null>(null)
 
@@ -100,63 +100,65 @@ const Play: FablePage = ({ isHydrated }) => {
     if (ended) setLoading(null)
   }, [ended])
 
-  const missingData = gameID === null|| playerAddress === null || gameData === null
+  const missingData = gameID === null || playerAddress === null || gameData === null
   const cantTakeActions = missingData || currentPlayer(gameData) !== playerAddress
   const cancellationHandler = useCancellationHandler(loading)
 
   const cantDrawCard = cantTakeActions || gameData.currentStep !== GameStep.DRAW
   const doDrawCard = useCallback(
     () => drawCard({
-      gameID: gameID!,
-      playerAddress: playerAddress!,
-      setLoading,
-      cancellationHandler
-    }),
+        gameID: gameID!,
+        playerAddress: playerAddress!,
+        setLoading,
+        cancellationHandler
+      }),
     [gameID, playerAddress, setLoading, cancellationHandler])
 
   const cantEndTurn = cantTakeActions || !isEndingTurn(gameData.currentStep)
   const doEndTurn = useCallback(
     () => endTurn({
-      gameID: gameID!,
-      playerAddress: playerAddress!,
-      setLoading,
-    }),
+        gameID: gameID!,
+        playerAddress: playerAddress!,
+        setLoading,
+      }),
     [gameID, playerAddress, setLoading])
 
   const cantConcede = missingData
   const doConcede = useCallback(
     () => concede({
-      gameID: gameID!,
-      playerAddress: playerAddress!,
-      setLoading,
-      onSuccess: () => setConcedeCompleted(true),
-    }),
+        gameID: gameID!,
+        playerAddress: playerAddress!,
+        setLoading,
+        onSuccess: () => setConcedeCompleted(true),
+      }),
     [gameID, playerAddress])
 
   const doHideResults = useCallback(() => setHideResults(true), [setHideResults])
-  const doShowResults = useCallback(() => setHideResults(false), [setHideResults])  
+  const doShowResults = useCallback(() => setHideResults(false), [setHideResults])
   useEffect(() => {
     if (gameID !== null && playerAddress !== null && !privateInfo) {
       setError({
         title: "Hand information is missing",
-        message: "Keep playing on the device where you started the game, and do not clear your "
-          + "browser data while a game is in progress.",
+        message:
+          "Keep playing on the device where you started the game, and do not clear your " +
+          "browser data while a game is in progress.",
         buttons: [DISMISS_BUTTON, { text: "Concede", onClick: () => {
-          void doConcede!()
-          setError(null)
-          }
-        }]
+              void doConcede!()
+              setError(null)
+            },
+          },
+        ],
       })
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [privateInfo])
 
-  const ctrl = useModalController({ displayed: true, closeable: false })
-
   // dnd setup
-  const { 
-    handleDragStart, handleDragEnd, handleDragCancel 
-  } = useDragEvents(setActiveId, setLoading, cancellationHandler)
+  const { handleDragStart, handleDragEnd, handleDragCancel } = useDragEvents(
+    setActiveId,
+    setLoading,
+    cancellationHandler
+  )
   const sensors = useSensors(
     // waits for a drag of 20 pixels before the UX assumes a card is being played
     useSensor(MouseSensor, { activationConstraint: { distance: 20 } })
@@ -183,15 +185,11 @@ const Play: FablePage = ({ isHydrated }) => {
           modal, which can happen when we learn the game has ended because of a data refresh that
           precedes the inclusion confirmation. */}
         {loading && !ended && (
-          <LoadingModal ctrl={ctrl} loading={loading} setLoading={setLoading} />
+          <LoadingModal loading={loading} setLoading={setLoading} />
         )}
 
         {gameID === 0n && (
-          <LoadingModal
-            ctrl={ctrl}
-            loading="Fetching game ..."
-            setLoading={setLoading}
-          />
+          <LoadingModal loading="Fetching game ..." setLoading={setLoading} />
         )}
 
         {ended && !hideResults && (
@@ -215,41 +213,45 @@ const Play: FablePage = ({ isHydrated }) => {
 
             {!ended && (
               <>
-                <button
-                  className="btn-warning btn-lg btn absolute right-96 bottom-1/2 z-50 !translate-y-1/2 rounded-lg border-[.1rem] border-base-300 font-mono hover:scale-105"
+                <Button
+                  variant={"secondary"}
+                  className="absolute right-96 bottom-1/2 z-50 !translate-y-1/2 rounded-lg border-[.1rem] border-base-300 font-mono hover:scale-105"
                   disabled={cantDrawCard}
                   onClick={doDrawCard}
                 >
                   DRAW
-                </button>
+                </Button>
 
-                <button
-                  className="btn-warning btn-lg btn absolute right-48 bottom-1/2 z-50 !translate-y-1/2 rounded-lg border-[.1rem] border-base-300 font-mono hover:scale-105"
+                <Button
+                  variant={"secondary"}
+                  className="absolute right-48 bottom-1/2 z-50 !translate-y-1/2 rounded-lg border-[.1rem] border-base-300 font-mono hover:scale-105"
                   disabled={cantEndTurn}
                   onClick={doEndTurn}
                 >
                   END TURN
-                </button>
+                </Button>
 
-                <button
-                  className="btn-warning btn-lg btn absolute right-4 bottom-1/2 z-50 !translate-y-1/2 rounded-lg border-[.1rem] border-base-300 font-mono hover:scale-105"
+                <Button
+                  variant={"secondary"}
+                  className="absolute right-4 bottom-1/2 z-50 !translate-y-1/2 rounded-lg border-[.1rem] border-base-300 font-mono hover:scale-105"
                   disabled={cantConcede}
                   onClick={doConcede}
                 >
                   CONCEDE
-                </button>
+                </Button>
               </>
             )}
 
             {/* TODO avoid the bump by grouping buttons in a container that is translated, then no need for the translation here and the important */}
             {ended && (
               <>
-                <button
-                  className="btn-warning btn-lg btn absolute right-4 bottom-1/2 z-50 !translate-y-1/2 rounded-lg border-[.1rem] border-base-300 font-mono hover:scale-105"
+                <Button
+                  variant={"secondary"}
+                  className="absolute right-4 bottom-1/2 z-50 !translate-y-1/2 rounded-lg border-[.1rem] border-base-300 font-mono hover:scale-105"
                   onClick={doShowResults}
                 >
                   SEE RESULTS & EXIT
-                </button>
+                </Button>
               </>
             )}
 
