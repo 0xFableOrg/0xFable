@@ -19,6 +19,7 @@ import { useErrorConfig } from "src/store/hooks"
 import "src/styles/globals.css"
 import { useRouter } from "next/router"
 import { ComponentType, useEffect } from "react"
+import { Deck } from "src/store/types"
 
 // =================================================================================================
 
