@@ -36,6 +36,13 @@ const MyApp: AppType = ({ Component, pageProps }) => {
       <Head>
         <title>0xFable</title>
         <link rel="shortcut icon" href="/favicon.png" />
+        <link
+          rel="preload"
+          href="/fonts/BluuNext-Bold.otf"
+          as="font"
+          type="font/otf"
+          crossOrigin="anonymous"
+        />
       </Head>
 
       <WagmiConfig config={wagmiConfig}>
@@ -58,7 +65,7 @@ export default MyApp
  */
 const ComponentWrapper = ({
   Component,
-  pageProps
+  pageProps,
 }: {
   Component: ComponentType
   pageProps: any
@@ -86,11 +93,13 @@ const ComponentWrapper = ({
     // function from `utils/navigate.ts` instead of `router.push`.
   }
 
-  return <>
-    <Component { ...pageProps } isHydrated={isHydrated} />
-    {/* Global error modal for errors that don't have obvious in-flow resolutions. */}
-    {isHydrated && errorConfig && <GlobalErrorModal config={errorConfig} />}
-  </>
+  return (
+    <>
+      <Component {...pageProps} isHydrated={isHydrated} />
+      {/* Global error modal for errors that don't have obvious in-flow resolutions. */}
+      {isHydrated && errorConfig && <GlobalErrorModal config={errorConfig} />}
+    </>
+  )
 }
 
 // =================================================================================================
