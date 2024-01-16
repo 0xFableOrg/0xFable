@@ -1,5 +1,4 @@
 import Link from "next/link"
-import { useRouter } from "next/router"
 import { ConnectKitButton } from "connectkit"
 import { Button } from "./ui/button"
 import {
@@ -9,10 +8,8 @@ import {
 } from "./ui/navigation-menu"
 
 export const Navbar = () => {
-  const router = useRouter()
-
   return (
-    <NavigationMenu>
+    <NavigationMenu className="flex flex-row justify-between px-6 py-2">
       <NavigationMenuList>
         <NavigationMenuItem>
           <Link href="/">
@@ -27,13 +24,16 @@ export const Navbar = () => {
         </NavigationMenuItem>
       </NavigationMenuList>
 
-      <NavigationMenuList className="space-x-4">
+      <NavigationMenuList>
         <NavigationMenuItem>
-          {router.pathname !== "/collection" && (
-            <Link href="/collection" className="font-bold font-fable">
-              COLLECTION
-            </Link>
-          )}
+          <Link href="/collection">
+            <Button
+              variant="ghost"
+              className="text-xl normal-case text-white font-fable"
+            >
+              Collection
+            </Button>
+          </Link>
         </NavigationMenuItem>
         <NavigationMenuItem>
           <ConnectKitButton />
