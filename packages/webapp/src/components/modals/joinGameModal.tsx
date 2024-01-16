@@ -30,8 +30,8 @@ export const JoinGameModal = () => {
   const isGameJoiner = store.useIsGameJoiner()
 
   return (
-    <Dialog>
-      <DialogTrigger asChild={isGameJoiner}>
+    <Dialog defaultOpen={isGameJoiner}>
+      <DialogTrigger asChild>
         <Button
           variant="outline"
           className="rounded-lg p-6 font-fable text-2xl border-green-900 border-2 h-16 hover:scale-105 hover:border-green-800 hover:border-3"
