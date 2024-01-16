@@ -43,7 +43,7 @@ import {
 import { NUM_CARDS_FOR_PROOF } from "src/game/constants"
 import { packCards } from "src/game/fableProofs"
 import { DRAW_HAND_PROOF_TIMEOUT } from "src/constants"
-import { CancellationHandler } from "src/components/lib/loadingModal"
+import { CancellationHandler } from "src/components/modals/loadingModal"
 import { checkFresh, freshWrap } from "src/store/checkFresh"
 import { getPlayerHand } from "src/store/derive"
 

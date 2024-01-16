@@ -9,7 +9,7 @@ import {
 import { CardPlacement } from "src/store/types"
 import CardContainer from "./cards/cardContainer"
 import { convertBigIntArrayToStringArray } from "src/utils/js-utils"
-import { CancellationHandler } from "src/components/lib/loadingModal"
+import { CancellationHandler } from "src/components/modals/loadingModal"
 
 const Hand = ({
   cards,
