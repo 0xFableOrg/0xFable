@@ -5,6 +5,7 @@ import {CardsCollection} from "../CardsCollection.sol";
 import {DeckAirdrop} from "../DeckAirdrop.sol";
 import {Inventory} from "../Inventory.sol";
 import {InventoryCardsCollection} from "../InventoryCardsCollection.sol";
+import {PlayerData} from "../libraries/Structs.sol";
 import {Game} from "../Game.sol";
 
 import {Test} from "forge-std/Test.sol";
@@ -58,9 +59,9 @@ contract Integration is Test {
     }
 
     function testGame() public {
-        uint[2] memory proofA;
-        uint[2][2] memory proofB;
-        uint[2] memory proofC;
+        uint256[2] memory proofA;
+        uint256[2][2] memory proofB;
+        uint256[2] memory proofC;
 
         // don't check zk proofs
         vm.prank(address(0));
@@ -83,7 +84,7 @@ contract Integration is Test {
         game.drawInitialHand(gameID, HAND_ROOT, DECK_ROOT, proofA, proofB, proofC);
         vm.stopPrank();
 
-        Game.PlayerData memory pdata;
+        PlayerData memory pdata;
         uint8[] memory size1array = new uint8[](1);
         uint8[] memory size2array = new uint8[](2);
 
