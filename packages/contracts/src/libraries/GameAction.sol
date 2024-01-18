@@ -108,16 +108,6 @@ library GameAction {
         bytes32 deckRoot,
         uint256 randomness
     ) external {
-        if (pdata.joinBlockNum == 0) {
-            revert Errors.PlayerNotInGame();
-        }
-        if (pdata.handRoot != 0) {
-            revert Errors.AlreadyDrew();
-        }
-
-        pdata.handRoot = handRoot;
-        pdata.deckRoot = deckRoot;
-        pdata.handSize = Constants.INITIAL_HAND_SIZE;
 
         uint256 deckStart = pdata.deckStart;
         uint256 deckEnd = pdata.deckEnd;
@@ -168,10 +158,6 @@ library GameAction {
     {
         GameData storage gdata = gameData[gameID];
         PlayerData storage pdata = gdata.playerData[msg.sender];
-        if (cardIndex > gdata.cards.length) {
-            revert Errors.CardIndexTooHigh();
-        }
-
         pdata.handRoot = handRoot;
         pdata.handSize--;
         pdata.battlefield |= 1 << cardIndex;
