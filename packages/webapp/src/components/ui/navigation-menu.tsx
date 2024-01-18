@@ -5,6 +5,7 @@ import { ChevronDown } from "lucide-react"
 
 import { cn } from "../../utils/ui-utils"
 
+// ref: https://ui.shadcn.com/docs/components/navigation-menu
 const NavigationMenu = React.forwardRef<
   React.ElementRef<typeof NavigationMenuPrimitive.Root>,
   React.ComponentPropsWithoutRef<typeof NavigationMenuPrimitive.Root>

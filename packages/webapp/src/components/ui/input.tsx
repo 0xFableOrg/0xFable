@@ -5,6 +5,7 @@ import { cn } from "../../utils/ui-utils"
 export interface InputProps
   extends React.InputHTMLAttributes<HTMLInputElement> {}
 
+// ref: https://ui.shadcn.com/docs/components/input
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
   ({ className, type, ...props }, ref) => {
     return (
