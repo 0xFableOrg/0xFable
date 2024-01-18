@@ -29,6 +29,9 @@ body {
   }
 }
 
+/* this can be visualized and changed here: https://ui.shadcn.com/themes 
+   -- these values are read by tailwind.config.cjs 
+*/
 @layer base {
   :root {
     --background: 305 19% 11%;
