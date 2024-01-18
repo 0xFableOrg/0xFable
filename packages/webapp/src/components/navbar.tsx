@@ -5,7 +5,7 @@ import {
   NavigationMenu,
   NavigationMenuList,
   NavigationMenuItem,
-} from "./ui/navigation-menu"
+} from "src/components/ui/navigation-menu"
 
 export const Navbar = () => {
   return (

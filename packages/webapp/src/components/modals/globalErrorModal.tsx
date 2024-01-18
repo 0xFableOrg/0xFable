@@ -5,7 +5,7 @@ import {
   DialogContent,
   DialogTitle,
 } from "../ui/dialog"
-import { Button } from "../ui/button"
+import { Button } from "src/components/ui/button"
 
 /**
  * A modal displayed globally (setup in _app.tsx) whenever the errorConfig state is set to non-null.

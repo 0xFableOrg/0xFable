@@ -8,8 +8,8 @@ import {
   DialogDescription,
   DialogTitle,
   DialogContent,
-} from "../ui/dialog"
-import { Button } from "../ui/button"
+} from "src/components/ui/dialog"
+import { Button } from "src/components/ui/button"
 
 /**
  * This modal is displayed in the "/play" page, when the game ends. It can be dismissed if the

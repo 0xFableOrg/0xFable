@@ -6,8 +6,8 @@ import {
   DialogDescription,
   DialogTitle,
   DialogContent,
-} from "../ui/dialog"
-import { Button } from "../ui/button"
+} from "src/components/ui/dialog"
+import { Button } from "src/components/ui/button"
 
 // =================================================================================================
 
