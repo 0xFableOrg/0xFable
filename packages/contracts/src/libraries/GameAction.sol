@@ -8,7 +8,6 @@ import {Constants} from "./Constants.sol";
 import {Utils} from "./Utils.sol";
 
 library GameAction {
-
     // =============================================================================================
     // EVENTS
 
@@ -56,12 +55,7 @@ library GameAction {
 
     // ---------------------------------------------------------------------------------------------
 
-    function concedeGame(
-        uint256 gameID,
-        mapping(uint256 => GameData) storage gameData,
-        mapping(address => uint256) storage inGame
-    ) public {
-        GameData storage gdata = gameData[gameID];
+    function concedeGame(uint256 gameID, GameData storage gdata, mapping(address => uint256) storage inGame) public {
         if (gdata.playerData[msg.sender].handRoot == 0) {
             revert Errors.PlayerNotInGame();
         }
@@ -75,12 +69,7 @@ library GameAction {
 
     // ---------------------------------------------------------------------------------------------
 
-    function timeout(
-        uint256 gameID,
-        mapping(uint256 => GameData) storage gameData,
-        mapping(address => uint256) storage inGame
-    ) external {
-        GameData storage gdata = gameData[gameID];
+    function timeout(uint256 gameID, GameData storage gdata, mapping(address => uint256) storage inGame) external {
         if (gdata.lastBlockNum > block.number - 256) {
             revert Errors.GameNotTimedOut();
         }
@@ -100,15 +89,9 @@ library GameAction {
 
     // ---------------------------------------------------------------------------------------------
 
-    function drawInitialHand(
-        uint256 gameID,
-        GameData storage gdata,
-        PlayerData storage pdata,
-        bytes32 handRoot,
-        bytes32 deckRoot,
-        uint256 randomness
-    ) external {
-
+    function drawInitialHand(uint256 gameID, GameData storage gdata, PlayerData storage pdata, uint256 randomness)
+        external
+    {
         uint256 deckStart = pdata.deckStart;
         uint256 deckEnd = pdata.deckEnd;
         pdata.deckSize = uint8(deckEnd - deckStart - Constants.INITIAL_HAND_SIZE);
@@ -153,10 +136,7 @@ library GameAction {
 
     // ---------------------------------------------------------------------------------------------
 
-    function playCard(uint256 gameID, mapping(uint256 => GameData) storage gameData, bytes32 handRoot, uint8 cardIndex)
-        external
-    {
-        GameData storage gdata = gameData[gameID];
+    function playCard(uint256 gameID, GameData storage gdata, bytes32 handRoot, uint8 cardIndex) external {
         PlayerData storage pdata = gdata.playerData[msg.sender];
         pdata.handRoot = handRoot;
         pdata.handSize--;
@@ -166,13 +146,7 @@ library GameAction {
 
     // ---------------------------------------------------------------------------------------------
 
-    function attack(
-        uint256 gameID,
-        mapping(uint256 => GameData) storage gameData,
-        uint8 targetPlayer,
-        uint8[] calldata attacking
-    ) external {
-        GameData storage gdata = gameData[gameID];
+    function attack(uint256 gameID, GameData storage gdata, uint8 targetPlayer, uint8[] calldata attacking) external {
         PlayerData storage pdata = gdata.playerData[msg.sender];
 
         // NOTE: This allows attacking dead player in (unsupported) games with > 2 players.
@@ -200,12 +174,11 @@ library GameAction {
 
     function defend(
         uint256 gameID,
-        mapping(uint256 => GameData) storage gameData,
+        GameData storage gdata,
         mapping(address => uint256) storage inGame,
         uint8[] calldata defending,
         CardsCollection cardsCollection
     ) external {
-        GameData storage gdata = gameData[gameID];
         PlayerData storage defender = gdata.playerData[msg.sender];
         PlayerData storage attacker = gdata.playerData[gdata.attackingPlayer];
         uint8[] storage attacking = attacker.attacking;

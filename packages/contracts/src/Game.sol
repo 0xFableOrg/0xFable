@@ -15,7 +15,6 @@ import {Groth16Verifier as PlayVerifier} from "./verifiers/PlayVerifier.sol";
 // NOTE: We try to lay the groundwork to support games with over 2 players, however they are not
 //   supported and will not work in the current state.
 contract Game {
-
     // =============================================================================================
     // EVENTS
 
@@ -599,14 +598,14 @@ contract Game {
         checkInitialHandProof(pdata, randomness, pdata.saltHash, proofA, proofB, proofC);
 
         randomness = getPubRandomness(gdata.lastBlockNum);
-        GameAction.drawInitialHand(gameID, gdata, pdata, handRoot, deckRoot, randomness);
+        GameAction.drawInitialHand(gameID, gdata, pdata, randomness);
     }
 
     // ---------------------------------------------------------------------------------------------
 
     // Let a player concede defeat.
     function concedeGame(uint256 gameID) public exists(gameID) {
-        GameAction.concedeGame(gameID, gameData, inGame);
+        GameAction.concedeGame(gameID, gameData[gameID], inGame);
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -618,7 +617,7 @@ contract Game {
     // Note that in the first scenario, the timed out player will lose anyway if he tries to take an
     // action.
     function timeout(uint256 gameID) external exists(gameID) {
-        GameAction.timeout(gameID, gameData, inGame);
+        GameAction.timeout(gameID, gameData[gameID], inGame);
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -744,7 +743,7 @@ contract Game {
         external
         step(gameID, GameStep.ATTACK)
     {
-        GameAction.attack(gameID, gameData, targetPlayer, attacking);
+        GameAction.attack(gameID, gameData[gameID], targetPlayer, attacking);
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -752,7 +751,7 @@ contract Game {
     // Declare defenders & resolve combat: each creature in `defending` will block the
     // corresponding creature in the attacker's `attacking` array.
     function defend(uint256 gameID, uint8[] calldata defending) external step(gameID, GameStep.DEFEND) {
-        GameAction.defend(gameID, gameData, inGame, defending, cardsCollection);
+        GameAction.defend(gameID, gameData[gameID], inGame, defending, cardsCollection);
     }
 
     // ---------------------------------------------------------------------------------------------
