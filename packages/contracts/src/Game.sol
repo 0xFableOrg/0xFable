@@ -584,10 +584,22 @@ contract Game {
         GameData storage gdata = gameData[gameID];
         PlayerData storage pdata = gdata.playerData[msg.sender];
 
-        checkInitialHandProof(
-            pdata, getPubRandomnessForInitialHand(pdata.joinBlockNum), pdata.saltHash, proofA, proofB, proofC
-        );
-        GameAction.drawInitialHand(gameID, gdata, pdata, handRoot, deckRoot, getPubRandomness(gdata.lastBlockNum));
+        if (pdata.joinBlockNum == 0) {
+            revert Errors.PlayerNotInGame();
+        }
+        if (pdata.handRoot != 0) {
+            revert Errors.AlreadyDrew();
+        }
+
+        pdata.handRoot = handRoot;
+        pdata.deckRoot = deckRoot;
+        pdata.handSize = Constants.INITIAL_HAND_SIZE;
+
+        uint256 randomness = getPubRandomnessForInitialHand(pdata.joinBlockNum);
+        checkInitialHandProof(pdata, randomness, pdata.saltHash, proofA, proofB, proofC);
+
+        randomness = getPubRandomness(gdata.lastBlockNum);
+        GameAction.drawInitialHand(gameID, gdata, pdata, handRoot, deckRoot, randomness);
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -656,9 +668,10 @@ contract Game {
         GameData storage gdata = gameData[gameID];
         PlayerData storage pdata = gdata.playerData[msg.sender];
 
-        checkDrawProof(
-            pdata, handRoot, deckRoot, pdata.saltHash, getPubRandomness(gdata.lastBlockNum), proofA, proofB, proofC
-        );
+        {
+            uint256 randomness = getPubRandomness(gdata.lastBlockNum);
+            checkDrawProof(pdata, handRoot, deckRoot, pdata.saltHash, randomness, proofA, proofB, proofC);
+        }
 
         GameAction.drawCard(gameID, gdata, pdata, handRoot, deckRoot);
 
@@ -713,9 +726,15 @@ contract Game {
         uint256[2][2] calldata proofB,
         uint256[2] calldata proofC
     ) external step(gameID, GameStep.PLAY) {
-        PlayerData storage pdata = gameData[gameID].playerData[msg.sender];
+        GameData storage gdata = gameData[gameID];
+        PlayerData storage pdata = gdata.playerData[msg.sender];
+
+        if (cardIndex > gdata.cards.length) {
+            revert Errors.CardIndexTooHigh();
+        }
+
         checkPlayProof(pdata, handRoot, pdata.saltHash, cardIndexInHand, cardIndex, proofA, proofB, proofC);
-        GameAction.playCard(gameID, gameData, handRoot, cardIndex);
+        GameAction.playCard(gameID, gdata, handRoot, cardIndex);
     }
 
     // ---------------------------------------------------------------------------------------------
