@@ -96,7 +96,6 @@ export const LoadingModalContent = ({
     setLoading(null)
     cancellationHandler?.cancel()
   }, [setLoading, cancellationHandler])
-  console.log("...i", loading)
 
   return (
     <>
