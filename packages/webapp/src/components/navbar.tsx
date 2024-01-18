@@ -13,10 +13,7 @@ export const Navbar = () => {
       <NavigationMenuList>
         <NavigationMenuItem>
           <Link href="/">
-            <Button
-              variant="ghost"
-              className="text-2xl normal-case text-white font-serif"
-            >
+            <Button variant="ghost" className="text-2xl normal-case text-white font-serif">
               <span className="text-red-400 font-mono font-light">0x</span>
               FABLE
             </Button>
@@ -27,10 +24,7 @@ export const Navbar = () => {
       <NavigationMenuList>
         <NavigationMenuItem>
           <Link href="/collection">
-            <Button
-              variant="ghost"
-              className="text-xl normal-case text-white font-fable"
-            >
+            <Button variant="ghost" className="text-xl normal-case text-white font-fable">
               Collection
             </Button>
           </Link>

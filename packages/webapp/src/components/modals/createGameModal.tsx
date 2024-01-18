@@ -31,10 +31,7 @@ export const CreateGameModal = () => {
     // If we're on the home page and we're the game creator, this modal should be displayed.
     <Dialog defaultOpen={isGameCreator}>
       <DialogTrigger asChild>
-        <Button
-          variant="outline"
-          className="rounded-lg p-6 font-fable text-2xl border-green-900 border-2 h-16 hover:scale-105 hover:border-green-800 hover:border-3"
-        >
+        <Button variant="outline" className="rounded-lg p-6 font-fable text-2xl border-green-900 border-2 h-16 hover:scale-105 hover:border-green-800 hover:border-3">
           Create Game →
         </Button>
       </DialogTrigger>
@@ -154,12 +151,7 @@ const CreateGameModalContent = () => {
             game ID.
           </p>
           <div className="flex justify-center">
-            <Button
-              className="font-fable"
-              variant={"secondary"}
-              disabled={!create}
-              onClick={create}
-            >
+            <Button className="font-fable" variant={"secondary"} disabled={!create} onClick={create}>
               Create Game
             </Button>
           </div>
@@ -182,19 +174,10 @@ const CreateGameModalContent = () => {
           </p>
           {!joined && (
             <div className="flex justify-center gap-4">
-              <Button
-                className="font-fable"
-                variant={"secondary"}
-                onClick={join}
-              >
+              <Button className="font-fable" variant={"secondary"} onClick={join}>
                 Join Game
               </Button>
-              <Button
-                className="font-fable"
-                variant={"secondary"}
-                disabled={!cancel}
-                onClick={cancel}
-              >
+              <Button className="font-fable" variant={"secondary"} disabled={!cancel} onClick={cancel}>
                 Cancel Game
               </Button>
             </div>
@@ -203,12 +186,7 @@ const CreateGameModalContent = () => {
             <div className="flex flex-col justify-center gap-4 items-center">
               <Spinner />
               {!allPlayersJoined && (
-                <Button
-                  className="font-fable"
-                  variant={"secondary"}
-                  disabled={!cancel}
-                  onClick={cancel}
-                >
+                <Button className="font-fable" variant={"secondary"} disabled={!cancel} onClick={cancel}>
                   Cancel Game
                 </Button>
               )}

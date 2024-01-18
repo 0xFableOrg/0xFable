@@ -105,11 +105,7 @@ export const LoadingModalContent = ({
         <Spinner />
         {cancellable && (
           <div className="flex justify-center">
-            <Button
-              variant={"secondary"}
-              className="font-fable"
-              onClick={cancel}
-            >
+            <Button variant={"secondary"} className="font-fable" onClick={cancel}>
               Cancel
             </Button>
           </div>

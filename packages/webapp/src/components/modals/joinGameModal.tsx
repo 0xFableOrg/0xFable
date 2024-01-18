@@ -32,10 +32,7 @@ export const JoinGameModal = () => {
   return (
     <Dialog defaultOpen={isGameJoiner}>
       <DialogTrigger asChild>
-        <Button
-          variant="outline"
-          className="rounded-lg p-6 font-fable text-2xl border-green-900 border-2 h-16 hover:scale-105 hover:border-green-800 hover:border-3"
-        >
+        <Button variant="outline" className="rounded-lg p-6 font-fable text-2xl border-green-900 border-2 h-16 hover:scale-105 hover:border-green-800 hover:border-3">
           Join Game →
         </Button>
       </DialogTrigger>
@@ -152,12 +149,7 @@ const JoinGameModalContent = () => {
                 onChange={handleInputChange}
                 className="mr-2 w-full max-w-xs text-white placeholder-gray-500 font-mono"
               />
-              <Button
-                className="font-fable"
-                variant={"secondary"}
-                disabled={!inputGameID || !join}
-                onClick={join}
-              >
+              <Button className="font-fable" variant={"secondary"} disabled={!inputGameID || !join} onClick={join}>
                 Join Game
               </Button>
             </div>

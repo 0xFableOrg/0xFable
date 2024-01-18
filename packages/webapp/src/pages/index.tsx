@@ -46,11 +46,7 @@ const Home: FablePage = ({ isHydrated }) => {
 
         {notConnected && (
           <div className="">
-            <Button
-              variant={"secondary"}
-              className="border-2 border-yellow-500 normal-case hover:scale-105 font-fable text-xl hover:border-yellow-400"
-              onClick={async () => setOpen(true)}
-            >
+            <Button variant={"secondary"} className="border-2 border-yellow-500 normal-case hover:scale-105 font-fable text-xl hover:border-yellow-400" onClick={async () => setOpen(true)}>
               Connect Wallet
             </Button>
           </div>
@@ -65,18 +61,12 @@ const Home: FablePage = ({ isHydrated }) => {
               <JoinGameModal />
               <MintDeckModal />
               <Link href={"/collection"}>
-                <Button
-                  variant="outline"
-                  className="rounded-lg p-6 font-fable text-2xl border-green-900 border-2 h-16 hover:scale-105 hover:border-green-800 hover:border-3"
-                >
+                <Button variant="outline" className="rounded-lg p-6 font-fable text-2xl border-green-900 border-2 h-16 hover:scale-105 hover:border-green-800 hover:border-3">
                   Collection →
                 </Button>
               </Link>
               <Link href={"/editor"}>
-                <Button
-                  variant="outline"
-                  className="rounded-lg p-6 font-fable text-2xl border-green-900 border-2 h-16 hover:scale-105 hover:border-green-800 hover:border-3"
-                >
+                <Button variant="outline" className="rounded-lg p-6 font-fable text-2xl border-green-900 border-2 h-16 hover:scale-105 hover:border-green-800 hover:border-3">
                   Editor →
                 </Button>
               </Link>

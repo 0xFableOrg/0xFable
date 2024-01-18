@@ -17,10 +17,7 @@ export const MintDeckModal = ({ callback = () => {} }) => {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button
-          variant="outline"
-          className="rounded-lg p-6 font-fable text-2xl border-green-900 border-2 h-16 hover:scale-105 hover:border-green-800 hover:border-3"
-        >
+        <Button variant="outline" className="rounded-lg p-6 font-fable text-2xl border-green-900 border-2 h-16 hover:scale-105 hover:border-green-800 hover:border-3">
           Mint Deck →
         </Button>
       </DialogTrigger>
@@ -64,12 +61,7 @@ const MintDeckModalContent = ({ callback }: { callback: () => void }) => {
               Mint a deck of cards to play the game with your friends.
             </p>
             <div className="flex justify-center">
-              <Button
-                className="font-fable"
-                variant={"secondary"}
-                onClick={claim}
-                disabled={!claim}
-              >
+              <Button className="font-fable" variant={"secondary"} onClick={claim} disabled={!claim}>
                 Mint Deck
               </Button>
             </div>

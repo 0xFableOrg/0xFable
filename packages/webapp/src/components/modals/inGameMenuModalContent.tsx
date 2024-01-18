@@ -25,12 +25,7 @@ export const InGameMenuModalContent = ({
               Return to Game
             </Button>
           </Link>
-          <Button
-            className="font-fable"
-            variant={"secondary"}
-            disabled={!concede}
-            onClick={concede}
-          >
+          <Button className="font-fable" variant={"secondary"} disabled={!concede} onClick={concede}>
             Concede Game
           </Button>
         </div>

@@ -213,30 +213,18 @@ const Play: FablePage = ({ isHydrated }) => {
 
             {!ended && (
               <>
-                <Button
-                  variant={"secondary"}
-                  className="absolute right-96 bottom-1/2 z-50 !translate-y-1/2 rounded-lg border-[.1rem] border-base-300 font-mono hover:scale-105"
-                  disabled={cantDrawCard}
-                  onClick={doDrawCard}
-                >
+                <Button variant={"secondary"} className="absolute right-96 bottom-1/2 z-50 !translate-y-1/2 rounded-lg border-[.1rem] border-base-300 font-mono hover:scale-105" disabled={cantDrawCard} onClick={doDrawCard}>
                   DRAW
                 </Button>
 
-                <Button
-                  variant={"secondary"}
-                  className="absolute right-48 bottom-1/2 z-50 !translate-y-1/2 rounded-lg border-[.1rem] border-base-300 font-mono hover:scale-105"
+                <Button variant={"secondary"} className="absolute right-48 bottom-1/2 z-50 !translate-y-1/2 rounded-lg border-[.1rem] border-base-300 font-mono hover:scale-105"
                   disabled={cantEndTurn}
                   onClick={doEndTurn}
                 >
                   END TURN
                 </Button>
 
-                <Button
-                  variant={"secondary"}
-                  className="absolute right-4 bottom-1/2 z-50 !translate-y-1/2 rounded-lg border-[.1rem] border-base-300 font-mono hover:scale-105"
-                  disabled={cantConcede}
-                  onClick={doConcede}
-                >
+                <Button variant={"secondary"} className="absolute right-4 bottom-1/2 z-50 !translate-y-1/2 rounded-lg border-[.1rem] border-base-300 font-mono hover:scale-105" disabled={cantConcede} onClick={doConcede}>
                   CONCEDE
                 </Button>
               </>
@@ -245,11 +233,7 @@ const Play: FablePage = ({ isHydrated }) => {
             {/* TODO avoid the bump by grouping buttons in a container that is translated, then no need for the translation here and the important */}
             {ended && (
               <>
-                <Button
-                  variant={"secondary"}
-                  className="absolute right-4 bottom-1/2 z-50 !translate-y-1/2 rounded-lg border-[.1rem] border-base-300 font-mono hover:scale-105"
-                  onClick={doShowResults}
-                >
+                <Button variant={"secondary"} className="absolute right-4 bottom-1/2 z-50 !translate-y-1/2 rounded-lg border-[.1rem] border-base-300 font-mono hover:scale-105" onClick={doShowResults}>
                   SEE RESULTS & EXIT
                 </Button>
               </>
