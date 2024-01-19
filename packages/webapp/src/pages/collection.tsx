@@ -35,16 +35,22 @@ const initialTypeMap = Object.assign({}, ...types.map(name => ({[name]: false}))
 
 const Collection: FablePage = ({ decks, setDecks, isHydrated }) => {
 
-  const { address } = useAccount()
-  const [ selectedCard, setSelectedCard ] = useState<Card|null>(null)
-  const [ searchInput, setSearchInput ] = useState('')
-  const [ effectMap, setEffectMap ] = useState(initialEffectMap)
-  const [ typeMap, setTypeMap ] = useState(initialTypeMap)
-  const [ isEditing, setIsEditing ] = useState(false)
-  const [ currentDeck, setCurrentDeck]  = useState({ name: '', cards: [] })
-  const [ originalDeckIndex, setOriginalDeckIndex ] = useState(null)
-  const [ deckCards, setDeckCards ] = useState([]);
-  const [ selectedCards, setSelectedCards ] = useState<Card[]>([]);
+  const { address } = useAccount();
+  const [ isDeckEditorActive, setIsDeckEditorActive ] = useState(false);
+
+  // Filter Panel / Sorting Panel
+  const [ searchInput, setSearchInput ] = useState('');
+  const [ effectMap, setEffectMap ] = useState(initialEffectMap);
+  const [ typeMap, setTypeMap ] = useState(initialTypeMap);
+  const [ selectedCard, setSelectedCard ] = useState<Card|null>(null);
+
+  // Deck Collection Display
+  const [ userDecks, setUserDecks ] = useState<Deck[]>([]);
+  const [ editingDeckIndex, setEditingDeckIndex ] = useState(null);
+
+  // Deck Construction Panel
+  const [ currentDeck, setCurrentDeck] = useState({ name: '', cards: [] });
+  const [ selectedDeckEditorCards, setSelectedDeckEditorCards ] = useState<Card[]>([]);
 
   const router = useRouter()
 
@@ -108,9 +114,7 @@ const Collection: FablePage = ({ decks, setDecks, isHydrated }) => {
   };
 
   const handleSaveDeck = (updatedDeck) => {
-    //console.log(updatedDeck);
     let updatedDecks = [...decks];
-    console.log(updatedDecks);
     if (originalDeckIndex !== null) {
       // Update the existing deck at the original index
       updatedDecks[originalDeckIndex] = updatedDeck;
