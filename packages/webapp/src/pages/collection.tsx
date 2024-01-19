@@ -100,26 +100,30 @@ const Collection: FablePage = ({ decks, setDecks, isHydrated }) => {
   }
 
   const handleDeckSelect = (deckID) => {
-    const selectedDeck = decks[deckID]
-    setCurrentDeck(selectedDeck)
-    setOriginalDeckIndex(deckID)
-    setIsEditing(true)
-  }
+    const selectedDeck = decks[deckID];
+    setCurrentDeck(selectedDeck);
+    setOriginalDeckIndex(deckID);
+    setIsEditing(true);
+    setSelectedCards(selectedDeck.cards);
+  };
 
-  const handleSaveDeck = () => {
-    let updatedDecks = [...decks]
-  
+  const handleSaveDeck = (updatedDeck) => {
+    //console.log(updatedDeck);
+    let updatedDecks = [...decks];
+    console.log(updatedDecks);
     if (originalDeckIndex !== null) {
-      updatedDecks[originalDeckIndex] = currentDeck
+      // Update the existing deck at the original index
+      updatedDecks[originalDeckIndex] = updatedDeck;
     } else {
-      updatedDecks.push(currentDeck)
+      // Add the new deck to the list
+      updatedDecks.push(updatedDeck);
     }
   
-    setDecks(updatedDecks)
-    setIsEditing(false)
-    setSelectedCards([]); 
+    setDecks(updatedDecks);
+    setIsEditing(false);
+    setSelectedCards([]);
     router.push('/collection'); 
-  }
+  };
 
   const handleCancelEditing = () => {
     setIsEditing(false);

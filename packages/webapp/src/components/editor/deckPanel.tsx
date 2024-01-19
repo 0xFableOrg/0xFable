@@ -12,13 +12,31 @@ interface DeckPanelProps {
   
   const DeckPanel: React.FC<DeckPanelProps> = ({ deck, selectedCards = [], onCardSelect, onSave, onCancel }) => {
     const [ deckName, setDeckName ] = useState(deck.name)
+    const [ isDeckNameValid, setIsDeckNameValid ] = useState(true)
 
     const handleDeckNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
       setDeckName(event.target.value)
+      setIsDeckNameValid(true)
     }
   
     const handleSave = () => {
-      onSave({ ...deck, name: deckName })
+      if(selectedCards.length === 0) {
+        // If no cards, then treat save as a cancel
+        onCancel()
+        return
+      }
+
+      if (!deckName.trim()) {
+        setIsDeckNameValid(false)
+        return
+      }
+
+      const newDeck = {
+        name: deckName,
+        cards: selectedCards
+      };
+
+      onSave(newDeck)
     }
 
     const handleCancel = () => {
@@ -46,10 +64,11 @@ interface DeckPanelProps {
     `}</style>
 
       {/* Deck Name Input */}
-      <input 
+      <input
         type="text"
         value={deckName}
         onChange={handleDeckNameChange}
+        style={{outline: isDeckNameValid ? "none" : "2px solid red" }}
         className="text-xl font-bold card-name-container w-full p-2"
         placeholder="Deck name"
       />
@@ -69,6 +88,7 @@ interface DeckPanelProps {
             onClick={() => onCardSelect(card)}
           >
             <div className="flex items-center space-x-3">
+              {/* todo @eviterin: get proper link to the card instead of always the witch */}
               <img src="/card_art/0.jpg" className="w-10 h-10 object-cover rounded-full" />
               <span className="font-medium">{card.lore.name}</span>
             </div>
