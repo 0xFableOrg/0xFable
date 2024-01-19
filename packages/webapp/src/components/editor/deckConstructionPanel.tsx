@@ -64,20 +64,26 @@ interface DeckConstructionPanelProps {
         }
     `}</style>
 
-      {/* Deck Name Input */}
-      <input
-        type="text"
-        value={deckName}
-        onChange={handleDeckNameChange}
-        style={{outline: isDeckNameValid ? "none" : "2px solid red" }}
-        className="text-xl font-bold card-name-container w-full p-2"
-        placeholder="Deck name"
-      />
-
-      {/* Save and Cancel Buttons */}
-      <div className="flex justify-center space-x-2 my-2">
-        <button onClick={handleSave} className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded">Save</button>
-        <button onClick={onCancel} className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded">Cancel</button>
+      <div className="flex justify-between items-center">
+        {/* Deck Name Input */}
+        <input
+          type="text"
+          value={deckName}
+          onChange={handleDeckNameChange}
+          style={{ outline: isDeckNameValid ? "none" : "2px solid red" }}
+          className="flex-grow px-2 py-2 border rounded-md text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent m-1.5"
+          placeholder=" Deck name"
+        />
+      
+        {/* Save and Cancel Buttons */}
+        <div className="flex justify-center">
+          <button onClick={handleSave} className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-3 rounded-l-md">
+            ✓
+          </button>
+          <button onClick={onCancel} className="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-3 rounded-r-md">
+            ✕
+          </button>
+        </div>
       </div>
 
       {/* List of Cards in the Deck */}
