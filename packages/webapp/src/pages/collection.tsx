@@ -3,7 +3,7 @@ import Head from "next/head"
 // This causes the "Ignoring unsupported entryTypes: largest-contentful-paint.", presumably
 // because Firefox does not support some associated features.
 import Image from "next/image"
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import { useAccount } from "wagmi"
 
 import jotaiDebug from "src/components/lib/jotaiDebug"
@@ -16,6 +16,11 @@ import { Address } from "src/chain"
 import { FablePage } from "src/pages/_app"
 import Link from "next/link"
 import { useRouter } from 'next/router'
+
+import FilterPanel from 'src/components/editor/filterPanel'
+import CardCollectionDisplay from 'src/components/editor/cardCollectionDisplay'
+import DeckList from 'src/components/editor/deckList'
+import DeckPanel from 'src/components/editor/deckPanel'
 
 // NOTE(norswap & geniusgarlic): Just an example, when the game actually has effects & types,
 //   fetch those from the chain instead of hardcoding them here.
@@ -35,6 +40,11 @@ const Collection: FablePage = ({ decks, isHydrated }) => {
   const [ searchInput, setSearchInput ] = useState('')
   const [ effectMap, setEffectMap ] = useState(initialEffectMap)
   const [ typeMap, setTypeMap ] = useState(initialTypeMap)
+  const [ isEditing, setIsEditing ] = useState(false)
+  const [ currentDeck, setCurrentDeck]  = useState({ name: '', cards: [] })
+  const [ originalDeckIndex, setOriginalDeckIndex ] = useState(null)
+  const [ deckCards, setDeckCards ] = useState([]);
+  const [selectedCards, setSelectedCards] = useState<Card[]>([]);
 
   const router = useRouter()
 
@@ -79,6 +89,84 @@ const Collection: FablePage = ({ decks, isHydrated }) => {
     setTypeMap({...typeMap, [type]: !typeMap[type]})
   }
 
+  const handleNewDeck = () => {
+    setCurrentDeck({ name: 'New Deck', cards: [] });
+    setIsEditing(true);
+    setOriginalDeckIndex(null);
+  };
+
+  const handleDeckChange = (updatedDeck) => {
+    setIsEditing(false)
+  }
+
+  const handleDeckSelect = (deckID) => {
+    const selectedDeck = decks[deckID]
+    setCurrentDeck(selectedDeck)
+    setOriginalDeckIndex(deckID)
+    setIsEditing(true)
+  }
+
+  const handleSaveDeck = () => {
+    let updatedDecks = [...decks]
+  
+    if (originalDeckIndex !== null) {
+      updatedDecks[originalDeckIndex] = currentDeck
+    } else {
+      updatedDecks.push(currentDeck)
+    }
+  
+    setDecks(updatedDecks)
+    setIsEditing(false)
+  }
+
+  const handleCancelEditing = () => {
+    setIsEditing(false);
+  }
+
+  const addToDeck = (card: Card) => {
+    setDeck(prevDeck => {
+      const isAlreadyInDeck = prevDeck.some(cardInDeck => cardInDeck.id === card.id)
+      if (isAlreadyInDeck) {
+        // Remove the card from the deck
+        return prevDeck.filter(cardInDeck => cardInDeck.id !== card.id)
+      } else {
+        // Add the card to the deck
+        return [...prevDeck, card]
+      }
+    })
+  }
+
+  const toggleCardInDeck = (card) => {
+    setDeckCards((currentCards) => {
+      const isCardInDeck = currentCards.find((c) => c.id === card.id);
+      if (isCardInDeck) {
+        return currentCards.filter((c) => c.id !== card.id);
+      } else {
+        return [...currentCards, card];
+      }
+    });
+  };
+
+  const onCardToggle = (card: Card) => {
+    setSelectedCards((prevSelectedCards) => {
+        if (prevSelectedCards.some(selectedCard => selectedCard.id === card.id)) {
+            // Remove the card if it's already selected
+            return prevSelectedCards.filter(selectedCard => selectedCard.id !== card.id);
+        } else {
+            // Add the card if it's not already selected
+            return [...prevSelectedCards, card];
+        }
+    });
+  };
+
+  useEffect(() => {
+    if (router.query.newDeck) {
+      setCurrentDeck({ name: '', cards: [] })
+      setIsEditing(true)
+      setOriginalDeckIndex(null)
+    }
+  }, [router.query.newDeck])
+
   return (
     <>
       <Head>
@@ -88,116 +176,46 @@ const Collection: FablePage = ({ decks, isHydrated }) => {
       <main className="flex h-screen flex-col">
         <Navbar />
         <div className="mx-6 mb-6 grid grow grid-cols-12 gap-4 min-h-0">
-
-          {/* Left Panel */}
+          {/* Left Panel - Search and Filters */}
           <div className="flex col-span-3 rounded-xl border overflow-y-auto">
-            <div className="overflow-y-auto">
-
-            {/* Search*/}
-            <h2 className="text-2xl font-bold text-white m-1.5">Search</h2>
-            <div>
-              <input 
-                type="text"
-                onChange={handleInputChange}
-                className="px-4 py-2 border rounded-md text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent m-1.5"
-                placeholder="Search by name" />
-            </div>
-
-            {/*Effects*/}
-            <h3 className="text-xl font-bold text-white m-1.5">Effects</h3>
-            <div className="flex flex-wrap gap-2">
-              {effects.map((effect, index) => {
-                const bgColor = effectMap[effect] ? 'bg-purple-900' : 'bg-gray-500'
-                return (
-                  <button
-                    key={index}
-                    onClick={() => handleEffectClick(index)}
-                    className={`text-white font-bold py-2 px-2 rounded m-1.5 ${bgColor}`}>
-                    {effect}
-                  </button>)
-              })}
-            </div>
-              
-            {/*Types*/}
-            <h3 className="text-xl font-bold text-white m-1">Types</h3>
-            <div className="flex flex-wrap gap-2">
-              {types.map((type, index) => {
-                const bgColor = typeMap[type] ? 'bg-purple-900' : 'bg-gray-500'
-                return (
-                  <button
-                    key={index}
-                    onClick={() => handleTypeClick(index)}
-                    className={`text-white font-bold py-2 px-2 rounded m-1 ${bgColor}`}>
-                    {type}
-                  </button>)
-              })}
-            </div>
-
-            {/* Selected Card Display */}
-            <div className="pb-5">
-              <h2 className="text-3xl font-bold text-white m-1.5">Card details</h2>
-              <div className="m-4 bg-slate-900/50 rounded-lg p-4 border-4 border-slate-900">
-                {/*TODO handle the image*/}
-                <Image src="/card_art/0.jpg" alt={selectedCard?.lore.name || ""} width={256} height={256} className="m-auto" />
-                <div className="text-center">{cardName}</div>
-              </div>
-              <div className="text-center m-2">{cardFlavor}</div>
-            </div>
-          </div>
+            <FilterPanel
+                effects={effects}
+                types={types}
+                effectMap={effectMap}
+                typeMap={typeMap}
+                handleEffectClick={handleEffectClick}
+                handleTypeClick={handleTypeClick}
+                handleInputChange={handleInputChange}
+                selectedCard={selectedCard}
+              />
           </div>
 
-          {/* Card Collection Display */}
+          {/* Middle Panel - Card Collection Display */}
           <div className="col-span-7 flex rounded-xl border overflow-y-auto">
-            { isHydrated && cards.length == 0 &&
-              <div className="flex flex-row w-full justify-center items-center">
-                <MintDeckModal callback={refetch} />
-              </div>}
-
-            { isHydrated && cards.length > 0 &&
-              <div className="grid grid-cols-4 overflow-y-auto pb-4">
-              {cards.map(card => (
-                <div className="m-4 bg-slate-900/50 hover:bg-slate-800 rounded-lg p-4 border-4 border-slate-900"
-                     key={`${card.id}`}
-                     style={{height: 'fit-content'}}
-                     onMouseEnter={() => setSelectedCard(card)}>
-                  {/*TODO handle the image*/}
-                  <Image src="/card_art/0.jpg" alt={card.lore.name} width={256} height={256} />
-                  <div className="text-center">{card.lore.name}</div>
-                  <div className="flex items-end justify-between p-2 relative">
-                    <div className="flex items-center justify-center h-8 w-8 rounded-full bg-yellow-400 text-gray-900 font-bold text-lg absolute bottom-[-16px]">
-                      {`${card.stats.attack}`}
-                    </div>
-                    <div className="flex items-center justify-center h-8 w-8 rounded-full bg-red-600 text-gray-900 font-bold text-lg absolute bottom-[-16px] right-3">
-                      {`${card.stats.defense}`}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>}
+            <CardCollectionDisplay
+              cards={cards}
+              isHydrated={isHydrated}
+              setSelectedCard={setSelectedCard}
+              onCardToggle={onCardToggle}
+              selectedCards={selectedCards}
+            />
           </div>
 
-          {/* Deck Panel */}
-          <div className="col-span-2 flex rounded-xl border overflow-y-auto">
-            <div className="w-full flex flex-col items-center p-3">
-              {/* New Deck Button */}
-              <Link className="w-full px-4 py-2 mb-2 border rounded-md text-gray-100 bg-purple-900 hover:bg-gray-500 font-bold text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" href={"/editor"}>
-                New Deck →
-              </Link>
-
-              {/* Deck Buttons */}
-              {decks.map((deck, deckID) => (
-                <button 
-                  key={deckID} 
-                  className="w-full px-4 py-2 mb-2 border rounded-md text-gray-100 bg-purple-900 hover:bg-gray-500 font-bold text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  onClick={() => { 
-                    // Navigate to the editor view with the selected deck's index as a route parameter
-                    router.push(`/editor?deckID=${deckID}`)
-                  }}
-                >
-                  {deck.name}
-                </button>
-              ))}
-            </div>
+          {/* Right Panel - Deck List */}
+          <div className="flex col-span-2 rounded-xl border overflow-y-auto">
+            {isEditing ? (
+              <DeckPanel
+                deck={currentDeck}
+                onCardSelect={addToDeck}
+                onSave={handleSaveDeck}
+                onCancel={handleCancelEditing} 
+              />
+            ) : (
+              <DeckList 
+                decks={decks} 
+                onDeckSelect={handleDeckSelect}
+              />
+            )}
           </div>
         </div>
       </main>
