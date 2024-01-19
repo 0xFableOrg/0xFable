@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Deck, Card } from 'src/store/types' 
 
-interface DeckPanelProps {
+interface DeckConstructionPanelProps {
     deck: Deck;
     selectedCards: Card[];
     onCardSelect: (card: Card) => void;
@@ -10,7 +10,7 @@ interface DeckPanelProps {
   }
   
   
-  const DeckPanel: React.FC<DeckPanelProps> = ({ deck, selectedCards = [], onCardSelect, onSave, onCancel }) => {
+  const DeckConstructionPanel : React.FC<DeckConstructionPanelProps> = ({ deck, selectedCards = [], onCardSelect, onSave, onCancel }) => {
     const [ deckName, setDeckName ] = useState(deck.name)
     const [ isDeckNameValid, setIsDeckNameValid ] = useState(true)
 
@@ -22,6 +22,7 @@ interface DeckPanelProps {
     const handleSave = () => {
       if(selectedCards.length === 0) {
         // If no cards, then treat save as a cancel
+        // However, it could mean the player wants to delete their deck. 
         onCancel()
         return
       }
@@ -99,11 +100,11 @@ interface DeckPanelProps {
   );
 };
 
-DeckPanel.defaultProps = {
+DeckConstructionPanel.defaultProps = {
     deck: {
       name: 'New Deck',
       cards: []
     }
   };
 
-export default DeckPanel
+export default DeckConstructionPanel

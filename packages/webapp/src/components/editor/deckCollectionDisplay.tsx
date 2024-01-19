@@ -2,12 +2,12 @@ import React from 'react'
 import Link from 'next/link'
 import { Deck } from 'src/store/types.ts'
 
-interface DeckListProps {
+interface DeckCollectionDisplayProps {
   decks: Deck[]
   onDeckSelect: (deckID: number) => void
 }
 
-const DeckList: React.FC<DeckListProps> = ({ decks, onDeckSelect }) => {
+const DeckCollectionDisplay: React.FC<DeckCollectionDisplayProps> = ({ decks, onDeckSelect }) => {
   return (
       <div className="w-full flex flex-col items-center p-3">
         {/* New Deck Button */}
@@ -31,4 +31,4 @@ const DeckList: React.FC<DeckListProps> = ({ decks, onDeckSelect }) => {
   )
 }
 
-export default DeckList
+export default DeckCollectionDisplay
