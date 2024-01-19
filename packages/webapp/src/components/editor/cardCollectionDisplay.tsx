@@ -11,7 +11,7 @@ interface CardCollectionDisplayProps {
   selectedCards: Card[]; 
 }
 
-const CardCollectionDisplay: React.FC<CardCollectionDisplayProps> = ({ cards, isHydrated, refetch, setSelectedCard, selectedCards, onCardToggle }) => {
+const CardCollectionDisplay: React.FC<CardCollectionDisplayProps> = ({ cards, isHydrated, refetch, setSelectedCard, selectedCards, onCardToggle, isEditing }) => {
   return (
     <>
       <style jsx>{`
@@ -37,7 +37,11 @@ const CardCollectionDisplay: React.FC<CardCollectionDisplayProps> = ({ cards, is
                 } hover:bg-slate-800 rounded-lg p-4 border-4 border-slate-900`}
                 style={{ height: 'fit-content' }}
                 onMouseEnter={() => setSelectedCard(card)}
-                onClick={() => onCardToggle(card)} // Toggle card selection
+                onClick={() => {
+                  if (isEditing) {
+                    onCardToggle(card); // Only toggle card selection when in editing mode
+                  }
+                }}
               >
                 <Image src="/card_art/0.jpg" alt={card.lore.name} width={256} height={256} />
                 <div className="text-center">{card.lore.name}</div>

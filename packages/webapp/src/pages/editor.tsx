@@ -17,6 +17,8 @@ import { FablePage } from "src/pages/_app"
 import { useRouter } from 'next/router'
 import { useEffect} from 'react'
 
+import DeckPanel from 'src/components/editor/deckPanel'
+
 // NOTE(norswap & geniusgarlic): Just an example, when the game actually has effects & types,
 //   fetch those from the chain instead of hardcoding them here.
 
@@ -286,45 +288,10 @@ const Editor: FablePage = ({ decks, setDecks, isHydrated }) => {
 
           {/* Deck Panel */}
           <div className="col-span-2 flex rounded-xl border overflow-y-auto">
-            {/* name and save */}
-            <div className="w-full p-3">
-              <div style={{ marginBottom: '20px' }}>
-                <div className="flex items-center">
-                  <input 
-                    type="text"
-                    placeholder="Deck name"
-                    value={deckName}
-                    onChange={handleDeckNameChange}
-                    className={`flex-grow h-10 px-1 py-1 border ${isDeckValid ? 'rounded-l-md' : 'border-red-500 rounded-l-md'} text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
-                  />
-                  <button 
-                    onClick={handleSave}
-                    className="flex-shrink-0 flex items-center justify-center w-10 h-10 text-white bg-green-500 hover:bg-green-600">
-                      ✓
-                  </button>
-
-                  <button 
-                    onClick={handleCancel}
-                    className="flex-shrink-0 flex items-center justify-center w-10 h-10 text-white bg-red-500 hover:bg-green-600">
-                      X
-                  </button>
-                </div>
-              </div>
-   
-              {/* Container for the Card Names */}
-              <div className="flex flex-col w-full">
-                {deck.map((card, index) => (
-                  <div 
-                    key={index} // Using index as key since cards can be duplicated
-                    className="card-name-container"
-                    onClick={() => removeFromDeck(index)}
-                    onMouseEnter={() => setSelectedCard(card)}
-                  > 
-                    <div className="text-center text-white">{card.lore.name}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
+          <DeckPanel 
+            deck={currentDeck}  // Make sure 'currentDeck' is defined and not undefined
+            onCardSelect={handleCardSelect}
+          />
           </div>
         </div>
       </main>

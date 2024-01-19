@@ -33,7 +33,7 @@ const initialEffectMap = Object.assign({}, ...effects.map(name => ({[name]: fals
 const types = ['Creature', 'Magic', 'Weapon']
 const initialTypeMap = Object.assign({}, ...types.map(name => ({[name]: false})))
 
-const Collection: FablePage = ({ decks, isHydrated }) => {
+const Collection: FablePage = ({ decks, setDecks, isHydrated }) => {
 
   const { address } = useAccount()
   const [ selectedCard, setSelectedCard ] = useState<Card|null>(null)
@@ -44,7 +44,7 @@ const Collection: FablePage = ({ decks, isHydrated }) => {
   const [ currentDeck, setCurrentDeck]  = useState({ name: '', cards: [] })
   const [ originalDeckIndex, setOriginalDeckIndex ] = useState(null)
   const [ deckCards, setDeckCards ] = useState([]);
-  const [selectedCards, setSelectedCards] = useState<Card[]>([]);
+  const [ selectedCards, setSelectedCards ] = useState<Card[]>([]);
 
   const router = useRouter()
 
@@ -117,24 +117,27 @@ const Collection: FablePage = ({ decks, isHydrated }) => {
   
     setDecks(updatedDecks)
     setIsEditing(false)
+    setSelectedCards([]); 
+    router.push('/collection'); 
   }
 
   const handleCancelEditing = () => {
     setIsEditing(false);
-  }
+    setSelectedCards([]); 
+    router.push('/collection'); 
+  };
 
   const addToDeck = (card: Card) => {
-    setDeck(prevDeck => {
-      const isAlreadyInDeck = prevDeck.some(cardInDeck => cardInDeck.id === card.id)
-      if (isAlreadyInDeck) {
-        // Remove the card from the deck
-        return prevDeck.filter(cardInDeck => cardInDeck.id !== card.id)
+    setSelectedCards(prevSelectedCards => {
+      // Add or remove card from the selectedCards
+      const isCardSelected = prevSelectedCards.some(selectedCard => selectedCard.id === card.id);
+      if (isCardSelected) {
+        return prevSelectedCards.filter(selectedCard => selectedCard.id !== card.id);
       } else {
-        // Add the card to the deck
-        return [...prevDeck, card]
+        return [...prevSelectedCards, card];
       }
-    })
-  }
+    });
+  };
 
   const toggleCardInDeck = (card) => {
     setDeckCards((currentCards) => {
@@ -198,6 +201,7 @@ const Collection: FablePage = ({ decks, isHydrated }) => {
               setSelectedCard={setSelectedCard}
               onCardToggle={onCardToggle}
               selectedCards={selectedCards}
+              isEditing={isEditing}
             />
           </div>
 
@@ -206,6 +210,7 @@ const Collection: FablePage = ({ decks, isHydrated }) => {
             {isEditing ? (
               <DeckPanel
                 deck={currentDeck}
+                selectedCards={selectedCards}
                 onCardSelect={addToDeck}
                 onSave={handleSaveDeck}
                 onCancel={handleCancelEditing} 
