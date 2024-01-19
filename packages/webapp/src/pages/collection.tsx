@@ -36,7 +36,7 @@ const initialTypeMap = Object.assign({}, ...types.map(name => ({[name]: false}))
 const Collection: FablePage = ({ decks, setDecks, isHydrated }) => {
 
   const { address } = useAccount();
-  const [ isDeckEditorActive, setIsDeckEditorActive ] = useState(false);
+  const [ isEditing, setIsEditing ] = useState(false);
 
   // Filter Panel / Sorting Panel
   const [ searchInput, setSearchInput ] = useState('');
@@ -45,7 +45,7 @@ const Collection: FablePage = ({ decks, setDecks, isHydrated }) => {
   const [ selectedCard, setSelectedCard ] = useState<Card|null>(null);
 
   // Deck Collection Display
-  const [ userDecks, setUserDecks ] = useState<Deck[]>([]);
+  const [ userDecks, setUserDecks  ] = useState<Deck[]>([]);
   const [ editingDeckIndex, setEditingDeckIndex ] = useState(null);
 
   // Deck Construction Panel
@@ -98,7 +98,7 @@ const Collection: FablePage = ({ decks, setDecks, isHydrated }) => {
   const handleNewDeck = () => {
     setCurrentDeck({ name: 'New Deck', cards: [] });
     setIsEditing(true);
-    setOriginalDeckIndex(null);
+    setEditingDeckIndex(null);
   };
 
   const handleDeckChange = (updatedDeck) => {
@@ -108,31 +108,31 @@ const Collection: FablePage = ({ decks, setDecks, isHydrated }) => {
   const handleDeckSelect = (deckID) => {
     const selectedDeck = decks[deckID];
     setCurrentDeck(selectedDeck);
-    setOriginalDeckIndex(deckID);
+    setEditingDeckIndex(deckID);
     setIsEditing(true);
     setSelectedCards(selectedDeck.cards);
   };
 
   const handleSaveDeck = (updatedDeck) => {
     let updatedDecks = [...decks];
-    if (originalDeckIndex !== null) {
+    if (editingDeckIndex !== null) {
       // Update the existing deck at the original index
-      updatedDecks[originalDeckIndex] = updatedDeck;
+      updatedDecks[editingDeckIndex] = updatedDeck;
     } else {
       // Add the new deck to the list
       updatedDecks.push(updatedDeck);
     }
-  
+
     setDecks(updatedDecks);
     setIsEditing(false);
     setSelectedCards([]);
-    router.push('/collection'); 
+    router.push('/collection');
   };
 
   const handleCancelEditing = () => {
     setIsEditing(false);
-    setSelectedCards([]); 
-    router.push('/collection'); 
+    setSelectedCards([]);
+    router.push('/collection');
   };
 
   const addToDeck = (card: Card) => {
@@ -174,7 +174,7 @@ const Collection: FablePage = ({ decks, setDecks, isHydrated }) => {
     if (router.query.newDeck) {
       setCurrentDeck({ name: '', cards: [] })
       setIsEditing(true)
-      setOriginalDeckIndex(null)
+      setEditingDeckIndex(null)
     }
   }, [router.query.newDeck])
 
@@ -221,11 +221,11 @@ const Collection: FablePage = ({ decks, setDecks, isHydrated }) => {
                 selectedCards={selectedCards}
                 onCardSelect={addToDeck}
                 onSave={handleSaveDeck}
-                onCancel={handleCancelEditing} 
+                onCancel={handleCancelEditing}
               />
             ) : (
-              <DeckList 
-                decks={decks} 
+              <DeckList
+                decks={decks}
                 onDeckSelect={handleDeckSelect}
               />
             )}
