@@ -21,14 +21,14 @@ anvil:
 
 # Runs rollop
 rollop:
-	@if [ ! -d "roll-op" ]; then \
-        git clone https://github.com/0xFableOrg/roll-op.git; \
+	@if [ ! -d "../roll-op" ]; then \
+        git clone https://github.com/0xFableOrg/roll-op.git ../roll-op; \
     fi
-	cd roll-op && ./rollop setup && ./rollop devnet
+	cd ../roll-op && ./rollop setup && ./rollop devnet
 
 # Runs account abstraction bundler and paymaster
 account-abstraction:
-	cd roll-op && ./rollop aa
+	cd ../roll-op && ./rollop aa
 
 # Runs the webapp in dev mode.
 webdev:

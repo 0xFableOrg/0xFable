@@ -5,14 +5,11 @@
  */
 
 import axios from 'axios'
-import { Address, http, parseEther, defineChain, toHex, concat } from 'viem'
+import { Address, http, parseEther, defineChain, toHex, concat, createPublicClient } from 'viem'
 import { localhost } from 'viem/chains'
-import { getPublicClient } from "wagmi/actions"
 import { generatePrivateKey } from 'viem/accounts'
 import { createSmartAccountClient, UserOperation } from 'permissionless'
 import { privateKeyToSimpleSmartAccount } from 'permissionless/accounts'
-
-const publicClient = getPublicClient()
 
 export async function createAccount() {
 
@@ -25,6 +22,10 @@ export async function createAccount() {
           name: 'Ether',
           symbol: 'ETH',
         },
+    });
+
+    const publicClient = createPublicClient({
+        transport: http("http://localhost:9545"),
     });
 
     // generate an in browser private key
@@ -44,7 +45,6 @@ export async function createAccount() {
         account: simpleAccount,
         transport: http("http://localhost:4337"),
         sponsorUserOperation: async (args: { userOperation: UserOperation, entryPoint: Address }) => {
-            // console.log("Breakpoint1")
             const userOp = {
                 sender: args.userOperation.sender,
                 nonce: toHex(args.userOperation.nonce),
@@ -78,11 +78,10 @@ export async function createAccount() {
     });
 
     // to send a transaction, it will be similar to using walletClient, example below
-    /**
+    /*
     const txHash3 = await smartAccountClient.sendTransaction({
         to: "0xd8da6bf26964af9d7eed9e03e53415d37aa96045",
         value: BigInt(0),
         data: "0x68656c6c6f"
-    });
-    */
+    }); */
 }
