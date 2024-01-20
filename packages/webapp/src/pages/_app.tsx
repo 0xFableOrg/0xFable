@@ -72,6 +72,41 @@ const ComponentWrapper = ({
     const testCards = [];
     const [decks, setDecks] = useState<Deck[]>([]);
     //
+    useEffect(() => {
+      // Apply default cursor
+      document.body.classList.add('default-cursor');
+  
+      // Change to hover cursor when over interactive elements
+      document.querySelectorAll('.interactive').forEach(element => {
+          element.addEventListener('mouseover', () => {
+              document.body.classList.add('hover-cursor');
+              document.body.classList.remove('default-cursor');
+          });
+  
+          element.addEventListener('mouseout', () => {
+              document.body.classList.remove('hover-cursor');
+              document.body.classList.add('default-cursor');
+          });
+      });
+  
+      // Change to clicked cursor on mousedown, revert on mouseup
+      document.addEventListener('mousedown', function(event) {
+          if (event.button === 0) {
+              document.body.classList.add('clicked-cursor');
+              document.body.classList.remove('default-cursor');
+              document.body.classList.remove('hover-cursor');
+          }
+      });
+ 
+      document.addEventListener('mouseup', function(event) {
+          if (event.button === 0) {
+              document.body.classList.remove('clicked-cursor');
+              document.body.classList.add('default-cursor');
+          }
+      });
+    }, []);
+
+
 
   if (process.env.NODE_ENV === "development") { // constant
     // eslint-disable-next-line react-hooks/rules-of-hooks

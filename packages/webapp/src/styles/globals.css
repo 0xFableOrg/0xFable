@@ -19,5 +19,20 @@ body {
       -ms-overflow-style: none; /* IE and Edge */
       scrollbar-width: none; /* Firefox */
     }
+
+    /* Custom cursors - supported by (Edge 12, Firefox 1, Safari 1, Chrome 1, IE 4, Opera 7) */
+    .default-cursor {
+      cursor: url('/misc/default_cursor.png'), auto;
+    }
+    .hover-cursor {
+        cursor: url('/misc/hover_cursor.png'), pointer;
+    }
+    .clicked-cursor {
+        cursor: url('/misc/clicked_cursor.png'), auto;
+    }
+
+    .modal button:hover, .modal a:hover {
+      @apply cursor-hover;
+    }
   }
 }
