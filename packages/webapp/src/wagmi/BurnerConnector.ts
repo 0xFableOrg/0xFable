@@ -3,10 +3,9 @@
  */
 
 import { Connector, ConnectorData, WalletClient } from "wagmi"
-import { Address } from "src/chain"
+import { Address, rollop } from "src/chain"
 import { PrivateKeyAccount, privateKeyToAccount } from "viem/accounts"
 import { createWalletClient, http } from "viem"
-import { localhost } from "wagmi/chains"
 import { connect, disconnect, getAccount } from "wagmi/actions"
 import { AsyncLock } from "src/utils/asyncLock"
 
@@ -43,7 +42,7 @@ export class BurnerConnector extends Connector {
   readonly name = "0xFable Burner Wallet"
   ready = false
 
-  #chain = localhost
+  #chain = rollop
   #connected = false
   #connectLock = new AsyncLock()
   #privKey: PrivateKey = undefined as any
@@ -52,7 +51,7 @@ export class BurnerConnector extends Connector {
 
   constructor() {
     super({
-      chains: [localhost],
+      chains: [rollop],
       options: {}
     })
   }

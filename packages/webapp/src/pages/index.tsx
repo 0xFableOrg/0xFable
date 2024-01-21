@@ -10,6 +10,7 @@ import { MintDeckModal } from "src/components/modals/mintDeckModal"
 import { useGameInGame } from "src/generated"
 import { FablePage } from "src/pages/_app"
 import { useGameID } from "src/store/hooks"
+import { createAccount } from "src/utils/accounts"
 
 const Home: FablePage = ({ isHydrated }) => {
   const { address } = useAccount()
@@ -50,6 +51,14 @@ const Home: FablePage = ({ isHydrated }) => {
               onClick={async () => setOpen(true)}
             >
               Connect Wallet
+            </button>
+            <button
+              className="btn-lg btn border-2 border-yellow-500 normal-case hover:scale-105 hover:border-yellow-400"
+              onClick={async () => {
+                await createAccount();
+              }}
+            >
+              Create Burner Wallet
             </button>
           </div>
         }

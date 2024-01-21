@@ -77,7 +77,8 @@ selectors:
 
 # Deploys locally, to testnet or mainnet depending on the $CONFIG value (locally if not set).
 deploy: build
-	@forge script src/deploy/Deploy.s.sol:Deploy \
+	echo "Deploying to $(CONFIG)"
+	forge script src/deploy/Deploy.s.sol:Deploy \
 		--fork-url $(RPC_$(CONFIG)) \
 		--private-key $(PRIVATE_KEY_$(CONFIG)) \
 		--broadcast \

@@ -5,6 +5,7 @@
  */
 
 import { getDefaultConfig, getDefaultConnectors } from "connectkit"
+import { defineChain } from "viem"
 import { type Chain, createConfig } from "wagmi"
 import { localhost } from "wagmi/chains"
 
@@ -13,7 +14,25 @@ import { BurnerConnector } from "src/wagmi/BurnerConnector"
 // =================================================================================================
 
 /** The list of chains supported by the app. */
-export const chains = [localhost]
+export const rollop = defineChain({
+  ...localhost,
+  id: 1201101712,
+  name: 'Rollop',
+  nativeCurrency: {
+    decimals: 18,
+    name: 'Ether',
+    symbol: 'ETH',
+  },
+  rpcUrls: {
+    default: {
+      http: ["http://localhost:9545"]
+    },
+    public: {
+      http: ["http://localhost:9545"]
+    }
+  }
+});
+export const chains = [rollop]
 
 // =================================================================================================
 // Wagmi + ConnectKit Config

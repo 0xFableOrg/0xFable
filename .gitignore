@@ -32,3 +32,6 @@ packages/circuits/out
 packages/circuits/trusted_setup
 packages/circuits/zkeys
 packages/webapp/public/proofs
+
+# Roll-op files
+roll-op/
