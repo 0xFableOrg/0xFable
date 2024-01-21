@@ -4,7 +4,6 @@ pragma solidity ^0.8.0;
 import {Inventory} from "./Inventory.sol";
 import {CardsCollection} from "./CardsCollection.sol";
 import {Constants} from "./libraries/Constants.sol";
-import {Events} from "./libraries/Events.sol";
 import {Errors} from "./libraries/Errors.sol";
 import {GameAction} from "./libraries/GameAction.sol";
 import {GameStep, PlayerData, GameData, FetchedGameData} from "./libraries/Structs.sol";
@@ -16,6 +15,78 @@ import {Groth16Verifier as PlayVerifier} from "./verifiers/PlayVerifier.sol";
 // NOTE: We try to lay the groundwork to support games with over 2 players, however they are not
 //   supported and will not work in the current state.
 contract Game {
+    // =============================================================================================
+    // EVENTS
+
+    // NOTE: On Solidity 0.8.x, events must be in the contract file or they won't be in the ABI.
+    // When 0.9.x is released, we'll be able to move them to a separate file, so we can import them
+    // both here and in the GameAction library.
+
+    // NOTE(norswap): we represented players as an address when the event can contribute to their
+    //  match stats, and as a uint8 index when these are internal game events.
+
+    // === Used in this file ===
+
+    // The player took to long to submit an action and lost as a consequence.
+    event PlayerTimedOut(uint256 indexed gameID, address indexed player);
+
+    // A game was created by the given creator.
+    event GameCreated(uint256 gameID, address indexed creator);
+
+    // The game was cancelled by its creator before it is started.
+    event GameCancelled(uint256 indexed gameID);
+
+    // A player joined the game.
+    event PlayerJoined(uint256 indexed gameID, address player);
+
+    // All players joined (total number of players reached).
+    // A game can be cancelled by its creator up until this point.
+    event FullHouse(uint256 indexed gameID);
+
+    // The given player ended his turn.
+    event TurnEnded(uint256 indexed gameID, address player);
+
+    // === Used in GameAction ===
+
+    // PlayerTimedOut is also used in GameAction
+
+    // The player conceded the game.
+    event PlayerConceded(uint256 indexed gameID, address indexed player);
+
+    // Not all players joined and drew their hands within the time limit, the game is cancelled
+    // as a consequence.
+    event MissingPlayers(uint256 indexed gameID);
+
+    // A player drew his initial hand.
+    event PlayerDrewHand(uint256 indexed gameID, address player);
+
+    // The game started (all players joined + drew their initial hands).
+    event GameStarted(uint256 indexed gameID);
+
+    // A player drew a card.
+    event CardDrawn(uint256 indexed gameID, uint8 player);
+
+    // A player played a card.
+    event CardPlayed(uint256 indexed gameID, uint8 player, uint256 card);
+
+    // A player attacked another player.
+    event PlayerAttacked(uint256 indexed gameID, address attackingPlayer, address defendingPlayer);
+
+    // A creature was destroyed at the given index in the attacker/defender's battlefield.
+    // The battlefield index matches the battlefield before the battle (defender defending),
+    // which will not match the on-chain battlefield after the battle (because the destroyed
+    // creatures are removed).
+    event CreatureDestroyed(uint256 indexed gameID, address player, uint8 cardIndex);
+
+    // A player defended against another player.
+    event PlayerDefended(uint256 indexed gameID, address attackingPlayer, address defendingPlayer);
+
+    // A player was defeated by an ennemy attack.
+    event PlayerDefeated(uint256 indexed gameID, address indexed player);
+
+    // Someone won!
+    event Champion(uint256 indexed gameID, address indexed player);
+
     // =============================================================================================
     // FIELDS
 
@@ -89,7 +160,7 @@ contract Game {
             // TODO(LATER): This is the max timeout, make shorter + implement a chess clock.
             // Action timed out: the player loses.
             address timedOutPlayer = gdata.players[gdata.currentPlayer];
-            emit Events.PlayerTimedOut(gameID, timedOutPlayer);
+            emit PlayerTimedOut(gameID, timedOutPlayer);
             GameAction.playerDefeated(gdata, gameID, inGame, timedOutPlayer);
             return;
         }
@@ -344,7 +415,7 @@ contract Game {
         // `gdata.currentPlayer` is initialized when the game is started. This needs to happen in
         // another block so that the blockhash of this block can be used as randomness.
 
-        emit Events.GameCreated(gameID, msg.sender);
+        emit GameCreated(gameID, msg.sender);
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -364,7 +435,7 @@ contract Game {
         if (gdata.playersLeftToJoin == 0) {
             revert Errors.GameAlreadyLocked();
         }
-        emit Events.GameCancelled(gameID);
+        emit GameCancelled(gameID);
         GameAction.endGameBeforeStart(gameID, gdata, inGame);
     }
 
@@ -487,9 +558,9 @@ contract Game {
         pdata.health = Constants.STARTING_HEALTH;
 
         inGame[msg.sender] = gameID;
-        emit Events.PlayerJoined(gameID, msg.sender);
+        emit PlayerJoined(gameID, msg.sender);
         if (--gdata.playersLeftToJoin == 0) {
-            emit Events.FullHouse(gameID);
+            emit FullHouse(gameID);
         }
     }
 
@@ -512,17 +583,29 @@ contract Game {
         GameData storage gdata = gameData[gameID];
         PlayerData storage pdata = gdata.playerData[msg.sender];
 
-        checkInitialHandProof(
-            pdata, getPubRandomnessForInitialHand(pdata.joinBlockNum), pdata.saltHash, proofA, proofB, proofC
-        );
-        GameAction.drawInitialHand(gameID, gdata, pdata, handRoot, deckRoot, getPubRandomness(gdata.lastBlockNum));
+        if (pdata.joinBlockNum == 0) {
+            revert Errors.PlayerNotInGame();
+        }
+        if (pdata.handRoot != 0) {
+            revert Errors.AlreadyDrew();
+        }
+
+        pdata.handRoot = handRoot;
+        pdata.deckRoot = deckRoot;
+        pdata.handSize = Constants.INITIAL_HAND_SIZE;
+
+        uint256 randomness = getPubRandomnessForInitialHand(pdata.joinBlockNum);
+        checkInitialHandProof(pdata, randomness, pdata.saltHash, proofA, proofB, proofC);
+
+        randomness = getPubRandomness(gdata.lastBlockNum);
+        GameAction.drawInitialHand(gameID, gdata, pdata, randomness);
     }
 
     // ---------------------------------------------------------------------------------------------
 
     // Let a player concede defeat.
     function concedeGame(uint256 gameID) public exists(gameID) {
-        GameAction.concedeGame(gameID, gameData, inGame);
+        GameAction.concedeGame(gameID, gameData[gameID], inGame);
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -534,7 +617,7 @@ contract Game {
     // Note that in the first scenario, the timed out player will lose anyway if he tries to take an
     // action.
     function timeout(uint256 gameID) external exists(gameID) {
-        GameAction.timeout(gameID, gameData, inGame);
+        GameAction.timeout(gameID, gameData[gameID], inGame);
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -584,9 +667,10 @@ contract Game {
         GameData storage gdata = gameData[gameID];
         PlayerData storage pdata = gdata.playerData[msg.sender];
 
-        checkDrawProof(
-            pdata, handRoot, deckRoot, pdata.saltHash, getPubRandomness(gdata.lastBlockNum), proofA, proofB, proofC
-        );
+        {
+            uint256 randomness = getPubRandomness(gdata.lastBlockNum);
+            checkDrawProof(pdata, handRoot, deckRoot, pdata.saltHash, randomness, proofA, proofB, proofC);
+        }
 
         GameAction.drawCard(gameID, gdata, pdata, handRoot, deckRoot);
 
@@ -597,7 +681,7 @@ contract Game {
 
     function endTurn(uint256 gameID) external step(gameID, GameStep.END_TURN) {
         // mostly empty: everything happens in the step function
-        emit Events.TurnEnded(gameID, msg.sender);
+        emit TurnEnded(gameID, msg.sender);
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -641,9 +725,15 @@ contract Game {
         uint256[2][2] calldata proofB,
         uint256[2] calldata proofC
     ) external step(gameID, GameStep.PLAY) {
-        PlayerData storage pdata = gameData[gameID].playerData[msg.sender];
+        GameData storage gdata = gameData[gameID];
+        PlayerData storage pdata = gdata.playerData[msg.sender];
+
+        if (cardIndex > gdata.cards.length) {
+            revert Errors.CardIndexTooHigh();
+        }
+
         checkPlayProof(pdata, handRoot, pdata.saltHash, cardIndexInHand, cardIndex, proofA, proofB, proofC);
-        GameAction.playCard(gameID, gameData, handRoot, cardIndex);
+        GameAction.playCard(gameID, gdata, handRoot, cardIndex);
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -653,7 +743,7 @@ contract Game {
         external
         step(gameID, GameStep.ATTACK)
     {
-        GameAction.attack(gameID, gameData, targetPlayer, attacking);
+        GameAction.attack(gameID, gameData[gameID], targetPlayer, attacking);
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -661,7 +751,7 @@ contract Game {
     // Declare defenders & resolve combat: each creature in `defending` will block the
     // corresponding creature in the attacker's `attacking` array.
     function defend(uint256 gameID, uint8[] calldata defending) external step(gameID, GameStep.DEFEND) {
-        GameAction.defend(gameID, gameData, inGame, defending, cardsCollection);
+        GameAction.defend(gameID, gameData[gameID], inGame, defending, cardsCollection);
     }
 
     // ---------------------------------------------------------------------------------------------

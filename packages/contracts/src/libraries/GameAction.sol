@@ -2,40 +2,74 @@
 pragma solidity ^0.8.0;
 
 import {CardsCollection, Stats} from "../CardsCollection.sol";
-import {Events} from "./Events.sol";
 import {Errors} from "./Errors.sol";
 import {GameStep, PlayerData, GameData} from "./Structs.sol";
 import {Constants} from "./Constants.sol";
 import {Utils} from "./Utils.sol";
 
 library GameAction {
+    // =============================================================================================
+    // EVENTS
+
+    // cf. EVENTS section in Game.sol
+
+    // The player conceded the game.
+    event PlayerConceded(uint256 indexed gameID, address indexed player);
+
+    // Not all players joined and drew their hands within the time limit, the game is cancelled
+    // as a consequence.
+    event MissingPlayers(uint256 indexed gameID);
+
+    // The player took to long to submit an action and lost as a consequence.
+    event PlayerTimedOut(uint256 indexed gameID, address indexed player);
+
+    // A player drew his initial hand.
+    event PlayerDrewHand(uint256 indexed gameID, address player);
+
+    // The game started (all players joined + drew their initial hands).
+    event GameStarted(uint256 indexed gameID);
+
+    // A player drew a card.
+    event CardDrawn(uint256 indexed gameID, uint8 player);
+
+    // A player played a card.
+    event CardPlayed(uint256 indexed gameID, uint8 player, uint256 card);
+
+    // A player attacked another player.
+    event PlayerAttacked(uint256 indexed gameID, address attackingPlayer, address defendingPlayer);
+
+    // A creature was destroyed at the given index in the attacker/defender's battlefield.
+    // The battlefield index matches the battlefield before the battle (defender defending),
+    // which will not match the on-chain battlefield after the battle (because the destroyed
+    // creatures are removed).
+    event CreatureDestroyed(uint256 indexed gameID, address player, uint8 cardIndex);
+
+    // A player defended against another player.
+    event PlayerDefended(uint256 indexed gameID, address attackingPlayer, address defendingPlayer);
+
+    // A player was defeated by an ennemy attack.
+    event PlayerDefeated(uint256 indexed gameID, address indexed player);
+
+    // Someone won!
+    event Champion(uint256 indexed gameID, address indexed player);
+
     // ---------------------------------------------------------------------------------------------
 
-    function concedeGame(
-        uint256 gameID,
-        mapping(uint256 => GameData) storage gameData,
-        mapping(address => uint256) storage inGame
-    ) public {
-        GameData storage gdata = gameData[gameID];
+    function concedeGame(uint256 gameID, GameData storage gdata, mapping(address => uint256) storage inGame) public {
         if (gdata.playerData[msg.sender].handRoot == 0) {
             revert Errors.PlayerNotInGame();
         }
         if (gdata.currentStep == GameStep.UNINITIALIZED) {
             revert Errors.FalseStart();
         }
-        emit Events.PlayerConceded(gameID, msg.sender);
+        emit PlayerConceded(gameID, msg.sender);
         playerDefeated(gdata, gameID, inGame, msg.sender);
         gdata.lastBlockNum = block.number;
     }
 
     // ---------------------------------------------------------------------------------------------
 
-    function timeout(
-        uint256 gameID,
-        mapping(uint256 => GameData) storage gameData,
-        mapping(address => uint256) storage inGame
-    ) external {
-        GameData storage gdata = gameData[gameID];
+    function timeout(uint256 gameID, GameData storage gdata, mapping(address => uint256) storage inGame) external {
         if (gdata.lastBlockNum > block.number - 256) {
             revert Errors.GameNotTimedOut();
         }
@@ -43,11 +77,11 @@ library GameAction {
             revert Errors.GameAlreadyEnded();
         }
         if (gdata.currentStep == GameStep.UNINITIALIZED) {
-            emit Events.MissingPlayers(gameID);
+            emit MissingPlayers(gameID);
             endGameBeforeStart(gameID, gdata, inGame);
         } else {
             address timedOutPlayer = gdata.players[gdata.currentPlayer];
-            emit Events.PlayerTimedOut(gameID, timedOutPlayer);
+            emit PlayerTimedOut(gameID, timedOutPlayer);
             playerDefeated(gdata, gameID, inGame, timedOutPlayer);
             gdata.lastBlockNum = block.number;
         }
@@ -55,25 +89,9 @@ library GameAction {
 
     // ---------------------------------------------------------------------------------------------
 
-    function drawInitialHand(
-        uint256 gameID,
-        GameData storage gdata,
-        PlayerData storage pdata,
-        bytes32 handRoot,
-        bytes32 deckRoot,
-        uint256 randomness
-    ) external {
-        if (pdata.joinBlockNum == 0) {
-            revert Errors.PlayerNotInGame();
-        }
-        if (pdata.handRoot != 0) {
-            revert Errors.AlreadyDrew();
-        }
-
-        pdata.handRoot = handRoot;
-        pdata.deckRoot = deckRoot;
-        pdata.handSize = Constants.INITIAL_HAND_SIZE;
-
+    function drawInitialHand(uint256 gameID, GameData storage gdata, PlayerData storage pdata, uint256 randomness)
+        external
+    {
         uint256 deckStart = pdata.deckStart;
         uint256 deckEnd = pdata.deckEnd;
         pdata.deckSize = uint8(deckEnd - deckStart - Constants.INITIAL_HAND_SIZE);
@@ -89,14 +107,14 @@ library GameAction {
             }
         }
 
-        emit Events.PlayerDrewHand(gameID, msg.sender);
+        emit PlayerDrewHand(gameID, msg.sender);
 
         if (gdata.playersLeftToJoin == 0 && gdata.players.length == gdata.livePlayers.length) {
             // Start the game! First player chosen randomly.
             gdata.currentPlayer = uint8(randomness % gdata.players.length);
             gdata.currentStep = GameStep.PLAY; // first player doesn't draw
             gdata.lastBlockNum = block.number;
-            emit Events.GameStarted(gameID);
+            emit GameStarted(gameID);
         }
     }
 
@@ -113,35 +131,22 @@ library GameAction {
         pdata.deckRoot = deckRoot;
         pdata.handSize++;
         pdata.deckSize--;
-        emit Events.CardDrawn(gameID, gdata.currentPlayer);
+        emit CardDrawn(gameID, gdata.currentPlayer);
     }
 
     // ---------------------------------------------------------------------------------------------
 
-    function playCard(uint256 gameID, mapping(uint256 => GameData) storage gameData, bytes32 handRoot, uint8 cardIndex)
-        external
-    {
-        GameData storage gdata = gameData[gameID];
+    function playCard(uint256 gameID, GameData storage gdata, bytes32 handRoot, uint8 cardIndex) external {
         PlayerData storage pdata = gdata.playerData[msg.sender];
-        if (cardIndex > gdata.cards.length) {
-            revert Errors.CardIndexTooHigh();
-        }
-
         pdata.handRoot = handRoot;
         pdata.handSize--;
         pdata.battlefield |= 1 << cardIndex;
-        emit Events.CardPlayed(gameID, gdata.currentPlayer, cardIndex);
+        emit CardPlayed(gameID, gdata.currentPlayer, cardIndex);
     }
 
     // ---------------------------------------------------------------------------------------------
 
-    function attack(
-        uint256 gameID,
-        mapping(uint256 => GameData) storage gameData,
-        uint8 targetPlayer,
-        uint8[] calldata attacking
-    ) external {
-        GameData storage gdata = gameData[gameID];
+    function attack(uint256 gameID, GameData storage gdata, uint8 targetPlayer, uint8[] calldata attacking) external {
         PlayerData storage pdata = gdata.playerData[msg.sender];
 
         // NOTE: This allows attacking dead player in (unsupported) games with > 2 players.
@@ -162,19 +167,18 @@ library GameAction {
         Utils.clear(pdata.attacking); // Delete old attacking array.
         pdata.attacking = attacking;
         gdata.attackingPlayer = msg.sender;
-        emit Events.PlayerAttacked(gameID, msg.sender, gdata.players[targetPlayer]);
+        emit PlayerAttacked(gameID, msg.sender, gdata.players[targetPlayer]);
     }
 
     // ---------------------------------------------------------------------------------------------
 
     function defend(
         uint256 gameID,
-        mapping(uint256 => GameData) storage gameData,
+        GameData storage gdata,
         mapping(address => uint256) storage inGame,
         uint8[] calldata defending,
         CardsCollection cardsCollection
     ) external {
-        GameData storage gdata = gameData[gameID];
         PlayerData storage defender = gdata.playerData[msg.sender];
         PlayerData storage attacker = gdata.playerData[gdata.attackingPlayer];
         uint8[] storage attacking = attacker.attacking;
@@ -223,18 +227,18 @@ library GameAction {
                 if (attackerStats.attack >= defenderStats.defense) {
                     defender.battlefield -= (1 << defending[i]);
                     defender.graveyard |= (1 << defending[i]);
-                    emit Events.CreatureDestroyed(gameID, msg.sender, defending[i]);
+                    emit CreatureDestroyed(gameID, msg.sender, defending[i]);
                 }
 
                 if (defenderStats.attack >= attackerStats.defense) {
                     attacker.battlefield -= (1 << attacking[i]);
                     attacker.graveyard |= (1 << attacking[i]);
-                    emit Events.CreatureDestroyed(gameID, gdata.attackingPlayer, attacking[i]);
+                    emit CreatureDestroyed(gameID, gdata.attackingPlayer, attacking[i]);
                 }
             }
         }
 
-        emit Events.PlayerDefended(gameID, gdata.attackingPlayer, msg.sender);
+        emit PlayerDefended(gameID, gdata.attackingPlayer, msg.sender);
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -274,7 +278,7 @@ library GameAction {
         if (pdata.health == 0) {
             // If health is not zero, the player conceded or timed out,
             // and different events are emitted for that.
-            emit Events.PlayerDefeated(gameID, player);
+            emit PlayerDefeated(gameID, player);
         }
 
         delete inGame[player];
@@ -311,7 +315,7 @@ library GameAction {
             delete inGame[winner];
             deleteGame(gdata, gameID);
             gdata.currentStep = GameStep.ENDED;
-            emit Events.Champion(gameID, winner);
+            emit Champion(gameID, winner);
         }
     }
 
