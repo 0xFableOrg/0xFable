@@ -24,9 +24,15 @@ import {
 import { Button } from "src/components/ui/button"
 import { Input } from "src/components/ui/input"
 
+interface JoinGameModalContentProps {
+  loading: string | null;
+  setLoading: React.Dispatch<React.SetStateAction<string | null>>;
+}
+
 // =================================================================================================
 
 export const JoinGameModal = () => {
+  const [ loading, setLoading ] = useState<string|null>(null)
   const isGameJoiner = store.useIsGameJoiner()
 
   return (
@@ -36,8 +42,14 @@ export const JoinGameModal = () => {
           Join Game →
         </Button>
       </DialogTrigger>
-      <DialogContent>
-        <JoinGameModalContent />
+      <DialogContent
+        // prevent modal from closing if area outside modal is clicked and loading is populated
+        onInteractOutside={(event) => { if (loading) event.preventDefault(); }}
+        onCloseAutoFocus={(event) => { if (loading) event.preventDefault(); }}
+        // prevent modal from closing if esc key is pressed and loading is populated
+        onKeyDown={(event) => { if(loading && event.key == 'Escape') event.preventDefault(); }} 
+      >
+        <JoinGameModalContent loading={loading} setLoading={setLoading}/>
       </DialogContent>
     </Dialog>
   )
@@ -45,13 +57,13 @@ export const JoinGameModal = () => {
 
 // =================================================================================================
 
-const JoinGameModalContent = () => {
+const JoinGameModalContent: React.FC<JoinGameModalContentProps> = ({ loading, setLoading }) => {
   const [ gameID, setGameID ] = store.useGameID()
   const playerAddress = store.usePlayerAddress()
   const gameStatus = store.useGameStatus()
   const [ hasVisitedBoard ] = store.useHasVisitedBoard()
   const [ inputGameID, setInputGameID ] = useState<string|null>(null)
-  const [ loading, setLoading ] = useState<string|null>(null)
+  
   const [ drawCompleted, setDrawCompleted ] = useState(false)
   const router = useRouter()
 
