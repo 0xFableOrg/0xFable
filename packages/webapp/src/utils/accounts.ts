@@ -79,7 +79,7 @@ export async function createAccount() {
 
     // to send a transaction, it will be similar to using walletClient, example below
     /*
-    const txHash3 = await smartAccountClient.sendTransaction({
+    const txHash = await smartAccountClient.sendTransaction({
         to: "0xd8da6bf26964af9d7eed9e03e53415d37aa96045",
         value: BigInt(0),
         data: "0x68656c6c6f"

@@ -50,7 +50,8 @@ const filteredErrorCodes = [
 ]
 
 const filteredErrorMessages: (string|RegExp)[] = [
-    "ChainDoesNotSupportContract: Chain \"Localhost\" does not support contract \"ensUniversalResolver\"."
+    "ChainDoesNotSupportContract: Chain \"Localhost\" does not support contract \"ensUniversalResolver\".",
+    "ChainDoesNotSupportContract: Chain \"Rollop\" does not support contract \"ensUniversalResolver\"."
 ]
 
 const filteredWarningMessages = [

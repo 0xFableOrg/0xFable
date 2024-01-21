@@ -14,7 +14,7 @@ import { BurnerConnector } from "src/wagmi/BurnerConnector"
 // =================================================================================================
 
 /** The list of chains supported by the app. */
-const rollop = defineChain({
+export const rollop = defineChain({
   ...localhost,
   id: 1201101712,
   name: 'Rollop',
