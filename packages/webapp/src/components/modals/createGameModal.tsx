@@ -22,10 +22,20 @@ import {
 } from "src/components/ui/dialog"
 import { Button } from "src/components/ui/button"
 
+interface CreateGameModalContentProps {
+  loading: string|null;
+  setLoading: React.Dispatch<React.SetStateAction< string|null >>;
+  gameStatus: GameStatus
+}
+
 // =================================================================================================
 
 export const CreateGameModal = () => {
+  const [ loading, setLoading ] = useState< string|null >(null);
   const isGameCreator = store.useIsGameCreator()
+  const gameStatus = store.useGameStatus()
+
+  const preventSurroundClick = gameStatus >= GameStatus.CREATED && loading; // created and loading
 
   return (
     // If we're on the home page and we're the game creator, this modal should be displayed.
@@ -35,22 +45,26 @@ export const CreateGameModal = () => {
           Create Game →
         </Button>
       </DialogTrigger>
-      <DialogContent>
-        <CreateGameModalContent />
-      </DialogContent>
+      <DialogContent
+        // prevent modal from closing if area outside modal is clicked and loading is populated
+        onInteractOutside={(event) => { if (preventSurroundClick) event.preventDefault(); }}
+        onCloseAutoFocus={(event) => { if (preventSurroundClick) event.preventDefault(); }}
+        // prevent modal from closing if esc key is pressed and loading is populated
+        onKeyDown={(event) => { if(preventSurroundClick && event.key == 'Escape') event.preventDefault(); }} 
+      >
+        <CreateGameModalContent loading={loading} setLoading={setLoading} gameStatus={gameStatus}/>
+      </DialogContent >
     </Dialog>
   )
 }
 
 // =================================================================================================
 
-const CreateGameModalContent = () => {
+const CreateGameModalContent: React.FC<CreateGameModalContentProps> = ({ loading, setLoading, gameStatus }) => {
   const playerAddress = store.usePlayerAddress()
   const [ gameID, setGameID ] = store.useGameID()
-  const gameStatus = store.useGameStatus()
   const allPlayersJoined = store.useAllPlayersJoined()
   const [ hasVisitedBoard ] = store.useHasVisitedBoard()
-  const [ loading, setLoading ] = useState<string|null>(null)
   const [ drawCompleted, setDrawCompleted ] = useState(false)
   const router = useRouter()
 
@@ -130,7 +144,7 @@ const CreateGameModalContent = () => {
         setGameID(null)
       }
     }),
-    [gameID, playerAddress, setGameID])
+    [gameID, playerAddress, setGameID, setLoading])
 
   // -----------------------------------------------------------------------------------------------
 
