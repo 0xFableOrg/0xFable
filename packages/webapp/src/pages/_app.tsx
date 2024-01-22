@@ -77,10 +77,8 @@ const ComponentWrapper = ({
   const isHydrated = useIsHydrated()
   const errorConfig = useErrorConfig()
 
-    // todo @eviterin: i've understood it so that decks are stored on chain. thus, below part is not going to be needed.
-    const _testCards = [];
-    const [decks, setDecks] = useState<Deck[]>([]);
-    //
+    // todo @eviterin: to be removed when these decks are put onchain with https://github.com/0xFableOrg/0xFable/issues/103
+  const [decks, setDecks] = useState<Deck[]>([])
 
   if (process.env.NODE_ENV === "development") { // constant
     // eslint-disable-next-line react-hooks/rules-of-hooks

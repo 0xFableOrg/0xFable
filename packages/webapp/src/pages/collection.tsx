@@ -1,20 +1,16 @@
 import debounce from "lodash/debounce"
 import Head from "next/head"
-// This causes the "Ignoring unsupported entryTypes: largest-contentful-paint.", presumably
-// because Firefox does not support some associated features.
-import Image from "next/image"
+
 import { useState, useMemo, useEffect } from "react"
 import { useAccount } from "wagmi"
 
 import jotaiDebug from "src/components/lib/jotaiDebug"
-import { MintDeckModal } from "src/components/modals/mintDeckModal"
 import { Navbar } from "src/components/navbar"
 import { deployment } from "src/deployment"
 import { useInventoryCardsCollectionGetCollection } from "src/generated"
 import { Card } from "src/store/types"
 import { Address } from "src/chain"
 import { FablePage } from "src/pages/_app"
-import Link from "next/link"
 import { useRouter } from 'next/router'
 
 import FilterPanel from 'src/components/editor/filterPanel'
@@ -24,9 +20,7 @@ import DeckPanel from 'src/components/editor/deckConstructionPanel'
 
 // NOTE(norswap & geniusgarlic): Just an example, when the game actually has effects & types,
 //   fetch those from the chain instead of hardcoding them here.
-
 type Effect = string
-
 const effects: Effect[] = ['Charge', 'Flight', 'Courage', 'Undying', 'Frenzy', 'Enlightened']
 const initialEffectMap = Object.assign({}, ...effects.map(name => ({[name]: false})))
 
@@ -35,38 +29,32 @@ const initialTypeMap = Object.assign({}, ...types.map(name => ({[name]: false}))
 
 const Collection: FablePage = ({ decks, setDecks, isHydrated }) => {
 
-  const { address } = useAccount();
-  const [ isEditing, setIsEditing ] = useState(false);
+  const router = useRouter()
+  const { address } = useAccount()
+  const [ isEditing, setIsEditing ] = useState(false)
 
   // Filter Panel / Sorting Panel
-  const [ searchInput, setSearchInput ] = useState('');
-  const [ effectMap, setEffectMap ] = useState(initialEffectMap);
-  const [ typeMap, setTypeMap ] = useState(initialTypeMap);
-  const [ selectedCard, setSelectedCard ] = useState<Card|null>(null);
+  const [ searchInput, setSearchInput ] = useState('')
+  const [ effectMap, setEffectMap ] = useState(initialEffectMap)
+  const [ typeMap, setTypeMap ] = useState(initialTypeMap)
+  const [ selectedCard, setSelectedCard ] = useState<Card|null>(null)
 
   // Deck Collection Display
-  const [ userDecks, setUserDecks  ] = useState<Deck[]>([]);
-  const [ editingDeckIndex, setEditingDeckIndex ] = useState(null);
+  const [ editingDeckIndex, setEditingDeckIndex ] = useState(null)
 
   // Deck Construction Panel
-  const [ currentDeck, setCurrentDeck] = useState({ name: '', cards: [] });
-  const [ selectedDeckEditorCards, setSelectedDeckEditorCards ] = useState<Card[]>([]);
-
-  const router = useRouter()
-
-  const cardName = selectedCard?.lore.name || "Select a card"
-  const cardFlavor = selectedCard?.lore.flavor || "Select a card to see its details"
+  const [ currentDeck, setCurrentDeck] = useState({ name: '', cards: [] })
+  const [ selectedCards, setSelectedCards ] = useState<Card[]>([])
 
   const activeEffects = Object.keys(effectMap).filter(key => effectMap[key])
   const activeTypes = Object.keys(typeMap).filter(key => typeMap[key])
 
-  const { data: unfilteredCards, refetch } = useInventoryCardsCollectionGetCollection({
+  const { data: unfilteredCards } = useInventoryCardsCollectionGetCollection({
     address: deployment.InventoryCardsCollection,
     args: [address as Address] // TODO not ideal but safe in practice
   }) as {
     // make the wagmi type soup understandable, there are many more fields in reality
     data: readonly Card[],
-    refetch: () => Promise<{ data?: readonly Card[], error: Error|null }>
   }
 
   const cards: Card[] = (unfilteredCards || []).filter(card => {
@@ -95,88 +83,77 @@ const Collection: FablePage = ({ decks, setDecks, isHydrated }) => {
     setTypeMap({...typeMap, [type]: !typeMap[type]})
   }
 
-  const handleNewDeck = () => {
-    setCurrentDeck({ name: 'New Deck', cards: [] });
-    setIsEditing(true);
-    setEditingDeckIndex(null);
-  };
-
-  const handleDeckChange = (updatedDeck) => {
-    setIsEditing(false)
+  const handleDeckSelect = (deckID) => {
+    const selectedDeck = decks[deckID]
+    setCurrentDeck(selectedDeck)
+    setEditingDeckIndex(deckID)
+    setIsEditing(true)
+    setSelectedCards(selectedDeck.cards)
   }
 
-  const handleDeckSelect = (deckID) => {
-    const selectedDeck = decks[deckID];
-    setCurrentDeck(selectedDeck);
-    setEditingDeckIndex(deckID);
-    setIsEditing(true);
-    setSelectedCards(selectedDeck.cards);
-  };
-
   const handleSaveDeck = (updatedDeck) => {
-    let updatedDecks = [...decks];
+    const updatedDecks = [...decks]
     if (editingDeckIndex !== null) {
-      // Update the existing deck at the original index
-      updatedDecks[editingDeckIndex] = updatedDeck;
+      // Update existing deck
+      updatedDecks[editingDeckIndex] = updatedDeck
     } else {
       // Add the new deck to the list
-      updatedDecks.push(updatedDeck);
+      updatedDecks.push(updatedDeck)
     }
-
-    setDecks(updatedDecks);
-    setIsEditing(false);
-    setSelectedCards([]);
-    router.push('/collection');
-  };
+    setDecks(updatedDecks)
+    setIsEditing(false)
+    setSelectedCards([])
+    router.push('/collection')
+  }
 
   const handleCancelEditing = () => {
-    setIsEditing(false);
-    setSelectedCards([]);
-    router.push('/collection');
-  };
+    setIsEditing(false)
+    setSelectedCards([])
+    router.push('/collection')
+  }
 
   const addToDeck = (card: Card) => {
     setSelectedCards(prevSelectedCards => {
       // Add or remove card from the selectedCards
-      const isCardSelected = prevSelectedCards.some(selectedCard => selectedCard.id === card.id);
+      const isCardSelected = prevSelectedCards.some(selectedCard => selectedCard.id === card.id)
       if (isCardSelected) {
-        return prevSelectedCards.filter(selectedCard => selectedCard.id !== card.id);
+        return prevSelectedCards.filter(selectedCard => selectedCard.id !== card.id)
       } else {
-        return [...prevSelectedCards, card];
+        return [...prevSelectedCards, card]
       }
-    });
-  };
-
-  const toggleCardInDeck = (card) => {
-    setDeckCards((currentCards) => {
-      const isCardInDeck = currentCards.find((c) => c.id === card.id);
-      if (isCardInDeck) {
-        return currentCards.filter((c) => c.id !== card.id);
-      } else {
-        return [...currentCards, card];
-      }
-    });
-  };
+    })
+  }
 
   const onCardToggle = (card: Card) => {
     setSelectedCards((prevSelectedCards) => {
         if (prevSelectedCards.some(selectedCard => selectedCard.id === card.id)) {
             // Remove the card if it's already selected
-            return prevSelectedCards.filter(selectedCard => selectedCard.id !== card.id);
+            return prevSelectedCards.filter(selectedCard => selectedCard.id !== card.id)
         } else {
             // Add the card if it's not already selected
-            return [...prevSelectedCards, card];
+            return [...prevSelectedCards, card]
         }
-    });
-  };
+    })
+  }
 
+
+  // Sets up an event listener for route changes when deck editor is rendered.
   useEffect(() => {
-    if (router.query.newDeck) {
-      setCurrentDeck({ name: '', cards: [] })
-      setIsEditing(true)
-      setEditingDeckIndex(null)
+    const handleRouteChange = () => {
+      if (router.query.newDeck) {
+        setCurrentDeck({ name: '', cards: [] })
+        setIsEditing(true)
+        setEditingDeckIndex(null)
+      }
     }
-  }, [router.query.newDeck])
+
+    router.events.on('routeChangeComplete', handleRouteChange)
+
+    // Clean up the event listener when exiting the deck editor.
+    return () => {
+      router.events.off('routeChangeComplete', handleRouteChange)
+    }
+  }, [router.events, router.query.newDeck])
 
   return (
     <>

@@ -1,12 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState } from 'react'
 import { Deck, Card } from 'src/store/types' 
+import Image from 'next/image' 
 
 interface DeckConstructionPanelProps {
-    deck: Deck;
-    selectedCards: Card[];
-    onCardSelect: (card: Card) => void;
-    onSave: (deck: Deck) => void;
-    onCancel: () => void;
+    deck: Deck
+    selectedCards: Card[]
+    onCardSelect: (card: Card) => void
+    onSave: (deck: Deck) => void
+    onCancel: () => void
   }
   
   
@@ -35,32 +36,28 @@ interface DeckConstructionPanelProps {
       const newDeck = {
         name: deckName,
         cards: selectedCards
-      };
+      }
 
       onSave(newDeck)
-    }
-
-    const handleCancel = () => {
-      onCancel()
     }
 
   return (
     <div className="w-full flex flex-col items-center p-3">
         <style jsx>{`
         .card-name-container {
-            width: 100%;
-            background-color: #4A5568; /* Dark grayish-blue background */
-            color: white; 
-            margin-bottom: 8px; 
-            padding: 10px; 
-            border-radius: 5px; 
-            border: 1px solid #2D3748;
-            cursor: pointer; /* Change cursor to indicate interactiveness */
-            transition: background-color 0.3s ease; /* Smooth transition for hover effect */
+            width: 100%
+            background-color: #4A5568 /* Dark grayish-blue background */
+            color: white 
+            margin-bottom: 8px 
+            padding: 10px 
+            border-radius: 5px 
+            border: 1px solid #2D3748
+            cursor: pointer /* Change cursor to indicate interactiveness */
+            transition: background-color 0.3s ease /* Smooth transition for hover effect */
         }
         
         .card-name-container:hover {
-            background-color: #2D3748; /* Slightly darker background on hover */
+            background-color: #2D3748 /* Slightly darker background on hover */
         }
     `}</style>
 
@@ -96,21 +93,21 @@ interface DeckConstructionPanelProps {
           >
             <div className="flex items-center space-x-3">
               {/* todo @eviterin: get proper link to the card instead of always the witch */}
-              <img src="/card_art/0.jpg" className="w-10 h-10 object-cover rounded-full" />
+              <Image src="/card_art/0.jpg" alt ="Card art" width={40} height={40} className="object-cover rounded-full" />
               <span className="font-medium">{card.lore.name}</span>
             </div>
           </div>
         ))}
       </div>
     </div>
-  );
-};
+  )
+}
 
 DeckConstructionPanel.defaultProps = {
     deck: {
       name: 'New Deck',
       cards: []
     }
-  };
+  }
 
 export default DeckConstructionPanel
