@@ -21,13 +21,6 @@ interface DeckConstructionPanelProps {
     }
   
     const handleSave = () => {
-      if(selectedCards.length === 0) {
-        // If no cards, then treat save as a cancel
-        // However, it could mean the player wants to delete their deck. 
-        onCancel()
-        return
-      }
-
       if (!deckName.trim()) {
         setIsDeckNameValid(false)
         return
