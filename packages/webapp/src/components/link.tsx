@@ -2,7 +2,6 @@ import React from "react"
 import { useRouter } from "next/router"
 import Link from "next/link"
 
-
 interface QueryParamLinkProps {
   children: React.ReactNode
   href: string
