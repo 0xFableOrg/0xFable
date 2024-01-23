@@ -1,5 +1,4 @@
 import { ConnectKitButton, useModal } from "connectkit"
-import Link from "next/link"
 import { useAccount, useNetwork } from "wagmi"
 
 import { Address, chains } from "src/chain"
@@ -10,7 +9,11 @@ import { MintDeckModal } from "src/components/modals/mintDeckModal"
 import { useGameInGame } from "src/generated"
 import { FablePage } from "src/pages/_app"
 import { useGameID } from "src/store/hooks"
+<<<<<<< HEAD
 import { Button } from "src/components/ui/button"
+=======
+import QueryParamLink from "src/components/queryParamList"
+>>>>>>> 4d68b23 (Component wrapping 'Link' added to carry the '?index=' parameter used for testing.)
 
 const Home: FablePage = ({ isHydrated }) => {
   const { address } = useAccount()
@@ -54,27 +57,19 @@ const Home: FablePage = ({ isHydrated }) => {
 
         {isWrongNetwork && <ConnectKitButton />}
 
-        {isRightNetwork && (
-          <>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-4 md:gap-8">
-              <CreateGameModal />
-              <JoinGameModal />
-              <MintDeckModal />
-              <Link href={"/collection"}>
-                <Button variant="outline" className="rounded-lg p-6 font-fable text-2xl border-green-900 border-2 h-16 hover:scale-105 hover:border-green-800 hover:border-3">
+        {isRightNetwork && <>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-4 md:gap-8">
+            <CreateGameModal />
+            <JoinGameModal />
+            <MintDeckModal />
+            <QueryParamLink href={"/collection"}>
+              <Button variant="outline" className="rounded-lg p-6 font-fable text-2xl border-green-900 border-2 h-16 hover:scale-105 hover:border-green-800 hover:border-3">
                   Collection →
-                </Button>
-              </Link>
-              <Link href={"/editor"}>
-                <Button variant="outline" className="rounded-lg p-6 font-fable text-2xl border-green-900 border-2 h-16 hover:scale-105 hover:border-green-800 hover:border-3">
-                  Editor →
-                </Button>
-              </Link>
-            </div>
-
-            <ConnectKitButton />
-          </>
-        )}
+              </Button>
+            </QueryParamLink>
+          </div>
+          <ConnectKitButton />
+        </>}
       </div>
     </main>
   )
