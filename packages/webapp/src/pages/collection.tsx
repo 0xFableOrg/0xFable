@@ -13,10 +13,10 @@ import { Address } from "src/chain"
 import { FablePage } from "src/pages/_app"
 import { useRouter } from 'next/router'
 
-import FilterPanel from 'src/components/editor/filterPanel'
-import CardCollectionDisplay from 'src/components/editor/cardCollectionDisplay'
-import DeckList from 'src/components/editor/deckCollectionDisplay'
-import DeckPanel from 'src/components/editor/deckConstructionPanel'
+import FilterPanel from 'src/components/collection/filterPanel'
+import CardCollectionDisplay from 'src/components/collection/cardCollectionDisplay'
+import DeckList from 'src/components/collection/deckCollectionDisplay'
+import DeckPanel from 'src/components/collection/deckConstructionPanel'
 
 // NOTE(norswap & geniusgarlic): Just an example, when the game actually has effects & types,
 //   fetch those from the chain instead of hardcoding them here.
