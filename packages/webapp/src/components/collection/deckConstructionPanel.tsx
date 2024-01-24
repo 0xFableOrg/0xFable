@@ -36,24 +36,6 @@ interface DeckConstructionPanelProps {
 
   return (
     <div className="w-full flex flex-col items-center p-3">
-        <style jsx>{`
-        .card-name-container {
-            width: 100%
-            background-color: #4A5568 /* Dark grayish-blue background */
-            color: white 
-            margin-bottom: 8px 
-            padding: 10px 
-            border-radius: 5px 
-            border: 1px solid #2D3748
-            cursor: pointer /* Change cursor to indicate interactiveness */
-            transition: background-color 0.3s ease /* Smooth transition for hover effect */
-        }
-        
-        .card-name-container:hover {
-            background-color: #2D3748 /* Slightly darker background on hover */
-        }
-    `}</style>
-
       <div className="flex justify-between items-center">
         {/* Deck Name Input */}
         <input
