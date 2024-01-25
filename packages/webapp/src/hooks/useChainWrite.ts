@@ -103,7 +103,7 @@ export function useChainWrite(_params: UseWriteParams): UseWriteResult {
   } = completeParams(_params)
 
   // TODO(norswap): It could be good to include some generic error handling / preprocessing here.
-  //   This will require disantangling what can happen when and what to do about it.
+  //   This will require disentangling what can happen when and what to do about it.
   //   cf. https://twitter.com/norswap/status/1640409794409316361
 
   const config = prepare
