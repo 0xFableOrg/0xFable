@@ -11,9 +11,17 @@ import {
 } from "src/components/ui/dialog"
 import { Button } from "src/components/ui/button"
 
+interface MintDeckModalContentProps {
+  loading: string | null;
+  setLoading: React.Dispatch<React.SetStateAction<string | null>>;
+  callback: () => void
+}
+
 // =================================================================================================
 
 export const MintDeckModal = ({ callback = () => {} }) => {
+  const [ loading, setLoading ] = useState<string|null>(null)
+
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -21,8 +29,13 @@ export const MintDeckModal = ({ callback = () => {} }) => {
           Mint Deck →
         </Button>
       </DialogTrigger>
-      <DialogContent>
-        <MintDeckModalContent callback={callback} />
+      <DialogContent
+        // prevent modal from closing if area outside modal is clicked and loading is populated
+        onInteractOutside={(e) => loading !== null ? e.preventDefault() : null}
+        // prevent modal from closing if esc key is pressed and loading is populated
+        onEscapeKeyDown={(e) => loading !== null ? e.preventDefault() : null} 
+      >
+        <MintDeckModalContent loading={loading} setLoading={setLoading} callback={callback} />
       </DialogContent>
     </Dialog>
   )
@@ -30,9 +43,8 @@ export const MintDeckModal = ({ callback = () => {} }) => {
 
 // =================================================================================================
 
-const MintDeckModalContent = ({ callback }: { callback: () => void }) => {
-  const [loading, setLoading] = useState<string | null>(null)
-  const [success, setSuccess] = useState(false)
+const MintDeckModalContent: React.FC<MintDeckModalContentProps> = ({ loading, setLoading, callback }) => {
+  const [ success, setSuccess ] = useState(false)
 
   const { write: claim } = useDeckAirdropWrite({
     functionName: "claimAirdrop",

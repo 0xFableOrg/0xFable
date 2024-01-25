@@ -44,12 +44,11 @@ export const JoinGameModal = () => {
       </DialogTrigger>
       <DialogContent
         // prevent modal from closing if area outside modal is clicked and loading is populated
-        onInteractOutside={(event) => { if (loading) event.preventDefault(); }}
-        onCloseAutoFocus={(event) => { if (loading) event.preventDefault(); }}
+        onInteractOutside={(e) => loading !== null ? e.preventDefault() : null}
         // prevent modal from closing if esc key is pressed and loading is populated
-        onKeyDown={(event) => { if(loading && event.key == 'Escape') event.preventDefault(); }} 
+        onEscapeKeyDown={(e) => loading !== null ? e.preventDefault() : null} 
       >
-        <JoinGameModalContent loading={loading} setLoading={setLoading}/>
+        <JoinGameModalContent loading={loading} setLoading={setLoading} />
       </DialogContent>
     </Dialog>
   )

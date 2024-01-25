@@ -24,19 +24,18 @@ import { Button } from "src/components/ui/button"
 
 interface CreateGameModalContentProps {
   loading: string|null;
-  setLoading: React.Dispatch<React.SetStateAction< string|null >>;
+  setLoading: React.Dispatch<React.SetStateAction<string|null>>;
   gameStatus: GameStatus
 }
 
 // =================================================================================================
 
 export const CreateGameModal = () => {
-  const [ loading, setLoading ] = useState< string|null >(null);
+  const [ loading, setLoading ] = useState<string|null>(null);
   const isGameCreator = store.useIsGameCreator()
   const gameStatus = store.useGameStatus()
 
-  const preventSurroundClick = gameStatus >= GameStatus.CREATED && loading; // created and loading
-
+  const isSurroundCloseable = loading !== null || (gameStatus >= GameStatus.CREATED) // state is loading or game is in created state
   return (
     // If we're on the home page and we're the game creator, this modal should be displayed.
     <Dialog defaultOpen={isGameCreator}>
@@ -47,13 +46,12 @@ export const CreateGameModal = () => {
       </DialogTrigger>
       <DialogContent
         // prevent modal from closing if area outside modal is clicked and loading is populated
-        onInteractOutside={(event) => { if (preventSurroundClick) event.preventDefault(); }}
-        onCloseAutoFocus={(event) => { if (preventSurroundClick) event.preventDefault(); }}
+        onInteractOutside={(e) => isSurroundCloseable ? e.preventDefault() : null}
         // prevent modal from closing if esc key is pressed and loading is populated
-        onKeyDown={(event) => { if(preventSurroundClick && event.key == 'Escape') event.preventDefault(); }} 
+        onEscapeKeyDown={(e) => isSurroundCloseable ? e.preventDefault() : null}
       >
         <CreateGameModalContent loading={loading} setLoading={setLoading} gameStatus={gameStatus}/>
-      </DialogContent >
+      </DialogContent>
     </Dialog>
   )
 }
