@@ -97,7 +97,7 @@ const ComponentWrapper = ({
 
     // To carry the `index` query parameter to other parts of the app, be sure to either: 
     // - use the `navigate` function from `utils/navigate.ts` instead of `router.push`.
-    // - the `link` component from `components/link.tsx` instead of `next/link` 
+    // - use the `link` component from `components/link.tsx` instead of `next/link` 
   }
 
   return <>
