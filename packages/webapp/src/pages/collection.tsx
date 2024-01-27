@@ -15,8 +15,8 @@ import { useRouter } from 'next/router'
 
 import FilterPanel from 'src/components/collection/filterPanel'
 import CardCollectionDisplay from 'src/components/collection/cardCollectionDisplay'
-import DeckList from 'src/components/collection/deckCollectionDisplay'
-import DeckPanel from 'src/components/collection/deckConstructionPanel'
+import DeckList from 'src/components/collection/deckList'
+import DeckPanel from 'src/components/collection/deckPanel'
 
 // NOTE(norswap & geniusgarlic): Just an example, when the game actually has effects & types,
 //   fetch those from the chain instead of hardcoding them here.
