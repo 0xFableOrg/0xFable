@@ -27,6 +27,7 @@ import { Input } from "src/components/ui/input"
 interface JoinGameModalContentProps {
   loading: string | null;
   setLoading: React.Dispatch<React.SetStateAction<string | null>>;
+  gameStatus: GameStatus
 }
 
 // =================================================================================================
@@ -34,6 +35,9 @@ interface JoinGameModalContentProps {
 export const JoinGameModal = () => {
   const [ loading, setLoading ] = useState<string|null>(null)
   const isGameJoiner = store.useIsGameJoiner()
+  const gameStatus = store.useGameStatus()
+
+  const canCloseExternally = loading == null && gameStatus < GameStatus.JOINED
 
   return (
     <Dialog defaultOpen={isGameJoiner}>
@@ -42,13 +46,8 @@ export const JoinGameModal = () => {
           Join Game →
         </Button>
       </DialogTrigger>
-      <DialogContent
-        // prevent modal from closing if area outside modal is clicked and loading is populated
-        onInteractOutside={(e) => loading !== null ? e.preventDefault() : null}
-        // prevent modal from closing if esc key is pressed and loading is populated
-        onEscapeKeyDown={(e) => loading !== null ? e.preventDefault() : null} 
-      >
-        <JoinGameModalContent loading={loading} setLoading={setLoading} />
+      <DialogContent canCloseExternally={canCloseExternally}>
+        <JoinGameModalContent loading={loading} setLoading={setLoading} gameStatus={gameStatus} />
       </DialogContent>
     </Dialog>
   )
@@ -56,10 +55,9 @@ export const JoinGameModal = () => {
 
 // =================================================================================================
 
-const JoinGameModalContent: React.FC<JoinGameModalContentProps> = ({ loading, setLoading }) => {
+const JoinGameModalContent: React.FC<JoinGameModalContentProps> = ({ loading, setLoading, gameStatus }) => {
   const [ gameID, setGameID ] = store.useGameID()
   const playerAddress = store.usePlayerAddress()
-  const gameStatus = store.useGameStatus()
   const [ hasVisitedBoard ] = store.useHasVisitedBoard()
   const [ inputGameID, setInputGameID ] = useState<string|null>(null)
   

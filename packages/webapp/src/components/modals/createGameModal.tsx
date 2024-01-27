@@ -35,7 +35,7 @@ export const CreateGameModal = () => {
   const isGameCreator = store.useIsGameCreator()
   const gameStatus = store.useGameStatus()
 
-  const isSurroundCloseable = loading !== null || (gameStatus >= GameStatus.CREATED) // state is loading or game is in created state
+  const canCloseExternally = loading == null && gameStatus < GameStatus.CREATED
   return (
     // If we're on the home page and we're the game creator, this modal should be displayed.
     <Dialog defaultOpen={isGameCreator}>
@@ -44,12 +44,7 @@ export const CreateGameModal = () => {
           Create Game →
         </Button>
       </DialogTrigger>
-      <DialogContent
-        // prevent modal from closing if area outside modal is clicked and loading is populated
-        onInteractOutside={(e) => isSurroundCloseable ? e.preventDefault() : null}
-        // prevent modal from closing if esc key is pressed and loading is populated
-        onEscapeKeyDown={(e) => isSurroundCloseable ? e.preventDefault() : null}
-      >
+      <DialogContent canCloseExternally={canCloseExternally}>
         <CreateGameModalContent loading={loading} setLoading={setLoading} gameStatus={gameStatus}/>
       </DialogContent>
     </Dialog>

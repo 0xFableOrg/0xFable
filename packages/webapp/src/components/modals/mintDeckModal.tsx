@@ -29,12 +29,7 @@ export const MintDeckModal = ({ callback = () => {} }) => {
           Mint Deck →
         </Button>
       </DialogTrigger>
-      <DialogContent
-        // prevent modal from closing if area outside modal is clicked and loading is populated
-        onInteractOutside={(e) => loading !== null ? e.preventDefault() : null}
-        // prevent modal from closing if esc key is pressed and loading is populated
-        onEscapeKeyDown={(e) => loading !== null ? e.preventDefault() : null} 
-      >
+      <DialogContent canCloseExternally={loading === null}>
         <MintDeckModalContent loading={loading} setLoading={setLoading} callback={callback} />
       </DialogContent>
     </Dialog>
