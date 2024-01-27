@@ -81,11 +81,4 @@ interface DeckConstructionPanelProps {
   )
 }
 
-DeckConstructionPanel.defaultProps = {
-    deck: {
-      name: 'New Deck',
-      cards: []
-    }
-  }
-
 export default DeckConstructionPanel
