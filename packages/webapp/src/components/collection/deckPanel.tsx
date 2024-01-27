@@ -13,7 +13,7 @@ interface DeckConstructionPanelProps {
   
   const DeckConstructionPanel : React.FC<DeckConstructionPanelProps> = ({ deck, selectedCards = [], onCardSelect, onSave, onCancel }) => {
     const [ deckName, setDeckName ] = useState(deck.name)
-    const [ isDeckNameValid, setIsDeckNameValid ] = useState(false)
+    const [ isDeckNameValid, setIsDeckNameValid ] = useState(true)
 
     const handleDeckNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
       const newName = event.target.value;
@@ -30,7 +30,7 @@ interface DeckConstructionPanelProps {
       }
 
       const newDeck = {
-        name: deckName,
+        name: deckName.trim(),
         cards: selectedCards
       }
 
