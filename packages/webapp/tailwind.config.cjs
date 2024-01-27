@@ -71,6 +71,12 @@ module.exports = {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
       },
+      // Custom box shadow that adds a 'highlight' effect
+      // For example, add 'shadow-highlight shadow-orange-300' to className
+      // See: https://tailwindcss.com/docs/box-shadow#customizing-your-theme
+      boxShadow: {
+        'highlight': '0 0 20px',
+      },
     },
   },
   plugins: [require("tailwindcss-animate")],

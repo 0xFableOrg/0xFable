@@ -14,12 +14,6 @@ interface CardCollectionDisplayProps {
 const CardCollectionDisplay: React.FC<CardCollectionDisplayProps> = ({ cards, isHydrated, refetch, setSelectedCard, selectedCards, onCardToggle, isEditing }) => {
   return (
     <>
-      <style jsx>{`
-        .card-in-deck {
-          box-shadow: 0 0 10px orange;
-        }
-      `}</style>
-
       <div className="col-span-7 flex rounded-xl border overflow-y-auto">
         {isHydrated && cards.length === 0 && (
           <div className="flex flex-row w-full justify-center items-center">
@@ -33,7 +27,7 @@ const CardCollectionDisplay: React.FC<CardCollectionDisplayProps> = ({ cards, is
               <div 
                 key={card.id} 
                 className={`m-4 bg-slate-900/50 ${
-                  selectedCards.some(c => c.id === card.id) ? 'card-in-deck' : '' // Highlight if selected
+                  selectedCards.some(c => c.id === card.id) ? 'shadow-highlight shadow-orange-300' : '' // Highlight if selected
                 } hover:bg-slate-800 rounded-lg p-4 border-4 border-slate-900`}
                 style={{ height: 'fit-content' }}
                 onMouseEnter={() => setSelectedCard(card)}
