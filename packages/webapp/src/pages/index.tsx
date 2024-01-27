@@ -9,11 +9,8 @@ import { MintDeckModal } from "src/components/modals/mintDeckModal"
 import { useGameInGame } from "src/generated"
 import { FablePage } from "src/pages/_app"
 import { useGameID } from "src/store/hooks"
-<<<<<<< HEAD
 import { Button } from "src/components/ui/button"
-=======
-import QueryParamLink from "src/components/queryParamList"
->>>>>>> 4d68b23 (Component wrapping 'Link' added to carry the '?index=' parameter used for testing.)
+import Link from "src/components/link"
 
 const Home: FablePage = ({ isHydrated }) => {
   const { address } = useAccount()
@@ -62,11 +59,11 @@ const Home: FablePage = ({ isHydrated }) => {
             <CreateGameModal />
             <JoinGameModal />
             <MintDeckModal />
-            <QueryParamLink href={"/collection"}>
+            <Link href={"/collection"}>
               <Button variant="outline" className="rounded-lg p-6 font-fable text-2xl border-green-900 border-2 h-16 hover:scale-105 hover:border-green-800 hover:border-3">
                   Collection →
               </Button>
-            </QueryParamLink>
+            </Link>
           </div>
           <ConnectKitButton />
         </>}

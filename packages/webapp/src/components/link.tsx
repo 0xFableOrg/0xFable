@@ -16,7 +16,7 @@ const QueryParamLink = ({ children, href, ...props }) => {
       url = url + (url.includes("?") ? "&" : "?") + `index=${index}`
   }
   return (
-    <Link href={url} {...props}>
+    <Link href={href}>
       {children}
     </Link>
     )
