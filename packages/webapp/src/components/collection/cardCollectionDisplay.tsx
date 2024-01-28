@@ -4,20 +4,21 @@ import { Card } from 'src/store/types'
 import { MintDeckModal } from 'src/components/modals/mintDeckModal'
 
 interface CardCollectionDisplayProps {
-  cards: Card[];
-  isHydrated: boolean;
-  setSelectedCard: (card: Card | null) => void;
-  onCardToggle: (card: Card) => void;
-  selectedCards: Card[]; 
+  cards: Card[]
+  isHydrated: boolean
+  setSelectedCard: (card: Card | null) => void
+  onCardToggle: (card: Card) => void
+  selectedCards: Card[] 
+  isEditing: boolean
 }
 
-const CardCollectionDisplay: React.FC<CardCollectionDisplayProps> = ({ cards, isHydrated, refetch, setSelectedCard, selectedCards, onCardToggle, isEditing }) => {
+const CardCollectionDisplay: React.FC<CardCollectionDisplayProps> = ({ cards, isHydrated, setSelectedCard, selectedCards, onCardToggle, isEditing }) => {
   return (
     <>
       <div className="col-span-7 flex rounded-xl border overflow-y-auto">
         {isHydrated && cards.length === 0 && (
           <div className="flex flex-row w-full justify-center items-center">
-            <MintDeckModal callback={refetch} />
+            <MintDeckModal/>
           </div>
         )}
 
@@ -32,7 +33,7 @@ const CardCollectionDisplay: React.FC<CardCollectionDisplayProps> = ({ cards, is
                 onMouseEnter={() => setSelectedCard(card)}
                 onClick={() => {
                   if (isEditing) {
-                    onCardToggle(card); // Only toggle card selection when in editing mode
+                    onCardToggle(card) // Only toggle card selection when in editing mode
                   }
                 }}
               >

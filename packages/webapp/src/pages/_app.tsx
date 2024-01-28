@@ -95,9 +95,9 @@ const ComponentWrapper = ({
     // will ignore our existence and try to override us with their own account (depending on how
     // async code scheduling ends up working out).
 
-    // To carry the `index` query parameter to other parts of the app, be sure to either use: 
+    // To carry the `index` query parameter to other parts of the app, be sure to either use:
     // - the `navigate` function from `utils/navigate.ts` instead of `router.push`.
-    // - the `link` component from `components/link.tsx` instead of `next/link` 
+    // - the `link` component from `components/link.tsx` instead of `next/link`
   }
 
   return <>

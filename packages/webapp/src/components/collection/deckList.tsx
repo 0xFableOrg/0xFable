@@ -1,6 +1,6 @@
 import React from 'react'
 import Link from 'next/link'
-import { Deck } from 'src/store/types.ts'
+import { Deck } from 'src/store/types'
 
 interface DeckCollectionDisplayProps {
   decks: Deck[]

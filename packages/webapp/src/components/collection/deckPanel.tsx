@@ -16,12 +16,12 @@ interface DeckConstructionPanelProps {
     const [ isDeckNameValid, setIsDeckNameValid ] = useState(true)
 
     const handleDeckNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-      const newName = event.target.value;
+      const newName = event.target.value
       setDeckName(event.target.value)
-      setIsDeckNameValid(nameValid(newName));
+      setIsDeckNameValid(nameValid(newName))
     }
   
-    const nameValid = (name) => name.trim().length > 0;
+    const nameValid = (name: string) => name.trim().length > 0
 
     const handleSave = () => {
       if (!nameValid(deckName)) {
