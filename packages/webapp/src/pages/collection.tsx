@@ -8,7 +8,7 @@ import jotaiDebug from "src/components/lib/jotaiDebug"
 import { Navbar } from "src/components/navbar"
 import { deployment } from "src/deployment"
 import { useInventoryCardsCollectionGetCollection } from "src/generated"
-import { Card } from "src/store/types"
+import { Deck, Card } from "src/store/types"
 import { Address } from "src/chain"
 import { FablePage } from "src/pages/_app"
 import { useRouter } from 'next/router'
@@ -90,7 +90,7 @@ const Collection: React.FC<CollectionProps> = ({ decks, setDecks, isHydrated }) 
     setTypeMap({...typeMap, [type]: !typeMap[type]})
   }
 
-  const handleDeckSelect = (deckID) => {
+  const handleDeckSelect = (deckID: number) => {
     const selectedDeck = decks[deckID]
     setCurrentDeck(selectedDeck)
     setEditingDeckIndex(deckID)

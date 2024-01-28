@@ -77,9 +77,6 @@ const ComponentWrapper = ({
   const isHydrated = useIsHydrated()
   const errorConfig = useErrorConfig()
 
-    // todo @eviterin: to be removed when these decks are put onchain with https://github.com/0xFableOrg/0xFable/issues/103
-  const [decks, setDecks] = useState<Deck[]>([])
-
   if (process.env.NODE_ENV === "development") { // constant
     // eslint-disable-next-line react-hooks/rules-of-hooks
     const router = useRouter()
@@ -101,7 +98,7 @@ const ComponentWrapper = ({
   }
 
   return <>
-    <Component { ...pageProps } isHydrated={isHydrated} decks={decks} setDecks={setDecks}/>
+    <Component { ...pageProps } isHydrated={isHydrated}/>
     {/* Global error modal for errors that don't have obvious in-flow resolutions. */}
     {isHydrated && errorConfig && <GlobalErrorModal config={errorConfig} />}
   </>
