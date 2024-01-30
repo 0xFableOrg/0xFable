@@ -12,11 +12,13 @@ import { Deck, Card } from "src/store/types"
 import { Address } from "src/chain"
 import { FablePage } from "src/pages/_app"
 import { useRouter } from 'next/router'
+import { navigate } from "utils/navigate"
 
 import FilterPanel from 'src/components/collection/filterPanel'
 import CardCollectionDisplay from 'src/components/collection/cardCollectionDisplay'
 import DeckList from 'src/components/collection/deckList'
 import DeckPanel from 'src/components/collection/deckPanel'
+
 
 // NOTE(norswap & geniusgarlic): Just an example, when the game actually has effects & types,
 //   fetch those from the chain instead of hardcoding them here.
@@ -109,13 +111,13 @@ const Collection: React.FC<CollectionProps> = ({ decks, setDecks, isHydrated }) 
     setDecks(updatedDecks)
     setIsEditing(false)
     setSelectedCards([])
-    router.push('/collection')
+    navigate(router, '/collection')
   }
 
   const handleCancelEditing = () => {
     setIsEditing(false)
     setSelectedCards([])
-    router.push('/collection')
+    navigate(router, '/collection')
   }
 
   const addToDeck = (card: Card) => {
