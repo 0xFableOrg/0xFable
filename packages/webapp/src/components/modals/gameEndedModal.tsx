@@ -39,7 +39,7 @@ export const GameEndedModal = ({
   return (
     <Dialog open={open}>
       <DialogContent>
-        <DialogTitle>Game Ended</DialogTitle>
+        <DialogTitle className="font-fable text-xl">Game Ended</DialogTitle>
         <DialogDescription>
           <p className="py-4 font-mono">
             Winner: {gameData?.players[gameData.livePlayers[0]]}
