@@ -33,14 +33,22 @@ interface JoinGameModalContentProps {
 // =================================================================================================
 
 export const JoinGameModal = () => {
+  const [ open, setOpen ] = useState<boolean>(false);
   const [ loading, setLoading ] = useState<string|null>(null)
   const isGameJoiner = store.useIsGameJoiner()
   const gameStatus = store.useGameStatus()
 
   const canCloseExternally = loading == null && gameStatus < GameStatus.JOINED
 
+  useEffect(() => {
+    // If we're on the home page and we have joined a game we didn't create, this modal
+    // should be displayed.
+    if (isGameJoiner && !open)
+      setOpen(true)
+  }, [isGameJoiner, open])
+
   return (
-    <Dialog defaultOpen={isGameJoiner}>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant="outline" className="rounded-lg p-6 font-fable text-2xl border-green-900 border-2 h-16 hover:scale-105 hover:border-green-800 hover:border-3">
           Join Game →

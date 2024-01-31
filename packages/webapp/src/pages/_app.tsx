@@ -39,7 +39,6 @@ const MyApp: AppType = ({ Component, pageProps }) => {
         <title>0xFable</title>
         <link rel="shortcut icon" href="/favicon.png" />
         <link
-          rel="preload" // loads the font early in the page load process
           href="/font/BluuNext-Bold.otf"
           as="font"
           type="font/otf"

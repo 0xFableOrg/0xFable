@@ -31,14 +31,22 @@ interface CreateGameModalContentProps {
 // =================================================================================================
 
 export const CreateGameModal = () => {
+  const [ open, setOpen ] = useState<boolean>(false);
   const [ loading, setLoading ] = useState<string|null>(null);
   const isGameCreator = store.useIsGameCreator()
   const gameStatus = store.useGameStatus()
 
+  useEffect(() => {
+    // If we're on the home page and we're the game creator, this modal should be displayed.
+    if (isGameCreator && !open)
+      setOpen(true)
+  }, [isGameCreator, open])
+
+
   const canCloseExternally = loading == null && gameStatus < GameStatus.CREATED
   return (
     // If we're on the home page and we're the game creator, this modal should be displayed.
-    <Dialog defaultOpen={isGameCreator}>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant="outline" className="rounded-lg p-6 font-fable text-2xl border-green-900 border-2 h-16 hover:scale-105 hover:border-green-800 hover:border-3">
           Create Game →
