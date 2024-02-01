@@ -108,7 +108,7 @@ const Play: FablePage = ({ isHydrated }) => {
   
   useEffect(() => {
     // Automatically submit the card draw transaction when it's our turn
-    if(currentPlayer(gameData as FetchedGameData) === playerAddress && !cantDrawCard) {
+    if((gameData && currentPlayer(gameData) === playerAddress) && !cantDrawCard) {
       drawCard({
         gameID: gameID!,
         playerAddress: playerAddress!,
