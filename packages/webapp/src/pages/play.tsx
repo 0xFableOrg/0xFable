@@ -5,7 +5,7 @@ import { LoadingModal } from "src/components/modals/loadingModal"
 import { GameEndedModal } from "src/components/modals/gameEndedModal"
 import { Navbar } from "src/components/navbar"
 import * as store from "src/store/hooks"
-import { CardPlacement, GameStatus, GameStep } from "src/store/types"
+import { CardPlacement, FetchedGameData, GameStatus, GameStep } from "src/store/types"
 import { FablePage } from "src/pages/_app"
 import { Address } from "viem"
 import { readContract } from "wagmi/actions"
@@ -105,14 +105,18 @@ const Play: FablePage = ({ isHydrated }) => {
   const cancellationHandler = useCancellationHandler(loading)
 
   const cantDrawCard = cantTakeActions || gameData.currentStep !== GameStep.DRAW
-  const doDrawCard = useCallback(
-    () => drawCard({
+  
+  useEffect(() => {
+    // Automatically submit the card draw transaction when it's our turn
+    if(currentPlayer(gameData as FetchedGameData) === playerAddress && !cantDrawCard) {
+      drawCard({
         gameID: gameID!,
         playerAddress: playerAddress!,
         setLoading,
         cancellationHandler
-      }),
-    [gameID, playerAddress, setLoading, cancellationHandler])
+      })
+    }
+  }, [cancellationHandler, cantDrawCard, gameData, gameID, playerAddress])
 
   const cantEndTurn = cantTakeActions || !isEndingTurn(gameData.currentStep)
   const doEndTurn = useCallback(
@@ -213,10 +217,6 @@ const Play: FablePage = ({ isHydrated }) => {
 
             {!ended && (
               <>
-                <Button variant={"secondary"} className="absolute right-96 bottom-1/2 z-50 !translate-y-1/2 rounded-lg border-[.1rem] border-base-300 font-mono hover:scale-105" disabled={cantDrawCard} onClick={doDrawCard}>
-                  DRAW
-                </Button>
-
                 <Button variant={"secondary"} className="absolute right-48 bottom-1/2 z-50 !translate-y-1/2 rounded-lg border-[.1rem] border-base-300 font-mono hover:scale-105"
                   disabled={cantEndTurn}
                   onClick={doEndTurn}
