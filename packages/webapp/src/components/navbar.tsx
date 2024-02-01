@@ -1,30 +1,38 @@
 import Link from "next/link"
 import { ConnectKitButton } from "connectkit"
+import { Button } from "./ui/button"
+import {
+  NavigationMenu,
+  NavigationMenuList,
+  NavigationMenuItem,
+} from "src/components/ui/navigation-menu"
 
 export const Navbar = () => {
   return (
-    <div className="navbar bg-base-100">
-      <div className="flex-1">
-        <Link
-          href={"/"}
-          className="btn-ghost btn font-serif text-2xl normal-case text-white"
-        >
-          <span className="font-mono font-light text-red-400">0x</span>
-          FABLE
-        </Link>
-      </div>
-      <div className="flex-none">
-        <ul className="menu menu-horizontal px-1">
-          <li>
-            <Link href="/collection" className="font-bold ">
-              COLLECTION
-            </Link>
-          </li>
-          <li>
-            <ConnectKitButton />
-          </li>
-        </ul>
-      </div>
-    </div>
+    <NavigationMenu className="flex flex-row justify-between px-6 py-2">
+      <NavigationMenuList>
+        <NavigationMenuItem>
+          <Link href="/">
+            <Button variant="ghost" className="text-2xl normal-case text-white font-serif">
+              <span className="text-red-400 font-mono font-light">0x</span>
+              FABLE
+            </Button>
+          </Link>
+        </NavigationMenuItem>
+      </NavigationMenuList>
+
+      <NavigationMenuList>
+        <NavigationMenuItem>
+          <Link href="/collection">
+            <Button variant="ghost" className="text-xl normal-case text-white font-fable">
+              Collection
+            </Button>
+          </Link>
+        </NavigationMenuItem>
+        <NavigationMenuItem>
+          <ConnectKitButton />
+        </NavigationMenuItem>
+      </NavigationMenuList>
+    </NavigationMenu>
   )
 }

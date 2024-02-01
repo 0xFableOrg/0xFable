@@ -4,7 +4,7 @@
  * @module hooks/useCancellationHandler
  */
 
-import { CancellationHandler } from "src/components/lib/loadingModal"
+import { CancellationHandler } from "src/components/modals/loadingModal"
 import { useEffect, useRef } from "react"
 
 // =================================================================================================

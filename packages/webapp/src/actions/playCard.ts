@@ -24,7 +24,7 @@ import { FAKE_PROOF, proveInWorker, SHOULD_GENERATE_PROOFS } from "src/utils/zkp
 import { bigintToHexString } from "src/utils/js-utils"
 import { mimcHash } from "src/utils/hashing"
 import { PLAY_CARD_PROOF_TIMEOUT } from "src/constants"
-import { CancellationHandler } from "src/components/lib/loadingModal"
+import { CancellationHandler } from "src/components/modals/loadingModal"
 import { checkFresh, freshWrap } from "src/store/checkFresh"
 
 // =================================================================================================

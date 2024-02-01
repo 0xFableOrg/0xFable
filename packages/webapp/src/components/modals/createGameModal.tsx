@@ -2,9 +2,8 @@ import { useRouter } from "next/router"
 import { useCallback, useEffect, useState } from "react"
 import { decodeEventLog } from "viem"
 
-import { LoadingModalContent } from "src/components/lib/loadingModal"
-import { Modal, ModalController, useModalController } from "src/components/lib/modal"
-import { ModalMenuButton, ModalTitle, Spinner } from "src/components/lib/modalElements"
+import { LoadingModalContent } from "src/components/modals/loadingModal"
+import { Spinner } from "src/components/lib/modalElements"
 import { InGameMenuModalContent } from "src/components/modals/inGameMenuModalContent"
 import { gameABI } from "src/generated"
 import { useGameWrite } from "src/hooks/useFableWrite"
@@ -14,39 +13,59 @@ import { GameStatus } from "src/store/types"
 import { navigate } from "src/utils/navigate"
 import { useCancellationHandler } from "src/hooks/useCancellationHandler"
 import { concede } from "src/actions/concede"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+  DialogTrigger,
+} from "src/components/ui/dialog"
+import { Button } from "src/components/ui/button"
 
-// =================================================================================================
-
-export const CreateGameModal = () => {
-  const [gameID] = store.useGameID()
-
-  const isGameCreator = store.useIsGameCreator()
-  const ctrl = useModalController({ loaded: isGameCreator })
-
-  useEffect(() => {
-    // If we're on the home page and we're the game creator, this modal should be displayed.
-    if (isGameCreator && !ctrl.displayed)
-      ctrl.display()
-  }, [isGameCreator, ctrl, ctrl.displayed, gameID])
-
-  return <>
-    <ModalMenuButton display={ctrl.display} label="Create Game →" />
-    <Modal ctrl={ctrl}>
-      <CreateGameModalContent ctrl={ctrl} />
-    </Modal>
-  </>
+interface CreateGameModalContentProps {
+  loading: string|null;
+  setLoading: React.Dispatch<React.SetStateAction<string|null>>;
+  gameStatus: GameStatus
 }
 
 // =================================================================================================
 
-const CreateGameModalContent = ({ ctrl }: { ctrl: ModalController }) => {
+export const CreateGameModal = () => {
+  const [ open, setOpen ] = useState<boolean>(false);
+  const [ loading, setLoading ] = useState<string|null>(null);
+  const isGameCreator = store.useIsGameCreator()
+  const gameStatus = store.useGameStatus()
 
+  useEffect(() => {
+    // If we're on the home page and we're the game creator, this modal should be displayed.
+    if (isGameCreator && !open)
+      setOpen(true)
+  }, [isGameCreator, open])
+
+
+  const canCloseExternally = loading == null && gameStatus < GameStatus.CREATED
+  return (
+    // If we're on the home page and we're the game creator, this modal should be displayed.
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="outline" className="rounded-lg p-6 font-fable text-2xl border-green-900 border-2 h-16 hover:scale-105 hover:border-green-800 hover:border-3">
+          Create Game →
+        </Button>
+      </DialogTrigger>
+      <DialogContent canCloseExternally={canCloseExternally}>
+        <CreateGameModalContent loading={loading} setLoading={setLoading} gameStatus={gameStatus}/>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+// =================================================================================================
+
+const CreateGameModalContent: React.FC<CreateGameModalContentProps> = ({ loading, setLoading, gameStatus }) => {
   const playerAddress = store.usePlayerAddress()
   const [ gameID, setGameID ] = store.useGameID()
-  const gameStatus = store.useGameStatus()
   const allPlayersJoined = store.useAllPlayersJoined()
   const [ hasVisitedBoard ] = store.useHasVisitedBoard()
-  const [ loading, setLoading ] = useState<string|null>(null)
   const [ drawCompleted, setDrawCompleted ] = useState(false)
   const router = useRouter()
 
@@ -55,16 +74,9 @@ const CreateGameModalContent = ({ ctrl }: { ctrl: ModalController }) => {
   const joined  = gameStatus >= GameStatus.HAND_DRAWN || drawCompleted
   const started = gameStatus >= GameStatus.STARTED && gameStatus < GameStatus.ENDED
 
-  // If the game is created, the modal can't be closed in the normal way, same if loading.
-  useEffect(() => {
-    // React forces us to use an effect, can't update a component state in another component.
-    ctrl.closeableAndSurroundCloseable = !created && loading === null
-  }, [created, loading, ctrl])
-
   // Load game board game once the game start, unless we've visited it for this game already.
   useEffect(() => {
-    if (!hasVisitedBoard && started)
-      void navigate(router, "/play")
+    if (!hasVisitedBoard && started) void navigate(router, "/play")
   }, [hasVisitedBoard, router, started])
 
   // -----------------------------------------------------------------------------------------------
@@ -121,7 +133,6 @@ const CreateGameModalContent = ({ ctrl }: { ctrl: ModalController }) => {
     setLoading,
     onSuccess() {
       setGameID(null)
-      ctrl.close()
     }
   })
 
@@ -132,10 +143,9 @@ const CreateGameModalContent = ({ ctrl }: { ctrl: ModalController }) => {
       setLoading,
       onSuccess: () => {
         setGameID(null)
-        ctrl.close()
       }
     }),
-    [gameID, playerAddress, setGameID, ctrl])
+    [gameID, playerAddress, setGameID, setLoading])
 
   // -----------------------------------------------------------------------------------------------
 
@@ -146,41 +156,60 @@ const CreateGameModalContent = ({ ctrl }: { ctrl: ModalController }) => {
       cancellationHandler={cancellationHandler}
     />
 
-  if (!created) return <>
-    <ModalTitle>Create Game</ModalTitle>
-    <p className="py-4">
-      Once a game is created, you can invite your friends to join with the game ID.
-    </p>
-    <div className="flex justify-center">
-      <button className="btn center" disabled={!create} onClick={create}>
-        Create Game
-      </button>
-    </div>
-  </>
+  if (!created)
+    return (
+      <>
+        <DialogTitle className="font-fable text-xl">Create Game</DialogTitle>
+        <DialogDescription>
+          <p className="py-4 font-mono">
+            Once a game is created, you can invite your friends to join with the
+            game ID.
+          </p>
+          <div className="flex justify-center">
+            <Button className="font-fable" variant={"secondary"} disabled={!create} onClick={create}>
+              Create Game
+            </Button>
+          </div>
+        </DialogDescription>
+      </>
+    )
 
-  if (created && !started) return <>
-    <ModalTitle>{joined ? "Waiting for other player..." : "Game Created"}</ModalTitle>
-    <p className="py-4 font-mono">
-      Share the following code to invite players to battle:
-    </p>
-    <p className="mb-5 rounded-xl border border-white/50 bg-black py-4 text-center font-mono">
-      {`${gameID}`}
-    </p>
-    {!joined && <div className="flex justify-center gap-4">
-      <button className="btn" onClick={join}>
-        Join Game
-      </button>
-      <button className="btn" disabled={!cancel} onClick={cancel}>
-        Cancel Game
-      </button>
-    </div>}
-    {joined && <div className="flex flex-col justify-center gap-4 items-center">
-      <Spinner />
-      {!allPlayersJoined && <button className="btn" disabled={!cancel} onClick={cancel}>
-          Cancel Game
-        </button>}
-    </div>}
-  </>
+  if (created && !started)
+    return (
+      <>
+        <DialogTitle className="font-fable text-xl">
+          {joined ? "Waiting for other player..." : "Game Created"}
+        </DialogTitle>
+        <DialogDescription>
+          <p className="py-4 font-mono">
+            Share the following code to invite players to battle:
+          </p>
+          <p className="mb-5 rounded-xl border border-white/50 bg-black py-4 text-center font-mono">
+            {`${gameID}`}
+          </p>
+          {!joined && (
+            <div className="flex justify-center gap-4">
+              <Button className="font-fable" variant={"secondary"} onClick={join}>
+                Join Game
+              </Button>
+              <Button className="font-fable" variant={"secondary"} disabled={!cancel} onClick={cancel}>
+                Cancel Game
+              </Button>
+            </div>
+          )}
+          {joined && (
+            <div className="flex flex-col justify-center gap-4 items-center">
+              <Spinner />
+              {!allPlayersJoined && (
+                <Button className="font-fable" variant={"secondary"} disabled={!cancel} onClick={cancel}>
+                  Cancel Game
+                </Button>
+              )}
+            </div>
+          )}
+        </DialogDescription>
+      </>
+    )
 
   if (started) return <InGameMenuModalContent concede={doConcede} />
 }

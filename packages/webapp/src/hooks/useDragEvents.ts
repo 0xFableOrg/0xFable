@@ -3,7 +3,7 @@ import * as store from "src/store/hooks"
 import { CardPlacement } from "src/store/types"
 import { useCallback } from "react"
 import { extractCardID } from "src/utils/js-utils"
-import { CancellationHandler } from "src/components/lib/loadingModal"
+import { CancellationHandler } from "src/components/modals/loadingModal"
 import { playCard } from "src/actions/playCard"
 
 function useDragEvents(

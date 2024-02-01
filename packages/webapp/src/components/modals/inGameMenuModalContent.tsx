@@ -1,6 +1,7 @@
 import Link from "next/link"
 
-import { ModalTitle } from "src/components/lib/modalElements"
+import { DialogDescription, DialogTitle } from "../ui/dialog"
+import { Button } from "src/components/ui/button"
 
 /**
  * This modal content is shared by both the {@link CreateGameModal} (for the game creator) and the
@@ -9,16 +10,26 @@ import { ModalTitle } from "src/components/lib/modalElements"
  *
  * @param {{concede}} concede - The function to call to concede the game.
  */
-export const InGameMenuModalContent = ({ concede }: { concede?: () => void }) => {
-  return <>
-    <ModalTitle>Game in progress!</ModalTitle>
-    <div className="flex justify-center gap-4 mt-4">
-      <Link className="btn" href="/play">
-        Return to Game
-      </Link>
-      <button className="btn" disabled={!concede} onClick={concede}>
-        Concede Game
-      </button>
-    </div>
-  </>
+export const InGameMenuModalContent = ({
+  concede,
+}: {
+  concede?: () => void
+}) => {
+  return (
+    <>
+      <DialogTitle className="font-fable">Game in progress!</DialogTitle>
+      <DialogDescription>
+        <div className="flex justify-center gap-4 mt-4">
+          <Link href="/play">
+            <Button className="font-fable" variant={"secondary"}>
+              Return to Game
+            </Button>
+          </Link>
+          <Button className="font-fable" variant={"secondary"} disabled={!concede} onClick={concede}>
+            Concede Game
+          </Button>
+        </div>
+      </DialogDescription>
+    </>
+  )
 }
