@@ -1,19 +1,11 @@
-import React from "react"
-import { useRouter } from "next/router"
+import { useRouter } from 'next/router'
 import Link from "next/link"
-
-
-interface QueryParamLinkProps {
-  children: React.ReactNode
-  href: string
-  className: string
-}
 
 /**
  * A Link component wrapper that appends a 'index' query parameter to the URL in development mode.
  * This is used to persist state across navigation during testing.
  */
-const QueryParamLink : React.FC<QueryParamLinkProps> = ({ children, href, ...props }) => {
+const QueryParamLink = ({ children, href, ...props }) => {
   const router = useRouter()
 
   let url = href
@@ -24,7 +16,7 @@ const QueryParamLink : React.FC<QueryParamLinkProps> = ({ children, href, ...pro
       url = url + (url.includes("?") ? "&" : "?") + `index=${index}`
   }
   return (
-    <Link href={url} {...props}>
+    <Link href={href}>
       {children}
     </Link>
     )
