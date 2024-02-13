@@ -120,8 +120,8 @@ export type PrivateInfo = {
    */
   handIndexes: number[]
   /**
-   * The player's current's deck ordering (indexes into the game's card array ({@link
-   * FetchedGameData.cards}). Used for proofs.
+   * The player's current's deck ordering (indexes into the game's card array 
+   * ({@link FetchedGameData.cards}). Used for proofs.
    */
   deckIndexes: number[]
   /**
