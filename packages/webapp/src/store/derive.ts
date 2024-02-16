@@ -127,9 +127,11 @@ export function getOpponentData(gdata: FetchedGameData|null, player: Address|nul
 /**
  * @see module:store/read#getPrivateInfo
  */
-export function getPrivateInfo(gameID: bigint|null, player: Address|null, privateInfoStore: PrivateInfoStore): PrivateInfo|null {
-  if (gameID === null || player === null) return null
-  return privateInfoStore[gameID.toString()]?.[player] ?? null
+export function getPrivateInfo(gameID: bigint | null, player: Address | null, privateInfoStore: PrivateInfoStore): PrivateInfo | null {
+  // Directly return null if either gameID or player is null, or if the specific info does not exist in the store.
+  return gameID !== null && player !== null ? 
+    privateInfoStore[gameID.toString()]?.[player] || null 
+    : null;
 }
 
 // -------------------------------------------------------------------------------------------------

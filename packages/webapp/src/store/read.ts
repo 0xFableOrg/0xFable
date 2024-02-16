@@ -8,7 +8,7 @@
 import { type Address } from "src/chain"
 import * as store from "src/store/atoms"
 import * as derive from "src/store/derive"
-import type { FetchedGameData, PlayerData, PrivateInfo } from "src/store/types"
+import type { FetchedGameData, PlayerData, PrivateInfo, PrivateInfoStore } from "src/store/types"
 import { GameStatus } from "src/store/types"
 
 // =================================================================================================
@@ -94,9 +94,10 @@ export function getPlayerData(
  */
 export function getPrivateInfo(
     gameID: bigint|null = store.get(store.gameID),
-    player: Address|null = store.get(store.playerAddress)
+    player: Address|null = store.get(store.playerAddress),
+    privateInfoStore: PrivateInfoStore = store.get(store.privateInfoStore)
 ): PrivateInfo|null {
-  return derive.getPrivateInfo(gameID, player)
+  return derive.getPrivateInfo(gameID, player, privateInfoStore)
 }
 
 // =================================================================================================
