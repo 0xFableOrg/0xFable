@@ -20,6 +20,7 @@ import "src/styles/globals.css"
 import { useRouter } from "next/router"
 import { ComponentType, useEffect } from "react"
 import { Deck } from "src/store/types"
+import { Toaster } from "src/components/ui/sonner"
 
 // =================================================================================================
 
@@ -50,6 +51,7 @@ const MyApp: AppType = ({ Component, pageProps }) => {
         <ConnectKitProvider>
           {jotaiDebug()}
           <ComponentWrapper Component={Component} pageProps={pageProps} />
+          <Toaster expand={true} />
         </ConnectKitProvider>
       </WagmiConfig>
     </>

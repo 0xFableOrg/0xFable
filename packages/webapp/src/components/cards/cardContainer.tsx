@@ -12,12 +12,14 @@ interface BaseCardProps {
   className?: string
   handHovered?: boolean
   placement: CardPlacement
+  cardGlow?: boolean
 }
 
 const CardContainer: React.FC<BaseCardProps> = ({
   id,
   handHovered,
   placement,
+  cardGlow
 }) => {
   const {
     attributes,
@@ -46,6 +48,7 @@ const CardContainer: React.FC<BaseCardProps> = ({
             handHovered={handHovered}
             isDragging={isDragging}
             ref={setNodeRef}
+            cardGlow={cardGlow}
           />
         )
       case CardPlacement.BOARD:

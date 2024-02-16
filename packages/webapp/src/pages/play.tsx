@@ -38,6 +38,7 @@ import { createPortal } from "react-dom"
 import useDragEvents from "src/hooks/useDragEvents"
 import CardContainer from "src/components/cards/cardContainer"
 import { Button } from "src/components/ui/button"
+import { toast } from "sonner"
 
 const Play: FablePage = ({ isHydrated }) => {
   const [ gameID, setGameID ] = store.useGameID()
@@ -105,18 +106,27 @@ const Play: FablePage = ({ isHydrated }) => {
   const cancellationHandler = useCancellationHandler(loading)
 
   const cantDrawCard = cantTakeActions || gameData.currentStep !== GameStep.DRAW
-  
+  const doDrawCard = useCallback(() =>
+    drawCard({
+      gameID: gameID!,
+      playerAddress: playerAddress!,
+      setLoading,
+      cancellationHandler,
+    }),
+  [gameID, playerAddress, setLoading, cancellationHandler])
+
   useEffect(() => {
     // Automatically submit the card draw transaction when it's our turn
-    if((gameData && currentPlayer(gameData) === playerAddress) && !cantDrawCard) {
-      drawCard({
-        gameID: gameID!,
-        playerAddress: playerAddress!,
-        setLoading,
-        cancellationHandler
+    if (gameData && currentPlayer(gameData) === playerAddress && !cantDrawCard) {
+      toast.promise(doDrawCard, {
+        loading: "Your Turn - Drawing Card...",
+        success: () => {
+          return "Card Drawn Successfully!"
+        },
+        error: "Error Drawing Card",
       })
     }
-  }, [cancellationHandler, cantDrawCard, gameData, gameID, playerAddress])
+  }, [cancellationHandler, cantDrawCard, gameID, playerAddress, doDrawCard])
 
   const cantEndTurn = cantTakeActions || !isEndingTurn(gameData.currentStep)
   const doEndTurn = useCallback(

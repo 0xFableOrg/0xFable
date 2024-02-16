@@ -92,8 +92,6 @@ async function drawCardImpl(args: DrawCardArgs): Promise<boolean> {
   const cards = getCards()!
   console.log(`drew card ${cards[selectedCard]}`)
 
-  args.setLoading("Generating draw proof ...")
-
   const tmpHandSize = privateInfo.handIndexes.indexOf(255)
   const initialHandSize = tmpHandSize < 0
     ? BigInt(privateInfo.handIndexes.length)
@@ -138,7 +136,6 @@ async function drawCardImpl(args: DrawCardArgs): Promise<boolean> {
         proof.proof_b,
         proof.proof_c
       ],
-      setLoading: args.setLoading
     })))
 
   // TODO: this should be put in an optimistic store, before proof generation
