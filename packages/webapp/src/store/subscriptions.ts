@@ -11,6 +11,7 @@
 
 // =================================================================================================
 
+import _ from "lodash"
 import { Log } from "viem"
 import { getPublicClient } from "wagmi/actions"
 
@@ -75,15 +76,33 @@ export function subscribeToGame(ID: bigint|null) {
   }
   if (needsSub) {
     currentlySubscribedID = ID
-    eventNames.forEach(eventName => {
-      unsubFunctions.push(publicClient.watchContractEvent({
-        address: deployment.Game,
-        abi: gameABI,
-        eventName: eventName as any,
-        args: { gameID: ID },
-        onLogs: logs => gameEventListener(eventName, logs)
-      }))
-    })
+
+    const eventsABI = gameABI.filter((abi) => abi.type === "event" && eventNames.includes(abi.name));
+
+    /**
+     * 
+     * Related to https://github.com/0xFableOrg/0xFable/issues/91
+     * 
+     *  viem limitations: watchEvent scoped to multiple events supposedly not also scoped with indexed arguments (args).
+     *  https://viem.sh/docs/actions/public/watchEvent.html#multiple-events
+     * 
+     * use `watchEvent` (instead of watchContractEvent) which will create filter against gameID
+     * this is not expected usage of watchEvent and might break when upgrade
+     * also only works if the args (gameID) is expected across all event topics
+     */
+    unsubFunctions.push(publicClient.watchEvent({
+      address: deployment.Game,
+      events: eventsABI,
+      args: { gameID: ID },
+      onLogs: logs => {
+        _.toPairs(_.groupBy(logs, (log:any) => log.eventName))
+        .forEach(
+          ([eventName, logs]:[string,any]) => {
+            gameEventListener(eventName, logs)
+          }
+        )
+      }
+    }))
   }
 }
 
