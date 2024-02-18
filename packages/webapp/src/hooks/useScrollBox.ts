@@ -1,9 +1,9 @@
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, RefObject } from "react"
 import throttle from "lodash/throttle"
 
 const timing = (1 / 60) * 1000
 
-function useScrollBox(scrollRef: any, cards: readonly bigint[] | null) {
+function useScrollBox(scrollRef: RefObject<HTMLDivElement>, cards: readonly bigint[] | null) {
   // Stores the last horizontal scroll position.
   const [lastScrollX, setLastScrollX] = useState(0)
 
@@ -19,7 +19,7 @@ function useScrollBox(scrollRef: any, cards: readonly bigint[] | null) {
   const scrollAmount = 2 * cardWidth
   const duration = 300
 
-  // Checks and updates the arrow visibility states based on the scroll position.
+  /** Checks and updates the arrow visibility states based on the scroll position. */
   const checkArrowsVisibility = () => {
     if (!scrollRef.current) return
     const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current
@@ -39,8 +39,7 @@ function useScrollBox(scrollRef: any, cards: readonly bigint[] | null) {
       const now = Date.now()
       const time = Math.min(1, (now - startTime) / duration)
 
-      if (scrollRef.current.scrollLeft)
-        scrollRef.current.scrollLeft = start + time * (target - start)
+      scrollRef.current!.scrollLeft = start + time * (target - start)
 
       if (time < 1) {
         requestAnimationFrame(animateScroll)
