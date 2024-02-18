@@ -109,7 +109,7 @@ before we receive confirmation that a transaction was included in a block.
 
 ### `checkFresh.ts`
 
-Above, we allude to the problem that occur when an async function calls `await`, as the state may
+Above, we alluded to the problem that occur when an async function calls `await`, as the state may
 change at that time and read from the store may be inconsistent before and after the call.
 
 Given the turn-based nature of the game, this is rarely an issue, however it could be if the

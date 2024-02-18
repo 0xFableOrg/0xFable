@@ -175,7 +175,7 @@ export const opponentData = cachedAtom<PlayerData|null>((get) => {
 // -------------------------------------------------------------------------------------------------
 
 /**
- * @seemodule:store/hooks#usePrivateInfo
+ * @see module:store/hooks#usePrivateInfo
  */
 export const privateInfo = cachedAtom<PrivateInfo|null>((get) => {
   return derive.getPrivateInfo(get(gameID), get(playerAddress), get(privateInfoStore))
