@@ -27,9 +27,9 @@ function useScrollBox(scrollRef: any, cards: readonly bigint[] | null) {
     setShowRightArrow(scrollLeft < scrollWidth - clientWidth)
   }
 
-  // Performs a smooth scrolling animation to a specified target position.
-  // Accepts a target scroll position and an optional callback to execute after completion.
-  const smoothScroll = (target: number, callback?: () => void) => {
+  /** Performs a smooth scrolling animation to a specified target position.
+   *  Accepts a target scroll position and an optional callback to execute after completion. */
+  const smoothScroll = useCallback((target: number, callback?: () => void) => {
     if (!scrollRef.current) return
 
     const start = scrollRef.current.scrollLeft
@@ -51,9 +51,9 @@ function useScrollBox(scrollRef: any, cards: readonly bigint[] | null) {
     }
 
     requestAnimationFrame(animateScroll)
-  }
+  }, [])
 
-  // Scrolls the container a fixed distance to the left or right with animation.
+  /** Scrolls the container a fixed distance to the left or right with animation. */
   const scrollLeft = () => {
     if (!scrollRef.current) return
     const target = Math.max(0, scrollRef.current.scrollLeft - scrollAmount)
@@ -71,7 +71,7 @@ function useScrollBox(scrollRef: any, cards: readonly bigint[] | null) {
     smoothScroll(target)
   }
 
-  // Throttled function to update the last horizontal scroll position, minimizing performance impact.
+  /** Throttled function to update the last horizontal scroll position, minimizing performance impact. */
   const handleLastScrollX = useCallback(
     throttle((screenX) => {
       setLastScrollX(screenX)
@@ -79,7 +79,7 @@ function useScrollBox(scrollRef: any, cards: readonly bigint[] | null) {
     []
   )
 
-  // Handles the wheel event to adjust the scrollLeft property, enabling horizontal scrolling.
+  /** Handles the wheel event to adjust the scrollLeft property, enabling horizontal scrolling. */
   const handleScroll = (e: WheelEvent) => {
     if (scrollRef.current) {
       // Adjust the scrollLeft property based on the deltaY value
@@ -87,13 +87,14 @@ function useScrollBox(scrollRef: any, cards: readonly bigint[] | null) {
     }
   }
 
-  // Responds to window resize events to update arrow visibility states.
+  /** Responds to window resize events to update arrow visibility states. */
   const handleResize = () => {
     setShowLeftArrow(true)
     setShowRightArrow(true)
   }
 
-  // Smoothly scrolls to the rightmost end of the container and then back to the start.
+  /** Smoothly scrolls to the rightmost end of the container,
+   *  triggers a glow in the last card added. */
   const smoothScrollToRightThenLeft = useCallback(() => {
     const element = scrollRef.current
     if (!element) return
@@ -101,9 +102,6 @@ function useScrollBox(scrollRef: any, cards: readonly bigint[] | null) {
     const targetRight = element.scrollWidth - element.clientWidth
     smoothScroll(targetRight, () => {
       triggerLastCardGlow()
-      setTimeout(() => {
-        smoothScroll(0) // Scrolls back to the first element
-      }, 3000)
     })
   }, [scrollRef])
 
@@ -114,7 +112,7 @@ function useScrollBox(scrollRef: any, cards: readonly bigint[] | null) {
     }, 2500)
   }, [])
 
-  // Sets up and cleans up event listeners for resize, scroll, and wheel events.
+  /** Sets up and cleans up event listeners for resize, scroll, and wheel events. */
   useEffect(() => {
     if (scrollRef.current) {
       checkArrowsVisibility()
