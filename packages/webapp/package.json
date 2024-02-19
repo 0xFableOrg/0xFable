@@ -7,6 +7,9 @@
     "path": false,
     "os": false
   },
+  "scripts":{
+    "test": "jest"
+  },
   "dependencies": {
     "@dnd-kit/core": "^6.0.8",
     "@dnd-kit/sortable": "^7.0.2",
@@ -35,6 +38,10 @@
     "wagmi": "^1.4.5"
   },
   "devDependencies": {
+    "jest":"29.7.0",
+    "@jest/globals": "^29.7.0",
+    "ts-jest": "29.1.2",
+    "ts-node": "10.9.2",
     "@swc-jotai/debug-label": "^0.1.0",
     "@swc-jotai/react-refresh": "^0.1.0",
     "@types/eslint": "^8.44.6",
