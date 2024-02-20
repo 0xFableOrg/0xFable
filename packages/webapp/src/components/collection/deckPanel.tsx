@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { Deck, Card } from 'src/store/types' 
 import Image from 'next/image' 
 import { testCards } from 'src/utils/card-list'
+import { Button } from "src/components/ui/button"
 
 interface DeckConstructionPanelProps {
     deck: Deck
@@ -47,17 +48,18 @@ interface DeckConstructionPanelProps {
           className="flex-grow px-2 py-2 border rounded-md text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent m-1.5"
           placeholder=" Deck name"
         />
-      
+        </div>
+
         {/* Save and Cancel Buttons */}
         <div className="flex justify-center">
-          <button onClick={handleSave} className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-3 rounded-l-md">
-            ✓
-          </button>
-          <button onClick={onCancel} className="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-3 rounded-r-md">
-            ✕
-          </button>
+          <Button variant={"secondary"} className="border-2 border-yellow-500 normal-case hover:scale-105 font-fable text-xl hover:border-yellow-400" onClick={ () => handleSave() }>
+            ✓Save
+          </Button>
+          <Button variant={"secondary"} className="border-2 border-yellow-500 normal-case hover:scale-105 font-fable text-xl hover:border-yellow-400" onClick={ () => onCancel() }>
+            ✕Cancel
+          </Button>
         </div>
-      </div>
+
 
       {/* List of Cards in the Deck */}
       <div className="mt-4 w-full">
