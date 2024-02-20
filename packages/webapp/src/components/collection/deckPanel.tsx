@@ -38,44 +38,44 @@ interface DeckConstructionPanelProps {
 
   return (
     <div className="flex flex-col items-center w-full p-3">
-      <div className="flex flex-wrap justify-between items-center w-full mb-4">
-        {/* Deck Name Input */}
-        <input
-          type="text"
-          value={deckName}
-          onChange={handleDeckNameChange}
-          style={{ outline: deckNameValid ? "none" : "2px solid red" }}
-          className="flex-grow px-2 py-2 border rounded-md text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent m-1.5"
-          placeholder="Deck name"
-        />
-      </div>
-
-      {/* Save and Cancel Buttons */}
-      <div className="flex gap-2 justify-center w-full">
-        <Button variant="secondary" className="border-2 border-yellow-500 normal-case hover:scale-105 font-fable text-xl hover:border-yellow-400" onClick={() => handleSave()}>
-          ✓Save
-        </Button>
-        <Button variant="secondary" className="border-2 border-yellow-500 normal-case hover:scale-105 font-fable text-xl hover:border-yellow-400" onClick={() => onCancel()}>
-          ✕Cancel
-        </Button>
-      </div>
-
-      {/* List of Cards in the Deck */}
-      <div className="mt-4 w-full">
-        {selectedCards.map((card, index) => (
-          <div 
-            key={index} 
-            className="p-2 border-b last:border-b-0 cursor-pointer hover:bg-gray-100"
-            onClick={() => onCardSelect(card)}
-          >
-            <div className="flex items-center space-x-3">
-              <Image src={testCards.find(tc => tc.id === index)?.image || '/card_art/1.jpg'} alt="Card art" width={40} height={40} className="object-cover rounded-full" />
-              <span className="font-medium">{card.lore.name}</span>
-            </div>
-          </div>
-        ))}
-      </div>
+    <div className="flex flex-wrap justify-between items-center w-full mb-4">
+      {/* Deck Name Input */}
+      <input
+        type="text"
+        value={deckName}
+        onChange={handleDeckNameChange}
+        style={{ outline: deckNameValid ? "none" : "2px solid red" }}
+        className="flex-grow px-2 py-2 border rounded-md text-black bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent m-1.5 placeholder-gray-700"
+        placeholder="Deck name"
+      />
     </div>
+
+    {/* Save and Cancel Buttons */}
+    <div className="flex gap-2 justify-center w-full">
+      <Button variant="secondary" className="border-2 border-yellow-500 normal-case hover:scale-105 font-fable text-xl hover:border-yellow-400" onClick={() => handleSave()}>
+        ✓Save
+      </Button>
+      <Button variant="secondary" className="border-2 border-yellow-500 normal-case hover:scale-105 font-fable text-xl hover:border-yellow-400" onClick={() => onCancel()}>
+        ✕Cancel
+      </Button>
+    </div>
+
+    {/* List of Cards in the Deck */}
+    <div className="mt-4 w-full">
+      {selectedCards.map((card, index) => (
+        <div 
+          key={index} 
+          className="p-2 border-b last:border-b-0 cursor-pointer hover:bg-gray-100"
+          onClick={() => onCardSelect(card)}
+        >
+          <div className="flex items-center space-x-3">
+            <Image src={testCards.find(tc => tc.id === index)?.image || '/card_art/1.jpg'} alt="Card art" width={40} height={40} className="object-cover rounded-full" />
+            <span className="font-medium">{card.lore.name}</span>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
   )
 }
 
