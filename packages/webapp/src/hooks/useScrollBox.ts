@@ -5,13 +5,13 @@ const timing = (1 / 60) * 1000
 
 function useScrollBox(scrollRef: RefObject<HTMLDivElement>, cards: readonly bigint[] | null) {
   // Stores the last horizontal scroll position.
-  const [lastScrollX, setLastScrollX] = useState(0)
+  const [ lastScrollX, setLastScrollX ] = useState(0)
 
   // Determines the visibility of navigation arrows based on scroll position.
-  const [showLeftArrow, setShowLeftArrow] = useState<boolean>(false)
-  const [showRightArrow, setShowRightArrow] = useState<boolean>(false)
+  const [ showLeftArrow, setShowLeftArrow ] = useState<boolean>(false)
+  const [ showRightArrow, setShowRightArrow ] = useState<boolean>(false)
 
-  const [isLastCardGlowing, setIsLastCardGlowing] = useState<boolean>(false)
+  const [ isLastCardGlowing, setIsLastCardGlowing ] = useState<boolean>(false)
 
   const scrollWrapperCurrent = scrollRef.current
 

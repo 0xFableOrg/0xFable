@@ -53,12 +53,14 @@ const Play: FablePage = ({ isHydrated }) => {
   const [ hasVisitedBoard, visitBoard ] = store.useHasVisitedBoard()
   useEffect(visitBoard, [visitBoard, hasVisitedBoard])
 
+  // state variables
   const [ loading, setLoading ] = useState<string | null>(null)
   const [ hideResults, setHideResults ] = useState<boolean>(false)
   const [ concedeCompleted, setConcedeCompleted ] = useState<boolean>(false)
-  const gameData = store.useGameData()
   const [ activeId, setActiveId ] = useState<UniqueIdentifier|null>(null)
+  const [ showDrawButton, setShowDrawButton ] = useState<boolean>(false)
 
+  const gameData = store.useGameData()
   const playerHand = usePlayerHand()
 
   const dropAnimation: DropAnimation = {
@@ -121,12 +123,16 @@ const Play: FablePage = ({ isHydrated }) => {
       toast.promise(doDrawCard, {
         loading: "Your Turn - Drawing Card...",
         success: () => {
+          if (showDrawButton) setShowDrawButton(false)
           return "Card Drawn Successfully!"
         },
-        error: "Error Drawing Card",
+        error: () => {
+          if(!showDrawButton) setShowDrawButton(true) 
+          return null as any // don't trigger the toast
+        }
       })
     }
-  }, [cancellationHandler, cantDrawCard, gameID, playerAddress, doDrawCard])
+  }, [cancellationHandler, cantDrawCard, gameID, playerAddress, doDrawCard, gameData, showDrawButton])
 
   const cantEndTurn = cantTakeActions || !isEndingTurn(gameData.currentStep)
   const doEndTurn = useCallback(
@@ -227,6 +233,24 @@ const Play: FablePage = ({ isHydrated }) => {
 
             {!ended && (
               <>
+                {showDrawButton && 
+                  <Button 
+                    variant={"secondary"} 
+                    className="absolute right-96 bottom-1/2 z-50 !translate-y-1/2 rounded-lg border-[.1rem] border-base-300 font-mono hover:scale-105"
+                    onClick={() => {
+                      toast.promise(doDrawCard, {
+                        loading: "Drawing Card...",
+                        success: () => {
+                          if (showDrawButton) setShowDrawButton(false)
+                          return "Card Drawn Successfully!"
+                        }
+                      })
+                    }}
+                  >
+                    DRAW
+                  </Button>
+                }
+
                 <Button variant={"secondary"} className="absolute right-48 bottom-1/2 z-50 !translate-y-1/2 rounded-lg border-[.1rem] border-base-300 font-mono hover:scale-105"
                   disabled={cantEndTurn}
                   onClick={doEndTurn}
