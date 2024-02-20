@@ -14,21 +14,18 @@ interface DeckConstructionPanelProps {
   
   const DeckConstructionPanel : React.FC<DeckConstructionPanelProps> = ({ deck, selectedCards = [], onCardSelect, onSave, onCancel }) => {
     const [ deckName, setDeckName ] = useState(deck.name)
-    const [ isDeckNameValid, setIsDeckNameValid ] = useState(true)
+    const [ deckNameValid, setIsDeckNameValid ] = useState(false)
+
+    const nameValid = (name: string) => name.trim().length > 0
 
     const handleDeckNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
       const newName = event.target.value
       setDeckName(event.target.value)
       setIsDeckNameValid(nameValid(newName))
     }
-  
-    const nameValid = (name: string) => name.trim().length > 0
 
     const handleSave = () => {
-      if (!nameValid(deckName)) {
-        setIsDeckNameValid(false)
-        return
-      }
+      if(!deckNameValid) return
 
       const newDeck = {
         name: deckName.trim(),
@@ -46,7 +43,7 @@ interface DeckConstructionPanelProps {
           type="text"
           value={deckName}
           onChange={handleDeckNameChange}
-          style={{ outline: isDeckNameValid ? "none" : "2px solid red" }}
+          style={{ outline: deckNameValid ? "none" : "2px solid red" }}
           className="flex-grow px-2 py-2 border rounded-md text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent m-1.5"
           placeholder=" Deck name"
         />
