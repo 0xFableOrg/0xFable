@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { Deck, Card } from 'src/store/types' 
 import Image from 'next/image' 
+import { testCards } from 'src/utils/card-list'
 
 interface DeckConstructionPanelProps {
     deck: Deck
@@ -70,8 +71,7 @@ interface DeckConstructionPanelProps {
             onClick={() => onCardSelect(card)}
           >
             <div className="flex items-center space-x-3">
-              {/* todo @eviterin: get proper link to the card instead of always the witch */}
-              <Image src="/card_art/0.jpg" alt ="Card art" width={40} height={40} className="object-cover rounded-full" />
+              <Image src={testCards.find(tc => tc.id === index)?.image || '/card_art/1.jpg'} alt ="Card art" width={40} height={40} className="object-cover rounded-full" />
               <span className="font-medium">{card.lore.name}</span>
             </div>
           </div>
