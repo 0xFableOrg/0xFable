@@ -62,10 +62,11 @@ interface DeckConstructionPanelProps {
 
     {/* List of Cards in the Deck */}
     <div className="mt-4 w-full">
-      {selectedCards.map((card, index) => (
+    {selectedCards.length > 0 ? (
+      selectedCards.map((card, index) => (
         <div 
           key={index} 
-          className="p-2 border-b last:border-b-0 cursor-pointer hover:bg-gray-100"
+          className="p-2 cursor-pointer hover:bg-gray-100"
           onClick={() => onCardSelect(card)}
         >
           <div className="flex items-center space-x-3">
@@ -73,7 +74,12 @@ interface DeckConstructionPanelProps {
             <span className="font-medium">{card.lore.name}</span>
           </div>
         </div>
-      ))}
+      ))
+    ) : (
+      <div className="p-4 text-center text-gray-300">
+        Click on cards to add them to the deck.
+      </div>
+    )}
     </div>
   </div>
   )

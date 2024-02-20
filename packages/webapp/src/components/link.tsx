@@ -6,14 +6,13 @@ import Link from "next/link"
 interface QueryParamLinkProps {
   children: React.ReactNode
   href: string
-  className: string
 }
 
 /**
  * A Link component wrapper that appends a 'index' query parameter to the URL in development mode.
  * This is used to persist state across navigation during testing.
  */
-const QueryParamLink : React.FC<QueryParamLinkProps> = ({ children, href, ...props }) => {
+const QueryParamLink : React.FC<QueryParamLinkProps> = ({ children, href }) => {
   const router = useRouter()
 
   let url = href
@@ -21,10 +20,10 @@ const QueryParamLink : React.FC<QueryParamLinkProps> = ({ children, href, ...pro
   if (process.env.NODE_ENV === "development") {
     const index = parseInt(router.query.index as string)
     if (index !== undefined && !isNaN(index) && 0 <= index && index <= 9)
-      url = url + (url.includes("?") ? "&" : "?") + `index=${index}`
+      url += (url.includes("?") ? "&" : "?") + `index=${index}`
   }
   return (
-    <Link href={href}>
+    <Link href={url}>
       {children}
     </Link>
     )

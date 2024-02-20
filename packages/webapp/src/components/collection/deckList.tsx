@@ -14,9 +14,7 @@ const DeckCollectionDisplay: React.FC<DeckCollectionDisplayProps> = ({ decks, on
         {/* New Deck Button */}
         <div>
         <Button variant="secondary" className="border-2 border-yellow-500 normal-case hover:scale-105 font-fable text-xl hover:border-yellow-400">
-          <Link 
-            href={"/collection?newDeck=true"} 
-            className="w-full px-4 py-2 mb-2 border rounded-md text-gray-100 bg-purple-900 hover:bg-gray-500 font-bold text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+          <Link href={"/collection?newDeck=true"}> 
             New Deck →
           </Link>
         </Button>
