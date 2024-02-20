@@ -29,12 +29,12 @@ const CardCollectionDisplay: React.FC<CardCollectionDisplayProps> = ({ cards, is
               <div 
                 key={card.id} 
                 className={`m-4 bg-slate-900/50 ${
-                  selectedCards.some(c => c.id === card.id) ? 'shadow-highlight shadow-orange-300' : '' // Highlight if selected
+                  selectedCards.some(c => c.id === card.id) ? 'shadow-highlight shadow-orange-300' : ''
                 } hover:bg-slate-800 rounded-lg p-4 border-4 border-slate-900 grow w-[220px] max-w-[330px]`}
                 onMouseEnter={() => setSelectedCard(card)}
                 onClick={() => {
                   if (isEditing) {
-                    onCardToggle(card) // Only toggle card selection when in editing mode
+                    onCardToggle(card) 
                   }
                 }}
               >
