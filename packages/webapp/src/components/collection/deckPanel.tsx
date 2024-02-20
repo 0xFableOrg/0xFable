@@ -37,8 +37,8 @@ interface DeckConstructionPanelProps {
     }
 
   return (
-    <div className="w-full flex flex-col items-center p-3">
-      <div className="flex justify-between items-center">
+    <div className="flex flex-col items-center w-full p-3">
+      <div className="flex flex-wrap justify-between items-center w-full mb-4">
         {/* Deck Name Input */}
         <input
           type="text"
@@ -46,20 +46,19 @@ interface DeckConstructionPanelProps {
           onChange={handleDeckNameChange}
           style={{ outline: deckNameValid ? "none" : "2px solid red" }}
           className="flex-grow px-2 py-2 border rounded-md text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent m-1.5"
-          placeholder=" Deck name"
+          placeholder="Deck name"
         />
-        </div>
+      </div>
 
-        {/* Save and Cancel Buttons */}
-        <div className="flex justify-center">
-          <Button variant={"secondary"} className="border-2 border-yellow-500 normal-case hover:scale-105 font-fable text-xl hover:border-yellow-400" onClick={ () => handleSave() }>
-            ✓Save
-          </Button>
-          <Button variant={"secondary"} className="border-2 border-yellow-500 normal-case hover:scale-105 font-fable text-xl hover:border-yellow-400" onClick={ () => onCancel() }>
-            ✕Cancel
-          </Button>
-        </div>
-
+      {/* Save and Cancel Buttons */}
+      <div className="flex gap-2 justify-center w-full">
+        <Button variant="secondary" className="border-2 border-yellow-500 normal-case hover:scale-105 font-fable text-xl hover:border-yellow-400" onClick={() => handleSave()}>
+          ✓Save
+        </Button>
+        <Button variant="secondary" className="border-2 border-yellow-500 normal-case hover:scale-105 font-fable text-xl hover:border-yellow-400" onClick={() => onCancel()}>
+          ✕Cancel
+        </Button>
+      </div>
 
       {/* List of Cards in the Deck */}
       <div className="mt-4 w-full">
@@ -70,7 +69,7 @@ interface DeckConstructionPanelProps {
             onClick={() => onCardSelect(card)}
           >
             <div className="flex items-center space-x-3">
-              <Image src={testCards.find(tc => tc.id === index)?.image || '/card_art/1.jpg'} alt ="Card art" width={40} height={40} className="object-cover rounded-full" />
+              <Image src={testCards.find(tc => tc.id === index)?.image || '/card_art/1.jpg'} alt="Card art" width={40} height={40} className="object-cover rounded-full" />
               <span className="font-medium">{card.lore.name}</span>
             </div>
           </div>
