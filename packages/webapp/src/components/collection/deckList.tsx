@@ -24,7 +24,7 @@ const DeckCollectionDisplay: React.FC<DeckCollectionDisplayProps> = ({ decks, on
 
         {/* Deck Buttons */}
         {decks.map((deck, deckID) => (
-          <Button variant="secondary" className="border-2 border-yellow-500 normal-case hover:scale-105 font-fable text-xl hover:border-yellow-400"
+          <Button variant="secondary" width="full" className="border-2 border-yellow-500 normal-case hover:scale-105 font-fable text-xl hover:border-yellow-400"
             key={deckID} 
             onClick={() => onDeckSelect(deckID)}
             >
