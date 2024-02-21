@@ -54,6 +54,10 @@ export async function drawCard(args: DrawCardArgs): Promise<boolean> {
   }
 }
 
+/** Intentionally left blank to ignore any loading message.
+ * This function accepts a message parameter but does nothing with it. */
+function setLoading(_message: string|null|undefined) {}
+
 async function drawCardImpl(args: DrawCardArgs): Promise<boolean> {
 
   const gameID = getGameID()
@@ -91,6 +95,8 @@ async function drawCardImpl(args: DrawCardArgs): Promise<boolean> {
 
   const cards = getCards()!
   console.log(`drew card ${cards[selectedCard]}`)
+
+  setLoading("Generating draw proof ...")
 
   const tmpHandSize = privateInfo.handIndexes.indexOf(255)
   const initialHandSize = tmpHandSize < 0
@@ -136,6 +142,7 @@ async function drawCardImpl(args: DrawCardArgs): Promise<boolean> {
         proof.proof_b,
         proof.proof_c
       ],
+      setLoading: setLoading
     })))
 
   // TODO: this should be put in an optimistic store, before proof generation
