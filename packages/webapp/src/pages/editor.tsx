@@ -90,7 +90,7 @@ const Editor: FablePage = ({ decks, setDecks, isHydrated }) => {
     } else {
       setOriginalDeckIndex(null) // Reset if not editing an existing deck
     }
-  }, [router.query.index, decks])
+  }, [decks])
 
   const isCardInDeck = (cardToCheck: Card) => {
     return deck.some(cardInDeck => cardInDeck.id === cardToCheck.id)
@@ -121,7 +121,7 @@ const Editor: FablePage = ({ decks, setDecks, isHydrated }) => {
 
     setIsDeckValid(true)
   
-    let updatedDecks = [...decks]
+    const updatedDecks = [...decks]
   
     // Check if editing an existing deck and the name has changed
     if (originalDeckIndex !== null && decks[originalDeckIndex].name !== deckName) {
