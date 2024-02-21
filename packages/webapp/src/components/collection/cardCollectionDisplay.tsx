@@ -38,7 +38,7 @@ const CardCollectionDisplay: React.FC<CardCollectionDisplayProps> = ({ cards, is
                   }
                 }}
               >
-                <Image className="aspect-square" src={testCards.find(tc => tc.id === index)?.image || '/card_art/1.jpg'} alt={card.lore.name} width={256} height={256} />
+                <Image className="aspect-square" src={testCards.find(tc => tc.id === index)?.image} alt={card.lore.name} width={256} height={256} />
                 <div className="text-center">{card.lore.name}</div>
                   <div className="flex items-end justify-between p-2 relative">
                     <div className="flex items-center justify-center h-8 w-8 rounded-full bg-yellow-400 text-gray-900 font-bold text-lg absolute bottom-[-16px]">{card.stats.attack}</div>
