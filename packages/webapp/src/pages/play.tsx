@@ -121,6 +121,7 @@ const Play: FablePage = ({ isHydrated }) => {
     // Automatically submit the card draw transaction when it's our turn
     if (gameData && currentPlayer(gameData) === playerAddress && !cantDrawCard) {
       toast.promise(doDrawCard, {
+        id: "DRAW_CARD_TOAST",
         loading: "Your Turn - Drawing Card...",
         success: () => {
           if (showDrawButton) setShowDrawButton(false)
@@ -129,7 +130,8 @@ const Play: FablePage = ({ isHydrated }) => {
         error: () => {
           if(!showDrawButton) setShowDrawButton(true) 
           return null as any // don't trigger the toast
-        }
+        },
+        dismissible: true
       })
     }
   }, [cancellationHandler, cantDrawCard, gameID, playerAddress, doDrawCard, gameData, showDrawButton])
@@ -223,7 +225,7 @@ const Play: FablePage = ({ isHydrated }) => {
             cards={playerHand as readonly bigint[]}
             setLoading={setLoading}
             cancellationHandler={cancellationHandler}
-            className="absolute left-0 right-0 mx-auto z-[100] translate-y-1/2 transition-all duration-500 rounded-xl ease-in-out hover:translate-y-0"
+            className={`absolute left-0 right-0 mx-auto z-[100] translate-y-1/2 transition-all duration-500 rounded-xl ease-in-out hover:translate-y-0`}
           />
           <div className="grid-col-1 relative mx-6 mb-6 grid grow grid-rows-[6]">
             <PlayerBoard
@@ -239,11 +241,13 @@ const Play: FablePage = ({ isHydrated }) => {
                     className="absolute right-96 bottom-1/2 z-50 !translate-y-1/2 rounded-lg border-[.1rem] border-base-300 font-mono hover:scale-105"
                     onClick={() => {
                       toast.promise(doDrawCard, {
+                        id: "DRAW_CARD_TOAST",
                         loading: "Drawing Card...",
                         success: () => {
                           if (showDrawButton) setShowDrawButton(false)
                           return "Card Drawn Successfully!"
-                        }
+                        },
+                        dismissible: true
                       })
                     }}
                   >

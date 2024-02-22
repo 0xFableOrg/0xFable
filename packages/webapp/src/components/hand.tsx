@@ -49,7 +49,9 @@ const Hand = ({
 
   return (
     <div
-      className={`${className} py-4 flex flex-row items-center justify-evenly bottom-0 w-[95%] space-x-2`}
+      className={`${className} ${
+        isLastCardGlowing ? "translate-y-0" : null
+      } py-4 flex flex-row items-center justify-evenly bottom-0 w-[95%] space-x-2`}
       ref={setNodeRef}
       onMouseEnter={() => {
         setIsFocused(true)

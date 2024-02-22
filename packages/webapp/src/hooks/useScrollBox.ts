@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, RefObject } from "react"
 import throttle from "lodash/throttle"
+import { toast } from "sonner"
 
 const timing = (1 / 60) * 1000
 
@@ -106,6 +107,8 @@ function useScrollBox(scrollRef: RefObject<HTMLDivElement>, cards: readonly bigi
 
   const triggerLastCardGlow = useCallback(() => {
     setIsLastCardGlowing(true)
+    // dismiss the toast displaying draw status
+    toast.dismiss("DRAW_CARD_TOAST")
     setTimeout(() => {
       setIsLastCardGlowing(false)
     }, 2500)
