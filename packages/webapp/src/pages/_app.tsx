@@ -9,7 +9,7 @@ import { NextPage } from "next"
 import type { AppType } from "next/app"
 import Head from "next/head"
 import { useAccount, WagmiConfig } from "wagmi"
-import { useState } from "react"
+import { Dispatch, SetStateAction, useState } from "react"
 import { ensureLocalAccountIndex, wagmiConfig } from "src/chain"
 import jotaiDebug from "src/components/lib/jotaiDebug"
 import { GlobalErrorModal } from "src/components/modals/globalErrorModal"
@@ -27,7 +27,7 @@ import { Deck } from "src/store/types"
  * Make pages in the app conform to this type.
  * See [@link useIsHydrated] for more info on the meaning of the `isHydrated` prop.
  */
-export type FablePage = NextPage<{ isHydrated: boolean }>
+export type FablePage = NextPage<{ decks: Deck[], isHydrated: boolean, setDecks: Dispatch<SetStateAction<Deck[]>> }>
 
 // =================================================================================================
 
