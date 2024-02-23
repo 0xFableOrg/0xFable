@@ -14,7 +14,7 @@ import { useInventoryCardsCollectionGetCollection } from "src/generated"
 import { Card } from "src/store/types"
 import { Address } from "src/chain"
 import { FablePage } from "src/pages/_app"
-import { router } from 'next/router'
+import { useRouter } from 'next/router'
 import { useEffect} from 'react'
 
 // NOTE(norswap & geniusgarlic): Just an example, when the game actually has effects & types,
@@ -36,7 +36,9 @@ const Editor: FablePage = ({ decks, setDecks, isHydrated }) => {
   const [ typeMap, setTypeMap ] = useState(initialTypeMap)
   const [ deckName, setDeckName ] = useState('') 
   const [ deck, setDeck ] = useState<Card[]>([]) 
-  const [ originalDeckIndex, setOriginalDeckIndex ] = useState(null)
+  const [ originalDeckIndex, setOriginalDeckIndex ] = useState<number | null>(null)
+
+  const router = useRouter()
 
   const cardName = selectedCard?.lore.name || "Hover a card"
   const cardFlavor = selectedCard?.lore.flavor || "Hover a card to see its details"
@@ -81,16 +83,18 @@ const Editor: FablePage = ({ decks, setDecks, isHydrated }) => {
 
   // Check url for an index, which is passed if the user wants to modify an existing deck
   useEffect(() => {
-    const deckIndex = parseInt(router.query.deckID)
-    if (!isNaN(deckIndex) && decks[deckIndex] != null) {
-      setOriginalDeckIndex(deckIndex) // Store the original index
-      const selectedDeck = decks[deckIndex]
-      setDeckName(selectedDeck.name)
-      setDeck(selectedDeck.cards)
-    } else {
-      setOriginalDeckIndex(null) // Reset if not editing an existing deck
+    if (typeof router.query.deckID === "string") {
+      const deckIndex = parseInt(router.query.deckID)
+      if (!isNaN(deckIndex) && decks[deckIndex] != null) {
+        setOriginalDeckIndex(deckIndex) // Store the original index
+        const selectedDeck = decks[deckIndex]
+        setDeckName(selectedDeck.name)
+        setDeck(selectedDeck.cards)
+      } else {
+        setOriginalDeckIndex(null) // Reset if not editing an existing deck
+      }
     }
-  }, [decks])
+  }, [router.query.deckID, decks])
 
   const isCardInDeck = (cardToCheck: Card) => {
     return deck.some(cardInDeck => cardInDeck.id === cardToCheck.id)
