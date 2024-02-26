@@ -11,6 +11,7 @@ import { useGameInGame } from "src/generated"
 import { FablePage } from "src/pages/_app"
 import { useGameID } from "src/store/hooks"
 import { Button } from "src/components/ui/button"
+import useOfflineCheck from "src/hooks/useOfflineCheck"
 
 const Home: FablePage = ({ isHydrated }) => {
   const { address } = useAccount()
@@ -36,6 +37,8 @@ const Home: FablePage = ({ isHydrated }) => {
   const notConnected = !isHydrated || !address
   const isRightNetwork = !notConnected && chainSupported
   const isWrongNetwork = !notConnected && !chainSupported
+
+    useOfflineCheck();
 
   return (
     <main className="flex flex-col min-h-screen items-center justify-center">

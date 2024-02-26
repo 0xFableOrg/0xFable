@@ -39,6 +39,7 @@ import useDragEvents from "src/hooks/useDragEvents"
 import CardContainer from "src/components/cards/cardContainer"
 import { Button } from "src/components/ui/button"
 import { toast } from "sonner"
+import useOfflineCheck from "src/hooks/useOfflineCheck"
 
 const Play: FablePage = ({ isHydrated }) => {
   const [ gameID, setGameID ] = store.useGameID()
@@ -134,7 +135,11 @@ const Play: FablePage = ({ isHydrated }) => {
         dismissible: true
       })
     }
+
   }, [cancellationHandler, cantDrawCard, gameID, playerAddress, doDrawCard, gameData, showDrawButton])
+
+
+
 
   const cantEndTurn = cantTakeActions || !isEndingTurn(gameData.currentStep)
   const doEndTurn = useCallback(
@@ -185,6 +190,8 @@ const Play: FablePage = ({ isHydrated }) => {
     // waits for a drag of 20 pixels before the UX assumes a card is being played
     useSensor(MouseSensor, { activationConstraint: { distance: 20 } })
   )
+
+  useOfflineCheck(); 
   // -----------------------------------------------------------------------------------------------
 
   if (!isHydrated) return <></>
