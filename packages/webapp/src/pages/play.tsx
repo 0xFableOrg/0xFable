@@ -38,6 +38,7 @@ import { createPortal } from "react-dom"
 import useDragEvents from "src/hooks/useDragEvents"
 import CardContainer from "src/components/cards/cardContainer"
 import { Button } from "src/components/ui/button"
+import { toast } from "sonner"
 
 const Play: FablePage = ({ isHydrated }) => {
   const [ gameID, setGameID ] = store.useGameID()
@@ -52,12 +53,14 @@ const Play: FablePage = ({ isHydrated }) => {
   const [ hasVisitedBoard, visitBoard ] = store.useHasVisitedBoard()
   useEffect(visitBoard, [visitBoard, hasVisitedBoard])
 
+  // state variables
   const [ loading, setLoading ] = useState<string | null>(null)
   const [ hideResults, setHideResults ] = useState<boolean>(false)
   const [ concedeCompleted, setConcedeCompleted ] = useState<boolean>(false)
-  const gameData = store.useGameData()
   const [ activeId, setActiveId ] = useState<UniqueIdentifier|null>(null)
+  const [ showDrawButton, setShowDrawButton ] = useState<boolean>(false)
 
+  const gameData = store.useGameData()
   const playerHand = usePlayerHand()
 
   const dropAnimation: DropAnimation = {
@@ -105,14 +108,33 @@ const Play: FablePage = ({ isHydrated }) => {
   const cancellationHandler = useCancellationHandler(loading)
 
   const cantDrawCard = cantTakeActions || gameData.currentStep !== GameStep.DRAW
-  const doDrawCard = useCallback(
-    () => drawCard({
-        gameID: gameID!,
-        playerAddress: playerAddress!,
-        setLoading,
-        cancellationHandler
-      }),
-    [gameID, playerAddress, setLoading, cancellationHandler])
+  const doDrawCard = useCallback(() =>
+    drawCard({
+      gameID: gameID!,
+      playerAddress: playerAddress!,
+      setLoading,
+      cancellationHandler,
+    }),
+  [gameID, playerAddress, setLoading, cancellationHandler])
+
+  useEffect(() => {
+    // Automatically submit the card draw transaction when it's our turn
+    if (gameData && currentPlayer(gameData) === playerAddress && !cantDrawCard) {
+      toast.promise(doDrawCard, {
+        id: "DRAW_CARD_TOAST",
+        loading: "Your Turn - Drawing Card...",
+        success: () => {
+          if (showDrawButton) setShowDrawButton(false)
+          return "Card Drawn Successfully!"
+        },
+        error: () => {
+          if(!showDrawButton) setShowDrawButton(true) 
+          return null as any // don't trigger the toast
+        },
+        dismissible: true
+      })
+    }
+  }, [cancellationHandler, cantDrawCard, gameID, playerAddress, doDrawCard, gameData, showDrawButton])
 
   const cantEndTurn = cantTakeActions || !isEndingTurn(gameData.currentStep)
   const doEndTurn = useCallback(
@@ -203,7 +225,7 @@ const Play: FablePage = ({ isHydrated }) => {
             cards={playerHand as readonly bigint[]}
             setLoading={setLoading}
             cancellationHandler={cancellationHandler}
-            className="absolute left-0 right-0 mx-auto z-[100] translate-y-1/2 transition-all duration-500 rounded-xl ease-in-out hover:translate-y-0"
+            className={`absolute left-0 right-0 mx-auto z-[100] translate-y-1/2 transition-all duration-500 rounded-xl ease-in-out hover:translate-y-0`}
           />
           <div className="grid-col-1 relative mx-6 mb-6 grid grow grid-rows-[6]">
             <PlayerBoard
@@ -213,9 +235,25 @@ const Play: FablePage = ({ isHydrated }) => {
 
             {!ended && (
               <>
-                <Button variant={"secondary"} className="absolute right-96 bottom-1/2 z-50 !translate-y-1/2 rounded-lg border-[.1rem] border-base-300 font-mono hover:scale-105" disabled={cantDrawCard} onClick={doDrawCard}>
-                  DRAW
-                </Button>
+                {showDrawButton && 
+                  <Button 
+                    variant={"secondary"} 
+                    className="absolute right-96 bottom-1/2 z-50 !translate-y-1/2 rounded-lg border-[.1rem] border-base-300 font-mono hover:scale-105"
+                    onClick={() => {
+                      toast.promise(doDrawCard, {
+                        id: "DRAW_CARD_TOAST",
+                        loading: "Drawing Card...",
+                        success: () => {
+                          if (showDrawButton) setShowDrawButton(false)
+                          return "Card Drawn Successfully!"
+                        },
+                        dismissible: true
+                      })
+                    }}
+                  >
+                    DRAW
+                  </Button>
+                }
 
                 <Button variant={"secondary"} className="absolute right-48 bottom-1/2 z-50 !translate-y-1/2 rounded-lg border-[.1rem] border-base-300 font-mono hover:scale-105"
                   disabled={cantEndTurn}

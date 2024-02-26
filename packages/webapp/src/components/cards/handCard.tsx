@@ -6,10 +6,11 @@ interface HandCardProps {
   id: number
   handHovered?: boolean
   isDragging: boolean
+  cardGlow?: boolean
 }
 
 const HandCard = forwardRef<HTMLDivElement, HandCardProps>(
-  ({ id, isDragging, handHovered }, ref) => {
+  ({ id, isDragging, handHovered, cardGlow }, ref) => {
     const [ cardHover, setCardHover ] = useState<boolean>(false)
     const [ isDetailsVisible, setIsDetailsVisible ] = useState<boolean>(false)
     const showingDetails = isDetailsVisible && !isDragging
@@ -50,7 +51,7 @@ const HandCard = forwardRef<HTMLDivElement, HandCardProps>(
           className="pointer-events-none rounded-xl border select-none"
           style={{
             boxShadow:
-              cardHover && !isDetailsVisible ? "0 0 10px 2px gold" : "none", // Adds golden glow when hovered
+              (cardHover && !isDetailsVisible) || cardGlow ? "0 0 10px 2px gold" : "none", // Adds golden glow when hovered
           }}
         />
         {showingDetails && (

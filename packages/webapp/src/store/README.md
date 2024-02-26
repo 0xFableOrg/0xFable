@@ -4,7 +4,7 @@ The store is the frontend's source of truth for the game state. That state is us
 when performing actions on behalf of users.
 
 A small part of that state is UI state, but the major part is game state, which must be kept
-synchornized with the blockchain.
+synchronized with the blockchain.
 
 The absolute simplest way to do that is to use a pure derivation: fetch all the game data from
 the chain, and re-derive the local state from it. And that's exactly what we do right now.
@@ -109,7 +109,7 @@ before we receive confirmation that a transaction was included in a block.
 
 ### `checkFresh.ts`
 
-Above, we allued to the problem that occur when an async function calls `await`, as the state may
+Above, we alluded to the problem that occur when an async function calls `await`, as the state may
 change at that time and read from the store may be inconsistent before and after the call.
 
 Given the turn-based nature of the game, this is rarely an issue, however it could be if the

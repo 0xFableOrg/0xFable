@@ -20,10 +20,15 @@ const Hand = ({
   setLoading: (label: string | null) => void
   cancellationHandler: CancellationHandler
 }) => {
-  const [ isFocused, setIsFocused ] = useState<boolean>(false)
-  const scrollWrapperRef = useRef<any>()
-  const { showLeftArrow, scrollLeft, showRightArrow, scrollRight } =
-    useScrollBox(scrollWrapperRef)
+  const [isFocused, setIsFocused] = useState<boolean>(false)
+  const scrollWrapperRef = useRef<HTMLDivElement>(null)
+  const {
+    showLeftArrow,
+    scrollLeft,
+    showRightArrow,
+    scrollRight,
+    isLastCardGlowing,
+  } = useScrollBox(scrollWrapperRef, cards)
 
   const { setNodeRef } = useSortable({
     id: CardPlacement.HAND,
@@ -44,7 +49,9 @@ const Hand = ({
 
   return (
     <div
-      className={`${className} flex flex-row items-center justify-evenly bottom-0 w-[95%] space-x-2`}
+      className={`${className} ${
+        isLastCardGlowing ? "translate-y-0" : null
+      } py-4 flex flex-row items-center justify-evenly bottom-0 w-[95%] space-x-2`}
       ref={setNodeRef}
       onMouseEnter={() => {
         setIsFocused(true)
@@ -74,6 +81,7 @@ const Hand = ({
                     <CardContainer
                       id={convertedCards[index - 1]}
                       placement={CardPlacement.HAND}
+                      cardGlow={isLastCardGlowing && index === range.length}
                     />
                   </div>
                 ))}

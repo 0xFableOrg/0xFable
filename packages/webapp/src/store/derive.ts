@@ -8,8 +8,7 @@
  */
 
 import { Address } from "src/chain"
-import * as store from "src/store/atoms"
-import { FetchedGameData, GameStatus, GameStep, PlayerData, PrivateInfo } from "src/store/types"
+import { FetchedGameData, GameStatus, GameStep, PlayerData, PrivateInfo, PrivateInfoStore } from "src/store/types"
 
 // =================================================================================================
 
@@ -128,10 +127,11 @@ export function getOpponentData(gdata: FetchedGameData|null, player: Address|nul
 /**
  * @see module:store/read#getPrivateInfo
  */
-export function getPrivateInfo(gameID: bigint|null, player: Address|null): PrivateInfo|null {
-  if (gameID === null || player === null) return null
-  const privateInfoStore = store.get(store.privateInfoStore)
-  return privateInfoStore[gameID.toString()]?.[player] ?? null
+export function getPrivateInfo(gameID: bigint | null, player: Address | null, privateInfoStore: PrivateInfoStore): PrivateInfo | null {
+  // Directly return null if either gameID or player is null, or if the specific info does not exist in the store.
+  return gameID !== null && player !== null ? 
+    privateInfoStore[gameID.toString()]?.[player] || null 
+    : null;
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -145,8 +145,8 @@ export function getPlayerHand(
 ): readonly bigint[]|null {
   if (gdata === null  || privateInfo === null) return null
   const handIndexes = privateInfo.handIndexes
-  const firstEmtpy = handIndexes.indexOf(255)
-  const handSize = firstEmtpy < 0 ? handIndexes.length : firstEmtpy
+  const firstEmpty = handIndexes.indexOf(255)
+  const handSize = firstEmpty < 0 ? handIndexes.length : firstEmpty
   return handIndexes
     .slice(0, handSize)
     .map((index) => gdata.cards[index])
