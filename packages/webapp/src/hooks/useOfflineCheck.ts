@@ -1,6 +1,19 @@
 
 import { useState, useEffect } from 'react';
 
+async function performNetworkCheck() {
+  const endpoint = 'https://www.google.com';
+  try {
+    const response = await fetch(endpoint, {
+      method: 'HEAD',
+      cache: 'no-cache',
+      mode: 'no-cors', 
+    });
+    return response.ok;
+  } catch (error) {
+    throw error; // Rethrow for retries
+  }
+}
 
 function useOfflineCheck(options : any = {}) {
   const {
@@ -53,19 +66,7 @@ function useOfflineCheck(options : any = {}) {
   }, [threshold, maxRetries, retryDelay, retries]);
 
   
-  async function performNetworkCheck() {
-    const endpoint = 'https://www.google.com';
-    try {
-      const response = await fetch(endpoint, {
-        method: 'HEAD',
-        cache: 'no-cache',
-        mode: 'no-cors', 
-      });
-      return response.ok;
-    } catch (error) {
-      throw error; // Rethrow for retries
-    }
-  }
+
 
   return isOffline;
 }

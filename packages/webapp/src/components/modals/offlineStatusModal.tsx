@@ -1,6 +1,6 @@
 
 
-export const OfllineStatusModal = () => {
+export const OfflineStatusModal = () => {
 
   return (
 
