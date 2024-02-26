@@ -26,7 +26,7 @@ interface DeckConstructionPanelProps {
     }
 
     const handleSave = () => {
-      if(!deckNameValid) return
+      if(!nameValid(deckName)) return
 
       const newDeck = {
         name: deckName.trim(),
