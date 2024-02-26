@@ -36,7 +36,7 @@ const Collection: FablePage = ({ decks, isHydrated }) => {
   const [ effectMap, setEffectMap ] = useState(initialEffectMap)
   const [ typeMap, setTypeMap ] = useState(initialTypeMap)
 
-  const router = useRouter();
+  const router = useRouter()
 
   const cardName = selectedCard?.lore.name || "Select a card"
   const cardFlavor = selectedCard?.lore.flavor || "Select a card to see its details"

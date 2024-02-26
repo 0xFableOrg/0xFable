@@ -16,7 +16,7 @@ jobs:
         uses: foundry-rs/foundry-toolchain@v1
         with:
           version: nightly
-      - name: Fake contract deploymment
+      - name: Fake contract deployment
         run: mkdir -p packages/contracts/out && echo "{}" > packages/contracts/out/deployment.json
       - run: make setup
       - run: make check
