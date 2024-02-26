@@ -15,7 +15,7 @@ import { Card } from "src/store/types"
 import { Address } from "src/chain"
 import { FablePage } from "src/pages/_app"
 import Link from "next/link"
-import { router } from 'next/router'
+import { useRouter } from 'next/router'
 
 // NOTE(norswap & geniusgarlic): Just an example, when the game actually has effects & types,
 //   fetch those from the chain instead of hardcoding them here.
@@ -35,6 +35,8 @@ const Collection: FablePage = ({ decks, isHydrated }) => {
   const [ searchInput, setSearchInput ] = useState('')
   const [ effectMap, setEffectMap ] = useState(initialEffectMap)
   const [ typeMap, setTypeMap ] = useState(initialTypeMap)
+
+  const router = useRouter()
 
   const cardName = selectedCard?.lore.name || "Select a card"
   const cardFlavor = selectedCard?.lore.flavor || "Select a card to see its details"
