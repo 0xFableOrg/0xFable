@@ -29,14 +29,7 @@ const initialEffectMap = Object.assign({}, ...effects.map(name => ({[name]: fals
 const types = ['Creature', 'Magic', 'Weapon']
 const initialTypeMap = Object.assign({}, ...types.map(name => ({[name]: false})))
 
-interface CollectionSpecificProps {
-  decks: Deck[]
-  setDecks: (decks: Deck[]) => void
-  isHydrated: boolean
-}
-type CollectionProps = FablePage & CollectionSpecificProps
-
-const Collection: React.FC<CollectionProps> = ({ decks, setDecks, isHydrated }) => {
+const Collection: FablePage = ({ isHydrated }) => {
 
   const router = useRouter()
   const { address } = useAccount()
@@ -50,6 +43,8 @@ const Collection: React.FC<CollectionProps> = ({ decks, setDecks, isHydrated }) 
 
   // Deck Collection Display
   const [ editingDeckIndex, setEditingDeckIndex ] = useState<number|null>(null)
+  const [decks, setDecks] = useState<Deck[]>([])
+
   // Deck Construction Panel
   const [ currentDeck, setCurrentDeck] = useState<Deck|null>(null)
   const [ selectedCards, setSelectedCards ] = useState<Card[]>([])
@@ -100,7 +95,7 @@ const Collection: React.FC<CollectionProps> = ({ decks, setDecks, isHydrated }) 
   }
 
   const handleSaveDeck = (updatedDeck: Deck) => {
-    const updatedDecks = [...decks]
+    const updatedDecks = [...(decks || [])]
     if (editingDeckIndex !== null) {
       // Update existing deck
       updatedDecks[editingDeckIndex] = updatedDeck

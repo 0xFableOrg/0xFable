@@ -28,7 +28,7 @@ import { Toaster } from "src/components/ui/sonner"
  * Make pages in the app conform to this type.
  * See [@link useIsHydrated] for more info on the meaning of the `isHydrated` prop.
  */
-export type FablePage = NextPage<{ decks: Deck[], isHydrated: boolean, setDecks: Dispatch<SetStateAction<Deck[]>> }>
+export type FablePage = NextPage<{ isHydrated: boolean }>
 
 // =================================================================================================
 

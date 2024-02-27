@@ -70,7 +70,7 @@ interface DeckConstructionPanelProps {
             onClick={() => onCardSelect(card)}
           >
             <div className="flex items-center space-x-3">
-              <Image src={testCards.find(tc => tc.id === card.id)?.image || '/card_art/1.jpg'} alt="Card art" width={40} height={40} className="object-cover rounded-full" />
+              <Image src={testCards.find(tc => tc.id === Number(card.id))?.image || '/card_art/1.jpg'} alt="Card art" width={40} height={40} className="object-cover rounded-full" />
               <span className="font-medium">{card.lore.name}</span>
             </div>
           </div>
