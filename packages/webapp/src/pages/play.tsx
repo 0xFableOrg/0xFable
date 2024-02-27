@@ -39,7 +39,6 @@ import useDragEvents from "src/hooks/useDragEvents"
 import CardContainer from "src/components/cards/cardContainer"
 import { Button } from "src/components/ui/button"
 import { toast } from "sonner"
-import useOfflineCheck from "src/hooks/useOfflineCheck"
 
 const Play: FablePage = ({ isHydrated }) => {
   const [ gameID, setGameID ] = store.useGameID()
