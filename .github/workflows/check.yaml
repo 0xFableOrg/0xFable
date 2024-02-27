@@ -12,6 +12,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v3
+
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
         with:
@@ -21,3 +22,7 @@ jobs:
       - run: make setup
       - run: make check
 
+      - name: Install dependencies for webapp
+        run: cd packages/webapp && pnpm install
+      - name: Check formatting with Prettier
+        run: cd packages/webapp && npx prettier --check "**/*.{js,jsx,ts,tsx,json,css}"
