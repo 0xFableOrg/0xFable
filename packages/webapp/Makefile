@@ -27,3 +27,8 @@ lint:
 # Runs code quality checks.
 check: lint build
 .PHONY: check
+
+# Runs prettier formatting across webapp files with specified file extensions.
+format: 
+	npx prettier --write "**/*.{js,jsx,ts,tsx,json,css}"
+.PHONY: format
