@@ -1,7 +1,7 @@
 import debounce from "lodash/debounce"
 import Head from "next/head"
 
-import { useState, useMemo, useEffect } from "react"
+import React, { useState, useMemo, useEffect } from "react"
 import { useAccount } from "wagmi"
 
 import jotaiDebug from "src/components/lib/jotaiDebug"
@@ -111,13 +111,13 @@ const Collection: React.FC<CollectionProps> = ({ decks, setDecks, isHydrated }) 
     setDecks(updatedDecks)
     setIsEditing(false)
     setSelectedCards([])
-    navigate(router, '/collection')
+    void navigate(router, '/collection')
   }
 
   const handleCancelEditing = () => {
     setIsEditing(false)
     setSelectedCards([])
-    navigate(router, '/collection')
+    void navigate(router, '/collection')
   }
 
   const addToDeck = (card: Card) => {
