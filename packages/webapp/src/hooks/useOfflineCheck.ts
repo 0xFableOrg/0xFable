@@ -34,7 +34,7 @@ function useOfflineCheck(options: any = {}) {
               const newRetry = retries + 1;
               setRetries(newRetry); // Retry if error occurs
             });
-        }, retryDelay);
+        });
       } 
     };
 
