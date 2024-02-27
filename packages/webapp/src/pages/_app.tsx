@@ -21,6 +21,7 @@ import { useRouter } from "next/router"
 import { ComponentType, useEffect } from "react"
 import { Deck } from "src/store/types"
 import { Toaster } from "src/components/ui/sonner"
+import useOfflineCheck from "src/hooks/useOfflineCheck"
 
 // =================================================================================================
 
@@ -32,7 +33,10 @@ export type FablePage = NextPage<{ decks: Deck[], isHydrated: boolean, setDecks:
 
 // =================================================================================================
 
+
 const MyApp: AppType = ({ Component, pageProps }) => {
+
+  useOfflineCheck()
 
   return (
     <>

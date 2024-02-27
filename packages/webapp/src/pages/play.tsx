@@ -191,7 +191,6 @@ const Play: FablePage = ({ isHydrated }) => {
     useSensor(MouseSensor, { activationConstraint: { distance: 20 } })
   )
 
-  useOfflineCheck(); 
   // -----------------------------------------------------------------------------------------------
 
   if (!isHydrated) return <></>

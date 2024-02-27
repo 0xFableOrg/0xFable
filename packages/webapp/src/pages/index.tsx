@@ -38,8 +38,6 @@ const Home: FablePage = ({ isHydrated }) => {
   const isRightNetwork = !notConnected && chainSupported
   const isWrongNetwork = !notConnected && !chainSupported
 
-    useOfflineCheck();
-
   return (
     <main className="flex flex-col min-h-screen items-center justify-center">
       <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16">

@@ -3,71 +3,58 @@ import { toast } from "sonner";
 
 async function performNetworkCheck() {
   const endpoint = "https://www.google.com";
-  try {
-    const response = await fetch(endpoint, {
-      method: "HEAD",
-      cache: "no-cache",
-      mode: "no-cors",
-    });
-    return response.ok;
-  } catch (error) {
-    throw error; // Rethrow for retries
-  }
+  const response = await fetch(endpoint, {
+    method: "HEAD",
+    cache: "no-cache",
+    mode: "no-cors",
+  });
+  return response.ok;
 }
 
 function useOfflineCheck(options: any = {}) {
   const {
-    // Optional configuration properties:
-    threshold = 1000, // Minimum interval between offline checks (ms)
+
     maxRetries = 3, // Maximum number of retries before assuming offline
     retryDelay = 1500, // Delay between retries (ms)
   } = options;
 
-  const [isOffline, setIsOffline] = useState(false);
   const [retries, setRetries] = useState(0);
+  
 
   useEffect(() => {
-    const handleOnline = () => {
-      setIsOffline(false);
-      setRetries(0); // Reset retries on reconnection
-    };
-
     const handleOffline = () => {
       if (retries < maxRetries) {
         setTimeout(() => {
           performNetworkCheck()
-            .then(() => handleOnline()) // online
+            .then(() => {
+              setRetries(0);
+              toast.dismiss();
+            }) // online
             .catch(() => {
-              setRetries(retries + 1); // Retry if error occurs
+              const newRetry = retries + 1;
+              setRetries(newRetry); // Retry if error occurs
             });
         }, retryDelay);
-      } else {
-        setIsOffline(true);
-        toast.error("App is offline. Please check your internet connection.");
-      }
+      } 
     };
 
-    window.addEventListener("online", handleOnline);
+    window.addEventListener("online", handleOffline);
     window.addEventListener("offline", handleOffline);
 
     // Initial network check:
     performNetworkCheck()
       .then(() => {
-        setIsOffline(false);
         setRetries(0);
       })
       .catch(() => {
-        setIsOffline(true);
-        toast.error("App is offline. Please check your internet connection.");
+        toast.error("App is offline. Please check your internet connection.",{ dismissible: false, duration: Infinity });
       });
 
     return () => {
-      window.removeEventListener("online", handleOnline);
       window.removeEventListener("offline", handleOffline);
     };
-  }, [threshold, maxRetries, retryDelay, retries]);
+  }, [ maxRetries, retryDelay, retries]);
 
-  return isOffline;
 }
 
 export default useOfflineCheck;
