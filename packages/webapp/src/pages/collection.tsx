@@ -210,7 +210,7 @@ const Collection: React.FC<CollectionProps> = ({ decks, setDecks, isHydrated }) 
               />
             ) : (
               <DeckList
-                decks={decks}
+                decks={ decks || [] }
                 onDeckSelect={handleDeckSelect}
               />
             )}
