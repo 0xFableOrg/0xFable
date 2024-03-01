@@ -4,7 +4,7 @@
  * @module constants
  */
 
-export const GIT_REPO = "https://github.com/norswap/0xFable"
+export const GIT_REPO = "https://github.com/0xFableOrg/0xFable"
 export const GIT_ISSUES = `${GIT_REPO}/issues`
 
 /** Proof generation timeout (in seconds) for the proof of the initial hand. */

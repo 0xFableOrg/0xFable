@@ -1,5 +1,7 @@
 # Environment variables
 *.env
+.vscode
+.vs
 
 # MacOS
 .DS_Store
