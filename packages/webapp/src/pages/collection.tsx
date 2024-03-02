@@ -140,7 +140,16 @@ const Collection: FablePage = ({ isHydrated }) => {
     setCurrentDeck(selectedDeck)
     setEditingDeckIndex(deckID)
     setIsEditing(true)
-    setSelectedCards(selectedDeck.cards)
+
+    const cardObjects: Card[] = []
+    selectedDeck.cards.forEach(card => {
+      const cID = Number(card)
+      const co = cards.find(c => Number(c.id) === cID)
+      if(co) { cardObjects.push(co) }
+    })
+    console.log(cardObjects)
+
+    setSelectedCards(cardObjects)
   }
 
   const handleSaveDeck = async (updatedDeck: Deck) => {
@@ -162,6 +171,7 @@ const Collection: FablePage = ({ isHydrated }) => {
     setIsEditing(false)
     setSelectedCards([])
     void navigate(router, '/collection')
+    loadDecks()
   }
 
   function saveOnchain(deck: Deck): Promise<void> {
