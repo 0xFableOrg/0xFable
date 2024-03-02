@@ -337,6 +337,13 @@ contract Inventory is Ownable {
     {
         return decks[player][deckID].cards;
     }
+    
+    // ---------------------------------------------------------------------------------------------
+
+    // Returns the decks of a given player.
+    function getAllDecks(address player) external view returns (Deck[] memory) {
+        return decks[player];
+    }
 
     // ---------------------------------------------------------------------------------------------
 

@@ -2,8 +2,7 @@ import React, { useEffect, useMemo, useState } from "react"
 import Head from "next/head"
 import { useRouter } from "next/router"
 
-import debounce from "lodash/debounce"
-import { navigate } from "utils/navigate"
+import React, { useState, useMemo, useEffect, useCallback } from "react"
 import { useAccount } from "wagmi"
 
 import { Address } from "src/chain"
@@ -16,7 +15,19 @@ import { Navbar } from "src/components/navbar"
 import { deployment } from "src/deployment"
 import { useInventoryCardsCollectionGetCollection } from "src/generated"
 import { FablePage } from "src/pages/_app"
-import { Card, Deck } from "src/store/types"
+import { useRouter } from "next/router"
+import { navigate } from "utils/navigate"
+
+import FilterPanel from "src/components/collection/filterPanel"
+import CardCollectionDisplay from "src/components/collection/cardCollectionDisplay"
+import DeckList from "src/components/collection/deckList"
+import DeckPanel from "src/components/collection/deckPanel"
+import FilterPanel from 'src/components/collection/filterPanel'
+import CardCollectionDisplay from 'src/components/collection/cardCollectionDisplay'
+import DeckList from 'src/components/collection/deckList'
+import DeckPanel from 'src/components/collection/deckPanel'
+import { getAllDecks } from "src/actions/getDeck"
+import * as store from "src/store/hooks"
 
 // NOTE(norswap & geniusgarlic): Just an example, when the game actually has effects & types,
 //   fetch those from the chain instead of hardcoding them here.
@@ -37,6 +48,10 @@ const Collection: FablePage = ({ isHydrated }) => {
     const [effectMap, setEffectMap] = useState(initialEffectMap)
     const [typeMap, setTypeMap] = useState(initialTypeMap)
     const [selectedCard, setSelectedCard] = useState<Card | null>(null)
+    const router = useRouter()
+    const { address } = useAccount()
+    const [ isEditing, setIsEditing ] = useState(false)
+    const playerAddress = store.usePlayerAddress()
 
     // Deck Collection Display
     const [editingDeckIndex, setEditingDeckIndex] = useState<number | null>(null)
@@ -45,6 +60,11 @@ const Collection: FablePage = ({ isHydrated }) => {
     // Deck Construction Panel
     const [currentDeck, setCurrentDeck] = useState<Deck | null>(null)
     const [selectedCards, setSelectedCards] = useState<Card[]>([])
+    
+    // Deck Collection Display
+    const [ editingDeckIndex, setEditingDeckIndex ] = useState<number|null>(null)
+    const [decks, setDecks] = useState<Deck[]>([])
+    const [ isLoadingDecks, setIsLoadingDecks ] = useState(false) // Used to indicate that decks are being loaded from chain
 
     const activeEffects = Object.keys(effectMap).filter((key) => effectMap[key])
     const activeTypes = Object.keys(typeMap).filter((key) => typeMap[key])
@@ -79,6 +99,30 @@ const Collection: FablePage = ({ isHydrated }) => {
         const effect = effects[effectIndex]
         setEffectMap({ ...effectMap, [effect]: !effectMap[effect] })
     }
+
+    const loadDecks = useCallback(() => {
+      if (playerAddress) {
+        setIsLoadingDecks(true)
+        getAllDecks({
+          playerAddress: playerAddress,
+          onSuccess: () => {
+          },
+        }).then(response => {
+          if(!response.simulatedResult) return
+          const receivedDecks = response.simulatedResult as Deck[]
+          setDecks(receivedDecks)
+        }).catch(error => {
+          console.error("Error fetching decks:", error)
+        }).finally(() => {
+          setIsLoadingDecks(false)
+        })
+      }
+    }, [playerAddress, setIsLoadingDecks])
+
+    useEffect(() => {
+      loadDecks()
+    }, [loadDecks])
+
 
     const handleTypeClick = (typeIndex: number) => {
         const type = types[typeIndex]
