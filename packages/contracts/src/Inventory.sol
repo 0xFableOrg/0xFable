@@ -78,6 +78,7 @@ contract Inventory is Ownable {
     // We need a struct because Solidity is unable to copy an array from memory to storage
     // directly, but can do it when the array is embedded in a struct.
     struct Deck {
+        string name;
         uint256[] cards;
     }
 
