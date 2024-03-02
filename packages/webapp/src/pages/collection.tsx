@@ -27,6 +27,7 @@ import CardCollectionDisplay from 'src/components/collection/cardCollectionDispl
 import DeckList from 'src/components/collection/deckList'
 import DeckPanel from 'src/components/collection/deckPanel'
 import { getAllDecks } from "src/actions/getDeck"
+import { save, modify } from "src/actions/setDeck"
 import * as store from "src/store/hooks"
 
 // NOTE(norswap & geniusgarlic): Just an example, when the game actually has effects & types,
@@ -43,6 +44,7 @@ const Collection: FablePage = ({ isHydrated }) => {
     const { address } = useAccount()
     const [isEditing, setIsEditing] = useState(false)
 
+<<<<<<< HEAD
     // Filter Panel / Sorting Panel
     const [searchInput, setSearchInput] = useState("")
     const [effectMap, setEffectMap] = useState(initialEffectMap)
@@ -52,6 +54,13 @@ const Collection: FablePage = ({ isHydrated }) => {
     const { address } = useAccount()
     const [ isEditing, setIsEditing ] = useState(false)
     const playerAddress = store.usePlayerAddress()
+=======
+  const router = useRouter()
+  const { address } = useAccount()
+  const [ isEditing, setIsEditing ] = useState(false)
+  const playerAddress = store.usePlayerAddress()
+  const [ isSaving, setIsSaving ] = useState(false) // Used to flag for when putting modifications on chain
+>>>>>>> 89335b8 (Can now save deck onchain)
 
     // Deck Collection Display
     const [editingDeckIndex, setEditingDeckIndex] = useState<number | null>(null)
@@ -89,6 +98,87 @@ const Collection: FablePage = ({ isHydrated }) => {
             card.lore.name.toLowerCase().includes(searchInput.toLowerCase())
         )
     })
+  const activeEffects = Object.keys(effectMap).filter(key => effectMap[key])
+  const activeTypes = Object.keys(typeMap).filter(key => typeMap[key])
+
+  const { data: unfilteredCards } = useInventoryCardsCollectionGetCollection({
+    address: deployment.InventoryCardsCollection,
+    args: [address as Address] // TODO not ideal but safe in practice
+  }) as {
+    // make the wagmi type soup understandable, there are many more fields in reality
+    data: readonly Card[],
+  }
+
+  const cards: Card[] = (unfilteredCards || []).filter(card => {
+    // TODO(norswap): it would look like this if the card had effects & types
+    // const cardEffects = card.stats.effects || []
+    // const cardTypes = card.stats.types || []
+    const cardEffects: Effect[] = []
+    const cardTypes: Effect[] = []
+    return activeEffects.every(effect => cardEffects.includes(effect))
+      && activeTypes.every(type => cardTypes.includes(type))
+      && card.lore.name.toLowerCase().includes(searchInput.toLowerCase())
+  })
+
+  const handleInputChangeBouncy = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchInput(event.target.value)
+  }
+  const handleInputChange = useMemo(() => debounce(handleInputChangeBouncy, 300), [])
+
+  const handleEffectClick = (effectIndex: number) => {
+    const effect = effects[effectIndex]
+    setEffectMap({...effectMap, [effect]: !effectMap[effect]})
+  }
+
+  const handleTypeClick = (typeIndex: number) => {
+    const type = types[typeIndex]
+    setTypeMap({...typeMap, [type]: !typeMap[type]})
+  }
+
+  const handleDeckSelect = (deckID: number) => {
+    const selectedDeck = decks[deckID]
+    setCurrentDeck(selectedDeck)
+    setEditingDeckIndex(deckID)
+    setIsEditing(true)
+    setSelectedCards(selectedDeck.cards)
+  }
+
+  const handleSaveDeck = async (updatedDeck: Deck) => {
+    const updatedDecks = [...(decks || [])]
+    setIsSaving(true)
+
+    if (editingDeckIndex !== null) {
+      // Update existing deck
+      updatedDecks[editingDeckIndex] = updatedDeck
+    } else {
+      // Add the new deck to the list
+      await saveOnchain(updatedDeck)
+      updatedDecks.push(updatedDeck)
+    }
+    
+    setIsSaving(false)
+
+    setDecks(updatedDecks)
+    setIsEditing(false)
+    setSelectedCards([])
+    void navigate(router, '/collection')
+  }
+
+  function saveOnchain(deck: Deck): Promise<void> {
+    return new Promise((resolve) => {
+      save({
+        deck,
+        playerAddress: playerAddress!,
+        onSuccess: () => { resolve() }
+      })
+    })
+  }
+
+  const handleCancelEditing = () => {
+    setIsEditing(false)
+    setSelectedCards([])
+    void navigate(router, '/collection')
+  }
 
     const handleInputChangeBouncy = (event: React.ChangeEvent<HTMLInputElement>) => {
         setSearchInput(event.target.value)
