@@ -1,41 +1,29 @@
 {
-  "compilerOptions": {
-    "target": "es2022",
-    "baseUrl": "./src",
-    "paths": {
-      "src/*": [
-        "./*"
-      ],
-      "contracts/*": [
-        "../../contracts/*"
-      ]
-    },
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "es2022"
-    ],
-    "allowJs": true,
-    "checkJs": true,
-    "skipLibCheck": true,
-    "strict": true,
-    "alwaysStrict": true,
-    "forceConsistentCasingInFileNames": true,
-    "noEmit": true,
-    "incremental": true,
-    "esModuleInterop": true,
-    "module": "esnext",
-    "moduleResolution": "node",
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "jsx": "preserve"
-  },
-  "include": [
-    "next-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx"
-  ],
-  "exclude": [
-    //"node_modules"
-  ]
+	"compilerOptions": {
+		"target": "es2022",
+		"baseUrl": "./src",
+		"paths": {
+			"src/*": ["./*"],
+			"contracts/*": ["../../contracts/*"]
+		},
+		"lib": ["dom", "dom.iterable", "es2022"],
+		"allowJs": true,
+		"checkJs": true,
+		"skipLibCheck": true,
+		"strict": true,
+		"alwaysStrict": true,
+		"forceConsistentCasingInFileNames": true,
+		"noEmit": true,
+		"incremental": true,
+		"esModuleInterop": true,
+		"module": "esnext",
+		"moduleResolution": "node",
+		"resolveJsonModule": true,
+		"isolatedModules": true,
+		"jsx": "preserve"
+	},
+	"include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
+	"exclude": [
+		//"node_modules"
+	]
 }

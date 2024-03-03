@@ -178,7 +178,7 @@ export function defaultContractWriteErrorHandling(err: ContractWriteError): fals
 
       setError({
         title: "Contract execution error",
-        message: `Transaction reverted (${err.args.functionName}) ${signatureMsg}.`
+        message: `Transaction reverted (${err.args.functionName}) ${signatureMsg}. `
           + `Please report to ${GIT_ISSUES}`,
         buttons: [DISMISS_BUTTON]
       })
