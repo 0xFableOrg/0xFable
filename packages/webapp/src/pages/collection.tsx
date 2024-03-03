@@ -119,6 +119,7 @@ const Collection: FablePage = ({ isHydrated }) => {
 
     if (editingDeckIndex !== null) {
       // Update existing deck
+      await modifyOnchain(updatedDeck, editingDeckIndex)
       updatedDecks[editingDeckIndex] = updatedDeck
     } else {
       // Add the new deck to the list
@@ -144,6 +145,22 @@ const Collection: FablePage = ({ isHydrated }) => {
     })
   }
 
+  function modifyOnchain(deck: Deck, editingDeckIndex: number): Promise<void> {
+    return new Promise((resolve) => {
+      modify({
+        deck,
+        playerAddress: playerAddress!,
+        index: BigInt(editingDeckIndex),
+        onSuccess: () => { resolve() }
+      })
+    })
+  }
+
+  const handleCancelEditing = () => {
+    setIsEditing(false)
+    setSelectedCards([])
+    void navigate(router, '/collection')
+  }
 
     const loadDecks = useCallback(() => {
       if (playerAddress) {
@@ -167,13 +184,6 @@ const Collection: FablePage = ({ isHydrated }) => {
     useEffect(() => {
       loadDecks()
     }, [loadDecks])
-
-    
-    const handleCancelEditing = () => {
-        setIsEditing(false)
-        setSelectedCards([])
-        void navigate(router, "/collection")
-    }
 
     const addToDeck = (card: Card) => {
         setSelectedCards((prevSelectedCards) => {
