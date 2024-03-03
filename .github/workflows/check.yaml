@@ -21,5 +21,3 @@ jobs:
         run: mkdir -p packages/contracts/out && echo "{}" > packages/contracts/out/deployment.json
       - run: make setup
       - run: make check
-      - name: Check formatting with Prettier
-        run: cd packages/webapp && make check
