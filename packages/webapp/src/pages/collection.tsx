@@ -128,7 +128,6 @@ const Collection: FablePage = ({ isHydrated }) => {
     
     setIsSaving(false)
 
-    setDecks(updatedDecks)
     setIsEditing(false)
     setSelectedCards([])
     void navigate(router, '/collection')
