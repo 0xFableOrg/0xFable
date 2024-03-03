@@ -11,6 +11,7 @@
 
 // =================================================================================================
 
+import _ from "lodash"
 import { Log } from "viem"
 import { getPublicClient } from "wagmi/actions"
 
@@ -51,8 +52,8 @@ const eventNames = [
 /** ID of the game we are currently subscribed to, or null if we are not subscribed. */
 let currentlySubscribedID: bigint|null = null
 
-/** List of function to call to unsubscribe from game updates. */
-let unsubFunctions: (() => void)[] = []
+/** Function to call to unsubscribe from game updates. */
+let unsubscribeEventListener: (() => void) | null = null
 
 // -------------------------------------------------------------------------------------------------
 
@@ -68,21 +69,37 @@ export function subscribeToGame(ID: bigint|null) {
 
   if (needsUnsub) {
     // remove subscription
-    unsubFunctions.forEach(unsub => unsub())
-    unsubFunctions = []
+    if(unsubscribeEventListener){
+      unsubscribeEventListener()
+      unsubscribeEventListener = null;
+    }
     console.log(`unsubscribed from game events for game ID ${currentlySubscribedID}`)
     currentlySubscribedID = null
   }
   if (needsSub) {
     currentlySubscribedID = ID
-    eventNames.forEach(eventName => {
-      unsubFunctions.push(publicClient.watchContractEvent({
-        address: deployment.Game,
-        abi: gameABI,
-        eventName: eventName as any,
-        args: { gameID: ID },
-        onLogs: logs => gameEventListener(eventName, logs)
-      }))
+
+    const eventsABI = gameABI.filter((abi) => abi.type === "event" && eventNames.includes(abi.name));
+
+    /**
+     * Listen to all events in eventNames for the current game ID. 
+     * All of these events must have an indexed gameID argument.
+     * We must use watchEvent to be able to listen to multiple events at the same time.
+     * Wagmi does not officially support listening to multiple events with an argument filter, 
+     * and this might break in future updates.
+     */
+    unsubscribeEventListener = publicClient.watchEvent({
+      address: deployment.Game,
+      events: eventsABI,
+      args: { gameID: ID },
+      onLogs: logs => {
+        Object.entries(_.groupBy(logs, (log:any) => log.eventName))
+        .forEach(
+          ([eventName, logs]:[string,any]) => {
+            gameEventListener(eventName, logs)
+          }
+        )
+      }
     })
   }
 }
