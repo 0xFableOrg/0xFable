@@ -1,12 +1,7 @@
 import { ReactNode, useCallback } from "react"
 
 import { Spinner } from "src/components/lib/modalElements"
-import {
-  Dialog,
-  DialogDescription,
-  DialogTitle,
-  DialogContent,
-} from "src/components/ui/dialog"
+import { Dialog, DialogDescription, DialogTitle, DialogContent } from "src/components/ui/dialog"
 import { Button } from "src/components/ui/button"
 
 // =================================================================================================
@@ -19,42 +14,42 @@ import { Button } from "src/components/ui/button"
  * module:hooks/useCancellationHandler#useCancellationHandler} hook.
  */
 export class CancellationHandler {
-  private callbacks: (() => void)[] = []
+    private callbacks: (() => void)[] = []
 
-  /** Register a callback to be called when the modal is cancelled. */
-  register = (callback: () => void) => {
-    this.callbacks.push(callback)
-  }
+    /** Register a callback to be called when the modal is cancelled. */
+    register = (callback: () => void) => {
+        this.callbacks.push(callback)
+    }
 
-  /** Deregister a callback. */
-  deregister = (callback: () => void) => {
-    this.callbacks = this.callbacks.filter((cb) => cb !== callback)
-  }
+    /** Deregister a callback. */
+    deregister = (callback: () => void) => {
+        this.callbacks = this.callbacks.filter((cb) => cb !== callback)
+    }
 
-  /** Call all registered callbacks. */
-  cancel = () => {
-    this.callbacks.forEach((cb) => cb())
-  }
+    /** Call all registered callbacks. */
+    cancel = () => {
+        this.callbacks.forEach((cb) => cb())
+    }
 }
 
 // =================================================================================================
 
 export type LoadingModalProps = {
-  /** Whether the modal can be dismissed via a cancel button. */
-  cancellable?: boolean
-  /** A string that is displayed as the title of the modal. */
-  loading: string | null
-  /**
-   * A way to change the loading string. It's assumed that when this is set to null, the modal will
-   * be dismissed.
-   */
-  setLoading: (_: string | null) => void
-  /**
-   * A cancellation handler that can be used to register callbacks to be called when the modal is
-   * cancelled via its "cancel" button.
-   */
-  cancellationHandler?: CancellationHandler
-  children?: ReactNode
+    /** Whether the modal can be dismissed via a cancel button. */
+    cancellable?: boolean
+    /** A string that is displayed as the title of the modal. */
+    loading: string | null
+    /**
+     * A way to change the loading string. It's assumed that when this is set to null, the modal will
+     * be dismissed.
+     */
+    setLoading: (_: string | null) => void
+    /**
+     * A cancellation handler that can be used to register callbacks to be called when the modal is
+     * cancelled via its "cancel" button.
+     */
+    cancellationHandler?: CancellationHandler
+    children?: ReactNode
 }
 
 // =================================================================================================
@@ -67,13 +62,13 @@ export type LoadingModalProps = {
  * based on whether the loading state is populated or not.
  */
 export const LoadingModal = (props: LoadingModalProps) => {
-  return (
-    <Dialog open={props.loading !== undefined}>
-      <DialogContent>
-        <LoadingModalContent {...props} />
-      </DialogContent>
-    </Dialog>
-  )
+    return (
+        <Dialog open={props.loading !== undefined}>
+            <DialogContent>
+                <LoadingModalContent {...props} />
+            </DialogContent>
+        </Dialog>
+    )
 }
 
 // =================================================================================================
@@ -86,33 +81,33 @@ export const LoadingModal = (props: LoadingModalProps) => {
  * grandparent, depending on whether the loading state is populated or not.
  */
 export const LoadingModalContent = ({
-  cancellable = true,
-  loading,
-  setLoading,
-  cancellationHandler,
-  children,
+    cancellable = true,
+    loading,
+    setLoading,
+    cancellationHandler,
+    children,
 }: LoadingModalProps) => {
-  const cancel = useCallback(() => {
-    setLoading(null)
-    cancellationHandler?.cancel()
-  }, [setLoading, cancellationHandler])
+    const cancel = useCallback(() => {
+        setLoading(null)
+        cancellationHandler?.cancel()
+    }, [setLoading, cancellationHandler])
 
-  return (
-    <>
-      <DialogTitle className="font-fable text-xl">{loading}</DialogTitle>
-      <DialogDescription>
-        {children}
-        <Spinner />
-        {cancellable && (
-          <div className="flex justify-center">
-            <Button variant={"secondary"} className="font-fable" onClick={cancel}>
-              Cancel
-            </Button>
-          </div>
-        )}
-      </DialogDescription>
-    </>
-  )
+    return (
+        <>
+            <DialogTitle className="font-fable text-xl">{loading}</DialogTitle>
+            <DialogDescription>
+                {children}
+                <Spinner />
+                {cancellable && (
+                    <div className="flex justify-center">
+                        <Button variant={"secondary"} className="font-fable" onClick={cancel}>
+                            Cancel
+                        </Button>
+                    </div>
+                )}
+            </DialogDescription>
+        </>
+    )
 }
 
 // =================================================================================================

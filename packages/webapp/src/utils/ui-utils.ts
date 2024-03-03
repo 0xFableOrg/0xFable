@@ -21,6 +21,5 @@ import { twMerge } from "tailwind-merge"
  * // Returns a string of class names, e.g., 'text-center py-2 bg-red-500 hover:bg-blue-500'
  */
 export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
+    return twMerge(clsx(inputs))
 }
-

@@ -9,7 +9,7 @@ import { toString } from "src/utils/js-utils"
  * can be used at the top level of a component.
  */
 export function useDebugValues(dict: Record<string, any>) {
-  useDebugValue(dict)
+    useDebugValue(dict)
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -23,9 +23,9 @@ export function useDebugValues(dict: Record<string, any>) {
  * To preserve state but still help with debugging, use {@link useDebugValues} instead.
  */
 export function useDebugState<T>(initial: T, label?: string) {
-  const [value, setValue] = useState(initial)
-  useDebugValue(label ? `${label}: ${toString(value)}` : value)
-  return [value, setValue]
+    const [value, setValue] = useState(initial)
+    useDebugValue(label ? `${label}: ${toString(value)}` : value)
+    return [value, setValue]
 }
 
 // -------------------------------------------------------------------------------------------------

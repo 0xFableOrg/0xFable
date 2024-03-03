@@ -19,17 +19,20 @@ import { type Address } from "src/chain"
  * Fetches the game data, handling throttling and zombie updates, as well as retries (via wagmi).
  * Returns null in case of throttling or zombie.
  */
-export const fetchGameData:
-    (gameID: bigint, player: Address, shouldFetchCards: boolean)
-    => Promise<Fetched<FetchedGameData>> =
-  throttledFetch(async (gameID: bigint, player: Address, shouldFetchCards: boolean) => {
-    return readContract({
-      address: deployment.Game,
-      abi: gameABI,
-      functionName: "fetchGameData",
-      args: [gameID, player, shouldFetchCards]
-    })
-  })
+export const fetchGameData: (
+    gameID: bigint,
+    player: Address,
+    shouldFetchCards: boolean
+) => Promise<Fetched<FetchedGameData>> = throttledFetch(
+    async (gameID: bigint, player: Address, shouldFetchCards: boolean) => {
+        return readContract({
+            address: deployment.Game,
+            abi: gameABI,
+            functionName: "fetchGameData",
+            args: [gameID, player, shouldFetchCards],
+        })
+    }
+)
 
 // -------------------------------------------------------------------------------------------------
 
@@ -39,12 +42,12 @@ export const fetchGameData:
  * Never called at the moment. Doesn't handle throttling and zombies.
  */
 export async function fetchDeck(player: Address, deckID: number): Promise<readonly bigint[]> {
-  return readContract({
-    address: deployment.Inventory,
-    abi: inventoryABI,
-    functionName: "getDeck",
-    args: [player, deckID]
-  })
+    return readContract({
+        address: deployment.Inventory,
+        abi: inventoryABI,
+        functionName: "getDeck",
+        args: [player, deckID],
+    })
 }
 
 // =================================================================================================

@@ -17,7 +17,7 @@ export const DRAW_CARD_PROOF_TIMEOUT = 30
 export const PLAY_CARD_PROOF_TIMEOUT = 30
 
 /** The default throttle period (minimum time between two on-chain fetches) in milliseconds. */
-export const DEFAULT_THROTTLE_PERIOD  = 2000
+export const DEFAULT_THROTTLE_PERIOD = 2000
 
 /**
  * How often to refresh the state of the game (in milliseconds) — note the state will usually
