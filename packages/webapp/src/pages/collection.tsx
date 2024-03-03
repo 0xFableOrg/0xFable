@@ -18,10 +18,6 @@ import { FablePage } from "src/pages/_app"
 import { useRouter } from "next/router"
 import { navigate } from "utils/navigate"
 
-import FilterPanel from "src/components/collection/filterPanel"
-import CardCollectionDisplay from "src/components/collection/cardCollectionDisplay"
-import DeckList from "src/components/collection/deckList"
-import DeckPanel from "src/components/collection/deckPanel"
 import FilterPanel from 'src/components/collection/filterPanel'
 import CardCollectionDisplay from 'src/components/collection/cardCollectionDisplay'
 import DeckList from 'src/components/collection/deckList'
@@ -29,6 +25,7 @@ import DeckPanel from 'src/components/collection/deckPanel'
 import { getAllDecks } from "src/actions/getDeck"
 import { save, modify } from "src/actions/setDeck"
 import * as store from "src/store/hooks"
+import { LoadingModal } from "src/components/modals/loadingModal"
 
 // NOTE(norswap & geniusgarlic): Just an example, when the game actually has effects & types,
 //   fetch those from the chain instead of hardcoding them here.
@@ -42,33 +39,18 @@ const initialTypeMap = Object.assign({}, ...types.map((name) => ({ [name]: false
 const Collection: FablePage = ({ isHydrated }) => {
     const router = useRouter()
     const { address } = useAccount()
-    const [isEditing, setIsEditing] = useState(false)
 
-<<<<<<< HEAD
     // Filter Panel / Sorting Panel
     const [searchInput, setSearchInput] = useState("")
     const [effectMap, setEffectMap] = useState(initialEffectMap)
     const [typeMap, setTypeMap] = useState(initialTypeMap)
     const [selectedCard, setSelectedCard] = useState<Card | null>(null)
-    const router = useRouter()
-    const { address } = useAccount()
-    const [ isEditing, setIsEditing ] = useState(false)
     const playerAddress = store.usePlayerAddress()
-=======
-  const router = useRouter()
-  const { address } = useAccount()
-  const [ isEditing, setIsEditing ] = useState(false)
-  const playerAddress = store.usePlayerAddress()
-  const [ isSaving, setIsSaving ] = useState(false) // Used to flag for when putting modifications on chain
->>>>>>> 89335b8 (Can now save deck onchain)
-
-    // Deck Collection Display
-    const [editingDeckIndex, setEditingDeckIndex] = useState<number | null>(null)
-    const [decks, setDecks] = useState<Deck[]>([])
 
     // Deck Construction Panel
     const [currentDeck, setCurrentDeck] = useState<Deck | null>(null)
     const [selectedCards, setSelectedCards] = useState<Card[]>([])
+    const [isSaving, setIsSaving] = useState(false)
     
     // Deck Collection Display
     const [ editingDeckIndex, setEditingDeckIndex ] = useState<number|null>(null)
@@ -98,27 +80,6 @@ const Collection: FablePage = ({ isHydrated }) => {
             card.lore.name.toLowerCase().includes(searchInput.toLowerCase())
         )
     })
-  const activeEffects = Object.keys(effectMap).filter(key => effectMap[key])
-  const activeTypes = Object.keys(typeMap).filter(key => typeMap[key])
-
-  const { data: unfilteredCards } = useInventoryCardsCollectionGetCollection({
-    address: deployment.InventoryCardsCollection,
-    args: [address as Address] // TODO not ideal but safe in practice
-  }) as {
-    // make the wagmi type soup understandable, there are many more fields in reality
-    data: readonly Card[],
-  }
-
-  const cards: Card[] = (unfilteredCards || []).filter(card => {
-    // TODO(norswap): it would look like this if the card had effects & types
-    // const cardEffects = card.stats.effects || []
-    // const cardTypes = card.stats.types || []
-    const cardEffects: Effect[] = []
-    const cardTypes: Effect[] = []
-    return activeEffects.every(effect => cardEffects.includes(effect))
-      && activeTypes.every(type => cardTypes.includes(type))
-      && card.lore.name.toLowerCase().includes(searchInput.toLowerCase())
-  })
 
   const handleInputChangeBouncy = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchInput(event.target.value)
@@ -151,7 +112,7 @@ const Collection: FablePage = ({ isHydrated }) => {
 
     setSelectedCards(cardObjects)
   }
-
+  
   const handleSaveDeck = async (updatedDeck: Deck) => {
     const updatedDecks = [...(decks || [])]
     setIsSaving(true)
@@ -184,21 +145,6 @@ const Collection: FablePage = ({ isHydrated }) => {
     })
   }
 
-  const handleCancelEditing = () => {
-    setIsEditing(false)
-    setSelectedCards([])
-    void navigate(router, '/collection')
-  }
-
-    const handleInputChangeBouncy = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setSearchInput(event.target.value)
-    }
-    const handleInputChange = useMemo(() => debounce(handleInputChangeBouncy, 300), [])
-
-    const handleEffectClick = (effectIndex: number) => {
-        const effect = effects[effectIndex]
-        setEffectMap({ ...effectMap, [effect]: !effectMap[effect] })
-    }
 
     const loadDecks = useCallback(() => {
       if (playerAddress) {
@@ -223,35 +169,7 @@ const Collection: FablePage = ({ isHydrated }) => {
       loadDecks()
     }, [loadDecks])
 
-
-    const handleTypeClick = (typeIndex: number) => {
-        const type = types[typeIndex]
-        setTypeMap({ ...typeMap, [type]: !typeMap[type] })
-    }
-
-    const handleDeckSelect = (deckID: number) => {
-        const selectedDeck = decks[deckID]
-        setCurrentDeck(selectedDeck)
-        setEditingDeckIndex(deckID)
-        setIsEditing(true)
-        setSelectedCards(selectedDeck.cards)
-    }
-
-    const handleSaveDeck = (updatedDeck: Deck) => {
-        const updatedDecks = [...(decks || [])]
-        if (editingDeckIndex !== null) {
-            // Update existing deck
-            updatedDecks[editingDeckIndex] = updatedDeck
-        } else {
-            // Add the new deck to the list
-            updatedDecks.push(updatedDeck)
-        }
-        setDecks(updatedDecks)
-        setIsEditing(false)
-        setSelectedCards([])
-        void navigate(router, "/collection")
-    }
-
+    
     const handleCancelEditing = () => {
         setIsEditing(false)
         setSelectedCards([])
@@ -308,51 +226,58 @@ const Collection: FablePage = ({ isHydrated }) => {
             {jotaiDebug()}
             <main className="flex h-screen flex-col">
                 <Navbar />
-                <div className="mx-6 mb-6 grid min-h-0 grow grid-cols-12 gap-4">
-                    {/* Left Panel - Search and Filters */}
-                    <div className="col-span-3 flex overflow-y-auto rounded-xl border">
-                        <FilterPanel
-                            effects={effects}
-                            types={types}
-                            effectMap={effectMap}
-                            typeMap={typeMap}
-                            handleEffectClick={handleEffectClick}
-                            handleTypeClick={handleTypeClick}
-                            handleInputChange={handleInputChange}
-                            selectedCard={selectedCard}
-                        />
-                    </div>
+                <div className="mx-6 mb-6 grid grow grid-cols-12 gap-4 min-h-0">
+              {/* Left Panel - Search and Filters */}
+              <div className="flex col-span-3 rounded-xl border overflow-y-auto">
+                  <FilterPanel
+                      effects={effects}
+                      types={types}
+                      effectMap={effectMap}
+                      typeMap={typeMap}
+                      handleEffectClick={handleEffectClick}
+                      handleTypeClick={handleTypeClick}
+                      handleInputChange={handleInputChange}
+                      selectedCard={selectedCard}
+                  />
+              </div>
 
-                    {/* Middle Panel - Card Collection Display */}
-                    <div className="col-span-7 flex overflow-y-auto rounded-xl border">
-                        <CardCollectionDisplay
-                            cards={cards}
-                            isHydrated={isHydrated}
-                            setSelectedCard={setSelectedCard}
-                            onCardToggle={onCardToggle}
-                            selectedCards={selectedCards}
-                            isEditing={isEditing}
-                        />
-                    </div>
+              {/* Middle Panel - Card Collection Display */}
+              <div className="col-span-7 flex rounded-xl border overflow-y-auto">
+                  <CardCollectionDisplay
+                      cards={cards}
+                      isHydrated={isHydrated}
+                      setSelectedCard={setSelectedCard}
+                      onCardToggle={onCardToggle}
+                      selectedCards={selectedCards}
+                      isEditing={isEditing}
+                  />
+              </div>
 
-                    {/* Right Panel - Deck List */}
-                    <div className="col-span-2 flex overflow-y-auto rounded-xl border">
-                        {isEditing && currentDeck ? (
-                            <DeckPanel
-                                deck={currentDeck}
-                                selectedCards={selectedCards}
-                                onCardSelect={addToDeck}
-                                onSave={handleSaveDeck}
-                                onCancel={handleCancelEditing}
-                            />
-                        ) : (
-                            <DeckList decks={decks || []} onDeckSelect={handleDeckSelect} />
-                        )}
-                    </div>
+              {/* Right Panel - Deck List */}
+              {isSaving ? (
+                <LoadingModal loading="Saving deck..."  />
+              ) : (
+                <div className="flex col-span-2 rounded-xl border overflow-y-auto">
+                  {isEditing && currentDeck ? (
+                    <DeckPanel
+                      deck={currentDeck}
+                      selectedCards={selectedCards}
+                      onCardSelect={addToDeck}
+                      onSave={handleSaveDeck}
+                      onCancel={handleCancelEditing}
+                    />
+                  ) : (
+                    <DeckList
+                      decks={decks || []}
+                      onDeckSelect={handleDeckSelect}
+                    />
+                  )}
                 </div>
-            </main>
-        </>
-    )
+              )}
+        </div>
+      </main>
+    </>
+  )
 }
 
 export default Collection
