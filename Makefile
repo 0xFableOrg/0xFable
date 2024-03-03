@@ -1,6 +1,6 @@
 # ==================================================================================================
-# BASICS COMMANDS
-#   To get the project running locally.
+# BASIC COMMANDS
+# To get the project running locally.
 
 # To be run when first setting up the repository.
 setup: init-modules install-frozen
@@ -39,6 +39,12 @@ check:
 	cd packages/contracts && make check
 	cd packages/webapp && make check
 .PHONY: check
+
+# Performs code formatting for the webapp files and contracts in their respective directories.
+format:
+	cd packages/webapp && make format
+	cd packages/contract && make format
+.PHONY: format
 
 # ==================================================================================================
 # IMPLEMENTATION DETAILS

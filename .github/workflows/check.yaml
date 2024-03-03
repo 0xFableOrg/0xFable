@@ -12,6 +12,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v3
+
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
         with:
@@ -20,4 +21,3 @@ jobs:
         run: mkdir -p packages/contracts/out && echo "{}" > packages/contracts/out/deployment.json
       - run: make setup
       - run: make check
-
