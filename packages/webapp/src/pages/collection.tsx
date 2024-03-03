@@ -22,7 +22,6 @@ import FilterPanel from 'src/components/collection/filterPanel'
 import CardCollectionDisplay from 'src/components/collection/cardCollectionDisplay'
 import DeckList from 'src/components/collection/deckList'
 import DeckPanel from 'src/components/collection/deckPanel'
-import { getAllDecks } from "src/actions/getDeck"
 import { save, modify } from "src/actions/setDeck"
 import * as store from "src/store/hooks"
 import { LoadingModal } from "src/components/modals/loadingModal"
@@ -51,6 +50,7 @@ const Collection: FablePage = ({ isHydrated }) => {
     const [currentDeck, setCurrentDeck] = useState<Deck | null>(null)
     const [selectedCards, setSelectedCards] = useState<Card[]>([])
     const [isSaving, setIsSaving] = useState(false)
+    const [isEditing, setIsEditing] = useState(false)
     
     // Deck Collection Display
     const [ editingDeckIndex, setEditingDeckIndex ] = useState<number|null>(null)
@@ -96,35 +96,15 @@ const Collection: FablePage = ({ isHydrated }) => {
     setTypeMap({...typeMap, [type]: !typeMap[type]})
   }
 
-  const handleDeckSelect = (deckID: number) => {
-    const selectedDeck = decks[deckID]
-    setCurrentDeck(selectedDeck)
-    setEditingDeckIndex(deckID)
-    setIsEditing(true)
-
-    const cardObjects: Card[] = []
-    selectedDeck.cards.forEach(card => {
-      const cID = Number(card)
-      const co = cards.find(c => Number(c.id) === cID)
-      if(co) { cardObjects.push(co) }
-    })
-    console.log(cardObjects)
-
-    setSelectedCards(cardObjects)
-  }
-  
   const handleSaveDeck = async (updatedDeck: Deck) => {
-    const updatedDecks = [...(decks || [])]
     setIsSaving(true)
 
     if (editingDeckIndex !== null) {
       // Update existing deck
       await modifyOnchain(updatedDeck, editingDeckIndex)
-      updatedDecks[editingDeckIndex] = updatedDeck
     } else {
       // Add the new deck to the list
       await saveOnchain(updatedDeck)
-      updatedDecks.push(updatedDeck)
     }
     
     setIsSaving(false)
@@ -132,7 +112,6 @@ const Collection: FablePage = ({ isHydrated }) => {
     setIsEditing(false)
     setSelectedCards([])
     void navigate(router, '/collection')
-    loadDecks()
   }
 
   function saveOnchain(deck: Deck): Promise<void> {
@@ -161,30 +140,7 @@ const Collection: FablePage = ({ isHydrated }) => {
     setSelectedCards([])
     void navigate(router, '/collection')
   }
-
-    const loadDecks = useCallback(() => {
-      if (playerAddress) {
-        setIsLoadingDecks(true)
-        getAllDecks({
-          playerAddress: playerAddress,
-          onSuccess: () => {
-          },
-        }).then(response => {
-          if(!response.simulatedResult) return
-          const receivedDecks = response.simulatedResult as Deck[]
-          setDecks(receivedDecks)
-        }).catch(error => {
-          console.error("Error fetching decks:", error)
-        }).finally(() => {
-          setIsLoadingDecks(false)
-        })
-      }
-    }, [playerAddress, setIsLoadingDecks])
-
-    useEffect(() => {
-      loadDecks()
-    }, [loadDecks])
-
+  
     const addToDeck = (card: Card) => {
         setSelectedCards((prevSelectedCards) => {
             // Add or remove card from the selectedCards
@@ -207,6 +163,23 @@ const Collection: FablePage = ({ isHydrated }) => {
                 return [...prevSelectedCards, card]
             }
         })
+    }
+
+    const handleDeckSelect = (deckID: number) => {
+      const selectedDeck = decks[deckID]
+      setCurrentDeck(selectedDeck)
+      setEditingDeckIndex(deckID)
+      setIsEditing(true)
+  
+      const cardObjects: Card[] = []
+      selectedDeck.cards.forEach(card => {
+        const cID = Number(card)
+        const co = cards.find(c => Number(c.id) === cID)
+        if(co) { cardObjects.push(co) }
+      })
+      console.log(cardObjects)
+  
+      setSelectedCards(cardObjects)
     }
 
     // Sets up an event listener for route changes when deck editor is rendered.
@@ -249,7 +222,7 @@ const Collection: FablePage = ({ isHydrated }) => {
                       selectedCard={selectedCard}
                   />
               </div>
-
+ 
               {/* Middle Panel - Card Collection Display */}
               <div className="col-span-7 flex rounded-xl border overflow-y-auto">
                   <CardCollectionDisplay
@@ -277,9 +250,10 @@ const Collection: FablePage = ({ isHydrated }) => {
                     />
                   ) : (
                     <DeckList
-                      decks={decks || []}
-                      onDeckSelect={handleDeckSelect}
-                    />
+                    onDeckSelect={handleDeckSelect}
+                    decks={decks}
+                    setDecks={setDecks}
+                  />
                   )}
                 </div>
               )}

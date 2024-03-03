@@ -6,7 +6,7 @@ import { inventoryABI } from "src/generated"
 
 // =================================================================================================
 
-export type getAllDecksArgs = {
+export type GetDeckArgs = {
   playerAddress: Address
   onSuccess: () => void
 }
@@ -18,7 +18,7 @@ export type getAllDecksArgs = {
  *
  * Returns `true` iff the transaction is successful.
  */
-export async function getAllDecks(args: getAllDecksArgs): Promise<any> {
+export async function getAllDecks(args: GetDeckArgs): Promise<any> {
   try {
     return await getAllDecksImpl(args)
   } catch (err) {
@@ -29,7 +29,23 @@ export async function getAllDecks(args: getAllDecksArgs): Promise<any> {
 
 // -------------------------------------------------------------------------------------------------
 
-async function getAllDecksImpl(args: getAllDecksArgs): Promise<any> {
+/**
+ * Fetches deck count of the given player by sending the `getNumDecks` transaction.
+ *
+ * Returns `true` iff the transaction is successful.
+ */
+export async function getNumDecks(args: GetDeckArgs): Promise<any> {
+  try {
+    return await getNumDecksImpl(args)
+  } catch (err) {
+    defaultErrorHandling("getNumDecks", err)
+    return false
+  }
+}
+
+// -------------------------------------------------------------------------------------------------
+
+async function getAllDecksImpl(args: GetDeckArgs): Promise<any> {
     try {
       const result = await contractWriteThrowing({
         contract: deployment.Inventory,
@@ -45,5 +61,24 @@ async function getAllDecksImpl(args: getAllDecksArgs): Promise<any> {
       return null
     }
   }
+
+// -------------------------------------------------------------------------------------------------
+
+async function getNumDecksImpl(args: GetDeckArgs): Promise<any> {
+  try {
+    const result = await contractWriteThrowing({
+      contract: deployment.Inventory,
+      abi: inventoryABI,
+      functionName: "getNumDecks",
+      args: [args.playerAddress],
+    }) 
+
+    args.onSuccess() 
+    return result 
+  } catch (error) {
+    console.error("Error fetching decks:", error)
+    return null
+  }
+}
 
 // =================================================================================================
