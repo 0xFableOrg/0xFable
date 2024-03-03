@@ -27,10 +27,10 @@ lint:
 # Runs code quality checks.
 check: 
 	pnpm eslint .
-	pnpm prettier --check "**/*.{js,jsx,ts,tsx,json,css}"
+	pnpm prettier --check "src/**/*.{js,jsx,ts,tsx,json,css}"
 .PHONY: check
 
 # Runs prettier formatting across webapp files with specified file extensions.
 format: 
-	pnpm prettier --write "**/*.{js,jsx,ts,tsx,json,css}"
+	pnpm prettier --write "src/**/*.{js,jsx,ts,tsx,json,css}"
 .PHONY: format
