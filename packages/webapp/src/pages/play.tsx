@@ -229,7 +229,7 @@ const Play: FablePage = ({ isHydrated }) => {
                         cards={playerHand as readonly bigint[]}
                         setLoading={setLoading}
                         cancellationHandler={cancellationHandler}
-                        className={`absolute left-0 right-0 mx-auto z-[100] translate-y-1/2 transition-all duration-500 rounded-xl ease-in-out hover:translate-y-0`}
+                        className={`absolute left-0 right-0 z-[100] mx-auto translate-y-1/2 rounded-xl transition-all duration-500 ease-in-out hover:translate-y-0`}
                     />
                     <div className="grid-col-1 relative mx-6 mb-6 grid grow grid-rows-[6]">
                         <PlayerBoard playerAddress={opponentAddress} playedCards={opponentBattlefield} />
@@ -239,7 +239,7 @@ const Play: FablePage = ({ isHydrated }) => {
                                 {showDrawButton && (
                                     <Button
                                         variant={"secondary"}
-                                        className="absolute right-96 bottom-1/2 z-50 !translate-y-1/2 rounded-lg border-[.1rem] border-base-300 font-mono hover:scale-105"
+                                        className="border-base-300 absolute bottom-1/2 right-96 z-50 !translate-y-1/2 rounded-lg border-[.1rem] font-mono hover:scale-105"
                                         onClick={() => {
                                             toast.promise(doDrawCard, {
                                                 id: "DRAW_CARD_TOAST",
@@ -258,7 +258,7 @@ const Play: FablePage = ({ isHydrated }) => {
 
                                 <Button
                                     variant={"secondary"}
-                                    className="absolute right-48 bottom-1/2 z-50 !translate-y-1/2 rounded-lg border-[.1rem] border-base-300 font-mono hover:scale-105"
+                                    className="border-base-300 absolute bottom-1/2 right-48 z-50 !translate-y-1/2 rounded-lg border-[.1rem] font-mono hover:scale-105"
                                     disabled={cantEndTurn}
                                     onClick={doEndTurn}
                                 >
@@ -267,7 +267,7 @@ const Play: FablePage = ({ isHydrated }) => {
 
                                 <Button
                                     variant={"secondary"}
-                                    className="absolute right-4 bottom-1/2 z-50 !translate-y-1/2 rounded-lg border-[.1rem] border-base-300 font-mono hover:scale-105"
+                                    className="border-base-300 absolute bottom-1/2 right-4 z-50 !translate-y-1/2 rounded-lg border-[.1rem] font-mono hover:scale-105"
                                     disabled={cantConcede}
                                     onClick={doConcede}
                                 >
@@ -281,7 +281,7 @@ const Play: FablePage = ({ isHydrated }) => {
                             <>
                                 <Button
                                     variant={"secondary"}
-                                    className="absolute right-4 bottom-1/2 z-50 !translate-y-1/2 rounded-lg border-[.1rem] border-base-300 font-mono hover:scale-105"
+                                    className="border-base-300 absolute bottom-1/2 right-4 z-50 !translate-y-1/2 rounded-lg border-[.1rem] font-mono hover:scale-105"
                                     onClick={doShowResults}
                                 >
                                     SEE RESULTS & EXIT

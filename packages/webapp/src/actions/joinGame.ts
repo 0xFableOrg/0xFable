@@ -85,7 +85,8 @@ async function joinGameImpl(args: JoinGameArgs): Promise<boolean> {
     if (gameStatus < GameStatus.JOINED) {
         // we can skip the join step if already performed
         const promise = doJoinGameTransaction(args, privateInfo.saltHash)
-        if (gameID === null) await promise // gameID starts null and the call will set it
+        if (gameID === null)
+            await promise // gameID starts null and the call will set it
         else checkFresh(await freshWrap(promise))
     }
 

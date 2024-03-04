@@ -42,7 +42,7 @@ export const CreateGameModal = () => {
             <DialogTrigger asChild>
                 <Button
                     variant="outline"
-                    className="rounded-lg p-6 font-fable text-2xl border-green-900 border-2 h-16 hover:scale-105 hover:border-green-800 hover:border-3"
+                    className="hover:border-3 h-16 rounded-lg border-2 border-green-900 p-6 font-fable text-2xl hover:scale-105 hover:border-green-800"
                 >
                     Create Game →
                 </Button>
@@ -189,7 +189,7 @@ const CreateGameModalContent: React.FC<CreateGameModalContentProps> = ({ loading
                         </div>
                     )}
                     {joined && (
-                        <div className="flex flex-col justify-center gap-4 items-center">
+                        <div className="flex flex-col items-center justify-center gap-4">
                             <Spinner />
                             {!allPlayersJoined && (
                                 <Button

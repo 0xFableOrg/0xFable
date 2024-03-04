@@ -103,7 +103,7 @@ const ModalInner = ({ ctrl, children }: { ctrl: ModalController; children: React
                 onClick={state.surroundCloseable ? ctrl.close : undefined}
                 style={{ display: displayed ? "flex" : "none" }}
             >
-                <div className="modal-box border-white border cursor-default z-10">
+                <div className="modal-box z-10 cursor-default border border-white">
                     {state.closeable && (
                         <button className="btn btn-sm btn-circle absolute right-2 top-2" onClick={ctrl.close}>
                             ✕

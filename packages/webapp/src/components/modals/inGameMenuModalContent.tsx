@@ -15,7 +15,7 @@ export const InGameMenuModalContent = ({ concede }: { concede?: () => void }) =>
         <>
             <DialogTitle className="font-fable">Game in progress!</DialogTitle>
             <DialogDescription>
-                <div className="flex justify-center gap-4 mt-4">
+                <div className="mt-4 flex justify-center gap-4">
                     <Link href="/play">
                         <Button className="font-fable" variant={"secondary"}>
                             Return to Game

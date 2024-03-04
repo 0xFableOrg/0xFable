@@ -165,9 +165,9 @@ const Collection: FablePage = ({ isHydrated }) => {
             {jotaiDebug()}
             <main className="flex h-screen flex-col">
                 <Navbar />
-                <div className="mx-6 mb-6 grid grow grid-cols-12 gap-4 min-h-0">
+                <div className="mx-6 mb-6 grid min-h-0 grow grid-cols-12 gap-4">
                     {/* Left Panel - Search and Filters */}
-                    <div className="flex col-span-3 rounded-xl border overflow-y-auto">
+                    <div className="col-span-3 flex overflow-y-auto rounded-xl border">
                         <FilterPanel
                             effects={effects}
                             types={types}
@@ -181,7 +181,7 @@ const Collection: FablePage = ({ isHydrated }) => {
                     </div>
 
                     {/* Middle Panel - Card Collection Display */}
-                    <div className="col-span-7 flex rounded-xl border overflow-y-auto">
+                    <div className="col-span-7 flex overflow-y-auto rounded-xl border">
                         <CardCollectionDisplay
                             cards={cards}
                             isHydrated={isHydrated}
@@ -193,7 +193,7 @@ const Collection: FablePage = ({ isHydrated }) => {
                     </div>
 
                     {/* Right Panel - Deck List */}
-                    <div className="flex col-span-2 rounded-xl border overflow-y-auto">
+                    <div className="col-span-2 flex overflow-y-auto rounded-xl border">
                         {isEditing && currentDeck ? (
                             <DeckPanel
                                 deck={currentDeck}

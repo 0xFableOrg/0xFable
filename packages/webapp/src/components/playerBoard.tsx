@@ -19,9 +19,9 @@ const PlayerBoard: React.FC<PlayerBoardProps> = ({ playerAddress, playedCards })
     const convertedCards = convertBigIntArrayToStringArray(playedCards)
     return (
         <div
-            className={`relative row-span-6 rounded-xl bg-base-300 shadow-inner overflow-hidden ${
+            className={`bg-base-300 relative row-span-6 overflow-hidden rounded-xl shadow-inner ${
                 playerAddress !== currentPlayerAddress
-                    ? `rounded-b-none border border-b-1`
+                    ? `border-b-1 rounded-b-none border`
                     : `rounded-t-none border border-t-0`
             }`}
             ref={setNodeRef}
@@ -31,15 +31,15 @@ const PlayerBoard: React.FC<PlayerBoardProps> = ({ playerAddress, playedCards })
             }}
         >
             <div className="relative flex flex-col items-center space-y-4">
-                <div className="flex flex-row p-2 space-x-3 self-start items-center">
-                    <p className="z-0 m-2 font-mono font-bold select-none px-2">
+                <div className="flex flex-row items-center space-x-3 self-start p-2">
+                    <p className="z-0 m-2 select-none px-2 font-mono font-bold">
                         {`🛡 ${shortenAddress(playerAddress)}`}
                     </p>
-                    <p className="z-0 m-3 font-mono font-bold select-none"> ♥️ 100 </p>
+                    <p className="z-0 m-3 select-none font-mono font-bold"> ♥️ 100 </p>
                 </div>
 
                 <div
-                    className={`absolute top-[100%] flex flex-row p-4 space-x-4 rounded-xl mx-4 items-center justify-center min-h-[220px] min-w-[95%] ${
+                    className={`absolute top-[100%] mx-4 flex min-h-[220px] min-w-[95%] flex-row items-center justify-center space-x-4 rounded-xl p-4 ${
                         playerActive ? "bg-green-700 opacity-50" : null
                     }`}
                 >

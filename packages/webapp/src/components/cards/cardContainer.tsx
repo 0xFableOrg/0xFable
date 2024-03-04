@@ -49,7 +49,7 @@ const CardContainer: React.FC<BaseCardProps> = ({ id, handHovered, placement, ca
     }
     return (
         <div
-            className={`${"shadow-2xl z-[50] flex  max-w-[24rem] cursor-pointer flex-col items-center justify-evenly rounded-lg bg-gray-900 transform translateY-[-50%]"}`}
+            className={`${"translateY-[-50%] z-[50] flex  max-w-[24rem] transform cursor-pointer flex-col items-center justify-evenly rounded-lg bg-gray-900 shadow-2xl"}`}
             style={sortableStyle}
             ref={setNodeRef}
             {...attributes}

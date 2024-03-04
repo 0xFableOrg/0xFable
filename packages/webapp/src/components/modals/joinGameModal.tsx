@@ -45,7 +45,7 @@ export const JoinGameModal = () => {
             <DialogTrigger asChild>
                 <Button
                     variant="outline"
-                    className="rounded-lg p-6 font-fable text-2xl border-green-900 border-2 h-16 hover:scale-105 hover:border-green-800 hover:border-3"
+                    className="hover:border-3 h-16 rounded-lg border-2 border-green-900 p-6 font-fable text-2xl hover:scale-105 hover:border-green-800"
                 >
                     Join Game →
                 </Button>
@@ -151,7 +151,7 @@ const JoinGameModalContent: React.FC<JoinGameModalContentProps> = ({ loading, se
                                 placeholder="Game ID"
                                 min={0}
                                 onChange={handleInputChange}
-                                className="mr-2 w-full max-w-xs text-white placeholder-gray-500 font-mono"
+                                className="mr-2 w-full max-w-xs font-mono text-white placeholder-gray-500"
                             />
                             <Button
                                 className="font-fable"

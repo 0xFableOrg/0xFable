@@ -38,7 +38,7 @@ const Home: FablePage = ({ isHydrated }) => {
     const isWrongNetwork = !notConnected && !chainSupported
 
     return (
-        <main className="flex flex-col min-h-screen items-center justify-center">
+        <main className="flex min-h-screen flex-col items-center justify-center">
             <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16">
                 <h1 className="font-serif text-5xl font-extrabold tracking-tight text-white sm:text-[5rem]">
                     <span className="font-mono font-light text-red-400">0x</span>FABLE
@@ -48,7 +48,7 @@ const Home: FablePage = ({ isHydrated }) => {
                     <div className="">
                         <Button
                             variant={"secondary"}
-                            className="border-2 border-yellow-500 normal-case hover:scale-105 font-fable text-xl hover:border-yellow-400"
+                            className="border-2 border-yellow-500 font-fable text-xl normal-case hover:scale-105 hover:border-yellow-400"
                             onClick={async () => setOpen(true)}
                         >
                             Connect Wallet
@@ -67,7 +67,7 @@ const Home: FablePage = ({ isHydrated }) => {
                             <Link href={"/collection"}>
                                 <Button
                                     variant="outline"
-                                    className="rounded-lg p-6 font-fable text-2xl border-green-900 border-2 h-16 hover:scale-105 hover:border-green-800 hover:border-3"
+                                    className="hover:border-3 h-16 rounded-lg border-2 border-green-900 p-6 font-fable text-2xl hover:scale-105 hover:border-green-800"
                                 >
                                     Collection →
                                 </Button>
