@@ -1,11 +1,13 @@
 import React from "react"
-import { CardPlacement } from "src/store/types"
+
 import { useSortable } from "@dnd-kit/sortable"
-import DraggedCard from "./draggedCard"
-import BoardCard from "./boardCard"
-import HandCard from "./handCard"
 import { CSS } from "@dnd-kit/utilities"
+import { CardPlacement } from "src/store/types"
 import { convertStringToSafeNumber } from "src/utils/js-utils"
+
+import BoardCard from "./boardCard"
+import DraggedCard from "./draggedCard"
+import HandCard from "./handCard"
 
 interface BaseCardProps {
     id: string

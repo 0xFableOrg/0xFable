@@ -1,16 +1,15 @@
 import { ConnectKitButton, useModal } from "connectkit"
-import { useAccount, useNetwork } from "wagmi"
-
 import { Address, chains } from "src/chain"
-import { deployment } from "src/deployment"
+import Link from "src/components/link"
 import { CreateGameModal } from "src/components/modals/createGameModal"
 import { JoinGameModal } from "src/components/modals/joinGameModal"
 import { MintDeckModal } from "src/components/modals/mintDeckModal"
+import { Button } from "src/components/ui/button"
+import { deployment } from "src/deployment"
 import { useGameInGame } from "src/generated"
 import { FablePage } from "src/pages/_app"
 import { useGameID } from "src/store/hooks"
-import { Button } from "src/components/ui/button"
-import Link from "src/components/link"
+import { useAccount, useNetwork } from "wagmi"
 
 const Home: FablePage = ({ isHydrated }) => {
     const { address } = useAccount()

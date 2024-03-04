@@ -1,22 +1,22 @@
-import debounce from "lodash/debounce"
-import { useRouter } from "next/router"
 import React, { useEffect, useMemo, useState } from "react"
+import { useRouter } from "next/router"
+
+import debounce from "lodash/debounce"
+import { joinGame, reportInconsistentGameState } from "src/actions"
+import { concede } from "src/actions/concede"
 import { Spinner } from "src/components/lib/modalElements"
 import { InGameMenuModalContent } from "src/components/modals/inGameMenuModalContent"
-
-import * as store from "src/store/hooks"
-import { isStringPositiveInteger, parseBigIntOrNull } from "src/utils/js-utils"
 import { LoadingModalContent } from "src/components/modals/loadingModal"
-import { joinGame, reportInconsistentGameState } from "src/actions"
-import { setError } from "src/store/write"
-import { GameStatus } from "src/store/types"
-import { navigate } from "src/utils/navigate"
-import { useCancellationHandler } from "src/hooks/useCancellationHandler"
-import { concede } from "src/actions/concede"
-
-import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "../ui/dialog"
 import { Button } from "src/components/ui/button"
 import { Input } from "src/components/ui/input"
+import { useCancellationHandler } from "src/hooks/useCancellationHandler"
+import * as store from "src/store/hooks"
+import { GameStatus } from "src/store/types"
+import { setError } from "src/store/write"
+import { isStringPositiveInteger, parseBigIntOrNull } from "src/utils/js-utils"
+import { navigate } from "src/utils/navigate"
+
+import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "../ui/dialog"
 
 interface JoinGameModalContentProps {
     loading: string | null

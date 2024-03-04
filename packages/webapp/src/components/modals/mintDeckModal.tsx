@@ -1,9 +1,9 @@
 import { useState } from "react"
 
-import { useDeckAirdropWrite } from "src/hooks/useFableWrite"
 import { LoadingModalContent } from "src/components/modals/loadingModal"
-import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "src/components/ui/dialog"
 import { Button } from "src/components/ui/button"
+import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "src/components/ui/dialog"
+import { useDeckAirdropWrite } from "src/hooks/useFableWrite"
 
 interface MintDeckModalContentProps {
     loading: string | null

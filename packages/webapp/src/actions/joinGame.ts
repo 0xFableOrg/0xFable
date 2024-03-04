@@ -5,16 +5,18 @@
  * @module action/joinGame
  */
 
-import { decodeEventLog } from "viem"
-
 import { defaultErrorHandling, FableRequestTimeout, InconsistentGameStateError } from "src/actions/errors"
 import { contractWriteThrowing } from "src/actions/libContractWrite"
 import { Address } from "src/chain"
+import { CancellationHandler } from "src/components/modals/loadingModal"
+import { DRAW_HAND_PROOF_TIMEOUT } from "src/constants"
 import { deployment } from "src/deployment"
+import { NUM_CARDS_FOR_PROOF } from "src/game/constants"
 import { drawInitialHand } from "src/game/drawInitialHand"
+import { packCards } from "src/game/fableProofs"
 import { gameABI } from "src/generated"
-import { waitForUpdate } from "src/store/update"
-import { getOrInitPrivateInfo, setGameID, setPrivateInfo } from "src/store/write"
+import { checkFresh, freshWrap } from "src/store/checkFresh"
+import { getPlayerHand } from "src/store/derive"
 import {
     getCards,
     getDeck,
@@ -26,13 +28,10 @@ import {
     isGameReadyToStart,
 } from "src/store/read"
 import { FetchedGameData, GameStatus, PlayerData, PrivateInfo } from "src/store/types"
-import { SHOULD_GENERATE_PROOFS, FAKE_PROOF, ProofOutput, proveInWorker } from "src/utils/zkproofs"
-import { NUM_CARDS_FOR_PROOF } from "src/game/constants"
-import { packCards } from "src/game/fableProofs"
-import { DRAW_HAND_PROOF_TIMEOUT } from "src/constants"
-import { CancellationHandler } from "src/components/modals/loadingModal"
-import { checkFresh, freshWrap } from "src/store/checkFresh"
-import { getPlayerHand } from "src/store/derive"
+import { waitForUpdate } from "src/store/update"
+import { getOrInitPrivateInfo, setGameID, setPrivateInfo } from "src/store/write"
+import { FAKE_PROOF, ProofOutput, proveInWorker,SHOULD_GENERATE_PROOFS } from "src/utils/zkproofs"
+import { decodeEventLog } from "viem"
 
 // =================================================================================================
 

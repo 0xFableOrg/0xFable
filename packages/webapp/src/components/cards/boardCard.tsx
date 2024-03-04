@@ -1,6 +1,6 @@
-import { forwardRef, useState } from "react"
+import React, { forwardRef, useState } from "react"
 import Image from "next/image"
-import React from "react"
+
 import { testCards } from "src/utils/card-list"
 
 interface BoardCardProps {

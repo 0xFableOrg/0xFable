@@ -8,7 +8,6 @@
  */
 
 import { useAtom, useAtomValue } from "jotai"
-
 import { Address } from "src/chain"
 import * as store from "src/store/atoms"
 import { ErrorConfig, FetchedGameData, GameStatus, PlayerData, PrivateInfo } from "src/store/types"

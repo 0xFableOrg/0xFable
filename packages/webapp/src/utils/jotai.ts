@@ -4,7 +4,7 @@
  * @module utils/jotai
  */
 
-import { atom, Atom } from "jotai"
+import { Atom, atom } from "jotai"
 import { isEqual } from "lodash"
 
 // =================================================================================================

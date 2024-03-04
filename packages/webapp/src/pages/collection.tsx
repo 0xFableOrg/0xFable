@@ -1,23 +1,21 @@
-import debounce from "lodash/debounce"
+import React, { useEffect,useMemo, useState } from "react"
 import Head from "next/head"
+import { useRouter } from "next/router"
 
-import React, { useState, useMemo, useEffect } from "react"
-import { useAccount } from "wagmi"
-
+import debounce from "lodash/debounce"
+import { Address } from "src/chain"
+import CardCollectionDisplay from "src/components/collection/cardCollectionDisplay"
+import DeckList from "src/components/collection/deckList"
+import DeckPanel from "src/components/collection/deckPanel"
+import FilterPanel from "src/components/collection/filterPanel"
 import jotaiDebug from "src/components/lib/jotaiDebug"
 import { Navbar } from "src/components/navbar"
 import { deployment } from "src/deployment"
 import { useInventoryCardsCollectionGetCollection } from "src/generated"
-import { Deck, Card } from "src/store/types"
-import { Address } from "src/chain"
 import { FablePage } from "src/pages/_app"
-import { useRouter } from "next/router"
+import { Card,Deck } from "src/store/types"
 import { navigate } from "utils/navigate"
-
-import FilterPanel from "src/components/collection/filterPanel"
-import CardCollectionDisplay from "src/components/collection/cardCollectionDisplay"
-import DeckList from "src/components/collection/deckList"
-import DeckPanel from "src/components/collection/deckPanel"
+import { useAccount } from "wagmi"
 
 // NOTE(norswap & geniusgarlic): Just an example, when the game actually has effects & types,
 //   fetch those from the chain instead of hardcoding them here.

@@ -1,6 +1,7 @@
 // =================================================================================================
 
 import Image from "next/image"
+
 import { Button } from "src/components/ui/button"
 
 export const Spinner = () => {

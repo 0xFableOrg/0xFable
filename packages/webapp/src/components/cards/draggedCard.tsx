@@ -1,5 +1,6 @@
-import Image from "next/image"
 import React, { forwardRef } from "react"
+import Image from "next/image"
+
 import { testCards } from "src/utils/card-list"
 
 interface DraggedCardProps {

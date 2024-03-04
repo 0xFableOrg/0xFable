@@ -1,7 +1,9 @@
 import Link from "next/link"
+
 import { ConnectKitButton } from "connectkit"
+import { NavigationMenu, NavigationMenuItem,NavigationMenuList } from "src/components/ui/navigation-menu"
+
 import { Button } from "./ui/button"
-import { NavigationMenu, NavigationMenuList, NavigationMenuItem } from "src/components/ui/navigation-menu"
 
 export const Navbar = () => {
     return (

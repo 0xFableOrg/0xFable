@@ -5,9 +5,9 @@
  */
 
 import { Hash } from "src/chain"
-import { mimcHash } from "src/utils/hashing"
-import { PrivateInfo } from "src/store/types"
 import { FELT_SIZE, INITIAL_HAND_SIZE, MAX_DECK_SIZE, MAX_HAND_SIZE } from "src/game/constants"
+import { PrivateInfo } from "src/store/types"
+import { mimcHash } from "src/utils/hashing"
 import { bigintToHexString, parseBigInt } from "src/utils/js-utils"
 
 // =================================================================================================

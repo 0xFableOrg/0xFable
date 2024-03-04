@@ -5,10 +5,9 @@
  */
 
 import { getDefaultConfig, getDefaultConnectors } from "connectkit"
+import { BurnerConnector } from "src/wagmi/BurnerConnector"
 import { type Chain, createConfig } from "wagmi"
 import { localhost } from "wagmi/chains"
-
-import { BurnerConnector } from "src/wagmi/BurnerConnector"
 
 // =================================================================================================
 

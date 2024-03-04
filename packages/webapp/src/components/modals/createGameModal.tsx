@@ -1,20 +1,20 @@
-import { useRouter } from "next/router"
 import { useCallback, useEffect, useState } from "react"
-import { decodeEventLog } from "viem"
+import { useRouter } from "next/router"
 
-import { LoadingModalContent } from "src/components/modals/loadingModal"
+import { joinGame, reportInconsistentGameState } from "src/actions"
+import { concede } from "src/actions/concede"
 import { Spinner } from "src/components/lib/modalElements"
 import { InGameMenuModalContent } from "src/components/modals/inGameMenuModalContent"
+import { LoadingModalContent } from "src/components/modals/loadingModal"
+import { Button } from "src/components/ui/button"
+import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "src/components/ui/dialog"
 import { gameABI } from "src/generated"
+import { useCancellationHandler } from "src/hooks/useCancellationHandler"
 import { useGameWrite } from "src/hooks/useFableWrite"
 import * as store from "src/store/hooks"
-import { joinGame, reportInconsistentGameState } from "src/actions"
 import { GameStatus } from "src/store/types"
 import { navigate } from "src/utils/navigate"
-import { useCancellationHandler } from "src/hooks/useCancellationHandler"
-import { concede } from "src/actions/concede"
-import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "src/components/ui/dialog"
-import { Button } from "src/components/ui/button"
+import { decodeEventLog } from "viem"
 
 interface CreateGameModalContentProps {
     loading: string | null

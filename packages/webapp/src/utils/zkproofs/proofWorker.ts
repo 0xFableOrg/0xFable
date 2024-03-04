@@ -4,7 +4,7 @@
  * Used from {@link proveInWorker}.
  */
 
-import { prove, type ProofInputs } from "src/utils/zkproofs/proofs"
+import { type ProofInputs,prove } from "src/utils/zkproofs/proofs"
 
 // =================================================================================================
 

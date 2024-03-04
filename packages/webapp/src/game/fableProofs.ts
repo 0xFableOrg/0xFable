@@ -6,8 +6,8 @@
  * @module game/fableProofs
  */
 
-import { packBytes } from "src/utils/zkproofs/proofs"
 import { FELT_SIZE, NUM_FELTS_FOR_CARDS } from "src/game/constants"
+import { packBytes } from "src/utils/zkproofs/proofs"
 
 // =================================================================================================
 

@@ -1,5 +1,6 @@
 import React from "react"
 import Image from "next/image"
+
 import { Card } from "src/store/types"
 
 interface FilterPanelProps {

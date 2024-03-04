@@ -3,9 +3,11 @@ const config = {
 	extends: ["next/core-web-vitals", "plugin:@typescript-eslint/recommended", "prettier"],
 	parser: "@typescript-eslint/parser",
 	parserOptions: {
-		project: "./tsconfig.json",
-	},
-	plugins: ["@typescript-eslint"],
+    project: "./tsconfig.json",
+		"sourceType": "module",
+    "ecmaVersion": "latest",
+  },
+	plugins: ["@typescript-eslint", "simple-import-sort"],
 	root: true,
 	ignorePatterns: ["node_modules", "src/hooks/useScrollBox.ts"],
 	rules: {
@@ -26,6 +28,31 @@ const config = {
 				caughtErrorsIgnorePattern: "^_",
 			},
 		],
+		"import/first": "error",
+    "import/newline-after-import": "error",
+    "import/no-duplicates": "error",
+		"simple-import-sort/imports": [
+			"error",
+			{
+				"groups": [
+					// Packages. `react` related packages come first.
+					[
+						"^react",
+						"^next",
+					],
+					// Internal packages.
+					["^@?\\w"],
+					// Parent imports. Put `..` last.
+					["^\\.\\.(?!/?$)", "^\\.\\./?$"],
+					// Other relative imports. Put same-folder imports and `.` last.
+					["^\\./(?=.*/)(?!/?$)", "^\\.(?!/?$)", "^\\./?$"],
+					// Style imports.
+					["^.+\\.s?css$"],
+					// Side effect imports.
+					["^\\u0000"]
+				]
+			}
+		]
 	},
 }
 

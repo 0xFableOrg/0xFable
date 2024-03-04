@@ -1,7 +1,8 @@
 import React from "react"
+
 import Link from "src/components/link"
-import { Deck } from "src/store/types"
 import { Button } from "src/components/ui/button"
+import { Deck } from "src/store/types"
 
 interface DeckCollectionDisplayProps {
     decks: Deck[]

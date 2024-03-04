@@ -1,7 +1,8 @@
 import React from "react"
 import Image from "next/image"
-import { Card } from "src/store/types"
+
 import { MintDeckModal } from "src/components/modals/mintDeckModal"
+import { Card } from "src/store/types"
 import { testCards } from "src/utils/card-list"
 
 interface CardCollectionDisplayProps {
