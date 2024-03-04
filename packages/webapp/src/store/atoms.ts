@@ -11,13 +11,7 @@ import { atom, getDefaultStore } from "jotai"
 import { Address } from "src/chain"
 import { atomWithStorage } from "jotai/utils"
 import * as derive from "src/store/derive"
-import type {
-  ErrorConfig,
-  FetchedGameData,
-  PlayerData,
-  PrivateInfo,
-  PrivateInfoStore
-} from "src/store/types"
+import type { ErrorConfig, FetchedGameData, PlayerData, PrivateInfo, PrivateInfoStore } from "src/store/types"
 import { GameStatus } from "src/store/types"
 import { cachedAtom } from "src/utils/jotai"
 
@@ -34,7 +28,7 @@ export const get = store.get
 // READ/WRITE ATOMS
 
 /** Player address — the connected wallet address. */
-export const playerAddress = atom(null as Address|null)
+export const playerAddress = atom(null as Address | null)
 
 // NOTE: This isn't atom<Address|null>(null) because that selects the WriteableAtom overload.
 // The same applies to the other atoms below.
@@ -44,12 +38,12 @@ export const playerAddress = atom(null as Address|null)
 /**
  * ID of the game the player is currently participating in (creating, joined, or playing).
  */
-export const gameID = atom(null as bigint|null)
+export const gameID = atom(null as bigint | null)
 
 // -------------------------------------------------------------------------------------------------
 
 /** The current state of the game. */
-export const gameData = atom(null as FetchedGameData|null)
+export const gameData = atom(null as FetchedGameData | null)
 
 // -------------------------------------------------------------------------------------------------
 
@@ -62,11 +56,12 @@ export const gameData = atom(null as FetchedGameData|null)
  * to browser storage in order to survive page reloads.
  */
 export const privateInfoStore = atomWithStorage(
-  "0xFable::privateInfoStore",
-  {} as PrivateInfoStore,
-  undefined,
-  // Necessary, otherwise the storage only gets read when the atom is mounted in React.
-  { unstable_getOnInit: true })
+    "0xFable::privateInfoStore",
+    {} as PrivateInfoStore,
+    undefined,
+    // Necessary, otherwise the storage only gets read when the atom is mounted in React.
+    { unstable_getOnInit: true }
+)
 
 // Without this, Jotai does not seem to pickup in updates from other tabs.
 store.sub(privateInfoStore, () => {})
@@ -82,7 +77,7 @@ export const hasVisitedBoard = atom(false)
 // -------------------------------------------------------------------------------------------------
 
 /** If non-null, an error modal will be displayed with the given configuration. */
-export const errorConfig = atom(null as ErrorConfig|null)
+export const errorConfig = atom(null as ErrorConfig | null)
 
 // =================================================================================================
 // DERIVED ATOMS
@@ -94,7 +89,7 @@ export const errorConfig = atom(null as ErrorConfig|null)
  * @see module:store/hooks#useGameStatus
  */
 export const gameStatus = atom<GameStatus>((get) => {
-  return derive.getGameStatus(get(gameData), get(playerAddress))
+    return derive.getGameStatus(get(gameData), get(playerAddress))
 })
 
 // -------------------------------------------------------------------------------------------------
@@ -103,7 +98,7 @@ export const gameStatus = atom<GameStatus>((get) => {
  * @see module:store/hooks#useAllPlayersJoined
  */
 export const allPlayersJoined = atom<boolean>((get) => {
-  return derive.didAllPlayersJoin(get(gameData))
+    return derive.didAllPlayersJoin(get(gameData))
 })
 
 // -------------------------------------------------------------------------------------------------
@@ -112,7 +107,7 @@ export const allPlayersJoined = atom<boolean>((get) => {
  * @see module:store/hooks#useIsGameCreator
  */
 export const isGameCreator = atom<boolean>((get) => {
-  return derive.isGameCreator(get(gameData), get(playerAddress))
+    return derive.isGameCreator(get(gameData), get(playerAddress))
 })
 
 // -------------------------------------------------------------------------------------------------
@@ -121,7 +116,7 @@ export const isGameCreator = atom<boolean>((get) => {
  * @see module:store/hooks#useIsGameJoiner
  */
 export const isGameJoiner = atom<boolean>((get) => {
-  return derive.isGameJoiner(get(gameData), get(playerAddress))
+    return derive.isGameJoiner(get(gameData), get(playerAddress))
 })
 
 // -------------------------------------------------------------------------------------------------
@@ -129,9 +124,9 @@ export const isGameJoiner = atom<boolean>((get) => {
 /**
  * @see module:store/read#getCards
  */
-export const cards = atom<readonly bigint[]|null>((get) => {
-  // No need to cache: the array is copied over by {@link fetchGameData} when it doesn't change.
-  return derive.getCards(get(gameData))
+export const cards = atom<readonly bigint[] | null>((get) => {
+    // No need to cache: the array is copied over by {@link fetchGameData} when it doesn't change.
+    return derive.getCards(get(gameData))
 })
 
 // -------------------------------------------------------------------------------------------------
@@ -140,8 +135,8 @@ export const cards = atom<readonly bigint[]|null>((get) => {
  * @see module:store/read#getCurrentPlayerAddress
  * @see module:store/hooks#useCurrentPlayerAddress
  */
-export const currentPlayerAddress = cachedAtom<Address|null>((get) => {
-  return derive.getCurrentPlayerAddress(get(gameData))
+export const currentPlayerAddress = cachedAtom<Address | null>((get) => {
+    return derive.getCurrentPlayerAddress(get(gameData))
 })
 
 // -------------------------------------------------------------------------------------------------
@@ -150,8 +145,8 @@ export const currentPlayerAddress = cachedAtom<Address|null>((get) => {
  * @see module:store/read#getPlayerData
  * @see module:store/hooks#usePlayerData
  */
-export const playerData = cachedAtom<PlayerData|null>((get) => {
-  return derive.getPlayerData(get(gameData), get(playerAddress))
+export const playerData = cachedAtom<PlayerData | null>((get) => {
+    return derive.getPlayerData(get(gameData), get(playerAddress))
 })
 
 // -------------------------------------------------------------------------------------------------
@@ -159,8 +154,8 @@ export const playerData = cachedAtom<PlayerData|null>((get) => {
 /**
  * @see module:store/hooks#useOpponentAddress
  */
-export const opponentAddress = cachedAtom<Address|null>((get) => {
-  return derive.getOpponentAddress(get(gameData), get(playerAddress))
+export const opponentAddress = cachedAtom<Address | null>((get) => {
+    return derive.getOpponentAddress(get(gameData), get(playerAddress))
 })
 
 // -------------------------------------------------------------------------------------------------
@@ -168,8 +163,8 @@ export const opponentAddress = cachedAtom<Address|null>((get) => {
 /**
  * @see module:store/hooks#useOpponentData
  */
-export const opponentData = cachedAtom<PlayerData|null>((get) => {
-  return derive.getOpponentData(get(gameData), get(playerAddress))
+export const opponentData = cachedAtom<PlayerData | null>((get) => {
+    return derive.getOpponentData(get(gameData), get(playerAddress))
 })
 
 // -------------------------------------------------------------------------------------------------
@@ -177,8 +172,8 @@ export const opponentData = cachedAtom<PlayerData|null>((get) => {
 /**
  * @see module:store/hooks#usePrivateInfo
  */
-export const privateInfo = cachedAtom<PrivateInfo|null>((get) => {
-  return derive.getPrivateInfo(get(gameID), get(playerAddress), get(privateInfoStore))
+export const privateInfo = cachedAtom<PrivateInfo | null>((get) => {
+    return derive.getPrivateInfo(get(gameID), get(playerAddress), get(privateInfoStore))
 })
 
 // -------------------------------------------------------------------------------------------------
@@ -186,8 +181,8 @@ export const privateInfo = cachedAtom<PrivateInfo|null>((get) => {
 /**
  * @see module:store/hooks#usePlayerHand
  */
-export const playerHand = cachedAtom<readonly bigint[]|null>((get) => {
-  return derive.getPlayerHand(get(gameData), get(privateInfo))
+export const playerHand = cachedAtom<readonly bigint[] | null>((get) => {
+    return derive.getPlayerHand(get(gameData), get(privateInfo))
 })
 
 // -------------------------------------------------------------------------------------------------
@@ -195,8 +190,8 @@ export const playerHand = cachedAtom<readonly bigint[]|null>((get) => {
 /**
  * @see module:store/hooks#usePlayerBattlefield
  */
-export const playerBattlefield = cachedAtom<readonly bigint[]|null>((get) => {
-  return derive.getBattlefield(get(playerData), get(cards))
+export const playerBattlefield = cachedAtom<readonly bigint[] | null>((get) => {
+    return derive.getBattlefield(get(playerData), get(cards))
 })
 
 // -------------------------------------------------------------------------------------------------
@@ -204,32 +199,32 @@ export const playerBattlefield = cachedAtom<readonly bigint[]|null>((get) => {
 /**
  * @see module:store/hooks#useOpponentBattlefield
  */
-export const opponentBattlefield = cachedAtom<readonly bigint[]|null>((get) => {
-  return derive.getBattlefield(get(opponentData), get(cards))
+export const opponentBattlefield = cachedAtom<readonly bigint[] | null>((get) => {
+    return derive.getBattlefield(get(opponentData), get(cards))
 })
 
 // =================================================================================================
 // DEBUG LABELS
 
-playerAddress.debugLabel        = "playerAddress"
-gameID.debugLabel               = "gameID"
-gameData.debugLabel             = "gameData"
-privateInfoStore.debugLabel     = "privateInfoStore"
-hasVisitedBoard.debugLabel      = "hasVisitedBoard"
-errorConfig.debugLabel          = "errorConfig"
+playerAddress.debugLabel = "playerAddress"
+gameID.debugLabel = "gameID"
+gameData.debugLabel = "gameData"
+privateInfoStore.debugLabel = "privateInfoStore"
+hasVisitedBoard.debugLabel = "hasVisitedBoard"
+errorConfig.debugLabel = "errorConfig"
 
-gameStatus.debugLabel           = "gameStatus"
-allPlayersJoined.debugLabel     = "allPlayersJoined"
-isGameCreator.debugLabel        = "isGameCreator"
-isGameJoiner.debugLabel         = "isGameJoiner"
-cards.debugLabel                = "cards"
+gameStatus.debugLabel = "gameStatus"
+allPlayersJoined.debugLabel = "allPlayersJoined"
+isGameCreator.debugLabel = "isGameCreator"
+isGameJoiner.debugLabel = "isGameJoiner"
+cards.debugLabel = "cards"
 currentPlayerAddress.debugLabel = "currentPlayerAddress"
-playerData.debugLabel           = "playerData"
-opponentAddress.debugLabel      = "opponentAddress"
-opponentData.debugLabel         = "opponentData"
-privateInfo.debugLabel          = "privateInfo"
-playerHand.debugLabel           = "playerHand"
-playerBattlefield.debugLabel    = "playerBattlefield"
-opponentBattlefield.debugLabel  = "opponentBattlefield"
+playerData.debugLabel = "playerData"
+opponentAddress.debugLabel = "opponentAddress"
+opponentData.debugLabel = "opponentData"
+privateInfo.debugLabel = "privateInfo"
+playerHand.debugLabel = "playerHand"
+playerBattlefield.debugLabel = "playerBattlefield"
+opponentBattlefield.debugLabel = "opponentBattlefield"
 
 // =================================================================================================

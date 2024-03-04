@@ -13,12 +13,12 @@ import { NextRouter } from "next/router"
  * mode.
  */
 export async function navigate(router: NextRouter, url: string): Promise<boolean> {
-  if (process.env.NODE_ENV === "development") {
-    const index = parseInt(router.query.index as string)
-    if (index !== undefined && !isNaN(index) && 0 <= index && index <= 9)
-      url = url + (url.includes("?") ? "&" : "?") + `index=${index}`
-  }
-  return router.push(url)
+    if (process.env.NODE_ENV === "development") {
+        const index = parseInt(router.query.index as string)
+        if (index !== undefined && !isNaN(index) && 0 <= index && index <= 9)
+            url = url + (url.includes("?") ? "&" : "?") + `index=${index}`
+    }
+    return router.push(url)
 }
 
 // =================================================================================================

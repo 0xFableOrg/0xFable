@@ -16,8 +16,8 @@ import { ErrorConfig, FetchedGameData, GameStatus, PlayerData, PrivateInfo } fro
 // =================================================================================================
 
 /** Player address — the connected wallet address. */
-export function usePlayerAddress(): Address|null {
-  return useAtomValue(store.playerAddress)
+export function usePlayerAddress(): Address | null {
+    return useAtomValue(store.playerAddress)
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -28,15 +28,15 @@ export function usePlayerAddress(): Address|null {
  * Returns the current value and a setter that can be used to transition to a different ID, or
  * to clear the game data (by passing null).
  */
-export function useGameID(): [bigint|null, (ID: bigint|null) => void] {
-  return useAtom(store.gameID)
+export function useGameID(): [bigint | null, (ID: bigint | null) => void] {
+    return useAtom(store.gameID)
 }
 
 // -------------------------------------------------------------------------------------------------
 
 /** The current state of the game. */
-export function useGameData(): FetchedGameData|null {
-  return useAtomValue(store.gameData)
+export function useGameData(): FetchedGameData | null {
+    return useAtomValue(store.gameData)
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -48,15 +48,15 @@ export function useGameData(): FetchedGameData|null {
  * Returns the current value and a function that can be used to indicate we visited the game board.
  */
 export function useHasVisitedBoard(): [boolean, () => void] {
-  const [ value, setValue ] = useAtom(store.hasVisitedBoard)
-  return [ value, () => setValue(true) ]
+    const [value, setValue] = useAtom(store.hasVisitedBoard)
+    return [value, () => setValue(true)]
 }
 
 // -------------------------------------------------------------------------------------------------
 
 /** If non-null, the configuration of an error modal to be displayed. */
-export function useErrorConfig(): ErrorConfig|null {
-  return useAtomValue(store.errorConfig)
+export function useErrorConfig(): ErrorConfig | null {
+    return useAtomValue(store.errorConfig)
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -66,7 +66,7 @@ export function useErrorConfig(): ErrorConfig|null {
  * Will be {@link GameStatus.UNKNOWN} (= 0) if the some data is missing.
  */
 export function useGameStatus(): GameStatus {
-  return useAtomValue(store.gameStatus)
+    return useAtomValue(store.gameStatus)
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -76,7 +76,7 @@ export function useGameStatus(): GameStatus {
  * game creator can no longer cancel the game. False if data is missing.
  */
 export function useAllPlayersJoined(): boolean {
-  return useAtomValue(store.allPlayersJoined)
+    return useAtomValue(store.allPlayersJoined)
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -85,7 +85,7 @@ export function useAllPlayersJoined(): boolean {
  * True if the local player is the game creator. False if data is missing.
  */
 export function useIsGameCreator(): boolean {
-  return useAtomValue(store.isGameCreator)
+    return useAtomValue(store.isGameCreator)
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -95,7 +95,7 @@ export function useIsGameCreator(): boolean {
  * False if data is missing.
  */
 export function useIsGameJoiner(): boolean {
-  return useAtomValue(store.isGameJoiner)
+    return useAtomValue(store.isGameJoiner)
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -104,8 +104,8 @@ export function useIsGameJoiner(): boolean {
  * The address of the current player (whose turn it is in the game). Will be null if data is
  * missing. This value is only meaningful if the game status is >= {@link GameStatus.STARTED}.
  */
-export function useCurrentPlayerAddress(): Address|null {
-  return useAtomValue(store.currentPlayerAddress)
+export function useCurrentPlayerAddress(): Address | null {
+    return useAtomValue(store.currentPlayerAddress)
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -114,8 +114,8 @@ export function useCurrentPlayerAddress(): Address|null {
  * Returns the {@link PlayerData} for the local player, or null if the player is not set, game
  * data is missing, or the player is not in the game. Returns null if data is missing.
  */
-export function usePlayerData(): PlayerData|null {
-  return useAtomValue(store.playerData)
+export function usePlayerData(): PlayerData | null {
+    return useAtomValue(store.playerData)
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -124,8 +124,8 @@ export function usePlayerData(): PlayerData|null {
  * The address of the opponent of the local player (assumes a two-player game).
  * Returns null if data is missing.
  */
-export function useOpponentAddress(): Address|null {
-  return useAtomValue(store.opponentAddress)
+export function useOpponentAddress(): Address | null {
+    return useAtomValue(store.opponentAddress)
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -134,8 +134,8 @@ export function useOpponentAddress(): Address|null {
  * Returns the {@link PlayerData} for the opponent (assumes a two-player game). Returns null if the
  * local player is not set, game data is missing, or the local player is not in the game.
  */
-export function useOpponentData(): PlayerData|null {
-  return useAtomValue(store.opponentData)
+export function useOpponentData(): PlayerData | null {
+    return useAtomValue(store.opponentData)
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -143,8 +143,8 @@ export function useOpponentData(): PlayerData|null {
 /**
  * Returns the local player's hand, or null if data is missing.
  */
-export function usePlayerHand(): readonly bigint[]|null {
-  return useAtomValue(store.playerHand)
+export function usePlayerHand(): readonly bigint[] | null {
+    return useAtomValue(store.playerHand)
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -153,8 +153,8 @@ export function usePlayerHand(): readonly bigint[]|null {
  * The private information pertaining to the local player.
  * Will be null if data is missing.
  */
-export function usePrivateInfo(): PrivateInfo|null {
-  return useAtomValue(store.privateInfo)
+export function usePrivateInfo(): PrivateInfo | null {
+    return useAtomValue(store.privateInfo)
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -162,8 +162,8 @@ export function usePrivateInfo(): PrivateInfo|null {
 /**
  * The cards controlled by the local player on the battlefield.
  */
-export function usePlayerBattlefield(): readonly bigint[]|null {
-  return useAtomValue(store.playerBattlefield)
+export function usePlayerBattlefield(): readonly bigint[] | null {
+    return useAtomValue(store.playerBattlefield)
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -172,8 +172,8 @@ export function usePlayerBattlefield(): readonly bigint[]|null {
  * The cards controlled by the opponent on the battlefield.
  * Will be null if data is missing.
  */
-export function useOpponentBattlefield(): readonly bigint[]|null {
-  return useAtomValue(store.opponentBattlefield)
+export function useOpponentBattlefield(): readonly bigint[] | null {
+    return useAtomValue(store.opponentBattlefield)
 }
 
 // =================================================================================================

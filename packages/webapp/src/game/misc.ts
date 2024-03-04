@@ -10,7 +10,7 @@ import { Address } from "src/chain"
  * Returns true iff it is legal to end a turn in the given game step.
  */
 export function isEndingTurn(gameStep: GameStep): boolean {
-  return gameStep === GameStep.PLAY || gameStep === GameStep.ATTACK || gameStep === GameStep.END_TURN
+    return gameStep === GameStep.PLAY || gameStep === GameStep.ATTACK || gameStep === GameStep.END_TURN
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -19,7 +19,7 @@ export function isEndingTurn(gameStep: GameStep): boolean {
  * Return the current player's address.
  */
 export function currentPlayer(gameData: FetchedGameData): Address {
-  return gameData.players[gameData.currentPlayer]
+    return gameData.players[gameData.currentPlayer]
 }
 
 // =================================================================================================

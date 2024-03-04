@@ -12,17 +12,16 @@
  * Source: https://usehooks-ts.com/react-hook/use-is-mounted
  */
 
-
 import { RefObject, useEffect, useRef } from "react"
 
 export function useIsMounted(): RefObject<boolean> {
-  const isMounted = useRef(true)
-  useEffect(() => {
-    isMounted.current = true
-    return () => {
-      isMounted.current = false
-    }
-  }, [])
+    const isMounted = useRef(true)
+    useEffect(() => {
+        isMounted.current = true
+        return () => {
+            isMounted.current = false
+        }
+    }, [])
 
-  return isMounted
+    return isMounted
 }

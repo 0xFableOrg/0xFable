@@ -17,27 +17,27 @@ import { useEffect, useRef } from "react"
  * cancellation handlers obsolete).
  */
 export function useCancellationHandler(loading: string | null): CancellationHandler {
-  const previous = useRef<string | null>(loading)
-  const cancellationHandler = useRef<CancellationHandler | null>(null)
+    const previous = useRef<string | null>(loading)
+    const cancellationHandler = useRef<CancellationHandler | null>(null)
 
-  // If the loading state changes from non-null to null, then discard the old cancellation handler,
-  // and create a new one.
-  if (previous !== null && loading === null) {
-    cancellationHandler.current = new CancellationHandler()
-  }
+    // If the loading state changes from non-null to null, then discard the old cancellation handler,
+    // and create a new one.
+    if (previous !== null && loading === null) {
+        cancellationHandler.current = new CancellationHandler()
+    }
 
-  // This is only to initialize the very first cancellation handler, and avoid calling the
-  // constructor every time the hook is invoked.
-  if (cancellationHandler.current === null) {
-    cancellationHandler.current = new CancellationHandler()
-  }
+    // This is only to initialize the very first cancellation handler, and avoid calling the
+    // constructor every time the hook is invoked.
+    if (cancellationHandler.current === null) {
+        cancellationHandler.current = new CancellationHandler()
+    }
 
-  // Update previous value.
-  useEffect(() => {
-    previous.current = loading
-  }, [loading])
+    // Update previous value.
+    useEffect(() => {
+        previous.current = loading
+    }, [loading])
 
-  return cancellationHandler.current
+    return cancellationHandler.current
 }
 
 // =================================================================================================

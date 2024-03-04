@@ -13,63 +13,72 @@ import { Button } from "src/components/ui/button"
 import Link from "src/components/link"
 
 const Home: FablePage = ({ isHydrated }) => {
-  const { address } = useAccount()
-  const { setOpen } = useModal()
-  const { chain: usedChain } = useNetwork()
-  const [_gameID, setGameID] = useGameID()
+    const { address } = useAccount()
+    const { setOpen } = useModal()
+    const { chain: usedChain } = useNetwork()
+    const [_gameID, setGameID] = useGameID()
 
-  // Refresh game ID and put it in the store.
-  // noinspection JSDeprecatedSymbols
-  useGameInGame({
-    address: deployment.Game,
-    args: [address as Address],
-    enabled: !!address,
-    onSuccess: (gameID) => {
-      // 0 means we're not in a game
-      if (gameID !== 0n) setGameID(gameID)
-    },
-  })
+    // Refresh game ID and put it in the store.
+    // noinspection JSDeprecatedSymbols
+    useGameInGame({
+        address: deployment.Game,
+        args: [address as Address],
+        enabled: !!address,
+        onSuccess: (gameID) => {
+            // 0 means we're not in a game
+            if (gameID !== 0n) setGameID(gameID)
+        },
+    })
 
-  const chainSupported = chains.some((chain) => chain.id === usedChain?.id)
+    const chainSupported = chains.some((chain) => chain.id === usedChain?.id)
 
-  // These three states are mutually exclusive. One of them is always true.
-  const notConnected = !isHydrated || !address
-  const isRightNetwork = !notConnected && chainSupported
-  const isWrongNetwork = !notConnected && !chainSupported
+    // These three states are mutually exclusive. One of them is always true.
+    const notConnected = !isHydrated || !address
+    const isRightNetwork = !notConnected && chainSupported
+    const isWrongNetwork = !notConnected && !chainSupported
 
-  return (
-    <main className="flex flex-col min-h-screen items-center justify-center">
-      <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16">
-        <h1 className="font-serif text-5xl font-extrabold tracking-tight text-white sm:text-[5rem]">
-          <span className="font-mono font-light text-red-400">0x</span>FABLE
-        </h1>
+    return (
+        <main className="flex flex-col min-h-screen items-center justify-center">
+            <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16">
+                <h1 className="font-serif text-5xl font-extrabold tracking-tight text-white sm:text-[5rem]">
+                    <span className="font-mono font-light text-red-400">0x</span>FABLE
+                </h1>
 
-        {notConnected && (
-          <div className="">
-            <Button variant={"secondary"} className="border-2 border-yellow-500 normal-case hover:scale-105 font-fable text-xl hover:border-yellow-400" onClick={async () => setOpen(true)}>
-              Connect Wallet
-            </Button>
-          </div>
-        )}
+                {notConnected && (
+                    <div className="">
+                        <Button
+                            variant={"secondary"}
+                            className="border-2 border-yellow-500 normal-case hover:scale-105 font-fable text-xl hover:border-yellow-400"
+                            onClick={async () => setOpen(true)}
+                        >
+                            Connect Wallet
+                        </Button>
+                    </div>
+                )}
 
-        {isWrongNetwork && <ConnectKitButton />}
+                {isWrongNetwork && <ConnectKitButton />}
 
-        {isRightNetwork && <>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-4 md:gap-8">
-            <CreateGameModal />
-            <JoinGameModal />
-            <MintDeckModal />
-            <Link href={"/collection"}>
-              <Button variant="outline" className="rounded-lg p-6 font-fable text-2xl border-green-900 border-2 h-16 hover:scale-105 hover:border-green-800 hover:border-3">
-                  Collection →
-              </Button>
-            </Link>
-          </div>
-          <ConnectKitButton />
-        </>}
-      </div>
-    </main>
-  )
+                {isRightNetwork && (
+                    <>
+                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-4 md:gap-8">
+                            <CreateGameModal />
+                            <JoinGameModal />
+                            <MintDeckModal />
+                            <Link href={"/collection"}>
+                                <Button
+                                    variant="outline"
+                                    className="rounded-lg p-6 font-fable text-2xl border-green-900 border-2 h-16 hover:scale-105 hover:border-green-800 hover:border-3"
+                                >
+                                    Collection →
+                                </Button>
+                            </Link>
+                        </div>
+                        <ConnectKitButton />
+                    </>
+                )}
+            </div>
+        </main>
+    )
 }
 
 export default Home

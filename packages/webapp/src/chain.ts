@@ -31,34 +31,33 @@ const burnerConnectors = process.env.NODE_ENV === "development" ? [new BurnerCon
 // -------------------------------------------------------------------------------------------------
 
 const metadata = {
-  name: "0xFable",
-  description: "Wizards & shit",
-  // url: "https://0xFable.org",
-  // icon: "https://0xFable.org/favicon.png",
+    name: "0xFable",
+    description: "Wizards & shit",
+    // url: "https://0xFable.org",
+    // icon: "https://0xFable.org/favicon.png",
 }
 
 const metaConfig = {
-  walletConnectProjectId,
-  chains,
-  appName: metadata.name,
-  appDescription: metadata.description,
-  // appUrl: metadata.url,
-  // appIcon: metadata.icon,
-  app: metadata
+    walletConnectProjectId,
+    chains,
+    appName: metadata.name,
+    appDescription: metadata.description,
+    // appUrl: metadata.url,
+    // appIcon: metadata.icon,
+    app: metadata,
 }
 
 /** Wagmi's configuration, to be passed to the React WagmiConfig provider. */
 export const wagmiConfig = createConfig(
-  getDefaultConfig({
-    ...metaConfig,
-    // In dev, we probably want to use the ?index=X parameters, and autoconnect causes
-    // race conditions, leading to connecting via the parameter, disconnecting via autoconnect,
-    // then reconnecting via the parameter.
-    autoConnect: process.env.NODE_ENV !== "development",
-    connectors: [
-      ...getDefaultConnectors(metaConfig),
-      ...burnerConnectors],
-}))
+    getDefaultConfig({
+        ...metaConfig,
+        // In dev, we probably want to use the ?index=X parameters, and autoconnect causes
+        // race conditions, leading to connecting via the parameter, disconnecting via autoconnect,
+        // then reconnecting via the parameter.
+        autoConnect: process.env.NODE_ENV !== "development",
+        connectors: [...getDefaultConnectors(metaConfig), ...burnerConnectors],
+    })
+)
 
 // =================================================================================================
 // TYPES
@@ -89,8 +88,8 @@ export type HexString = `0x${string}`
  * Simplification of wagmi's unexported GetAccountResult<TProvider>.
  */
 export type AccountResult = {
-  status: 'disconnected' | 'connecting' | 'connected' | 'reconnecting'
-  address?: Address
+    status: "disconnected" | "connecting" | "connected" | "reconnecting"
+    address?: Address
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -99,7 +98,7 @@ export type AccountResult = {
  * Simplification of wagmi's unexported GetNetworkResult.
  */
 export type NetworkResult = {
-  chain?: Chain
+    chain?: Chain
 }
 
 // =================================================================================================
@@ -109,7 +108,7 @@ export type NetworkResult = {
  * disconnecting from another Wagmi connector if necessary.
  */
 export async function ensureLocalAccountIndex(index: number) {
-  await burnerConnectors[0].ensureConnectedToIndex(index)
+    await burnerConnectors[0].ensureConnectedToIndex(index)
 }
 
 // =================================================================================================

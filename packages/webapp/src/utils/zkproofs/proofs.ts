@@ -24,28 +24,32 @@ export const SHOULD_GENERATE_PROOFS = !process.env["NEXT_PUBLIC_NO_PROOFS"]
  * Stand-in value for proofs, used when {@link SHOULD_GENERATE_PROOFS} is false.
  */
 export const FAKE_PROOF: ProofOutput = {
-  proof_a: [1n, 1n],
-  proof_b: [[1n, 1n], [1n, 1n]],
-  proof_c: [1n, 1n]
+    proof_a: [1n, 1n],
+    proof_b: [
+        [1n, 1n],
+        [1n, 1n],
+    ],
+    proof_c: [1n, 1n],
 }
 
 // =================================================================================================
 
-export type ProofInputs = Record<string, bigint|bigint[]|string>
+export type ProofInputs = Record<string, bigint | bigint[] | string>
 
 // -------------------------------------------------------------------------------------------------
 
 export type ProofOutput = {
-  proof_a: readonly [bigint, bigint],
-  proof_b: readonly [readonly [bigint, bigint], readonly [bigint, bigint]],
-  proof_c: readonly [bigint, bigint]
+    proof_a: readonly [bigint, bigint]
+    proof_b: readonly [readonly [bigint, bigint], readonly [bigint, bigint]]
+    proof_c: readonly [bigint, bigint]
 }
 
 // -------------------------------------------------------------------------------------------------
 
 export function isProofOutput(value: any): value is ProofOutput {
-  return value !== undefined && value.proof_a !== undefined && 
-    value.proof_b !== undefined && value.proof_c !== undefined
+    return (
+        value !== undefined && value.proof_a !== undefined && value.proof_b !== undefined && value.proof_c !== undefined
+    )
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -54,11 +58,11 @@ export function isProofOutput(value: any): value is ProofOutput {
  * Wraps errors thrown during proof computation.
  */
 export class ProofError extends Error {
-  cause: unknown
-  constructor(cause: unknown) {
-    super(`Error while computing proof: ${cause}`)
-    this.cause = cause
-  }
+    cause: unknown
+    constructor(cause: unknown) {
+        super(`Error while computing proof: ${cause}`)
+        this.cause = cause
+    }
 }
 
 // =================================================================================================
@@ -67,46 +71,50 @@ export class ProofError extends Error {
 /**
  * Generates a proof for the given circuit, with the given inputs.
  */
-export async function prove
-    (circuitName: string, inputs: Record<string, bigint|bigint[]|string>)
-    : Promise<ProofOutput> {
+export async function prove(
+    circuitName: string,
+    inputs: Record<string, bigint | bigint[] | string>
+): Promise<ProofOutput> {
+    const timestampStart = Date.now()
+    console.log(`start proving (at ${formatTimestamp(timestampStart)})`)
 
-  const timestampStart = Date.now()
-  console.log(`start proving (at ${formatTimestamp(timestampStart)})`)
+    try {
+        const { _publicSignals, proof } = await snarkjs.groth16.fullProve(
+            inputs,
+            `${self.origin}/proofs/${circuitName}.wasm`,
+            `${self.origin}/proofs/${circuitName}.zkey`
+        )
 
-  try {
-    const { _publicSignals, proof } = await snarkjs.groth16.fullProve(inputs,
-      `${self.origin}/proofs/${circuitName}.wasm`,
-      `${self.origin}/proofs/${circuitName}.zkey`)
+        const timestampEnd = Date.now()
+        console.log(
+            `end proving (at ${formatTimestamp(timestampEnd)} — ` + `time: ${(timestampEnd - timestampStart) / 1000}s)`
+        )
 
-    const timestampEnd = Date.now()
-    console.log(`end proving (at ${formatTimestamp(timestampEnd)} — ` +
-      `time: ${(timestampEnd - timestampStart) / 1000}s)`)
+        // NOTE: proof can be verified with
+        //       `verify(circuitName, _publicSignals, proof)`
 
-    // NOTE: proof can be verified with
-    //       `verify(circuitName, _publicSignals, proof)`
+        return {
+            proof_a: proof["pi_a"].slice(0, 2),
+            proof_b: [
+                // The snarkjs-generated verifier uses a different endianess than the one used by the
+                // snarkjs-generated prover.
+                [proof["pi_b"][0][1], proof["pi_b"][0][0]],
+                [proof["pi_b"][1][1], proof["pi_b"][1][0]],
+            ],
+            proof_c: proof["pi_c"].slice(0, 2),
+        }
 
-    return {
-      proof_a: proof["pi_a"].slice(0,2),
-      proof_b: [
-        // The snarkjs-generated verifier uses a different endianess than the one used by the
-        // snarkjs-generated prover.
-        [proof["pi_b"][0][1], proof["pi_b"][0][0]],
-        [proof["pi_b"][1][1], proof["pi_b"][1][0]]
-      ],
-      proof_c: proof["pi_c"].slice(0,2)
+        // NOTE: We could have copied the ordering of proof items from the `exportSolidityCallData`
+        // function and read them from the `proof` object directly. The risk is we need to change the
+        // code if the ordering changes (but now we need to change the code if the formatting changes).
+    } catch (error) {
+        const timestampEnd = Date.now()
+        console.log(
+            `end proving with exception (at ${formatTimestamp(timestampEnd)} — ` +
+                `time: ${(timestampEnd - timestampStart) / 1000}s)`
+        )
+        throw new ProofError(error)
     }
-
-    // NOTE: We could have copied the ordering of proof items from the `exportSolidityCallData`
-    // function and read them from the `proof` object directly. The risk is we need to change the
-    // code if the ordering changes (but now we need to change the code if the formatting changes).
-  }
-  catch (error) {
-    const timestampEnd = Date.now()
-    console.log(`end proving with exception (at ${formatTimestamp(timestampEnd)} — ` +
-      `time: ${(timestampEnd - timestampStart) / 1000}s)`)
-    throw new ProofError(error)
-  }
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -115,9 +123,9 @@ export async function prove
  * Thrown when a proof times out.
  */
 export class ProofTimeoutError extends TimeoutError {
-  constructor(msg: string) {
-    super(msg)
-  }
+    constructor(msg: string) {
+        super(msg)
+    }
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -126,9 +134,9 @@ export class ProofTimeoutError extends TimeoutError {
  * Thrown when a proof is cancelled
  */
 export class ProofCancelled extends Error {
-  constructor(msg: string) {
-    super(msg)
-  }
+    constructor(msg: string) {
+        super(msg)
+    }
 }
 
 // =================================================================================================
@@ -139,12 +147,10 @@ export class ProofCancelled extends Error {
  *
  * This is only used fort testing purposes.
  */
-export async function verify(circuitName: string, publicSignals: readonly string[], proof: any)
-    : Promise<boolean> {
-
-  // If this were to be used in production, we would need to cache the vkey.
-  const vKey = await fetch(`${self.origin}/proofs/${circuitName}.vkey.json`).then(it => it.json())
-  return await snarkjs.groth16.verify(vKey, publicSignals, proof)
+export async function verify(circuitName: string, publicSignals: readonly string[], proof: any): Promise<boolean> {
+    // If this were to be used in production, we would need to cache the vkey.
+    const vKey = await fetch(`${self.origin}/proofs/${circuitName}.vkey.json`).then((it) => it.json())
+    return await snarkjs.groth16.verify(vKey, publicSignals, proof)
 }
 
 // =================================================================================================
@@ -163,33 +169,31 @@ export async function verify(circuitName: string, publicSignals: readonly string
  * there are too few bytes to fill the given number of field elements, the remaining space is
  * padded with 0s.
  */
-export function packBytes(bytes: Uint8Array|number[], numFelts: number, itemsPerFelt: number)
-    : bigint[] {
+export function packBytes(bytes: Uint8Array | number[], numFelts: number, itemsPerFelt: number): bigint[] {
+    if (bytes.length > numFelts * itemsPerFelt)
+        throw new Error(`too many bytes to pack into ${numFelts} field elements`)
 
-  if (bytes.length > numFelts * itemsPerFelt)
-    throw new Error(`too many bytes to pack into ${numFelts} field elements`)
+    const felts = []
 
-  const felts = []
+    // for each field element
+    for (let i = 0; i < numFelts; i++) {
+        let felt = ""
 
-  // for each field element
-  for (let i = 0; i < numFelts; i++) {
-    let felt = ""
+        // For the next `itemsPerFelt` bytes in the array (if they exist, otherwise 0),
+        // prepend the byte (two hex chars) to the `felt` string.
+        for (let j = i * itemsPerFelt; j < (i + 1) * itemsPerFelt; j++) {
+            if (j >= bytes.length) {
+                felt = "00" + felt // ensure there is at least one zero in the string
+                break
+            } else {
+                const byte = bytes[j].toString(16)
+                felt = (byte.length < 2 ? "0" : "") + byte + felt
+            }
+        }
 
-    // For the next `itemsPerFelt` bytes in the array (if they exist, otherwise 0),
-    // prepend the byte (two hex chars) to the `felt` string.
-    for (let j = i * itemsPerFelt; j < (i+1) * itemsPerFelt; j++) {
-      if (j >= bytes.length) {
-        felt = "00" + felt // ensure there is at least one zero in the string
-        break
-      } else {
-        const byte = bytes[j].toString(16)
-        felt = (byte.length < 2 ? "0" : "") + byte + felt
-      }
+        felts.push(BigInt("0x" + felt))
     }
-
-    felts.push(BigInt("0x" + felt))
-  }
-  return felts
+    return felts
 }
 
 // =================================================================================================

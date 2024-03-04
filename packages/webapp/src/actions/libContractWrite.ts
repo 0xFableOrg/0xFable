@@ -5,13 +5,13 @@
  */
 
 import {
-  Abi,
-  ContractFunctionExecutionError,
-  ContractFunctionResult,
-  EstimateGasExecutionError,
-  GetFunctionArgs,
-  TransactionExecutionError,
-  TransactionReceipt
+    Abi,
+    ContractFunctionExecutionError,
+    ContractFunctionResult,
+    EstimateGasExecutionError,
+    GetFunctionArgs,
+    TransactionExecutionError,
+    TransactionReceipt,
 } from "viem"
 
 import { prepareWriteContract, waitForTransaction, writeContract } from "wagmi/actions"
@@ -21,38 +21,35 @@ import type { Address, Hash } from "src/chain"
 // =================================================================================================
 
 /** Arguments to {@link contractWrite}. */
-export type ContractWriteArgs<
-    TAbi extends Abi,
-    TFunctionName extends string> = {
+export type ContractWriteArgs<TAbi extends Abi, TFunctionName extends string> = {
+    /** Called contract address. */
+    contract: Address
 
-  /** Called contract address. */
-  contract: Address
+    /** Called contract ABI. */
+    abi: TAbi
 
-  /** Called contract ABI. */
-  abi: TAbi
+    /** Called function name. */
+    functionName: TFunctionName
 
-  /** Called function name. */
-  functionName: TFunctionName,
+    /** Args to call the function with. */
+    args: GetFunctionArgs<TAbi, TFunctionName>["args"]
 
-  /** Args to call the function with. */
-  args: GetFunctionArgs<TAbi, TFunctionName>['args']
+    /**
+     * If provided, this will be called with the result of the simulated call. This is the only way to
+     * get the return value of a write call, however beware that nothing guarantees that the actual
+     * on-chain call will return the same value (and there is no way to retrieve the on-chain returned
+     * value).
+     */
+    onSimulated?: (result: ContractFunctionResult<TAbi, TFunctionName>) => void
 
-  /**
-   * If provided, this will be called with the result of the simulated call. This is the only way to
-   * get the return value of a write call, however beware that nothing guarantees that the actual
-   * on-chain call will return the same value (and there is no way to retrieve the on-chain returned
-   * value).
-   */
-  onSimulated?: (result: ContractFunctionResult<TAbi, TFunctionName>) => void
+    /** Called after the transaction is signed, with the transaction hash. */
+    onSigned?: (hash: Hash) => void
 
-  /** Called after the transaction is signed, with the transaction hash. */
-  onSigned?: (hash: Hash) => void
-
-  /**
-   * Called with a label indicating the current state of processing the transaction, suitable for
-   * display in the UI, or null when the transaction has finished processing.
-   */
-  setLoading?: (label: string|null) => void
+    /**
+     * Called with a label indicating the current state of processing the transaction, suitable for
+     * display in the UI, or null when the transaction has finished processing.
+     */
+    setLoading?: (label: string | null) => void
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -83,14 +80,14 @@ export type ContractWriteArgsTerse<TAbi, TFunctionName> =
  * Returned by {@link contractWrite} when the write was successful.
  */
 export type ContractWriteResultSuccess<TAbi extends Abi, TFunctionName extends string> = {
-  success: true
-  receipt: TransactionReceipt
-  /**
-   * If the call was simulated, the result of the SIMULATED call, otherwise null. It is impossible
-   * to retrieve the actual returned value of an on-chain transaction — transacions have no retun
-   * only value, only an exit code.
-   */
-  simulatedResult: ContractFunctionResult<TAbi, TFunctionName>|null
+    success: true
+    receipt: TransactionReceipt
+    /**
+     * If the call was simulated, the result of the SIMULATED call, otherwise null. It is impossible
+     * to retrieve the actual returned value of an on-chain transaction — transacions have no retun
+     * only value, only an exit code.
+     */
+    simulatedResult: ContractFunctionResult<TAbi, TFunctionName> | null
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -100,9 +97,9 @@ export type ContractWriteResultSuccess<TAbi extends Abi, TFunctionName extends s
  * transaction wasn't included on-chain.
  */
 export type ContractWriteResultError = {
-  success: false
-  revert: false
-  error: any
+    success: false
+    revert: false
+    error: any
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -112,9 +109,9 @@ export type ContractWriteResultError = {
  * rare as it means the simulation and gas estimation succeeded but the transaction failed on-chain.
  */
 export type ContractWriteResultRevert = {
-  success: false
-  revert: true
-  receipt: TransactionReceipt
+    success: false
+    revert: true
+    receipt: TransactionReceipt
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -129,10 +126,10 @@ export type ContractWriteResultFailed = ContractWriteResultError | ContractWrite
 /**
  * Return type of {@link contractWrite}, union of all possible return types.
  */
-export type ContractWriteResult<TAbi extends Abi, TFunctionName extends string>
-  = ContractWriteResultSuccess<TAbi, TFunctionName>
-  | ContractWriteResultError
-  | ContractWriteResultRevert
+export type ContractWriteResult<TAbi extends Abi, TFunctionName extends string> =
+    | ContractWriteResultSuccess<TAbi, TFunctionName>
+    | ContractWriteResultError
+    | ContractWriteResultRevert
 
 // =================================================================================================
 
@@ -153,25 +150,24 @@ export type ContractWriteResult<TAbi extends Abi, TFunctionName extends string>
  *
  * If you want failure cases to throw, use {@link contractWriteThrowing} instead.
  */
-export async function contractWrite<TAbi extends Abi, TFunctionName extends string>
-    (args: ContractWriteArgs<TAbi, TFunctionName>)
-    : Promise<ContractWriteResult<TAbi, TFunctionName>> {
+export async function contractWrite<TAbi extends Abi, TFunctionName extends string>(
+    args: ContractWriteArgs<TAbi, TFunctionName>
+): Promise<ContractWriteResult<TAbi, TFunctionName>> {
+    args.setLoading?.("Waiting for signature...")
 
-  args.setLoading?.("Waiting for signature...")
+    try {
+        // NOTE: Even if we don't run this, `writeContract` will call it anyway — this is good
+        // because we want to catch possible errors before on-chain execution.
+        const config = await prepareWriteContract({
+            address: args.contract,
+            abi: args.abi,
+            functionName: args.functionName,
+            args: args.args,
+        } as any)
 
-  try {
-    // NOTE: Even if we don't run this, `writeContract` will call it anyway — this is good
-    // because we want to catch possible errors before on-chain execution.
-    const config = await prepareWriteContract({
-      address: args.contract,
-      abi: args.abi,
-      functionName: args.functionName,
-      args: args.args
-    } as any)
+        args.onSimulated?.(config.result as any)
 
-    args.onSimulated?.(config.result as any)
-
-    /*
+        /*
 
     // NOTE(norswap): here's how we could retrieve the gas here.
     // Capturing the gas estimation and passing it to the user would be useful in order to
@@ -196,45 +192,45 @@ export async function contractWrite<TAbi extends Abi, TFunctionName extends stri
 
      */
 
-    const { hash } = await writeContract(config)
+        const { hash } = await writeContract(config)
 
-    args.setLoading?.("Waiting for on-chain inclusion...")
-    args.onSigned?.(hash)
+        args.setLoading?.("Waiting for on-chain inclusion...")
+        args.onSigned?.(hash)
 
-    const receipt: TransactionReceipt = await waitForTransaction({ hash })
-    if (receipt.status === "success") {
-      args.setLoading?.(null)
-      return {
-        success: true,
-        receipt,
-        simulatedResult: config?.result as ContractFunctionResult<TAbi, TFunctionName>|null
-      }
-    } else {
-      args.setLoading?.(null)
-      return {
-        success: false,
-        revert: true,
-        receipt
-      }
+        const receipt: TransactionReceipt = await waitForTransaction({ hash })
+        if (receipt.status === "success") {
+            args.setLoading?.(null)
+            return {
+                success: true,
+                receipt,
+                simulatedResult: config?.result as ContractFunctionResult<TAbi, TFunctionName> | null,
+            }
+        } else {
+            args.setLoading?.(null)
+            return {
+                success: false,
+                revert: true,
+                receipt,
+            }
+        }
+    } catch (e) {
+        if (
+            e instanceof ContractFunctionExecutionError ||
+            e instanceof EstimateGasExecutionError ||
+            e instanceof TransactionExecutionError
+        ) {
+            return {
+                success: false,
+                revert: false,
+                error: e.cause,
+            }
+        }
+        return {
+            success: false,
+            revert: false,
+            error: e,
+        }
     }
-  }
-  catch (e) {
-
-    if ( e instanceof ContractFunctionExecutionError
-      || e instanceof EstimateGasExecutionError
-      || e instanceof TransactionExecutionError) {
-      return {
-        success: false,
-        revert: false,
-        error: e.cause
-      }
-    }
-    return {
-      success: false,
-      revert: false,
-      error: e
-    }
-  }
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -243,15 +239,14 @@ export async function contractWrite<TAbi extends Abi, TFunctionName extends stri
  * Variant of {@link contractWrite} that wraps the failing result types in a {@link
  * ContractWriteError}.
  */
-export async function contractWriteThrowing<TAbi extends Abi, TFunctionName extends string>
-  (args: ContractWriteArgs<TAbi, TFunctionName>)
-  : Promise<ContractWriteResultSuccess<TAbi, TFunctionName>> {
-
-  const result = await contractWrite(args)
-  if (!result.success) {
-    throw new ContractWriteError(args as any, result)
-  }
-  return result
+export async function contractWriteThrowing<TAbi extends Abi, TFunctionName extends string>(
+    args: ContractWriteArgs<TAbi, TFunctionName>
+): Promise<ContractWriteResultSuccess<TAbi, TFunctionName>> {
+    const result = await contractWrite(args)
+    if (!result.success) {
+        throw new ContractWriteError(args as any, result)
+    }
+    return result
 }
 
 // =================================================================================================
@@ -260,18 +255,17 @@ export async function contractWriteThrowing<TAbi extends Abi, TFunctionName exte
  * Error class that wraps a {@link ContractWriteResultFailed}.
  */
 export class ContractWriteError extends Error {
+    /** The arguments to the {@link contractWrite} call. */
+    args: ContractWriteArgs<Abi, string>
 
-  /** The arguments to the {@link contractWrite} call. */
-  args: ContractWriteArgs<Abi, string>
+    /** The failing result of the {@link contractWrite} call. */
+    result: ContractWriteResultFailed
 
-  /** The failing result of the {@link contractWrite} call. */
-  result: ContractWriteResultFailed
-
-  constructor(args: ContractWriteArgs<Abi, string>, result: ContractWriteResultFailed) {
-    super("Contract write failed.")
-    this.args = args
-    this.result = result
-  }
+    constructor(args: ContractWriteArgs<Abi, string>, result: ContractWriteResultFailed) {
+        super("Contract write failed.")
+        this.args = args
+        this.result = result
+    }
 }
 
 // =================================================================================================

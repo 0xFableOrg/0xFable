@@ -8,11 +8,11 @@ import { useEffect, useState } from "react"
  * `if (typeof window !== "undefined") // not server side-rendering`.
  */
 export const useIsHydrated = () => {
-  const [isHydrated, setIsHydrated] = useState(false)
+    const [isHydrated, setIsHydrated] = useState(false)
 
-  useEffect(() => {
-    setIsHydrated(true);
-  }, [])
+    useEffect(() => {
+        setIsHydrated(true)
+    }, [])
 
-  return isHydrated
+    return isHydrated
 }

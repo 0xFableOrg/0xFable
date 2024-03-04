@@ -27,9 +27,9 @@ import { ProofCancelled, ProofError, ProofTimeoutError } from "src/utils/zkproof
  * Thrown when an network request times out.
  */
 export class FableRequestTimeout extends TimeoutError {
-  constructor(msg: string) {
-    super(msg)
-  }
+    constructor(msg: string) {
+        super(msg)
+    }
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -41,9 +41,9 @@ export class FableRequestTimeout extends TimeoutError {
  * the state shifted underneath an async operation).
  */
 export class InconsistentGameStateError extends Error {
-  constructor(msg: string) {
-    super(msg)
-  }
+    constructor(msg: string) {
+        super(msg)
+    }
 }
 
 // =================================================================================================
@@ -63,53 +63,50 @@ export class InconsistentGameStateError extends Error {
  * store changes that caused the error to be thrown.
  */
 export function defaultErrorHandling(actionName: string, err: unknown): false {
+    if (err instanceof StaleError) return false
 
-  if (err instanceof StaleError)
-    return false
+    if (err instanceof FableRequestTimeout) {
+        setError({
+            title: "Request timed out.",
+            message: (err as Error).message + " Please try again.",
+            buttons: [DISMISS_BUTTON],
+        })
+        return false
+    }
 
-  if (err instanceof FableRequestTimeout) {
-    setError({
-      title: "Request timed out.",
-      message: (err as Error).message + " Please try again.",
-      buttons: [DISMISS_BUTTON]
-    })
-    return false
-  }
+    if (err instanceof ProofTimeoutError) {
+        setError({
+            title: "ZK proof generation timed out.",
+            message: "Please try again.",
+            buttons: [DISMISS_BUTTON],
+        })
+        return false
+    }
 
-  if (err instanceof ProofTimeoutError) {
-    setError({
-      title: "ZK proof generation timed out.",
-      message: "Please try again.",
-      buttons: [DISMISS_BUTTON]
-    })
-    return false
-  }
+    if (err instanceof ProofError) {
+        setError({
+            title: "Could not generate ZK proof.",
+            message: "Please reload page and try again.",
+            buttons: [RELOAD_BUTTON, DISMISS_BUTTON],
+        })
+        // This is most likely gibberish, but you never known.
+        console.error(err.cause)
+        return false
+    }
 
-  if (err instanceof ProofError) {
-    setError({
-      title: "Could not generate ZK proof.",
-      message: "Please reload page and try again.",
-      buttons: [RELOAD_BUTTON, DISMISS_BUTTON]
-    })
-    // This is most likely gibberish, but you never known.
-    console.error(err.cause)
-    return false
-  }
+    if (err instanceof ProofCancelled) {
+        // This is actually not an error, do nothing except signal the action failed.
+        return false
+    }
 
-  if (err instanceof ProofCancelled) {
-    // This is actually not an error, do nothing except signal the action failed.
-    return false
-  }
+    if (err instanceof ContractWriteError) return defaultContractWriteErrorHandling(err)
 
-  if (err instanceof ContractWriteError)
-    return defaultContractWriteErrorHandling(err)
+    if (err instanceof InconsistentGameStateError) {
+        reportInconsistentGameState(err)
+        return false
+    }
 
-  if (err instanceof InconsistentGameStateError) {
-    reportInconsistentGameState(err)
-    return false
-  }
-
-  throw err
+    throw err
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -125,74 +122,74 @@ export function defaultErrorHandling(actionName: string, err: unknown): false {
  * never rethrown.
  */
 export function defaultContractWriteErrorHandling(err: ContractWriteError): false {
+    if (err.result.revert) {
+        // Ethereum nodes do not store the revert reason at all, so there is no way to be more
+        // precise than this. These errors can only occur when the call succeeded at simulation time
+        // but failed at executing on-chain, which should make them rare. This also means they are
+        // caused by a race condition in the contract, where another action changed the state such
+        // that a previously successful call now fails. We should try to avoid these as a matter of
+        // design.
 
-  if (err.result.revert) {
-    // Ethereum nodes do not store the revert reason at all, so there is no way to be more
-    // precise than this. These errors can only occur when the call succeeded at simulation time
-    // but failed at executing on-chain, which should make them rare. This also means they are
-    // caused by a race condition in the contract, where another action changed the state such
-    // that a previously successful call now fails. We should try to avoid these as a matter of
-    // design.
+        // It's also hard to know if the error was due to a logic revert or to running
+        // out of gas. This is a viem issue, see here for the explanation:
+        // https://twitter.com/norswap/status/1687491839320842240
+        // In both cases, the problem is triggered by an underlying state change.
 
-    // It's also hard to know if the error was due to a logic revert or to running
-    // out of gas. This is a viem issue, see here for the explanation:
-    // https://twitter.com/norswap/status/1687491839320842240
-    // In both cases, the problem is triggered by an underlying state change.
+        // Ideally, we override this and handle it in a custom manner only for actions where these
+        // races are possible.
 
-    // Ideally, we override this and handle it in a custom manner only for actions where these
-    // races are possible.
+        setError({
+            title: "Contract execution error",
+            message:
+                `Transaction reverted (${err.args.functionName}) at execution time ` +
+                "but not at simulation time. Please try again.",
+            buttons: [DISMISS_BUTTON],
+        })
+        return false
+    }
+
+    const error = err.result.error
+
+    if (error instanceof UserRejectedRequestError) {
+        // The user rejected the execution, he's probably well aware of the fact.
+        return false
+    }
+
+    if (error instanceof ContractFunctionRevertedError) {
+        if (error.data) {
+            // The revert was parsed, because the function signature was found in the ABI of the
+            // calling contract (meaning it was declared *inside* the contract).
+            setError({
+                title: "Contract execution error",
+                message:
+                    `Transaction reverted (${err.args.functionName}) with ` +
+                    `${error.data.errorName}(${error.data.args})`,
+                buttons: [DISMISS_BUTTON],
+            })
+        } else {
+            // The revert wasn't parsed, probably because the error isn't declared *inside* the
+            // contract, but comes from another contract and wasn't redeclared.
+
+            const signatureMsg = error.signature ? `with signature ${error.signature}` : "with no signature"
+
+            setError({
+                title: "Contract execution error",
+                message:
+                    `Transaction reverted (${err.args.functionName}) ${signatureMsg}. ` +
+                    `Please report to ${GIT_ISSUES}`,
+                buttons: [DISMISS_BUTTON],
+            })
+        }
+        return false
+    }
 
     setError({
-      title: "Contract execution error",
-      message: `Transaction reverted (${err.args.functionName}) at execution time `
-        + "but not at simulation time. Please try again.",
-      buttons: [DISMISS_BUTTON]
+        title: "Contract execution error",
+        message: error.toString(),
+        buttons: [DISMISS_BUTTON],
     })
+
     return false
-  }
-
-  const error = err.result.error
-
-  if (error instanceof UserRejectedRequestError) {
-    // The user rejected the execution, he's probably well aware of the fact.
-    return false
-  }
-
-  if (error instanceof ContractFunctionRevertedError) {
-    if (error.data) {
-      // The revert was parsed, because the function signature was found in the ABI of the
-      // calling contract (meaning it was declared *inside* the contract).
-      setError({
-        title: "Contract execution error",
-        message: `Transaction reverted (${err.args.functionName}) with `
-          +`${error.data.errorName}(${error.data.args})`,
-        buttons: [DISMISS_BUTTON]
-      })
-    } else {
-      // The revert wasn't parsed, probably because the error isn't declared *inside* the
-      // contract, but comes from another contract and wasn't redeclared.
-
-      const signatureMsg = error.signature
-          ? `with signature ${error.signature}`
-          : "with no signature"
-
-      setError({
-        title: "Contract execution error",
-        message: `Transaction reverted (${err.args.functionName}) ${signatureMsg}. `
-          + `Please report to ${GIT_ISSUES}`,
-        buttons: [DISMISS_BUTTON]
-      })
-    }
-    return false
-  }
-
-  setError({
-    title: "Contract execution error",
-    message: error.toString(),
-    buttons: [DISMISS_BUTTON]
-  })
-
-  return false
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -203,13 +200,13 @@ export function defaultContractWriteErrorHandling(err: ContractWriteError): fals
  * As state in {@link InconsistentGameStateError}, this should never occur in practice, and
  * implies an implementation bug or weakness.
  */
-export function reportInconsistentGameState(err: InconsistentGameStateError|string) {
-  const message = typeof err === "string" ? err : err.message
-  setError({
-    title: "Error: Inconsistent game state.",
-    message: `${message}\n\nPlease reload the page.`,
-    buttons: [RELOAD_BUTTON, DISMISS_BUTTON]
-  })
+export function reportInconsistentGameState(err: InconsistentGameStateError | string) {
+    const message = typeof err === "string" ? err : err.message
+    setError({
+        title: "Error: Inconsistent game state.",
+        message: `${message}\n\nPlease reload the page.`,
+        buttons: [RELOAD_BUTTON, DISMISS_BUTTON],
+    })
 }
 
 // =================================================================================================
@@ -227,7 +224,7 @@ export const DISMISS_BUTTON = { text: "Dismiss", onClick: () => setError(null) }
 
 /**
  * A button meant to be used as a component in {@link ErrorConfig.buttons} when passed to {@link
-  * setError}. It reloads the page when clicked.
+ * setError}. It reloads the page when clicked.
  */
 export const RELOAD_BUTTON = { text: "Refresh", onClick: () => window.location.reload() }
 
