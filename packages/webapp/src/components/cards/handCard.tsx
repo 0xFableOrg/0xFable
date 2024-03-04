@@ -16,7 +16,9 @@ const HandCard = forwardRef<HTMLDivElement, HandCardProps>(({ id, isDragging, ha
 
     return (
         <div
-            className={`flex flex-col w-full h-full ${showingDetails ? "p-4 border-[1px] border-white rounded-xl" : null}`}
+            className={`flex flex-col w-full h-full ${
+                showingDetails ? "p-4 border-[1px] border-white rounded-xl" : null
+            }`}
             style={{
                 zIndex: isDragging ? 1000 : 1,
                 opacity: isDragging ? 0.3 : 1,
@@ -36,8 +38,8 @@ const HandCard = forwardRef<HTMLDivElement, HandCardProps>(({ id, isDragging, ha
                     showingDetails
                         ? "font-serif overflow-hidden text-2xl font-bold text-slate-200 text-left text-clip max-w-[320px] select-none"
                         : handHovered
-                          ? "font-serif text-[14px] font-bold text-slate-200 text-left truncate select-none"
-                          : "hidden"
+                        ? "font-serif text-[14px] font-bold text-slate-200 text-left truncate select-none"
+                        : "hidden"
                 }
             >
                 {testCards[id]?.name}

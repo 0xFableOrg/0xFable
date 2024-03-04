@@ -106,7 +106,7 @@ export class BurnerConnector extends Connector {
             if (!this.#connected) {
                 // The next two functions are wagmi actions, not methods of this class!
 
-                // Unconditional disconnet to avoid issues: `getAccount().isConnect == false`
+                // Unconditional disconnect to avoid issues: `getAccount().isConnect == false`
                 // but we still get an `AlreadyConnectedException` if we don't disconnect.
                 await disconnect()
                 await connect({ connector: this })

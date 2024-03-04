@@ -47,7 +47,9 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                         <button
                             key={index}
                             onClick={() => handleEffectClick(index)}
-                            className={`text-white font-bold py-2 px-2 rounded m-1.5 ${effectMap[effect] ? "bg-purple-900" : "bg-gray-500"}`}
+                            className={`text-white font-bold py-2 px-2 rounded m-1.5 ${
+                                effectMap[effect] ? "bg-purple-900" : "bg-gray-500"
+                            }`}
                         >
                             {effect}
                         </button>
@@ -61,7 +63,9 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                         <button
                             key={index}
                             onClick={() => handleTypeClick(index)}
-                            className={`text-white font-bold py-2 px-2 rounded m-1 ${typeMap[type] ? "bg-purple-900" : "bg-gray-500"}`}
+                            className={`text-white font-bold py-2 px-2 rounded m-1 ${
+                                typeMap[type] ? "bg-purple-900" : "bg-gray-500"
+                            }`}
                         >
                             {type}
                         </button>
