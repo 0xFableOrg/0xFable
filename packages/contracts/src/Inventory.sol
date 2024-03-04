@@ -337,6 +337,18 @@ contract Inventory is Ownable {
     {
         return decks[player][deckID].cards;
     }
+
+        // ---------------------------------------------------------------------------------------------
+
+    // Returns the list of cards in the given deck of the given player.
+    function getDeckReal(address player, uint8 deckID)
+        external
+        view
+        exists(player, deckID)
+        returns (Deck memory)
+    {
+        return decks[player][deckID];
+    }
     
     // ---------------------------------------------------------------------------------------------
 
@@ -350,6 +362,20 @@ contract Inventory is Ownable {
     // Returns the number of deck a player has created.
     function getNumDecks(address player) external view returns (uint8) {
         return uint8(decks[player].length);
+    }
+
+    // ---------------------------------------------------------------------------------------------
+
+    // Returns the names of all decks for a given player.
+    function getDeckNames(address player) external view returns (string[] memory) {
+        uint256 deckCount = decks[player].length;
+        string[] memory deckNames = new string[](deckCount);
+
+        for (uint256 i = 0; i < deckCount; i++) {
+            deckNames[i] = decks[player][i].name;
+        }
+
+        return deckNames;
     }
 
     // ---------------------------------------------------------------------------------------------
