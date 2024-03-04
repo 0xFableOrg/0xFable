@@ -17,7 +17,7 @@ import { useInventoryCardsCollectionGetCollection } from "src/generated"
 import { FablePage } from "src/pages/_app"
 import { useRouter } from "next/router"
 import { navigate } from "utils/navigate"
-
+import { getDeck } from "src/actions/getDeck"
 import FilterPanel from 'src/components/collection/filterPanel'
 import CardCollectionDisplay from 'src/components/collection/cardCollectionDisplay'
 import DeckList from 'src/components/collection/deckList'
@@ -51,7 +51,7 @@ const Collection: FablePage = ({ isHydrated }) => {
     const [selectedCards, setSelectedCards] = useState<Card[]>([])
     const [isSaving, setIsSaving] = useState(false)
     const [isEditing, setIsEditing] = useState(false)
-    
+
     // Deck Collection Display
     const [ editingDeckIndex, setEditingDeckIndex ] = useState<number|null>(null)
     const [decks, setDecks] = useState<Deck[]>([])
@@ -166,21 +166,41 @@ const Collection: FablePage = ({ isHydrated }) => {
     }
 
     const handleDeckSelect = (deckID: number) => {
-      const selectedDeck = decks[deckID]
-      setCurrentDeck(selectedDeck)
-      setEditingDeckIndex(deckID)
-      setIsEditing(true)
+      if (isLoadingDeck) return;
+      if (playerAddress) {
+        setIsLoadingDeck(true)
+        getDeck({
+          playerAddress: playerAddress,
+          index: deckID,
+          onSuccess: () => {
+          },
+        }).then(response => {
+          if(!response.simulatedResult) return;
+          
   
-      const cardObjects: Card[] = []
-      selectedDeck.cards.forEach(card => {
-        const cID = Number(card)
-        const co = cards.find(c => Number(c.id) === cID)
-        if(co) { cardObjects.push(co) }
-      })
-      console.log(cardObjects)
+          const cardsReceived = response.simulatedResult.cards;
+          const cardObjects: Card[] = []
+          cardsReceived.forEach(card => {
+            const cID = Number(card)
+            const co = cards.find(c => Number(c.id) === cID)
+            if(co) { cardObjects.push(co) }
+          })
   
-      setSelectedCards(cardObjects)
-    }
+          console.log(cardObjects)
+          setSelectedCards(cardObjects);
+  
+          const deckName = response.simulatedResult.name;
+          setCurrentDeck({ name: deckName, cards: cardObjects })
+          setEditingDeckIndex(deckID)
+          setIsEditing(true)
+  
+        }).catch(error => {
+          console.error("Error fetching deck:", error);
+        }).finally(_ => {
+          setIsLoadingDeck(false)
+        })
+      }
+    }  
 
     // Sets up an event listener for route changes when deck editor is rendered.
     useEffect(() => {
@@ -237,7 +257,7 @@ const Collection: FablePage = ({ isHydrated }) => {
 
               {/* Right Panel - Deck List */}
               {isSaving ? (
-                <LoadingModal loading="Saving deck..."  />
+                <LoadingModal loading="Saving deck..." />
               ) : (
                 <div className="flex col-span-2 rounded-xl border overflow-y-auto">
                   {isEditing && currentDeck ? (
@@ -250,14 +270,14 @@ const Collection: FablePage = ({ isHydrated }) => {
                     />
                   ) : (
                     <DeckList
-                    onDeckSelect={handleDeckSelect}
-                    decks={decks}
-                    setDecks={setDecks}
-                  />
-                  )}
-                </div>
-              )}
-        </div>
+                      onDeckSelect={handleDeckSelect}
+                      decks={decks}
+                      setDecks={setDecks}
+                    />
+                    )}
+                  </div>
+                )}
+          </div>
       </main>
     </>
   )
