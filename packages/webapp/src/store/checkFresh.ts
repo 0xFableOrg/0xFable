@@ -27,13 +27,14 @@ import { FetchedGameData } from "src/store/types"
  * The game state checking is currently unused in the codebase.
  */
 function isStale(gameID: bigint | null, player: Address, gameData?: FetchedGameData): boolean {
-  const gameID2 = store.get(store.gameID)
-  const player2 = store.get(store.playerAddress)
-  const gameData2 = store.get(store.gameData)
-  return gameID2 !== gameID
-    || player2 !== player
-    || (gameData !== undefined
-      && (gameData2 === null || gameData2.lastBlockNum !== gameData.lastBlockNum))
+    const gameID2 = store.get(store.gameID)
+    const player2 = store.get(store.playerAddress)
+    const gameData2 = store.get(store.gameData)
+    return (
+        gameID2 !== gameID ||
+        player2 !== player ||
+        (gameData !== undefined && (gameData2 === null || gameData2.lastBlockNum !== gameData.lastBlockNum))
+    )
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -46,9 +47,9 @@ function isStale(gameID: bigint | null, player: Address, gameData?: FetchedGameD
  * to date with a store that has changed while the async operation was in progress.
  */
 export class StaleError extends Error {
-  constructor() {
-    super("Stale")
-  }
+    constructor() {
+        super("Stale")
+    }
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -57,8 +58,7 @@ export class StaleError extends Error {
  * If {@link isStale} returns true, throws a {@link StaleError}.
  */
 export function checkStale(gameID: bigint | null, player: Address, gameData?: FetchedGameData) {
-  if (isStale(gameID, player, gameData))
-    throw new StaleError()
+    if (isStale(gameID, player, gameData)) throw new StaleError()
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -78,19 +78,19 @@ export function checkStale(gameID: bigint | null, player: Address, gameData?: Fe
  * `freshWrap` returns and the time the corresponding `await` resumes.
  */
 export async function freshWrap<T>(promise: Promise<T>): Promise<() => T> {
-  const gameID = store.get(store.gameID)
-  const player = store.get(store.playerAddress)
-  if (player === null) return () => {
-    throw new StaleError()
-  }
+    const gameID = store.get(store.gameID)
+    const player = store.get(store.playerAddress)
+    if (player === null)
+        return () => {
+            throw new StaleError()
+        }
 
-  const result = await promise
+    const result = await promise
 
-  return () => {
-    if (isStale(gameID, player))
-      throw new StaleError()
-    return result
-  }
+    return () => {
+        if (isStale(gameID, player)) throw new StaleError()
+        return result
+    }
 }
 
 // -------------------------------------------------------------------------------------------------

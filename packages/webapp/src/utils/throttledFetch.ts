@@ -42,48 +42,45 @@ export type Fetched<Result> = Result | typeof THROTTLED | typeof ZOMBIE
  *
  * Throttled and ignored fetches return null.
  */
-export function throttledFetch
-    <Params extends any[], Result>
-    (fetchFn: (...args: Params) => Promise<Result>, throttlePeriod: number = DEFAULT_THROTTLE_PERIOD)
-    : (...args: Params) => Promise<Fetched<Result>> {
+export function throttledFetch<Params extends any[], Result>(
+    fetchFn: (...args: Params) => Promise<Result>,
+    throttlePeriod: number = DEFAULT_THROTTLE_PERIOD
+): (...args: Params) => Promise<Fetched<Result>> {
+    // Used for throttling
+    let lastRequestTimestamp = 0
 
-  // Used for throttling
-  let lastRequestTimestamp = 0
+    // used to avoid "zombie" updates: old data overwriting newer game data.
+    let sequenceNumber = 1
+    let lastCompletedNumber = 0
 
-  // used to avoid "zombie" updates: old data overwriting newer game data.
-  let sequenceNumber = 1
-  let lastCompletedNumber = 0
+    return async (...args: Params) => {
+        const seqNum = sequenceNumber++
 
-  return async (...args: Params) => {
+        // Throttle
+        const timestamp = Date.now()
+        if (timestamp - lastRequestTimestamp < throttlePeriod) return THROTTLED // there is a recent-ish refresh in flight
+        lastRequestTimestamp = timestamp
 
-    const seqNum = sequenceNumber++
+        let result: Result
+        let lastCompletedNumberAfterFetch: number
+        try {
+            result = await fetchFn(...args)
+        } catch (e) {
+            throw e
+        } finally {
+            // Bookkeeping for zombie filtering
+            lastCompletedNumberAfterFetch = lastCompletedNumber
+            lastCompletedNumber = seqNum
 
-    // Throttle
-    const timestamp = Date.now()
-    if (timestamp - lastRequestTimestamp < throttlePeriod)
-      return THROTTLED // there is a recent-ish refresh in flight
-    lastRequestTimestamp = timestamp
+            // Allow another fetch immediately
+            lastRequestTimestamp = 0
+        }
 
-    let result: Result
-    let lastCompletedNumberAfterFetch: number
-    try {
-      result = await fetchFn(...args)
-    } catch (e) {
-      throw e
-    } finally {
-      // Bookkeeping for zombie filtering
-      lastCompletedNumberAfterFetch = lastCompletedNumber
-      lastCompletedNumber = seqNum
+        // Filter zombie updates
+        if (seqNum < lastCompletedNumberAfterFetch) return ZOMBIE
 
-      // Allow another fetch immediately
-      lastRequestTimestamp = 0
+        return result
     }
-
-    // Filter zombie updates
-    if (seqNum < lastCompletedNumberAfterFetch) return ZOMBIE
-
-    return result
-  }
 }
 
 // =================================================================================================

@@ -17,18 +17,16 @@ import { atom, type Atom, type Getter, type Setter, type WritableAtom } from "jo
  */
 export type JotaiRead<Value> = (get: Getter) => Value
 
-
 /**
  * Simplified version of the unexported Jotai `Write` type (parameter to some {@link atom}
  * overloads), meant to work with {@link writeableAtom} and its {@link WAtom} return type.
  */
-export type JotaiWrite<Value>
-  = (get: Getter, set: Setter, ...args: [Value]) => void
+export type JotaiWrite<Value> = (get: Getter, set: Setter, ...args: [Value]) => void
 
 // =================================================================================================
 
 export function readOnlyAtom<T>(readWriteAtom: Atom<T>): Atom<T> {
-  return atom((get) => get(readWriteAtom))
+    return atom((get) => get(readWriteAtom))
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -43,7 +41,7 @@ export type WAtom<Value> = WritableAtom<Value, [Value], void>
 
 /** Just an alias for the overload of {@link atom} that returns a {@link WAtom}. */
 export function writeableAtom<Value>(read: JotaiRead<Value>, write: JotaiWrite<Value>): WAtom<Value> {
-  return atom(read, write)
+    return atom(read, write)
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -54,7 +52,7 @@ export function writeableAtom<Value>(read: JotaiRead<Value>, write: JotaiWrite<V
  * explicitly for documentation purposes.
  */
 export function asyncAtom<Value>(read: (get: Getter) => Promise<Value>): Atom<Promise<Value>> {
-  return atom(read)
+    return atom(read)
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -65,10 +63,10 @@ export function asyncAtom<Value>(read: (get: Getter) => Promise<Value>): Atom<Pr
  * explicitly for documentation purposes.
  */
 export function asyncWriteableAtom<Value>(
-      read: (get: Getter) => Promise<Value>,
-      write: (get: Getter, set: Setter, value: Value) => void)
-    : WritableAtom<Promise<Value>, [Value], void> {
-  return atom(read, write)
+    read: (get: Getter) => Promise<Value>,
+    write: (get: Getter, set: Setter, value: Value) => void
+): WritableAtom<Promise<Value>, [Value], void> {
+    return atom(read, write)
 }
 
 // =================================================================================================

@@ -17,7 +17,7 @@ const mimcSponge = await buildMimcSponge()
  * The MiMCSponge hash function.
  */
 export function mimcHash(inputs: readonly bigint[]): bigint {
-  return mimcSponge.F.toObject(mimcSponge.multiHash(inputs))
+    return mimcSponge.F.toObject(mimcSponge.multiHash(inputs))
 }
 
 // =================================================================================================
@@ -36,18 +36,13 @@ export const fillerValue = 255n
  * Returns the MiMC-based Merkle root of `items`, after extending it to size `size` by filling it up
  * with `filler`. `size` must be a power of two.
  */
-export function merkleize
-    (size: number, items: readonly bigint[], filler: bigint = fillerValue)
-    : bigint {
+export function merkleize(size: number, items: readonly bigint[], filler: bigint = fillerValue): bigint {
+    if (size & (size - 1) || size == 0) throw new Error("size must be a power of 2")
 
-  if (size & (size - 1) || size == 0)
-    throw new Error("size must be a power of 2")
+    const extended = [...items]
+    for (let i = items.length; i < size; i++) extended.push(filler)
 
-  const extended = [...items]
-  for (let i = items.length; i < size; i++)
-    extended.push(filler)
-
-  return _merkleize(extended)
+    return _merkleize(extended)
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -56,13 +51,9 @@ export function merkleize
  * Merkleize `items`, assuming its size is a power of 2.
  */
 function _merkleize(items: readonly bigint[]): bigint {
-  if (items.length === 1)
-    return items[0]
-  const half = items.length / 2
-  return mimcHash([
-    _merkleize(items.slice(0, half)),
-    _merkleize(items.slice(half))
-  ])
+    if (items.length === 1) return items[0]
+    const half = items.length / 2
+    return mimcHash([_merkleize(items.slice(0, half)), _merkleize(items.slice(half))])
 }
 
 // =================================================================================================

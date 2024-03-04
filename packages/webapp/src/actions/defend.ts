@@ -8,15 +8,15 @@ import { gameABI } from "src/generated"
 // =================================================================================================
 
 export type DefendArgs = {
-  gameID: bigint
-  playerAddress: Address
-  setLoading: (label: string | null) => void
-  /**
-   * A list of defending creatures indexes. This array must be the same length as the list of
-   * attacking creatures, and maybe contain 0 to signal that an attacking creature should not be
-   * blocked.
-   */
-  defendingCreaturesIndexes: number[]
+    gameID: bigint
+    playerAddress: Address
+    setLoading: (label: string | null) => void
+    /**
+     * A list of defending creatures indexes. This array must be the same length as the list of
+     * attacking creatures, and maybe contain 0 to signal that an attacking creature should not be
+     * blocked.
+     */
+    defendingCreaturesIndexes: number[]
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -27,31 +27,30 @@ export type DefendArgs = {
  * Returns `true` iff the player successfully declared the defenders.
  */
 export async function defend(args: DefendArgs): Promise<boolean> {
-  try {
-    return await defendImpl(args)
-  } catch (err) {
-    args.setLoading(null)
-    return defaultErrorHandling("defend", err)
-  }
+    try {
+        return await defendImpl(args)
+    } catch (err) {
+        args.setLoading(null)
+        return defaultErrorHandling("defend", err)
+    }
 }
 
 // -------------------------------------------------------------------------------------------------
 
 async function defendImpl(args: DefendArgs): Promise<boolean> {
+    checkFresh(
+        await freshWrap(
+            contractWriteThrowing({
+                contract: deployment.Game,
+                abi: gameABI,
+                functionName: "defend",
+                args: [args.gameID, args.defendingCreaturesIndexes],
+                setLoading: args.setLoading,
+            })
+        )
+    )
 
-  checkFresh(await freshWrap(
-    contractWriteThrowing({
-      contract: deployment.Game,
-      abi: gameABI,
-      functionName: "defend",
-      args: [
-        args.gameID,
-        args.defendingCreaturesIndexes
-      ],
-      setLoading: args.setLoading
-    })))
-
-  return true
+    return true
 }
 
 // =================================================================================================

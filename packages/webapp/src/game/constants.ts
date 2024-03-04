@@ -45,7 +45,6 @@ export const NUM_CARDS_FOR_PROOF = NUM_FELTS_FOR_CARDS * FELT_SIZE
  * The prime that bounds the field used by our proof scheme of choice.
  * Currently, this is for Plonk.
  */
-export const PROOF_CURVE_ORDER =
-  21888242871839275222246405745257275088548364400416034343698204186575808495617n
+export const PROOF_CURVE_ORDER = 21888242871839275222246405745257275088548364400416034343698204186575808495617n
 
 // =================================================================================================

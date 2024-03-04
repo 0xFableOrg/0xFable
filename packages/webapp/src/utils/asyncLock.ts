@@ -11,13 +11,13 @@ export class AsyncLock {
 
     constructor() {
         this.#resolve = () => {} // shut up bogus warnings
-        this.#promise = new Promise(resolve => this.#resolve = resolve)
+        this.#promise = new Promise((resolve) => (this.#resolve = resolve))
         this.#resolve()
     }
 
     async take() {
         await this.#promise
-        this.#promise = new Promise(resolve => this.#resolve = resolve)
+        this.#promise = new Promise((resolve) => (this.#resolve = resolve))
     }
 
     release() {

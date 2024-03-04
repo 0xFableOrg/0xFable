@@ -7,12 +7,7 @@
  * Import this from {@link module:utils/zkproofs} instead.
  */
 
-import {
-  isProofOutput,
-  ProofCancelled,
-  ProofOutput,
-  ProofTimeoutError
-} from "src/utils/zkproofs/proofs"
+import { isProofOutput, ProofCancelled, ProofOutput, ProofTimeoutError } from "src/utils/zkproofs/proofs"
 
 // =================================================================================================
 
@@ -26,41 +21,41 @@ import {
  * In additiona to the promise, this returns a `cancel` function which can be used to terminate the
  * worker (and hence cancel the proof).
  */
-export function proveInWorker
-(circuitName: string, inputs: Record<string, bigint|bigint[]|string>, timeout: number = 0)
-  : { promise: Promise<ProofOutput>, cancel: () => void }
-{
-  const proofWorker = new Worker(new URL("proofWorker.ts", import.meta.url))
+export function proveInWorker(
+    circuitName: string,
+    inputs: Record<string, bigint | bigint[] | string>,
+    timeout: number = 0
+): { promise: Promise<ProofOutput>; cancel: () => void } {
+    const proofWorker = new Worker(new URL("proofWorker.ts", import.meta.url))
 
-  let timeoutID: ReturnType<typeof setTimeout>|undefined = undefined
-  let reject: (reason: Error) => void
+    let timeoutID: ReturnType<typeof setTimeout> | undefined = undefined
+    let reject: (reason: Error) => void
 
-  const promise = new Promise<ProofOutput>((resolve, _reject) => {
-    reject = _reject
+    const promise = new Promise<ProofOutput>((resolve, _reject) => {
+        reject = _reject
 
-    proofWorker.onmessage = (event: MessageEvent<ProofOutput|Error>) => {
-      if (isProofOutput(event.data))
-        resolve(event.data)
-      else
-        reject(event.data)
+        proofWorker.onmessage = (event: MessageEvent<ProofOutput | Error>) => {
+            if (isProofOutput(event.data)) resolve(event.data)
+            else reject(event.data)
+        }
+
+        if (timeout > 0)
+            timeoutID = setTimeout(() => {
+                proofWorker.terminate()
+                reject(new ProofTimeoutError(`proof timed out after ${timeout}s`))
+            }, timeout * 1000)
+    })
+
+    proofWorker.postMessage({ circuitName, inputs })
+
+    return {
+        promise,
+        cancel: () => {
+            if (timeoutID !== undefined) clearTimeout(timeoutID)
+            proofWorker.terminate()
+            reject(new ProofCancelled("proof cancelled by user"))
+        },
     }
-
-    if (timeout > 0)
-      timeoutID = setTimeout(() => {
-        proofWorker.terminate()
-        reject(new ProofTimeoutError(`proof timed out after ${timeout}s`))
-      }, timeout * 1000)
-  })
-
-  proofWorker.postMessage({ circuitName, inputs })
-
-  return {
-    promise, cancel: () => {
-      if (timeoutID !== undefined) clearTimeout(timeoutID)
-      proofWorker.terminate()
-      reject(new ProofCancelled("proof cancelled by user"))
-    }
-  }
 }
 
 // =================================================================================================

@@ -10,9 +10,9 @@
  * Thrown when an operation times out.
  */
 export class TimeoutError extends Error {
-  constructor(msg: string) {
-    super(msg)
-  }
+    constructor(msg: string) {
+        super(msg)
+    }
 }
 
 // =================================================================================================

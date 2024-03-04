@@ -29,29 +29,23 @@ export type FablePage = NextPage<{ isHydrated: boolean }>
 // =================================================================================================
 
 const MyApp: AppType = ({ Component, pageProps }) => {
+    return (
+        <>
+            <Head>
+                <title>0xFable</title>
+                <link rel="shortcut icon" href="/favicon.png" />
+                <link href="/font/BluuNext-Bold.otf" as="font" type="font/otf" crossOrigin="anonymous" />
+            </Head>
 
-  return (
-    <>
-      <Head>
-        <title>0xFable</title>
-        <link rel="shortcut icon" href="/favicon.png" />
-        <link
-          href="/font/BluuNext-Bold.otf"
-          as="font"
-          type="font/otf"
-          crossOrigin="anonymous"
-        />
-      </Head>
-
-      <WagmiConfig config={wagmiConfig}>
-        <ConnectKitProvider>
-          {jotaiDebug()}
-          <ComponentWrapper Component={Component} pageProps={pageProps} />
-          <Toaster expand={true} />
-        </ConnectKitProvider>
-      </WagmiConfig>
-    </>
-  )
+            <WagmiConfig config={wagmiConfig}>
+                <ConnectKitProvider>
+                    {jotaiDebug()}
+                    <ComponentWrapper Component={Component} pageProps={pageProps} />
+                    <Toaster expand={true} />
+                </ConnectKitProvider>
+            </WagmiConfig>
+        </>
+    )
 }
 
 export default MyApp
@@ -62,42 +56,39 @@ export default MyApp
  * Wrapper for the main app component. This is necessary because we want to use the Wagmi account
  * and the `useAccount` hook can only be used within a WagmiConfig.
  */
-const ComponentWrapper = ({
-  Component,
-  pageProps,
-}: {
-  Component: ComponentType
-  pageProps: any
-}) => {
-  const { address } = useAccount()
-  const isHydrated = useIsHydrated()
-  const errorConfig = useErrorConfig()
+const ComponentWrapper = ({ Component, pageProps }: { Component: ComponentType; pageProps: any }) => {
+    const { address } = useAccount()
+    const isHydrated = useIsHydrated()
+    const errorConfig = useErrorConfig()
 
-  if (process.env.NODE_ENV === "development") { // constant
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    const router = useRouter()
-    const accountIndex = parseInt(router.query.index as string)
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    useEffect(() => {
-      if (accountIndex === undefined || isNaN(accountIndex)) return
-      if (accountIndex < 0 || 9 < accountIndex) return
-      void ensureLocalAccountIndex(accountIndex)
-    }, [accountIndex, address])
+    if (process.env.NODE_ENV === "development") {
+        // constant
+        // eslint-disable-next-line react-hooks/rules-of-hooks
+        const router = useRouter()
+        const accountIndex = parseInt(router.query.index as string)
+        // eslint-disable-next-line react-hooks/rules-of-hooks
+        useEffect(() => {
+            if (accountIndex === undefined || isNaN(accountIndex)) return
+            if (accountIndex < 0 || 9 < accountIndex) return
+            void ensureLocalAccountIndex(accountIndex)
+        }, [accountIndex, address])
 
-    // It's necessary to update this on address, as Web3Modal (and possibly other wallet frameworks)
-    // will ignore our existence and try to override us with their own account (depending on how
-    // async code scheduling ends up working out).
+        // It's necessary to update this on address, as Web3Modal (and possibly other wallet frameworks)
+        // will ignore our existence and try to override us with their own account (depending on how
+        // async code scheduling ends up working out).
 
-    // To carry the `index` query parameter to other parts of the app, be sure to either use:
-    // - the `navigate` function from `utils/navigate.ts` instead of `router.push`.
-    // - the `link` component from `components/link.tsx` instead of `next/link`
-  }
+        // To carry the `index` query parameter to other parts of the app, be sure to either use:
+        // - the `navigate` function from `utils/navigate.ts` instead of `router.push`.
+        // - the `link` component from `components/link.tsx` instead of `next/link`
+    }
 
-  return <>
-    <Component { ...pageProps } isHydrated={isHydrated}/>
-    {/* Global error modal for errors that don't have obvious in-flow resolutions. */}
-    {isHydrated && errorConfig && <GlobalErrorModal config={errorConfig} />}
-  </>
+    return (
+        <>
+            <Component {...pageProps} isHydrated={isHydrated} />
+            {/* Global error modal for errors that don't have obvious in-flow resolutions. */}
+            {isHydrated && errorConfig && <GlobalErrorModal config={errorConfig} />}
+        </>
+    )
 }
 
 // =================================================================================================

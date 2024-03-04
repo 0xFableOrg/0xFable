@@ -16,7 +16,7 @@ import { FELT_SIZE, NUM_FELTS_FOR_CARDS } from "src/game/constants"
  * Fills in the parameters specific to our ZK scheme and to this encoding.
  */
 export function packCards(cards: number[]): bigint[] {
-  return packBytes(cards, NUM_FELTS_FOR_CARDS, FELT_SIZE)
+    return packBytes(cards, NUM_FELTS_FOR_CARDS, FELT_SIZE)
 }
 
 // =================================================================================================

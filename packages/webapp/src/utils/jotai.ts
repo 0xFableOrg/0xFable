@@ -20,12 +20,12 @@ export type Read<Value> = (get: Getter) => Value
  * to avoid spurious re-renders.
  */
 export function cachedAtom<Value>(read: Read<Value>): Atom<Value> {
-  let cache: Value | null = null
-  return atom((get) => {
-    const value = read(get as any)
-    if (!isEqual(value, cache)) cache = value
-    return cache!
-  })
+    let cache: Value | null = null
+    return atom((get) => {
+        const value = read(get as any)
+        if (!isEqual(value, cache)) cache = value
+        return cache!
+    })
 }
 
 // =================================================================================================

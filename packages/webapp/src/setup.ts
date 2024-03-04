@@ -13,15 +13,14 @@
 
 // Called at bottom of this file.
 function setup() {
-  setupFilterErrorMessages()
-  setupFilterWarningMessages()
-  setupFilterInfoMessages()
+    setupFilterErrorMessages()
+    setupFilterWarningMessages()
+    setupFilterInfoMessages()
 
-  // Only in dev mode, because that's where the annoying messages occur for now.
-  if (process.env.NODE_ENV === "development")
-    setupFilterLogMessages()
+    // Only in dev mode, because that's where the annoying messages occur for now.
+    if (process.env.NODE_ENV === "development") setupFilterLogMessages()
 
-  setupBigintSerialization()
+    setupBigintSerialization()
 }
 
 // =================================================================================================
@@ -30,12 +29,11 @@ function setup() {
  * Replaces an object's function, for instance:
  * `console.log = replaceFunction(console, "log", (old) => (...args) => old("LOGGING: ", ...args))`
  */
-export function replaceFunction<T>
-    (obj: any, name: string, replacement: (old: T) => T): T {
-  const old = obj[name]["0xFable_oldFunction"] ?? obj[name]
-  const result = replacement(old) as any
-  result["0xFable_oldFunction"] = old
-  return result
+export function replaceFunction<T>(obj: any, name: string, replacement: (old: T) => T): T {
+    const old = obj[name]["0xFable_oldFunction"] ?? obj[name]
+    const result = replacement(old) as any
+    result["0xFable_oldFunction"] = old
+    return result
 }
 
 // =================================================================================================
@@ -45,32 +43,32 @@ export function replaceFunction<T>
 // isolated from the window context.
 
 const filteredErrorCodes = [
-  // we can handle this via error handlers
-  "UNPREDICTABLE_GAS_LIMIT",
+    // we can handle this via error handlers
+    "UNPREDICTABLE_GAS_LIMIT",
 ]
 
-const filteredErrorMessages: (string|RegExp)[] = [
-    "ChainDoesNotSupportContract: Chain \"Localhost\" does not support contract \"ensUniversalResolver\"."
+const filteredErrorMessages: (string | RegExp)[] = [
+    'ChainDoesNotSupportContract: Chain "Localhost" does not support contract "ensUniversalResolver".',
 ]
 
 const filteredWarningMessages = [
-  "Lit is in dev mode.",
-  // React in dev mode, in Playwright
-  "Please install/enable Redux devtools extension",
-  // WalletConnect
-  "SingleFile is hooking the IntersectionObserver API to detect and load deferred images",
-  // NextJS — I can tell and things should be designed to work
-  "[Fast Refresh] performing full reload"
+    "Lit is in dev mode.",
+    // React in dev mode, in Playwright
+    "Please install/enable Redux devtools extension",
+    // WalletConnect
+    "SingleFile is hooking the IntersectionObserver API to detect and load deferred images",
+    // NextJS — I can tell and things should be designed to work
+    "[Fast Refresh] performing full reload",
 ]
 
 const filteredInfoMessages = [
-  // WalletConnect
-  "Unsuccessful attempt at preloading some images"
+    // WalletConnect
+    "Unsuccessful attempt at preloading some images",
 ]
 
 const filteredLogMessages = [
-  // NextJS — used by FastRefresh
-  "[HMR] connected"
+    // NextJS — used by FastRefresh
+    "[HMR] connected",
 ]
 
 // Logs I can't suppress:
@@ -95,37 +93,32 @@ const filteredLogMessages = [
 
 // -------------------------------------------------------------------------------------------------
 
-function matchFilter(err?: string, filter: string|RegExp): boolean {
-  if (err === undefined) return false
-  return typeof filter === "string"
-    ? err.startsWith(filter)
-    : err.match(filter).length > 0
+function matchFilter(err?: string, filter: string | RegExp): boolean {
+    if (err === undefined) return false
+    return typeof filter === "string" ? err.startsWith(filter) : err.match(filter).length > 0
 }
 
 // -------------------------------------------------------------------------------------------------
 
-function setupFiltering(
-    level: string, filteredMessages: (string|RegExp)[], filteredCodes?: string[]) {
+function setupFiltering(level: string, filteredMessages: (string | RegExp)[], filteredCodes?: string[]) {
+    console[level] = replaceFunction(console, level, (oldFunction) => (msg, ...args) => {
+        if (typeof msg === "string" && args.length > 0)
+            // Very imperfect implementation of string substitutions, good enough for us.
+            msg.replace(/%s/g, () => args.shift())
 
-  console[level] = replaceFunction(console, level, (oldFunction) => (msg, ...args) => {
+        const msgStr = msg?.toString()
 
-    if (typeof msg === "string" && args.length > 0)
-      // Very imperfect implementation of string substitutions, good enough for us.
-      msg.replace(/%s/g, () => args.shift())
+        const filteredMsg = filteredMessages.some((filter) => matchFilter(msgStr, filter))
+        const filteredCode = filteredCodes && filteredCodes.includes(msg?.code)
 
-    const msgStr = msg?.toString()
-
-    const filteredMsg = filteredMessages.some((filter) => matchFilter(msgStr, filter))
-    const filteredCode = filteredCodes && filteredCodes.includes(msg?.code)
-
-    if (filteredMsg || filteredCode) {
-      const suppressed = `suppressed${level[0].toUpperCase()}${level.slice(1)}s`
-      console[suppressed] ||= []
-      console[suppressed].push(msgStr)
-    } else {
-      oldFunction(msg, ...args)
-    }
-  })
+        if (filteredMsg || filteredCode) {
+            const suppressed = `suppressed${level[0].toUpperCase()}${level.slice(1)}s`
+            console[suppressed] ||= []
+            console[suppressed].push(msgStr)
+        } else {
+            oldFunction(msg, ...args)
+        }
+    })
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -137,7 +130,7 @@ function setupFiltering(
  * `console.suppressedErrors`.
  */
 function setupFilterErrorMessages() {
-  setupFiltering("error", filteredErrorMessages, filteredErrorCodes)
+    setupFiltering("error", filteredErrorMessages, filteredErrorCodes)
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -148,7 +141,7 @@ function setupFilterErrorMessages() {
  * `console.suppressedWarnings`.
  */
 function setupFilterWarningMessages() {
-  setupFiltering("warn", filteredWarningMessages)
+    setupFiltering("warn", filteredWarningMessages)
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -159,7 +152,7 @@ function setupFilterWarningMessages() {
  * `console.suppressedInfos`.
  */
 function setupFilterInfoMessages() {
-  setupFiltering("info", filteredInfoMessages)
+    setupFiltering("info", filteredInfoMessages)
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -170,7 +163,7 @@ function setupFilterInfoMessages() {
  * `console.suppressedLogs`.
  */
 function setupFilterLogMessages() {
-  setupFiltering("log", filteredLogMessages)
+    setupFiltering("log", filteredLogMessages)
 }
 
 // =================================================================================================
@@ -180,39 +173,36 @@ function setupFilterLogMessages() {
 // This is needed for debug tools to handle BigInt in React state, and is just a lot more convenient
 // than adding explicit parsing everywhere in general.
 function setupBigintSerialization() {
+    // Same behaviour as wagmi serialize/deserialize, but hand-rolled because redefining
+    // stringify/parse in terms of the wagmi function creates infinite recursion.
 
-  // Same behaviour as wagmi serialize/deserialize, but hand-rolled because redefining
-  // stringify/parse in terms of the wagmi function creates infinite recursion.
+    // Serialization
+    const oldStringify = JSON.stringify["oldStringify"] ?? JSON.stringify
+    JSON.stringify = (value, replacer, space) => {
+        return oldStringify(
+            value,
+            (key, value) => {
+                if (typeof value === "bigint") return `#bigint.${value}`
+                else if (typeof replacer === "function") return replacer(key, value)
+                else return value
+            },
+            space
+        )
+    }
+    JSON.stringify["oldStringify"] = oldStringify
 
-  // Serialization
-  const oldStringify = JSON.stringify["oldStringify"] ?? JSON.stringify
-  JSON.stringify = (value, replacer, space) => {
-    return oldStringify(value, (key, value) => {
-      if (typeof value === "bigint")
-        return `#bigint.${value}`
-      else if (typeof replacer === "function")
-        return replacer(key, value)
-      else
-        return value
-    }, space)
-  }
-  JSON.stringify["oldStringify"] = oldStringify
-
-  // Deserialization
-  const oldParse = JSON.parse["oldParse"] ?? JSON.parse
-  JSON.parse = (text, reviver) => {
-    return oldParse(text, (key, value) => {
-      // We only values of shape "#bigint.<data>"
-      if (typeof value === "string" && value.startsWith("#bigint."))
-            return BigInt(value.slice(8)).valueOf()
-      // Otherwise fallback to normal behavior
-      if (typeof reviver === "function")
-        return reviver(key, value)
-      else
-        return value
-    })
-  }
-  JSON.parse["oldParse"] = oldParse
+    // Deserialization
+    const oldParse = JSON.parse["oldParse"] ?? JSON.parse
+    JSON.parse = (text, reviver) => {
+        return oldParse(text, (key, value) => {
+            // We only values of shape "#bigint.<data>"
+            if (typeof value === "string" && value.startsWith("#bigint.")) return BigInt(value.slice(8)).valueOf()
+            // Otherwise fallback to normal behavior
+            if (typeof reviver === "function") return reviver(key, value)
+            else return value
+        })
+    }
+    JSON.parse["oldParse"] = oldParse
 }
 
 // =================================================================================================
