@@ -55,7 +55,7 @@ const Collection: FablePage = ({ isHydrated }) => {
     // Deck Collection Display
     const [ editingDeckIndex, setEditingDeckIndex ] = useState<number|null>(null)
     const [decks, setDecks] = useState<Deck[]>([])
-    const [ isLoadingDecks, setIsLoadingDecks ] = useState(false) // Used to indicate that decks are being loaded from chain
+    const [ isLoadingDeck, setIsLoadingDeck ] = useState(false) 
 
     const activeEffects = Object.keys(effectMap).filter((key) => effectMap[key])
     const activeTypes = Object.keys(typeMap).filter((key) => typeMap[key])
@@ -221,66 +221,65 @@ const Collection: FablePage = ({ isHydrated }) => {
     }, [router.events, router.query.newDeck])
 
     return (
-        <>
-            <Head>
-                <title>0xFable: My Collection</title>
-            </Head>
-            {jotaiDebug()}
-            <main className="flex h-screen flex-col">
-                <Navbar />
-                <div className="mx-6 mb-6 grid grow grid-cols-12 gap-4 min-h-0">
-              {/* Left Panel - Search and Filters */}
-              <div className="flex col-span-3 rounded-xl border overflow-y-auto">
-                  <FilterPanel
-                      effects={effects}
-                      types={types}
-                      effectMap={effectMap}
-                      typeMap={typeMap}
-                      handleEffectClick={handleEffectClick}
-                      handleTypeClick={handleTypeClick}
-                      handleInputChange={handleInputChange}
-                      selectedCard={selectedCard}
-                  />
-              </div>
- 
-              {/* Middle Panel - Card Collection Display */}
-              <div className="col-span-7 flex rounded-xl border overflow-y-auto">
-                  <CardCollectionDisplay
-                      cards={cards}
-                      isHydrated={isHydrated}
-                      setSelectedCard={setSelectedCard}
-                      onCardToggle={onCardToggle}
-                      selectedCards={selectedCards}
-                      isEditing={isEditing}
-                  />
-              </div>
-
-              {/* Right Panel - Deck List */}
-              {isSaving ? (
-                <LoadingModal loading="Saving deck..." />
-              ) : (
-                <div className="flex col-span-2 rounded-xl border overflow-y-auto">
-                  {isEditing && currentDeck ? (
-                    <DeckPanel
-                      deck={currentDeck}
-                      selectedCards={selectedCards}
-                      onCardSelect={addToDeck}
-                      onSave={handleSaveDeck}
-                      onCancel={handleCancelEditing}
-                    />
-                  ) : (
-                    <DeckList
-                      onDeckSelect={handleDeckSelect}
-                      decks={decks}
-                      setDecks={setDecks}
-                    />
-                    )}
+      <>
+          <Head>
+              <title>0xFable: My Collection</title>
+          </Head>
+          {jotaiDebug()}
+          {isLoadingDeck ? (
+              <LoadingModal loading="Loading deck..." />
+          ) : (
+              <main className="flex h-screen flex-col">
+                  <Navbar />
+                  <div className="mx-6 mb-6 grid grow grid-cols-12 gap-4 min-h-0">
+                      {/* Left Panel - Search and Filters */}
+                      <div className="flex col-span-3 rounded-xl border overflow-y-auto">
+                          <FilterPanel
+                              effects={effects}
+                              types={types}
+                              effectMap={effectMap}
+                              typeMap={typeMap}
+                              handleEffectClick={handleEffectClick}
+                              handleTypeClick={handleTypeClick}
+                              handleInputChange={handleInputChange}
+                              selectedCard={selectedCard}
+                          />
+                      </div>
+                      {/* Middle Panel - Card Collection Display */}
+                      <div className="col-span-7 flex rounded-xl border overflow-y-auto">
+                          <CardCollectionDisplay
+                              cards={cards}
+                              isHydrated={isHydrated}
+                              setSelectedCard={setSelectedCard}
+                              onCardToggle={onCardToggle}
+                              selectedCards={selectedCards}
+                              isEditing={isEditing}
+                          />
+                      </div>
+                      {/* Right Panel - Deck List */}
+                      {isSaving ? (
+                          <LoadingModal loading="Saving deck..." />
+                      ) : (
+                          <div className="flex col-span-2 rounded-xl border overflow-y-auto">
+                              {isEditing && currentDeck ? (
+                                  <DeckPanel
+                                      deck={currentDeck}
+                                      selectedCards={selectedCards}
+                                      onCardSelect={addToDeck}
+                                      onSave={handleSaveDeck}
+                                      onCancel={handleCancelEditing}
+                                  />
+                              ) : (
+                                  <DeckList
+                                      decks={decks || []}
+                                      onDeckSelect={handleDeckSelect}
+                                  />
+                              )}
+                          </div>
+                      )}
                   </div>
-                )}
-          </div>
-      </main>
-    </>
-  )
-}
-
+              </main>
+          )}
+      </>
+  )}
 export default Collection
