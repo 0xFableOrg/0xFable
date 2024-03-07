@@ -6,6 +6,9 @@
 
 // =================================================================================================
 
+import { getBlock } from "viem/actions"
+import { getAccount, getNetwork, getPublicClient } from "wagmi/actions"
+
 import { contractWriteThrowing } from "src/actions/libContractWrite"
 import { AccountResult, Address, chains, NetworkResult, ZeroHash } from "src/chain"
 import { deployment } from "src/deployment"
@@ -19,8 +22,6 @@ import { FetchedGameData, GameStatus } from "src/store/types"
 import { setError } from "src/store/write"
 import { formatTimestamp, parseBigInt } from "src/utils/js-utils"
 import { THROTTLED, ZOMBIE } from "src/utils/throttledFetch"
-import { getBlock } from "viem/actions"
-import { getAccount, getNetwork, getPublicClient } from "wagmi/actions"
 
 // =================================================================================================
 // CHANGE LISTENERS
