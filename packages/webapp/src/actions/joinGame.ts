@@ -5,6 +5,8 @@
  * @module action/joinGame
  */
 
+import { decodeEventLog } from "viem"
+
 import { defaultErrorHandling, FableRequestTimeout, InconsistentGameStateError } from "src/actions/errors"
 import { contractWriteThrowing } from "src/actions/libContractWrite"
 import { Address } from "src/chain"
@@ -31,7 +33,6 @@ import { FetchedGameData, GameStatus, PlayerData, PrivateInfo } from "src/store/
 import { waitForUpdate } from "src/store/update"
 import { getOrInitPrivateInfo, setGameID, setPrivateInfo } from "src/store/write"
 import { FAKE_PROOF, ProofOutput, proveInWorker, SHOULD_GENERATE_PROOFS } from "src/utils/zkproofs"
-import { decodeEventLog } from "viem"
 
 // =================================================================================================
 

@@ -8,13 +8,14 @@
  * @module actions/errors
  */
 
+import { ContractFunctionRevertedError, UserRejectedRequestError } from "viem"
+
 import { ContractWriteError } from "src/actions/libContractWrite"
 import { GIT_ISSUES } from "src/constants"
 import { StaleError } from "src/store/checkFresh"
 import { setError } from "src/store/write"
 import { TimeoutError } from "src/utils/errors"
 import { ProofCancelled, ProofError, ProofTimeoutError } from "src/utils/zkproofs/proofs"
-import { ContractFunctionRevertedError, UserRejectedRequestError } from "viem"
 
 // =================================================================================================
 // ERRORS

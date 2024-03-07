@@ -15,6 +15,9 @@ import {
     useSensors,
 } from "@dnd-kit/core"
 import { toast } from "sonner"
+import { Address } from "viem"
+import { readContract } from "wagmi/actions"
+
 import { concede } from "src/actions/concede"
 import { drawCard } from "src/actions/drawCard"
 import { endTurn } from "src/actions/endTurn"
@@ -37,8 +40,6 @@ import { usePlayerHand } from "src/store/hooks"
 import { CardPlacement, GameStatus, GameStep } from "src/store/types"
 import { setError } from "src/store/write"
 import { navigate } from "src/utils/navigate"
-import { Address } from "viem"
-import { readContract } from "wagmi/actions"
 
 const Play: FablePage = ({ isHydrated }) => {
     const [gameID, setGameID] = store.useGameID()

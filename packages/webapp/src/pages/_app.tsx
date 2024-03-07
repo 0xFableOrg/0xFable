@@ -8,13 +8,14 @@ import Head from "next/head"
 import { useRouter } from "next/router"
 
 import { ConnectKitProvider } from "connectkit"
+import { useAccount, WagmiConfig } from "wagmi"
+
 import { ensureLocalAccountIndex, wagmiConfig } from "src/chain"
 import jotaiDebug from "src/components/lib/jotaiDebug"
 import { GlobalErrorModal } from "src/components/modals/globalErrorModal"
 import { Toaster } from "src/components/ui/sonner"
 import { useIsHydrated } from "src/hooks/useIsHydrated"
 import { useErrorConfig } from "src/store/hooks"
-import { useAccount, WagmiConfig } from "wagmi"
 
 import "src/styles/globals.css"
 

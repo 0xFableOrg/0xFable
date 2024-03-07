@@ -40,8 +40,10 @@ const config = {
 						"^react",
 						"^next",
 					],
-					// Internal packages.
+					// External packages.
 					["^@?\\w"],
+					// Custom group for src/ prefixed imports
+					["^src/"],
 					// Parent imports. Put `..` last.
 					["^\\.\\.(?!/?$)", "^\\.\\./?$"],
 					// Other relative imports. Put same-folder imports and `.` last.

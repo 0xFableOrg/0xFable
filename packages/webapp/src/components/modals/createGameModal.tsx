@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from "react"
 import { useRouter } from "next/router"
 
+import { decodeEventLog } from "viem"
+
 import { joinGame, reportInconsistentGameState } from "src/actions"
 import { concede } from "src/actions/concede"
 import { Spinner } from "src/components/lib/modalElements"
@@ -14,7 +16,6 @@ import { useGameWrite } from "src/hooks/useFableWrite"
 import * as store from "src/store/hooks"
 import { GameStatus } from "src/store/types"
 import { navigate } from "src/utils/navigate"
-import { decodeEventLog } from "viem"
 
 interface CreateGameModalContentProps {
     loading: string | null

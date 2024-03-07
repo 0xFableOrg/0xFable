@@ -1,4 +1,5 @@
 import { horizontalListSortingStrategy, SortableContext, useSortable } from "@dnd-kit/sortable"
+
 import * as store from "src/store/hooks"
 import { CardPlacement } from "src/store/types"
 import { convertBigIntArrayToStringArray, shortenAddress } from "src/utils/js-utils"

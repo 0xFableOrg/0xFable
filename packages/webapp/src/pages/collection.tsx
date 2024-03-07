@@ -3,6 +3,9 @@ import Head from "next/head"
 import { useRouter } from "next/router"
 
 import debounce from "lodash/debounce"
+import { navigate } from "utils/navigate"
+import { useAccount } from "wagmi"
+
 import { Address } from "src/chain"
 import CardCollectionDisplay from "src/components/collection/cardCollectionDisplay"
 import DeckList from "src/components/collection/deckList"
@@ -14,8 +17,6 @@ import { deployment } from "src/deployment"
 import { useInventoryCardsCollectionGetCollection } from "src/generated"
 import { FablePage } from "src/pages/_app"
 import { Card, Deck } from "src/store/types"
-import { navigate } from "utils/navigate"
-import { useAccount } from "wagmi"
 
 // NOTE(norswap & geniusgarlic): Just an example, when the game actually has effects & types,
 //   fetch those from the chain instead of hardcoding them here.

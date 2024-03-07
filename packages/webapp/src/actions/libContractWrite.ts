@@ -4,7 +4,6 @@
  * @module ui/libContractWrite
  */
 
-import type { Address, Hash } from "src/chain"
 import {
     Abi,
     ContractFunctionExecutionError,
@@ -15,6 +14,8 @@ import {
     TransactionReceipt,
 } from "viem"
 import { prepareWriteContract, waitForTransaction, writeContract } from "wagmi/actions"
+
+import type { Address, Hash } from "src/chain"
 
 // =================================================================================================
 

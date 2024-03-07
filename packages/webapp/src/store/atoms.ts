@@ -9,6 +9,7 @@
 
 import { atom, getDefaultStore } from "jotai"
 import { atomWithStorage } from "jotai/utils"
+
 import { Address } from "src/chain"
 import * as derive from "src/store/derive"
 import type { ErrorConfig, FetchedGameData, PlayerData, PrivateInfo, PrivateInfoStore } from "src/store/types"
