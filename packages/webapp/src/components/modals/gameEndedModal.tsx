@@ -2,7 +2,7 @@ import { useCallback, useState } from "react"
 import { useRouter } from "next/router"
 
 import { Button } from "src/components/ui/button"
-import { Dialog, DialogContent,DialogDescription, DialogTitle } from "src/components/ui/dialog"
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "src/components/ui/dialog"
 import { useGameData, useGameID } from "src/store/hooks"
 import { navigate } from "src/utils/navigate"
 

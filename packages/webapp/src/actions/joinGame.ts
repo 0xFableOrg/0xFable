@@ -30,7 +30,7 @@ import {
 import { FetchedGameData, GameStatus, PlayerData, PrivateInfo } from "src/store/types"
 import { waitForUpdate } from "src/store/update"
 import { getOrInitPrivateInfo, setGameID, setPrivateInfo } from "src/store/write"
-import { FAKE_PROOF, ProofOutput, proveInWorker,SHOULD_GENERATE_PROOFS } from "src/utils/zkproofs"
+import { FAKE_PROOF, ProofOutput, proveInWorker, SHOULD_GENERATE_PROOFS } from "src/utils/zkproofs"
 import { decodeEventLog } from "viem"
 
 // =================================================================================================

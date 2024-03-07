@@ -1,7 +1,7 @@
 import Link from "next/link"
 
 import { ConnectKitButton } from "connectkit"
-import { NavigationMenu, NavigationMenuItem,NavigationMenuList } from "src/components/ui/navigation-menu"
+import { NavigationMenu, NavigationMenuItem, NavigationMenuList } from "src/components/ui/navigation-menu"
 
 import { Button } from "./ui/button"
 

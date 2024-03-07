@@ -1,4 +1,4 @@
-import React, { useEffect,useMemo, useState } from "react"
+import React, { useEffect, useMemo, useState } from "react"
 import Head from "next/head"
 import { useRouter } from "next/router"
 
@@ -13,7 +13,7 @@ import { Navbar } from "src/components/navbar"
 import { deployment } from "src/deployment"
 import { useInventoryCardsCollectionGetCollection } from "src/generated"
 import { FablePage } from "src/pages/_app"
-import { Card,Deck } from "src/store/types"
+import { Card, Deck } from "src/store/types"
 import { navigate } from "utils/navigate"
 import { useAccount } from "wagmi"
 

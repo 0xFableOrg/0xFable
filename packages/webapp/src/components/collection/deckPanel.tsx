@@ -2,7 +2,7 @@ import React, { useState } from "react"
 import Image from "next/image"
 
 import { Button } from "src/components/ui/button"
-import { Card,Deck } from "src/store/types"
+import { Card, Deck } from "src/store/types"
 import { testCards } from "src/utils/card-list"
 
 interface DeckConstructionPanelProps {
