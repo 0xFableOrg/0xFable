@@ -216,8 +216,7 @@ contract Inventory is Ownable {
             revert OutOfDeckIDs();
         }
         deckID = uint8(longDeckID);
-        decks[player].push();
-        _addDeck(player, deckID, deck);
+        decks[player].push(deck);
         emit DeckAdded(player, deckID);
     }
 
@@ -244,7 +243,7 @@ contract Inventory is Ownable {
         exists(player, deckID)
         notInGame(player)
     {
-        _addDeck(player, deckID, deck);
+        decks[player][deckID] = deck;
         emit DeckRemoved(player, deckID);
         emit DeckAdded(player, deckID);
     }
