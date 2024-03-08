@@ -22,9 +22,9 @@ const DeckConstructionPanel: React.FC<DeckConstructionPanelProps> = ({
 }) => {
     const MAX_CARDS = 10//40
     const MIN_CARDS = 4//10
-    
-    const [deckName, setDeckName] = useState(deck.name)
-    const [deckNameValid, setIsDeckNameValid] = useState(false)
+
+    const [deckName, setDeckName] = useState(deck.name || "My Deck")
+    const [deckNameValid, setIsDeckNameValid] = useState(true)
 
     const nameValid = (name: string) => name.trim().length > 0
 
