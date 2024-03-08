@@ -76,8 +76,8 @@ const DeckConstructionPanel: React.FC<DeckConstructionPanelProps> = ({
             {/* Save and Cancel Buttons */}
             <div className="flex w-full flex-wrap justify-center gap-2">
                 <Button
-                    variant="secondary"
-                    className="border-2 border-yellow-500 font-fable text-xl normal-case hover:scale-105 hover:border-yellow-400"
+                    variant="default"
+                    className="border-2 border-yellow-500 normal-case hover:scale-105 font-fable text-xl hover:border-yellow-400"
                     onClick={handleSave}
                 >
                     ✓Save
