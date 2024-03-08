@@ -53,7 +53,7 @@ const DeckCollectionDisplay: React.FC<DeckCollectionDisplayProps> = ({ decks, se
   return (
       <div className="w-full flex flex-col items-center p-3">
         {/* New Deck Button */}
-        <Button  width="full" className="border-2 border-yellow-500 hover:scale-105 font-fable text-xl hover:border-yellow-400">
+        <Button  width="full" className="border-2 border-yellow-500 hover:scale-105 font-fable text-xl hover:border-yellow-400 my-2">
           <Link href={"/collection?newDeck=true"}> 
             New Deck →
           </Link>
@@ -61,7 +61,7 @@ const DeckCollectionDisplay: React.FC<DeckCollectionDisplayProps> = ({ decks, se
 
         {/* Loading Button */}
         {isLoadingDecks && (
-          <Button width="full" className="border-2 border-yellow-500 normal-case hover:scale-105 font-fable text-xl hover:border-yellow-400"
+          <Button width="full" className="border-2 border-yellow-500 normal-case hover:scale-105 font-fable text-xl hover:border-yellow-400 my-2"
             disabled={true}
           >
             Loading...
@@ -72,7 +72,7 @@ const DeckCollectionDisplay: React.FC<DeckCollectionDisplayProps> = ({ decks, se
         {deckNames.map((deckname, deckID) => (
           <Button 
             variant={ "secondary" } 
-            width="full" className="border-2 border-yellow-500 normal-case hover:scale-105 font-fable text-xl hover:border-yellow-400"
+            width="full" className="border-2 border-yellow-500 normal-case hover:scale-105 font-fable text-xl hover:border-yellow-400 my-1"
             key={deckID} 
             onClick={() => onDeckSelect(deckID)}
             >
