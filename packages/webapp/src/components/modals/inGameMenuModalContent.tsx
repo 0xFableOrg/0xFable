@@ -1,8 +1,7 @@
 import Link from "next/link"
 
 import { Button } from "src/components/ui/button"
-
-import { DialogDescription, DialogTitle } from "../ui/dialog"
+import { DialogDescription, DialogTitle } from "src/components/ui/dialog"
 
 /**
  * This modal content is shared by both the {@link CreateGameModal} (for the game creator) and the

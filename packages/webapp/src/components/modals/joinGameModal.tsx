@@ -9,6 +9,7 @@ import { Spinner } from "src/components/lib/modalElements"
 import { InGameMenuModalContent } from "src/components/modals/inGameMenuModalContent"
 import { LoadingModalContent } from "src/components/modals/loadingModal"
 import { Button } from "src/components/ui/button"
+import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "src/components/ui/dialog"
 import { Input } from "src/components/ui/input"
 import { useCancellationHandler } from "src/hooks/useCancellationHandler"
 import * as store from "src/store/hooks"
@@ -16,8 +17,6 @@ import { GameStatus } from "src/store/types"
 import { setError } from "src/store/write"
 import { isStringPositiveInteger, parseBigIntOrNull } from "src/utils/js-utils"
 import { navigate } from "src/utils/navigate"
-
-import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "../ui/dialog"
 
 interface JoinGameModalContentProps {
     loading: string | null

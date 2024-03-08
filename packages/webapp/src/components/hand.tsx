@@ -3,13 +3,11 @@ import { AiOutlineLeft, AiOutlineRight } from "react-icons/ai"
 
 import { horizontalListSortingStrategy, SortableContext, useSortable } from "@dnd-kit/sortable"
 
+import CardContainer from "src/components/cards/cardContainer"
 import { CancellationHandler } from "src/components/modals/loadingModal"
+import useScrollBox from "src/hooks/useScrollBox"
 import { CardPlacement } from "src/store/types"
 import { convertBigIntArrayToStringArray } from "src/utils/js-utils"
-
-import useScrollBox from "../hooks/useScrollBox"
-
-import CardContainer from "./cards/cardContainer"
 
 const Hand = ({
     cards,

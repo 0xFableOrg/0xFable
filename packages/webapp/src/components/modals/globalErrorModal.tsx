@@ -1,9 +1,8 @@
 import { useEffect, useState } from "react"
 
 import { Button } from "src/components/ui/button"
+import { Dialog, DialogContent, DialogTitle } from "src/components/ui/dialog"
 import { ErrorConfig } from "src/store/types"
-
-import { Dialog, DialogContent, DialogTitle } from "../ui/dialog"
 
 /**
  * A modal displayed globally (setup in _app.tsx) whenever the errorConfig state is set to non-null.

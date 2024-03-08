@@ -33,5 +33,5 @@ check:
 # Runs prettier formatting across webapp files with specified file extensions.
 format: 
 	pnpm eslint . --fix
-	pnpm prettier --write "**/*.{js,jsx,ts,tsx,json,css,cjs}"
+	pnpm prettier --write "**/*.{js,jsx,ts,tsx,json,css,cjs,mjs}"
 .PHONY: format
