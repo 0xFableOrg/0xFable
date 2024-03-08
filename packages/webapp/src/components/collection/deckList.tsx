@@ -35,7 +35,6 @@ const DeckCollectionDisplay: React.FC<DeckCollectionDisplayProps> = ({ decks, se
         },
       }).then(response => {
         if(!response.simulatedResult) return
-        console.log(response)
         const receivedDecks = response.simulatedResult as string[]
         setDeckNames(receivedDecks)
       }).catch(error => {
@@ -49,7 +48,6 @@ const DeckCollectionDisplay: React.FC<DeckCollectionDisplayProps> = ({ decks, se
 
   useEffect(() => {
     loadDeckNames()
-    //loadDecks()
   }, [loadDeckNames])
 
   return (

@@ -185,8 +185,7 @@ const Collection: FablePage = ({ isHydrated }) => {
             const co = cards.find(c => Number(c.id) === cID)
             if(co) { cardObjects.push(co) }
           })
-  
-          console.log(cardObjects)
+
           setSelectedCards(cardObjects);
   
           const deckName = response.simulatedResult.name;
