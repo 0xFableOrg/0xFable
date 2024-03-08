@@ -189,6 +189,9 @@ contract Inventory is Ownable {
     // ---------------------------------------------------------------------------------------------
 
     function checkDeckSize(Deck storage deck) internal view {
+        if (deck.cards.length < MIN_DECK_SIZE) {
+            revert SmallDeckEnergy();
+        }
         if (deck.cards.length > MAX_DECK_SIZE) {
             revert BigDeckEnergy();
         }
@@ -337,7 +340,7 @@ contract Inventory is Ownable {
         return decks[player][deckID].cards;
     }
 
-        // ---------------------------------------------------------------------------------------------
+    // ---------------------------------------------------------------------------------------------
 
     // Returns the list of cards in the given deck of the given player.
     function getDeckReal(address player, uint8 deckID)

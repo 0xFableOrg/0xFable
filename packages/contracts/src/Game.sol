@@ -527,6 +527,8 @@ contract Game {
             revert Errors.NotAllowedToJoin();
         }
 
+        inventory.checkDeck(msg.sender, deckID);
+
         // Update gdata.players, but not gdata.livePlayers, which is used to determine if the
         // game is ready to start (all players have joined & drawn their initial hand).
         gdata.players.push(msg.sender);
