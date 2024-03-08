@@ -20,6 +20,9 @@ const DeckConstructionPanel: React.FC<DeckConstructionPanelProps> = ({
     onSave,
     onCancel,
 }) => {
+    const MAX_CARDS = 10//40
+    const MIN_CARDS = 4//10
+    
     const [deckName, setDeckName] = useState(deck.name)
     const [deckNameValid, setIsDeckNameValid] = useState(false)
 
@@ -54,6 +57,20 @@ const DeckConstructionPanel: React.FC<DeckConstructionPanelProps> = ({
                     className="flex-basis[auto] m-1.5 min-w-0 max-w-full flex-shrink rounded-md border bg-white px-2 py-2 text-black placeholder-gray-700 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="Deck name"
                 />
+            </div>
+
+            {/* Counter Row */}
+            <div className="w-full py-1">
+                <div className="relative pt-1">
+                <div className="overflow-hidden h-2 text-xs flex rounded bg-red-200">
+                    <div style={{ width: `${(selectedCards.length / MAX_CARDS) * 100}%` }} 
+                    className={`shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center ${selectedCards.length < MIN_CARDS ? 'bg-red-500' : selectedCards.length <= MAX_CARDS ? 'bg-green-500' : 'bg-yellow-500'}`}>
+                    </div>
+                </div>
+                </div>
+                <div className="text-center text-sm font-medium">
+                {selectedCards.length}/{MAX_CARDS}
+                </div>
             </div>
 
             {/* Save and Cancel Buttons */}
