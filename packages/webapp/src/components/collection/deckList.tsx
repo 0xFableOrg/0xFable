@@ -15,6 +15,7 @@ interface DeckCollectionDisplayProps {
 const DeckCollectionDisplay: React.FC<DeckCollectionDisplayProps> = ({ decks, setDecks, onDeckSelect }) => {
   const playerAddress = store.usePlayerAddress()
   const [ deckNames, setDeckNames] = useState<string[]>([])
+  const [ isLoadingDecks, setIsLoadingDecks ] = useState(false)
 
   function deckCount(): Promise<void> {
     return new Promise((resolve) => {
@@ -27,6 +28,7 @@ const DeckCollectionDisplay: React.FC<DeckCollectionDisplayProps> = ({ decks, se
 
   const loadDeckNames = useCallback(() => {
     if (playerAddress) {
+      setIsLoadingDecks(true) 
       getDeckNames({
         playerAddress: playerAddress,
         onSuccess: () => {
@@ -38,6 +40,8 @@ const DeckCollectionDisplay: React.FC<DeckCollectionDisplayProps> = ({ decks, se
         setDeckNames(receivedDecks)
       }).catch(error => {
         console.error("Error fetching decks:", error)
+      }).finally(() => {
+        setIsLoadingDecks(false)
       })
     }
   }, [playerAddress])
@@ -56,6 +60,15 @@ const DeckCollectionDisplay: React.FC<DeckCollectionDisplayProps> = ({ decks, se
             New Deck →
           </Link>
         </Button>
+
+        {/* Loading Button */}
+        {isLoadingDecks && (
+          <Button width="full" className="border-2 border-yellow-500 normal-case hover:scale-105 font-fable text-xl hover:border-yellow-400"
+            disabled={true}
+          >
+            Loading...
+          </Button>
+        )}
 
         {/* Deck Buttons */}
         {deckNames.map((deckname, deckID) => (
