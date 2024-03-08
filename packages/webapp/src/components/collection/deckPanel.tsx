@@ -20,8 +20,8 @@ const DeckConstructionPanel: React.FC<DeckConstructionPanelProps> = ({
     onSave,
     onCancel,
 }) => {
-    const MAX_CARDS = 10//40
-    const MIN_CARDS = 4//10
+    const MAX_CARDS = 40
+    const MIN_CARDS = 10
 
     const [deckName, setDeckName] = useState(deck.name || "My Deck")
     const [deckNameValid, setIsDeckNameValid] = useState(true)
@@ -80,14 +80,14 @@ const DeckConstructionPanel: React.FC<DeckConstructionPanelProps> = ({
                     className="border-2 border-yellow-500 normal-case hover:scale-105 font-fable text-xl hover:border-yellow-400"
                     onClick={handleSave}
                 >
-                    ✓Save
+                    ✓ Save
                 </Button>
                 <Button
                     variant="secondary"
                     className="border-2 border-yellow-500 font-fable text-xl normal-case hover:scale-105 hover:border-yellow-400"
                     onClick={onCancel}
                 >
-                    ✕Cancel
+                    ✕ Cancel
                 </Button>
             </div>
 
