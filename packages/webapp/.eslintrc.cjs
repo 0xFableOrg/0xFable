@@ -9,7 +9,7 @@ const config = {
     },
     plugins: ["@typescript-eslint", "simple-import-sort"],
     root: true,
-    ignorePatterns: ["node_modules", "src/hooks/useScrollBox.ts"],
+    ignorePatterns: ["node_modules", "src/generated.ts"],
     rules: {
         "@typescript-eslint/no-unsafe-argument": "off",
         "@typescript-eslint/restrict-template-expressions": "off",
@@ -21,7 +21,7 @@ const config = {
         "@typescript-eslint/no-restricted-imports": [
             "error",
             {
-                patterns: ["!./*", "!../*"],
+                patterns: ["./*", "../*"],
             },
         ],
 
