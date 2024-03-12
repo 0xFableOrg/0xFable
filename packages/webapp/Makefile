@@ -26,7 +26,7 @@ lint:
 
 # Runs code quality checks.
 check: 
-	pnpm eslint .
+	make lint
 	pnpm prettier --check "src/**/*.{js,jsx,ts,tsx,json,css}"
 .PHONY: check
 
