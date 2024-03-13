@@ -14,13 +14,13 @@
 import { Log } from "viem"
 import { getPublicClient } from "wagmi/actions"
 
+import { DISMISS_BUTTON } from "src/actions/errors"
 import { deployment } from "src/deployment"
 import { gameABI } from "src/generated"
 import * as store from "src/store/atoms"
 import { refreshGameData } from "src/store/update"
-import { format } from "src/utils/js-utils"
 import { setError } from "src/store/write"
-import { DISMISS_BUTTON } from "src/actions/errors"
+import { format } from "src/utils/js-utils"
 
 // =================================================================================================
 // SUBSCRIPTION MANAGEMENT

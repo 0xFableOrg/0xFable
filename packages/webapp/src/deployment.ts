@@ -5,8 +5,8 @@
  * @module deployment
  */
 
-import type { Address } from "wagmi"
 import * as deployment_ from "contracts/out/deployment.json" assert { type: "json" }
+import type { Address } from "wagmi"
 
 export interface Deployment {
     CardsCollection: Address

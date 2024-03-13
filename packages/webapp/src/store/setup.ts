@@ -9,9 +9,9 @@
 
 import { getAccount, watchAccount, watchNetwork } from "wagmi/actions"
 
+import { GAME_DATA_REFRESH_INTERVAL } from "src/constants"
 import * as store from "src/store/atoms"
 import { gameIDListener, refreshGameData, updateNetwork, updatePlayerAddress } from "src/store/update"
-import { GAME_DATA_REFRESH_INTERVAL } from "src/constants"
 
 // =================================================================================================
 

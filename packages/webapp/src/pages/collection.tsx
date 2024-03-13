@@ -1,23 +1,22 @@
-import debounce from "lodash/debounce"
+import React, { useEffect, useMemo, useState } from "react"
 import Head from "next/head"
+import { useRouter } from "next/router"
 
-import React, { useState, useMemo, useEffect } from "react"
+import debounce from "lodash/debounce"
+import { navigate } from "utils/navigate"
 import { useAccount } from "wagmi"
 
+import { Address } from "src/chain"
+import CardCollectionDisplay from "src/components/collection/cardCollectionDisplay"
+import DeckList from "src/components/collection/deckList"
+import DeckPanel from "src/components/collection/deckPanel"
+import FilterPanel from "src/components/collection/filterPanel"
 import jotaiDebug from "src/components/lib/jotaiDebug"
 import { Navbar } from "src/components/navbar"
 import { deployment } from "src/deployment"
 import { useInventoryCardsCollectionGetCollection } from "src/generated"
-import { Deck, Card } from "src/store/types"
-import { Address } from "src/chain"
 import { FablePage } from "src/pages/_app"
-import { useRouter } from "next/router"
-import { navigate } from "utils/navigate"
-
-import FilterPanel from "src/components/collection/filterPanel"
-import CardCollectionDisplay from "src/components/collection/cardCollectionDisplay"
-import DeckList from "src/components/collection/deckList"
-import DeckPanel from "src/components/collection/deckPanel"
+import { Card, Deck } from "src/store/types"
 
 // NOTE(norswap & geniusgarlic): Just an example, when the game actually has effects & types,
 //   fetch those from the chain instead of hardcoding them here.
@@ -165,9 +164,9 @@ const Collection: FablePage = ({ isHydrated }) => {
             {jotaiDebug()}
             <main className="flex h-screen flex-col">
                 <Navbar />
-                <div className="mx-6 mb-6 grid grow grid-cols-12 gap-4 min-h-0">
+                <div className="mx-6 mb-6 grid min-h-0 grow grid-cols-12 gap-4">
                     {/* Left Panel - Search and Filters */}
-                    <div className="flex col-span-3 rounded-xl border overflow-y-auto">
+                    <div className="col-span-3 flex overflow-y-auto rounded-xl border">
                         <FilterPanel
                             effects={effects}
                             types={types}
@@ -181,7 +180,7 @@ const Collection: FablePage = ({ isHydrated }) => {
                     </div>
 
                     {/* Middle Panel - Card Collection Display */}
-                    <div className="col-span-7 flex rounded-xl border overflow-y-auto">
+                    <div className="col-span-7 flex overflow-y-auto rounded-xl border">
                         <CardCollectionDisplay
                             cards={cards}
                             isHydrated={isHydrated}
@@ -193,7 +192,7 @@ const Collection: FablePage = ({ isHydrated }) => {
                     </div>
 
                     {/* Right Panel - Deck List */}
-                    <div className="flex col-span-2 rounded-xl border overflow-y-auto">
+                    <div className="col-span-2 flex overflow-y-auto rounded-xl border">
                         {isEditing && currentDeck ? (
                             <DeckPanel
                                 deck={currentDeck}

@@ -1,10 +1,12 @@
-import { DragStartEvent, DragEndEvent, UniqueIdentifier } from "@dnd-kit/core"
+import { useCallback } from "react"
+
+import { DragEndEvent, DragStartEvent, UniqueIdentifier } from "@dnd-kit/core"
+
+import { playCard } from "src/actions/playCard"
+import { CancellationHandler } from "src/components/modals/loadingModal"
 import * as store from "src/store/hooks"
 import { CardPlacement } from "src/store/types"
-import { useCallback } from "react"
 import { extractCardID } from "src/utils/js-utils"
-import { CancellationHandler } from "src/components/modals/loadingModal"
-import { playCard } from "src/actions/playCard"
 
 function useDragEvents(
     setActiveId: (id: UniqueIdentifier | null) => void,

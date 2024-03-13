@@ -19,7 +19,6 @@
         "class-variance-authority": "^0.7.0",
         "clsx": "^2.1.0",
         "connectkit": "^1.5.3",
-        "eslint-config-prettier": "^9.1.0",
         "jotai": "^2.4.3",
         "jotai-devtools": "^0.7.0",
         "lodash": "^4.17.21",
@@ -27,6 +26,7 @@
         "next": "^13.5.6",
         "next-themes": "^0.2.1",
         "next-transpile-modules": "^10.0.1",
+        "prettier": "^3.2.5",
         "react": "18.2.0",
         "react-dom": "18.2.0",
         "react-icons": "^4.11.0",
@@ -52,8 +52,11 @@
         "autoprefixer": "^10.4.16",
         "eslint": "^8.52.0",
         "eslint-config-next": "^13.5.6",
+        "eslint-config-prettier": "^9.1.0",
+        "eslint-plugin-import": "^2.29.1",
+        "eslint-plugin-simple-import-sort": "^12.0.0",
         "postcss": "^8.4.31",
-        "prettier": "2.8.8",
+        "prettier-plugin-tailwindcss": "^0.5.11",
         "tailwindcss": "^3.3.3",
         "typescript": "^5.2.2"
     }

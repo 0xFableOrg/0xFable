@@ -1,5 +1,6 @@
-import Image from "next/image"
 import React, { forwardRef } from "react"
+import Image from "next/image"
+
 import { testCards } from "src/utils/card-list"
 
 interface DraggedCardProps {
@@ -11,7 +12,7 @@ const DraggedCard = forwardRef<HTMLImageElement, DraggedCardProps>(({ id }, ref)
         <>
             <Image
                 alt={`${id}`}
-                className="pointer-events-none rounded-xl border select-none"
+                className="pointer-events-none select-none rounded-xl border"
                 src={testCards[id]?.image}
                 width={200}
                 height={200}

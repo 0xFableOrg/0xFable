@@ -1,10 +1,12 @@
 import React from "react"
-import { CardPlacement } from "src/store/types"
+
 import { useSortable } from "@dnd-kit/sortable"
-import DraggedCard from "./draggedCard"
-import BoardCard from "./boardCard"
-import HandCard from "./handCard"
 import { CSS } from "@dnd-kit/utilities"
+
+import BoardCard from "src/components/cards/boardCard"
+import DraggedCard from "src/components/cards/draggedCard"
+import HandCard from "src/components/cards/handCard"
+import { CardPlacement } from "src/store/types"
 import { convertStringToSafeNumber } from "src/utils/js-utils"
 
 interface BaseCardProps {
@@ -49,7 +51,7 @@ const CardContainer: React.FC<BaseCardProps> = ({ id, handHovered, placement, ca
     }
     return (
         <div
-            className={`${"shadow-2xl z-[50] flex  max-w-[24rem] cursor-pointer flex-col items-center justify-evenly rounded-lg bg-gray-900 transform translateY-[-50%]"}`}
+            className={`${"translateY-[-50%] z-[50] flex  max-w-[24rem] transform cursor-pointer flex-col items-center justify-evenly rounded-lg bg-gray-900 shadow-2xl"}`}
             style={sortableStyle}
             ref={setNodeRef}
             {...attributes}

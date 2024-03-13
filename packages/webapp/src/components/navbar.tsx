@@ -1,7 +1,9 @@
 import Link from "next/link"
+
 import { ConnectKitButton } from "connectkit"
-import { Button } from "./ui/button"
-import { NavigationMenu, NavigationMenuList, NavigationMenuItem } from "src/components/ui/navigation-menu"
+
+import { Button } from "src/components/ui/button"
+import { NavigationMenu, NavigationMenuItem, NavigationMenuList } from "src/components/ui/navigation-menu"
 
 export const Navbar = () => {
     return (
@@ -9,8 +11,8 @@ export const Navbar = () => {
             <NavigationMenuList>
                 <NavigationMenuItem>
                     <Link href="/">
-                        <Button variant="ghost" className="text-2xl normal-case text-white font-serif">
-                            <span className="text-red-400 font-mono font-light">0x</span>
+                        <Button variant="ghost" className="font-serif text-2xl normal-case text-white">
+                            <span className="font-mono font-light text-red-400">0x</span>
                             FABLE
                         </Button>
                     </Link>
@@ -20,7 +22,7 @@ export const Navbar = () => {
             <NavigationMenuList>
                 <NavigationMenuItem>
                     <Link href="/collection">
-                        <Button variant="ghost" className="text-xl normal-case text-white font-fable">
+                        <Button variant="ghost" className="font-fable text-xl normal-case text-white">
                             Collection
                         </Button>
                     </Link>
