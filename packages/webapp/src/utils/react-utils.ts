@@ -6,7 +6,7 @@
 
 // =================================================================================================
 
-import { atom, type Atom, type Getter, type Setter, type WritableAtom } from "jotai"
+import { type Atom, atom, type Getter, type Setter, type WritableAtom } from "jotai"
 
 // =================================================================================================
 // Recreating (simplified) Jotai types

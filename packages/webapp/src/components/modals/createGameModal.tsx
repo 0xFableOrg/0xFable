@@ -1,20 +1,21 @@
-import { useRouter } from "next/router"
 import { useCallback, useEffect, useState } from "react"
+import { useRouter } from "next/router"
+
 import { decodeEventLog } from "viem"
 
-import { LoadingModalContent } from "src/components/modals/loadingModal"
+import { joinGame, reportInconsistentGameState } from "src/actions"
+import { concede } from "src/actions/concede"
 import { Spinner } from "src/components/lib/modalElements"
 import { InGameMenuModalContent } from "src/components/modals/inGameMenuModalContent"
+import { LoadingModalContent } from "src/components/modals/loadingModal"
+import { Button } from "src/components/ui/button"
+import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "src/components/ui/dialog"
 import { gameABI } from "src/generated"
+import { useCancellationHandler } from "src/hooks/useCancellationHandler"
 import { useGameWrite } from "src/hooks/useFableWrite"
 import * as store from "src/store/hooks"
-import { joinGame, reportInconsistentGameState } from "src/actions"
 import { GameStatus } from "src/store/types"
 import { navigate } from "src/utils/navigate"
-import { useCancellationHandler } from "src/hooks/useCancellationHandler"
-import { concede } from "src/actions/concede"
-import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "src/components/ui/dialog"
-import { Button } from "src/components/ui/button"
 
 interface CreateGameModalContentProps {
     loading: string | null
@@ -42,7 +43,7 @@ export const CreateGameModal = () => {
             <DialogTrigger asChild>
                 <Button
                     variant="outline"
-                    className="rounded-lg p-6 font-fable text-2xl border-green-900 border-2 h-16 hover:scale-105 hover:border-green-800 hover:border-3"
+                    className="hover:border-3 h-16 rounded-lg border-2 border-green-900 p-6 font-fable text-2xl hover:scale-105 hover:border-green-800"
                 >
                     Create Game →
                 </Button>
@@ -189,7 +190,7 @@ const CreateGameModalContent: React.FC<CreateGameModalContentProps> = ({ loading
                         </div>
                     )}
                     {joined && (
-                        <div className="flex flex-col justify-center gap-4 items-center">
+                        <div className="flex flex-col items-center justify-center gap-4">
                             <Spinner />
                             {!allPlayersJoined && (
                                 <Button

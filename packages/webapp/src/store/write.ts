@@ -5,13 +5,13 @@
  */
 
 import { Address } from "src/chain"
+import { PROOF_CURVE_ORDER } from "src/game/constants"
 import * as store from "src/store/atoms"
 import { ErrorConfig, PrivateInfo } from "src/store/types"
+import { mimcHash } from "src/utils/hashing"
 import { randomUint256 } from "src/utils/js-utils"
 
 import "src/utils/extensions"
-import { mimcHash } from "src/utils/hashing"
-import { PROOF_CURVE_ORDER } from "src/game/constants"
 
 const get = store.get
 const set = store.set

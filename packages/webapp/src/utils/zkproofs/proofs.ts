@@ -4,8 +4,8 @@
  * @module utils/zkproofs/proofs
  */
 
-import { formatTimestamp } from "src/utils/js-utils"
 import { TimeoutError } from "src/utils/errors"
+import { formatTimestamp } from "src/utils/js-utils"
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const snarkjs = require("snarkjs")

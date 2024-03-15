@@ -13,7 +13,6 @@ import {
     TransactionExecutionError,
     TransactionReceipt,
 } from "viem"
-
 import { prepareWriteContract, waitForTransaction, writeContract } from "wagmi/actions"
 
 import type { Address, Hash } from "src/chain"

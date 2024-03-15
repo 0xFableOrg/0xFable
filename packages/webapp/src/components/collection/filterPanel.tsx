@@ -1,5 +1,6 @@
 import React from "react"
 import Image from "next/image"
+
 import { Card } from "src/store/types"
 
 interface FilterPanelProps {
@@ -27,27 +28,27 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
     const cardFlavor = selectedCard?.lore.flavor || "Select a card to see its details"
 
     return (
-        <div className="flex col-span-3 rounded-xl border overflow-y-auto">
+        <div className="col-span-3 flex overflow-y-auto rounded-xl border">
             <div className="overflow-y-auto">
                 {/* Search */}
-                <h2 className="text-2xl font-bold text-white m-1.5">Search</h2>
+                <h2 className="m-1.5 text-2xl font-bold text-white">Search</h2>
                 <div>
                     <input
                         type="text"
                         onChange={handleInputChange}
-                        className="px-4 py-2 border rounded-md text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent m-1.5"
+                        className="m-1.5 rounded-md border px-4 py-2 text-gray-100 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder="Search by name"
                     />
                 </div>
 
                 {/* Effects */}
-                <h3 className="text-xl font-bold text-white m-1.5">Effects</h3>
+                <h3 className="m-1.5 text-xl font-bold text-white">Effects</h3>
                 <div className="flex flex-wrap gap-2">
                     {effects.map((effect, index) => (
                         <button
                             key={index}
                             onClick={() => handleEffectClick(index)}
-                            className={`text-white font-bold py-2 px-2 rounded m-1.5 ${
+                            className={`m-1.5 rounded px-2 py-2 font-bold text-white ${
                                 effectMap[effect] ? "bg-purple-900" : "bg-gray-500"
                             }`}
                         >
@@ -57,13 +58,13 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                 </div>
 
                 {/* Types */}
-                <h3 className="text-xl font-bold text-white m-1">Types</h3>
+                <h3 className="m-1 text-xl font-bold text-white">Types</h3>
                 <div className="flex flex-wrap gap-2">
                     {types.map((type, index) => (
                         <button
                             key={index}
                             onClick={() => handleTypeClick(index)}
-                            className={`text-white font-bold py-2 px-2 rounded m-1 ${
+                            className={`m-1 rounded px-2 py-2 font-bold text-white ${
                                 typeMap[type] ? "bg-purple-900" : "bg-gray-500"
                             }`}
                         >
@@ -76,12 +77,12 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
 
                 {/* Selected Card Display */}
                 <div className="pb-5">
-                    <h2 className="text-3xl font-bold text-white m-1.5">Card details</h2>
-                    <div className="m-4 bg-slate-900/50 rounded-lg p-4 border-4 border-slate-900">
+                    <h2 className="m-1.5 text-3xl font-bold text-white">Card details</h2>
+                    <div className="m-4 rounded-lg border-4 border-slate-900 bg-slate-900/50 p-4">
                         <Image src="/card_art/0.jpg" alt={cardName} width={256} height={256} className="m-auto" />
                         <div className="text-center">{cardName}</div>
                     </div>
-                    <div className="text-center m-2">{cardFlavor}</div>
+                    <div className="m-2 text-center">{cardFlavor}</div>
                 </div>
             </div>
         </div>

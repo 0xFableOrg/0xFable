@@ -1,9 +1,9 @@
 import { useState } from "react"
 
-import { useDeckAirdropWrite } from "src/hooks/useFableWrite"
 import { LoadingModalContent } from "src/components/modals/loadingModal"
-import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "src/components/ui/dialog"
 import { Button } from "src/components/ui/button"
+import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "src/components/ui/dialog"
+import { useDeckAirdropWrite } from "src/hooks/useFableWrite"
 
 interface MintDeckModalContentProps {
     loading: string | null
@@ -21,7 +21,7 @@ export const MintDeckModal = ({ callback = () => {} }) => {
             <DialogTrigger asChild>
                 <Button
                     variant="outline"
-                    className="rounded-lg p-6 font-fable text-2xl border-green-900 border-2 h-16 hover:scale-105 hover:border-green-800 hover:border-3"
+                    className="hover:border-3 h-16 rounded-lg border-2 border-green-900 p-6 font-fable text-2xl hover:scale-105 hover:border-green-800"
                 >
                     Mint Deck →
                 </Button>

@@ -1,8 +1,8 @@
 import React, { ReactNode, RefObject, useRef, useState } from "react"
+import { createPortal } from "react-dom"
 
 import { useIsMounted } from "src/hooks/useIsMounted"
 import { useErrorConfig } from "src/store/hooks"
-import { createPortal } from "react-dom"
 
 // =================================================================================================
 
@@ -103,7 +103,7 @@ const ModalInner = ({ ctrl, children }: { ctrl: ModalController; children: React
                 onClick={state.surroundCloseable ? ctrl.close : undefined}
                 style={{ display: displayed ? "flex" : "none" }}
             >
-                <div className="modal-box border-white border cursor-default z-10">
+                <div className="modal-box z-10 cursor-default border border-white">
                     {state.closeable && (
                         <button className="btn btn-sm btn-circle absolute right-2 top-2" onClick={ctrl.close}>
                             ✕

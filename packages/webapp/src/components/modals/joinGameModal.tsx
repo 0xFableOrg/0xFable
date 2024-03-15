@@ -1,22 +1,22 @@
-import debounce from "lodash/debounce"
-import { useRouter } from "next/router"
 import React, { useEffect, useMemo, useState } from "react"
+import { useRouter } from "next/router"
+
+import debounce from "lodash/debounce"
+
+import { joinGame, reportInconsistentGameState } from "src/actions"
+import { concede } from "src/actions/concede"
 import { Spinner } from "src/components/lib/modalElements"
 import { InGameMenuModalContent } from "src/components/modals/inGameMenuModalContent"
-
-import * as store from "src/store/hooks"
-import { isStringPositiveInteger, parseBigIntOrNull } from "src/utils/js-utils"
 import { LoadingModalContent } from "src/components/modals/loadingModal"
-import { joinGame, reportInconsistentGameState } from "src/actions"
-import { setError } from "src/store/write"
-import { GameStatus } from "src/store/types"
-import { navigate } from "src/utils/navigate"
-import { useCancellationHandler } from "src/hooks/useCancellationHandler"
-import { concede } from "src/actions/concede"
-
-import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "../ui/dialog"
 import { Button } from "src/components/ui/button"
+import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "src/components/ui/dialog"
 import { Input } from "src/components/ui/input"
+import { useCancellationHandler } from "src/hooks/useCancellationHandler"
+import * as store from "src/store/hooks"
+import { GameStatus } from "src/store/types"
+import { setError } from "src/store/write"
+import { isStringPositiveInteger, parseBigIntOrNull } from "src/utils/js-utils"
+import { navigate } from "src/utils/navigate"
 
 interface JoinGameModalContentProps {
     loading: string | null
@@ -45,7 +45,7 @@ export const JoinGameModal = () => {
             <DialogTrigger asChild>
                 <Button
                     variant="outline"
-                    className="rounded-lg p-6 font-fable text-2xl border-green-900 border-2 h-16 hover:scale-105 hover:border-green-800 hover:border-3"
+                    className="hover:border-3 h-16 rounded-lg border-2 border-green-900 p-6 font-fable text-2xl hover:scale-105 hover:border-green-800"
                 >
                     Join Game →
                 </Button>
@@ -151,7 +151,7 @@ const JoinGameModalContent: React.FC<JoinGameModalContentProps> = ({ loading, se
                                 placeholder="Game ID"
                                 min={0}
                                 onChange={handleInputChange}
-                                className="mr-2 w-full max-w-xs text-white placeholder-gray-500 font-mono"
+                                className="mr-2 w-full max-w-xs font-mono text-white placeholder-gray-500"
                             />
                             <Button
                                 className="font-fable"

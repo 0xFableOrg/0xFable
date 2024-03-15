@@ -43,7 +43,7 @@ check:
 # Performs code formatting for the webapp files and contracts in their respective directories.
 format:
 	cd packages/webapp && make format
-	cd packages/contract && make format
+	cd packages/contracts && make format
 .PHONY: format
 
 # ==================================================================================================

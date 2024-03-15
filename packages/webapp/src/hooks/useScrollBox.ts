@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback, RefObject } from "react"
+import { RefObject, useCallback, useEffect, useState } from "react"
+
 import throttle from "lodash/throttle"
 import { toast } from "sonner"
 
@@ -21,37 +22,40 @@ function useScrollBox(scrollRef: RefObject<HTMLDivElement>, cards: readonly bigi
     const duration = 300
 
     /** Checks and updates the arrow visibility states based on the scroll position. */
-    const checkArrowsVisibility = () => {
+    const checkArrowsVisibility = useCallback(() => {
         if (!scrollRef.current) return
         const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current
         setShowLeftArrow(scrollLeft > 0)
         setShowRightArrow(scrollLeft < scrollWidth - clientWidth)
-    }
+    }, [scrollRef])
 
     /** Performs a smooth scrolling animation to a specified target position.
      *  Accepts a target scroll position and an optional callback to execute after completion. */
-    const smoothScroll = useCallback((target: number, callback?: () => void) => {
-        if (!scrollRef.current) return
+    const smoothScroll = useCallback(
+        (target: number, callback?: () => void) => {
+            if (!scrollRef.current) return
 
-        const start = scrollRef.current.scrollLeft
-        const startTime = Date.now()
+            const start = scrollRef.current.scrollLeft
+            const startTime = Date.now()
 
-        const animateScroll = () => {
-            const now = Date.now()
-            const time = Math.min(1, (now - startTime) / duration)
+            const animateScroll = () => {
+                const now = Date.now()
+                const time = Math.min(1, (now - startTime) / duration)
 
-            scrollRef.current!.scrollLeft = start + time * (target - start)
+                scrollRef.current!.scrollLeft = start + time * (target - start)
 
-            if (time < 1) {
-                requestAnimationFrame(animateScroll)
-            } else {
-                checkArrowsVisibility()
-                if (callback) callback() // Execute callback after the scroll animation completes
+                if (time < 1) {
+                    requestAnimationFrame(animateScroll)
+                } else {
+                    checkArrowsVisibility()
+                    if (callback) callback() // Execute callback after the scroll animation completes
+                }
             }
-        }
 
-        requestAnimationFrame(animateScroll)
-    }, [])
+            requestAnimationFrame(animateScroll)
+        },
+        [checkArrowsVisibility, scrollRef]
+    )
 
     /** Scrolls the container a fixed distance to the left or right with animation. */
     const scrollLeft = () => {
@@ -68,6 +72,7 @@ function useScrollBox(scrollRef: RefObject<HTMLDivElement>, cards: readonly bigi
     }
 
     /** Throttled function to update the last horizontal scroll position, minimizing performance impact. */
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     const handleLastScrollX = useCallback(
         throttle((screenX) => {
             setLastScrollX(screenX)
@@ -76,12 +81,15 @@ function useScrollBox(scrollRef: RefObject<HTMLDivElement>, cards: readonly bigi
     )
 
     /** Handles the wheel event to adjust the scrollLeft property, enabling horizontal scrolling. */
-    const handleScroll = (e: WheelEvent) => {
-        if (scrollRef.current) {
-            // Adjust the scrollLeft property based on the deltaY value
-            scrollRef.current.scrollLeft += e.deltaY
-        }
-    }
+    const handleScroll = useCallback(
+        (e: WheelEvent) => {
+            if (scrollRef.current) {
+                // Adjust the scrollLeft property based on the deltaY value
+                scrollRef.current.scrollLeft += e.deltaY
+            }
+        },
+        [scrollRef]
+    )
 
     /** Responds to window resize events to update arrow visibility states. */
     const handleResize = () => {
@@ -99,6 +107,7 @@ function useScrollBox(scrollRef: RefObject<HTMLDivElement>, cards: readonly bigi
         smoothScroll(targetRight, () => {
             triggerLastCardGlow()
         })
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [scrollRef])
 
     const triggerLastCardGlow = useCallback(() => {
@@ -133,7 +142,7 @@ function useScrollBox(scrollRef: RefObject<HTMLDivElement>, cards: readonly bigi
                 }
             }
         }
-    }, [scrollWrapperCurrent, handleLastScrollX, lastScrollX])
+    }, [scrollWrapperCurrent, handleLastScrollX, lastScrollX, scrollRef, checkArrowsVisibility, handleScroll])
 
     // Detects changes in the `cards` array to trigger the pop-up effect and initiate smooth scrolling to highlight new content.
     useEffect(() => {

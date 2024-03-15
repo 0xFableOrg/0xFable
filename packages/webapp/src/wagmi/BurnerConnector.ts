@@ -2,12 +2,13 @@
  * Implementation of a Wagmi connector for a private key held in local browser storage.
  */
 
-import { Connector, ConnectorData, WalletClient } from "wagmi"
-import { Address } from "src/chain"
-import { PrivateKeyAccount, privateKeyToAccount } from "viem/accounts"
 import { createWalletClient, http } from "viem"
-import { localhost } from "wagmi/chains"
+import { PrivateKeyAccount, privateKeyToAccount } from "viem/accounts"
+import { Connector, ConnectorData, WalletClient } from "wagmi"
 import { connect, disconnect, getAccount } from "wagmi/actions"
+import { localhost } from "wagmi/chains"
+
+import { Address } from "src/chain"
 import { AsyncLock } from "src/utils/asyncLock"
 
 // =================================================================================================

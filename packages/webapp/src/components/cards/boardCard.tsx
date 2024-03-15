@@ -1,6 +1,6 @@
-import { forwardRef, useState } from "react"
+import React, { forwardRef, useState } from "react"
 import Image from "next/image"
-import React from "react"
+
 import { testCards } from "src/utils/card-list"
 
 interface BoardCardProps {
@@ -12,14 +12,14 @@ const BoardCard = forwardRef<HTMLDivElement, BoardCardProps>(({ id }, ref) => {
 
     return (
         <div
-            className="relative w-full h-full"
+            className="relative h-full w-full"
             ref={ref}
             onMouseEnter={() => setShowCardName(true)}
             onMouseLeave={() => setShowCardName(false)}
         >
             <Image
                 alt={`${id}`}
-                className="pointer-events-none rounded-xl border select-none"
+                className="pointer-events-none select-none rounded-xl border"
                 src={testCards[id]?.image}
                 width={200}
                 height={200}
@@ -29,19 +29,19 @@ const BoardCard = forwardRef<HTMLDivElement, BoardCardProps>(({ id }, ref) => {
             />
             {showCardName && (
                 <>
-                    <div className="flex w-full justify-between p-2 absolute top-0 left-0 right-0">
-                        <div className="flex items-center justify-center h-8 w-8 rounded-full bg-yellow-400 text-gray-900 font-bold text-lg select-none">
+                    <div className="absolute left-0 right-0 top-0 flex w-full justify-between p-2">
+                        <div className="flex h-8 w-8 select-none items-center justify-center rounded-full bg-yellow-400 text-lg font-bold text-gray-900">
                             {`${testCards[id]?.attack}`}
                         </div>
-                        <div className="flex items-center justify-center h-8 w-8 rounded-full bg-red-600 text-gray-900 font-bold text-lg select-none">
+                        <div className="flex h-8 w-8 select-none items-center justify-center rounded-full bg-red-600 text-lg font-bold text-gray-900">
                             {`${testCards[id]?.defense}`}
                         </div>
                     </div>
 
                     <span
-                        className={`absolute w-[90%] bottom-0 left-1/2 transform -translate-x-1/2 font-serif text-[14px] font-bold text-slate-200 text-center pb-2.5 select-none truncate transition-opacity duration-1000 ${
+                        className={`absolute bottom-0 left-1/2 w-[90%] -translate-x-1/2 transform select-none truncate pb-2.5 text-center font-serif text-[14px] font-bold text-slate-200 transition-opacity duration-1000 ${
                             showCardName ? "opacity-100" : "opacity-0"
-                        } hover:whitespace-normal hover:overflow-visible`}
+                        } hover:overflow-visible hover:whitespace-normal`}
                     >
                         {`${testCards[id]?.name}`}
                     </span>

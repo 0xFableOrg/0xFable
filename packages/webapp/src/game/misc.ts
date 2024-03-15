@@ -1,8 +1,8 @@
 /**
  * Misc game logic helpers.
  */
-import { FetchedGameData, GameStep } from "src/store/types"
 import { Address } from "src/chain"
+import { FetchedGameData, GameStep } from "src/store/types"
 
 // =================================================================================================
 

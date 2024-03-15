@@ -1,10 +1,10 @@
-import { useRouter } from "next/router"
 import { useCallback, useState } from "react"
+import { useRouter } from "next/router"
 
+import { Button } from "src/components/ui/button"
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "src/components/ui/dialog"
 import { useGameData, useGameID } from "src/store/hooks"
 import { navigate } from "src/utils/navigate"
-import { Dialog, DialogDescription, DialogTitle, DialogContent } from "src/components/ui/dialog"
-import { Button } from "src/components/ui/button"
 
 /**
  * This modal is displayed in the "/play" page, when the game ends. It can be dismissed if the

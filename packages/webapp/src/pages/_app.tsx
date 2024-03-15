@@ -1,23 +1,26 @@
 // =================================================================================================
 
 // Must come first, so that can we can hook global members before they're used by imports.
-import "src/setup"
-import "src/store/setup"
-import { ConnectKitProvider } from "connectkit"
+import { ComponentType, useEffect } from "react"
 import { NextPage } from "next"
 import type { AppType } from "next/app"
 import Head from "next/head"
+import { useRouter } from "next/router"
+
+import { ConnectKitProvider } from "connectkit"
 import { useAccount, WagmiConfig } from "wagmi"
+
 import { ensureLocalAccountIndex, wagmiConfig } from "src/chain"
 import jotaiDebug from "src/components/lib/jotaiDebug"
 import { GlobalErrorModal } from "src/components/modals/globalErrorModal"
+import { Toaster } from "src/components/ui/sonner"
 import { useIsHydrated } from "src/hooks/useIsHydrated"
 import { useErrorConfig } from "src/store/hooks"
+
 import "src/styles/globals.css"
-import { useRouter } from "next/router"
-import { ComponentType, useEffect } from "react"
-import { Toaster } from "src/components/ui/sonner"
-import useOfflineCheck from "src/hooks/useOfflineCheck"
+
+import "src/setup"
+import "src/store/setup"
 
 // =================================================================================================
 
@@ -29,11 +32,8 @@ export type FablePage = NextPage<{ isHydrated: boolean }>
 
 // =================================================================================================
 
-
 const MyApp: AppType = ({ Component, pageProps }) => {
-  
-   useOfflineCheck()
-
+  useOfflineCheck()
     return (
         <>
             <Head>

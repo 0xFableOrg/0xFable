@@ -1,44 +1,45 @@
 import { useCallback, useEffect, useState } from "react"
-
-import Hand from "src/components/hand"
-import { LoadingModal } from "src/components/modals/loadingModal"
-import { GameEndedModal } from "src/components/modals/gameEndedModal"
-import { Navbar } from "src/components/navbar"
-import * as store from "src/store/hooks"
-import { CardPlacement, GameStatus, GameStep } from "src/store/types"
-import { FablePage } from "src/pages/_app"
-import { Address } from "viem"
-import { readContract } from "wagmi/actions"
-import { deployment } from "src/deployment"
-import { gameABI } from "src/generated"
+import { createPortal } from "react-dom"
 import { useRouter } from "next/router"
-import { setError } from "src/store/write"
-import { DISMISS_BUTTON } from "src/actions/errors"
-import { navigate } from "src/utils/navigate"
-import { concede } from "src/actions/concede"
-import { drawCard } from "src/actions/drawCard"
-import { endTurn } from "src/actions/endTurn"
-import { currentPlayer, isEndingTurn } from "src/game/misc"
-import { useCancellationHandler } from "src/hooks/useCancellationHandler"
-import { usePlayerHand } from "src/store/hooks"
+
 import {
+    closestCenter,
+    defaultDropAnimationSideEffects,
     DndContext,
     DragOverlay,
     DropAnimation,
     MeasuringStrategy,
     MouseSensor,
     UniqueIdentifier,
-    closestCenter,
-    defaultDropAnimationSideEffects,
     useSensor,
     useSensors,
 } from "@dnd-kit/core"
-import PlayerBoard from "src/components/playerBoard"
-import { createPortal } from "react-dom"
-import useDragEvents from "src/hooks/useDragEvents"
-import CardContainer from "src/components/cards/cardContainer"
-import { Button } from "src/components/ui/button"
 import { toast } from "sonner"
+import { Address } from "viem"
+import { readContract } from "wagmi/actions"
+
+import { concede } from "src/actions/concede"
+import { drawCard } from "src/actions/drawCard"
+import { endTurn } from "src/actions/endTurn"
+import { DISMISS_BUTTON } from "src/actions/errors"
+import CardContainer from "src/components/cards/cardContainer"
+import Hand from "src/components/hand"
+import { GameEndedModal } from "src/components/modals/gameEndedModal"
+import { LoadingModal } from "src/components/modals/loadingModal"
+import { Navbar } from "src/components/navbar"
+import PlayerBoard from "src/components/playerBoard"
+import { Button } from "src/components/ui/button"
+import { deployment } from "src/deployment"
+import { currentPlayer, isEndingTurn } from "src/game/misc"
+import { gameABI } from "src/generated"
+import { useCancellationHandler } from "src/hooks/useCancellationHandler"
+import useDragEvents from "src/hooks/useDragEvents"
+import { FablePage } from "src/pages/_app"
+import * as store from "src/store/hooks"
+import { usePlayerHand } from "src/store/hooks"
+import { CardPlacement, GameStatus, GameStep } from "src/store/types"
+import { setError } from "src/store/write"
+import { navigate } from "src/utils/navigate"
 
 const Play: FablePage = ({ isHydrated }) => {
     const [gameID, setGameID] = store.useGameID()
@@ -229,7 +230,7 @@ const Play: FablePage = ({ isHydrated }) => {
                         cards={playerHand as readonly bigint[]}
                         setLoading={setLoading}
                         cancellationHandler={cancellationHandler}
-                        className={`absolute left-0 right-0 mx-auto z-[100] translate-y-1/2 transition-all duration-500 rounded-xl ease-in-out hover:translate-y-0`}
+                        className={`absolute left-0 right-0 z-[100] mx-auto translate-y-1/2 rounded-xl transition-all duration-500 ease-in-out hover:translate-y-0`}
                     />
                     <div className="grid-col-1 relative mx-6 mb-6 grid grow grid-rows-[6]">
                         <PlayerBoard playerAddress={opponentAddress} playedCards={opponentBattlefield} />
@@ -239,7 +240,7 @@ const Play: FablePage = ({ isHydrated }) => {
                                 {showDrawButton && (
                                     <Button
                                         variant={"secondary"}
-                                        className="absolute right-96 bottom-1/2 z-50 !translate-y-1/2 rounded-lg border-[.1rem] border-base-300 font-mono hover:scale-105"
+                                        className="border-base-300 absolute bottom-1/2 right-96 z-50 !translate-y-1/2 rounded-lg border-[.1rem] font-mono hover:scale-105"
                                         onClick={() => {
                                             toast.promise(doDrawCard, {
                                                 id: "DRAW_CARD_TOAST",
@@ -258,7 +259,7 @@ const Play: FablePage = ({ isHydrated }) => {
 
                                 <Button
                                     variant={"secondary"}
-                                    className="absolute right-48 bottom-1/2 z-50 !translate-y-1/2 rounded-lg border-[.1rem] border-base-300 font-mono hover:scale-105"
+                                    className="border-base-300 absolute bottom-1/2 right-48 z-50 !translate-y-1/2 rounded-lg border-[.1rem] font-mono hover:scale-105"
                                     disabled={cantEndTurn}
                                     onClick={doEndTurn}
                                 >
@@ -267,7 +268,7 @@ const Play: FablePage = ({ isHydrated }) => {
 
                                 <Button
                                     variant={"secondary"}
-                                    className="absolute right-4 bottom-1/2 z-50 !translate-y-1/2 rounded-lg border-[.1rem] border-base-300 font-mono hover:scale-105"
+                                    className="border-base-300 absolute bottom-1/2 right-4 z-50 !translate-y-1/2 rounded-lg border-[.1rem] font-mono hover:scale-105"
                                     disabled={cantConcede}
                                     onClick={doConcede}
                                 >
@@ -281,7 +282,7 @@ const Play: FablePage = ({ isHydrated }) => {
                             <>
                                 <Button
                                     variant={"secondary"}
-                                    className="absolute right-4 bottom-1/2 z-50 !translate-y-1/2 rounded-lg border-[.1rem] border-base-300 font-mono hover:scale-105"
+                                    className="border-base-300 absolute bottom-1/2 right-4 z-50 !translate-y-1/2 rounded-lg border-[.1rem] font-mono hover:scale-105"
                                     onClick={doShowResults}
                                 >
                                     SEE RESULTS & EXIT
