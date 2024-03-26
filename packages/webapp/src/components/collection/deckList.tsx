@@ -37,10 +37,9 @@ const DeckCollectionDisplay: React.FC<DeckCollectionDisplayProps> = ({ decks, se
         if(!response.simulatedResult) return
         const receivedDecks = response.simulatedResult as string[]
         setDeckNames(receivedDecks)
+        setIsLoadingDecks(false)
       }).catch(error => {
         console.error("Error fetching decks:", error)
-      }).finally(() => {
-        setIsLoadingDecks(false)
       })
     }
   }, [playerAddress])
@@ -61,7 +60,7 @@ const DeckCollectionDisplay: React.FC<DeckCollectionDisplayProps> = ({ decks, se
 
         {/* Loading Button */}
         {isLoadingDecks && (
-          <Button width="full" className="border-2 border-yellow-500 normal-case hover:scale-105 font-fable text-xl hover:border-yellow-400 my-2"
+          <Button width="full" variant="secondary" className="border-2 border-yellow-500 normal-case hover:scale-105 font-fable text-xl hover:border-yellow-400 my-2"
             disabled={true}
           >
             Loading...
