@@ -331,7 +331,7 @@ contract Inventory is Ownable {
     // ---------------------------------------------------------------------------------------------
 
     // Returns the list of cards in the given deck of the given player.
-    function getDeck(address player, uint8 deckID)
+    function getDeckCards(address player, uint8 deckID)
         external
         view
         exists(player, deckID)
@@ -343,7 +343,7 @@ contract Inventory is Ownable {
     // ---------------------------------------------------------------------------------------------
 
     // Returns the list of cards in the given deck of the given player.
-    function getDeckReal(address player, uint8 deckID)
+    function getDeck(address player, uint8 deckID)
         external
         view
         exists(player, deckID)

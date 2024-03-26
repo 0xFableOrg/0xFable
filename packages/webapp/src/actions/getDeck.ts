@@ -34,7 +34,7 @@ export async function getAllDecks(args: GetDeckArgs): Promise<any> {
 }
 
 /**
- * Fetches the deck of the given player of a given ID by sending the `getDeckReal` transaction.
+ * Fetches the deck of the given player of a given ID by sending the `getDeck` transaction.
  *
  * Returns `true` iff the transaction is successful.
  */
@@ -105,7 +105,7 @@ async function getDeckImpl(args: GetDeckAtArgs): Promise<any> {
     const result = await contractWriteThrowing({
       contract: deployment.Inventory,
       abi: inventoryABI,
-      functionName: "getDeckReal",
+      functionName: "getDeck",
       args: [args.playerAddress, args.index],
     }) 
 
