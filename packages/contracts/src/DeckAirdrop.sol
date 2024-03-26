@@ -61,6 +61,6 @@ contract DeckAirdrop is Ownable {
             cards[i] = first + i;
         }
 
-        inventory.addDeck(msg.sender, Inventory.Deck(cards));
+        inventory.addDeck(msg.sender, Inventory.Deck("Starter Deck", cards));
     }
 }

@@ -45,7 +45,7 @@ export async function fetchDeck(player: Address, deckID: number): Promise<readon
     return readContract({
         address: deployment.Inventory,
         abi: inventoryABI,
-        functionName: "getDeck",
+        functionName: "getDeckCards",
         args: [player, deckID],
     })
 }

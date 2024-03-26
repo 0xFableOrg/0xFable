@@ -1,37 +1,74 @@
-import React from "react"
+import React, { useCallback, useEffect, useState } from "react"
 
+import { getDeckNames } from "src/actions/getDeck"
 import Link from "src/components/link"
 import { Button } from "src/components/ui/button"
-import { Deck } from "src/store/types"
+import * as store from "src/store/hooks"
 
 interface DeckCollectionDisplayProps {
-    decks: Deck[]
     onDeckSelect: (deckID: number) => void
 }
 
-const DeckCollectionDisplay: React.FC<DeckCollectionDisplayProps> = ({ decks, onDeckSelect }) => {
+const DeckCollectionDisplay: React.FC<DeckCollectionDisplayProps> = ({ onDeckSelect }) => {
+    const playerAddress = store.usePlayerAddress()
+    const [deckNames, setDeckNames] = useState<string[]>([])
+    const [isLoadingDecks, setIsLoadingDecks] = useState(false)
+
+    const loadDeckNames = useCallback(() => {
+        if (playerAddress) {
+            setIsLoadingDecks(true)
+            getDeckNames({
+                playerAddress: playerAddress,
+                onSuccess: () => {},
+            })
+                .then((response) => {
+                    if (!response.simulatedResult) return
+                    const receivedDecks = response.simulatedResult as string[]
+                    setDeckNames(receivedDecks)
+                    setIsLoadingDecks(false)
+                })
+                .catch((error) => {
+                    console.error("Error fetching decks:", error)
+                })
+        }
+    }, [playerAddress])
+
+    useEffect(() => {
+        loadDeckNames()
+    }, [loadDeckNames])
+
     return (
         <div className="flex w-full flex-col items-center p-3">
             {/* New Deck Button */}
-            <div>
+            <Button
+                width="full"
+                className="my-2 border-2 border-yellow-500 font-fable text-xl hover:scale-105 hover:border-yellow-400"
+            >
+                <Link href={"/collection?newDeck=true"}>New Deck →</Link>
+            </Button>
+
+            {/* Loading Button */}
+            {isLoadingDecks && (
                 <Button
+                    width="full"
                     variant="secondary"
-                    className="border-2 border-yellow-500 font-fable text-xl normal-case hover:scale-105 hover:border-yellow-400"
+                    className="my-2 border-2 border-yellow-500 font-fable text-xl normal-case hover:scale-105 hover:border-yellow-400"
+                    disabled={true}
                 >
-                    <Link href={"/collection?newDeck=true"}>New Deck →</Link>
+                    Loading...
                 </Button>
-            </div>
+            )}
 
             {/* Deck Buttons */}
-            {decks.map((deck, deckID) => (
+            {deckNames.map((deckname, deckID) => (
                 <Button
-                    variant="secondary"
+                    variant={"secondary"}
                     width="full"
-                    className="border-2 border-yellow-500 font-fable text-xl normal-case hover:scale-105 hover:border-yellow-400"
+                    className="my-1 border-2 border-yellow-500 font-fable text-xl normal-case hover:scale-105 hover:border-yellow-400"
                     key={deckID}
                     onClick={() => onDeckSelect(deckID)}
                 >
-                    {deck.name}
+                    {deckname}
                 </Button>
             ))}
         </div>

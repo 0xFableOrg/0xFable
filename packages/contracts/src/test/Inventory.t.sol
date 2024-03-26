@@ -33,7 +33,7 @@ contract InventoryTest is Test {
     // expect revert if player's deck contains a card with more than `MAX_CARD_COPY` copies.
     function testCheckDeckExceedsMaxCopy() public {
         uint8 deckId = 0;
-        uint256 randomCard = inventory.getDeck(player1, deckId)[2];
+        uint256 randomCard = inventory.getDeckCards(player1, deckId)[2];
 
         // increase card `randomCard` copies to 4
         vm.startPrank(player1);

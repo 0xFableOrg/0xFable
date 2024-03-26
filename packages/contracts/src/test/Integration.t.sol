@@ -71,8 +71,8 @@ contract Integration is Test {
         game.createGame(2);
 
         // IDs don't start at 1 because the deploy script currently airdrops some addresses, might change.
-        inventory.getDeck(player2, 0); // player1 has card id of 49-72 inclusive
-        inventory.getDeck(player2, 0); // player2 has card id of 73-96 inclusive
+        inventory.getDeckCards(player2, 0); // player1 has card id of 49-72 inclusive
+        inventory.getDeckCards(player2, 0); // player2 has card id of 73-96 inclusive
 
         vm.startPrank(player1);
         game.joinGame(gameID, DECK_ID, SALT_HASH, JOIN_DATA);

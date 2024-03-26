@@ -20,8 +20,11 @@ const DeckConstructionPanel: React.FC<DeckConstructionPanelProps> = ({
     onSave,
     onCancel,
 }) => {
-    const [deckName, setDeckName] = useState(deck.name)
-    const [deckNameValid, setIsDeckNameValid] = useState(false)
+    const MAX_CARDS = 40
+    const MIN_CARDS = 10
+
+    const [deckName, setDeckName] = useState(deck.name || "My Deck")
+    const [deckNameValid, setIsDeckNameValid] = useState(true)
 
     const nameValid = (name: string) => name.trim().length > 0
 
@@ -56,21 +59,36 @@ const DeckConstructionPanel: React.FC<DeckConstructionPanelProps> = ({
                 />
             </div>
 
+            {/* Counter Row */}
+            <div className="w-full py-1">
+                <div className="relative pt-1">
+                    <div className="flex h-2 overflow-hidden rounded bg-red-200 text-xs">
+                        <div
+                            style={{ width: `${(selectedCards.length / MAX_CARDS) * 100}%` }}
+                            className={`flex flex-col justify-center whitespace-nowrap text-center text-white shadow-none ${selectedCards.length < MIN_CARDS ? "bg-red-500" : selectedCards.length <= MAX_CARDS ? "bg-green-500" : "bg-yellow-500"}`}
+                        ></div>
+                    </div>
+                </div>
+                <div className="text-center text-sm font-medium">
+                    {selectedCards.length}/{MAX_CARDS}
+                </div>
+            </div>
+
             {/* Save and Cancel Buttons */}
             <div className="flex w-full flex-wrap justify-center gap-2">
                 <Button
-                    variant="secondary"
+                    variant="default"
                     className="border-2 border-yellow-500 font-fable text-xl normal-case hover:scale-105 hover:border-yellow-400"
                     onClick={handleSave}
                 >
-                    ✓Save
+                    ✓ Save
                 </Button>
                 <Button
                     variant="secondary"
                     className="border-2 border-yellow-500 font-fable text-xl normal-case hover:scale-105 hover:border-yellow-400"
                     onClick={onCancel}
                 >
-                    ✕Cancel
+                    ✕ Cancel
                 </Button>
             </div>
 
