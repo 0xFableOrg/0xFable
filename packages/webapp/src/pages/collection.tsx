@@ -2,29 +2,24 @@ import React, { useEffect, useMemo, useState } from "react"
 import Head from "next/head"
 import { useRouter } from "next/router"
 
-import React, { useState, useMemo, useEffect, useCallback } from "react"
+import debounce from "lodash/debounce"
+import { navigate } from "utils/navigate"
 import { useAccount } from "wagmi"
 
+import { getDeck } from "src/actions/getDeck"
+import { modify, save } from "src/actions/setDeck"
 import { Address } from "src/chain"
 import CardCollectionDisplay from "src/components/collection/cardCollectionDisplay"
 import DeckList from "src/components/collection/deckList"
 import DeckPanel from "src/components/collection/deckPanel"
 import FilterPanel from "src/components/collection/filterPanel"
 import jotaiDebug from "src/components/lib/jotaiDebug"
+import { LoadingModal } from "src/components/modals/loadingModal"
 import { Navbar } from "src/components/navbar"
 import { deployment } from "src/deployment"
 import { useInventoryCardsCollectionGetCollection } from "src/generated"
 import { FablePage } from "src/pages/_app"
-import { useRouter } from "next/router"
-import { navigate } from "utils/navigate"
-import { getDeck } from "src/actions/getDeck"
-import FilterPanel from 'src/components/collection/filterPanel'
-import CardCollectionDisplay from 'src/components/collection/cardCollectionDisplay'
-import DeckList from 'src/components/collection/deckList'
-import DeckPanel from 'src/components/collection/deckPanel'
-import { save, modify } from "src/actions/setDeck"
 import * as store from "src/store/hooks"
-import { LoadingModal } from "src/components/modals/loadingModal"
 
 // NOTE(norswap & geniusgarlic): Just an example, when the game actually has effects & types,
 //   fetch those from the chain instead of hardcoding them here.
@@ -53,9 +48,8 @@ const Collection: FablePage = ({ isHydrated }) => {
     const [isEditing, setIsEditing] = useState(false)
 
     // Deck Collection Display
-    const [ editingDeckIndex, setEditingDeckIndex ] = useState<number|null>(null)
-    const [decks, setDecks] = useState<Deck[]>([])
-    const [ isLoadingDeck, setIsLoadingDeck ] = useState(false) 
+    const [editingDeckIndex, setEditingDeckIndex] = useState<number | null>(null)
+    const [isLoadingDeck, setIsLoadingDeck] = useState(false)
 
     const activeEffects = Object.keys(effectMap).filter((key) => effectMap[key])
     const activeTypes = Object.keys(typeMap).filter((key) => typeMap[key])
@@ -81,66 +75,70 @@ const Collection: FablePage = ({ isHydrated }) => {
         )
     })
 
-  const handleInputChangeBouncy = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchInput(event.target.value)
-  }
-  const handleInputChange = useMemo(() => debounce(handleInputChangeBouncy, 300), [])
-
-  const handleEffectClick = (effectIndex: number) => {
-    const effect = effects[effectIndex]
-    setEffectMap({...effectMap, [effect]: !effectMap[effect]})
-  }
-
-  const handleTypeClick = (typeIndex: number) => {
-    const type = types[typeIndex]
-    setTypeMap({...typeMap, [type]: !typeMap[type]})
-  }
-
-  const handleSaveDeck = async (updatedDeck: Deck) => {
-    setIsSaving(true)
-
-    if (editingDeckIndex !== null) {
-      // Update existing deck
-      await modifyOnchain(updatedDeck, editingDeckIndex)
-    } else {
-      // Add the new deck to the list
-      await saveOnchain(updatedDeck)
+    const handleInputChangeBouncy = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setSearchInput(event.target.value)
     }
-    
-    setIsSaving(false)
+    const handleInputChange = useMemo(() => debounce(handleInputChangeBouncy, 300), [])
 
-    setIsEditing(false)
-    setSelectedCards([])
-    void navigate(router, '/collection')
-  }
+    const handleEffectClick = (effectIndex: number) => {
+        const effect = effects[effectIndex]
+        setEffectMap({ ...effectMap, [effect]: !effectMap[effect] })
+    }
 
-  function saveOnchain(deck: Deck): Promise<void> {
-    return new Promise((resolve) => {
-      save({
-        deck,
-        playerAddress: playerAddress!,
-        onSuccess: () => { resolve() }
-      })
-    })
-  }
+    const handleTypeClick = (typeIndex: number) => {
+        const type = types[typeIndex]
+        setTypeMap({ ...typeMap, [type]: !typeMap[type] })
+    }
 
-  function modifyOnchain(deck: Deck, editingDeckIndex: number): Promise<void> {
-    return new Promise((resolve) => {
-      modify({
-        deck,
-        playerAddress: playerAddress!,
-        index: BigInt(editingDeckIndex),
-        onSuccess: () => { resolve() }
-      })
-    })
-  }
+    const handleSaveDeck = async (updatedDeck: Deck) => {
+        setIsSaving(true)
 
-  const handleCancelEditing = () => {
-    setIsEditing(false)
-    setSelectedCards([])
-    void navigate(router, '/collection')
-  }
-  
+        if (editingDeckIndex !== null) {
+            // Update existing deck
+            await modifyOnchain(updatedDeck, editingDeckIndex)
+        } else {
+            // Add the new deck to the list
+            await saveOnchain(updatedDeck)
+        }
+
+        setIsSaving(false)
+
+        setIsEditing(false)
+        setSelectedCards([])
+        void navigate(router, "/collection")
+    }
+
+    function saveOnchain(deck: Deck): Promise<void> {
+        return new Promise((resolve) => {
+            save({
+                deck,
+                playerAddress: playerAddress!,
+                onSuccess: () => {
+                    resolve()
+                },
+            })
+        })
+    }
+
+    function modifyOnchain(deck: Deck, editingDeckIndex: number): Promise<void> {
+        return new Promise((resolve) => {
+            modify({
+                deck,
+                playerAddress: playerAddress!,
+                index: BigInt(editingDeckIndex),
+                onSuccess: () => {
+                    resolve()
+                },
+            })
+        })
+    }
+
+    const handleCancelEditing = () => {
+        setIsEditing(false)
+        setSelectedCards([])
+        void navigate(router, "/collection")
+    }
+
     const addToDeck = (card: Card) => {
         setSelectedCards((prevSelectedCards) => {
             // Add or remove card from the selectedCards
@@ -166,40 +164,42 @@ const Collection: FablePage = ({ isHydrated }) => {
     }
 
     const handleDeckSelect = (deckID: number) => {
-      if (isLoadingDeck) return;
-      if (playerAddress) {
-        setIsLoadingDeck(true)
-        getDeck({
-          playerAddress: playerAddress,
-          index: deckID,
-          onSuccess: () => {
-          },
-        }).then(response => {
-          if(!response.simulatedResult) return;
-          
-  
-          const cardsReceived = response.simulatedResult.cards;
-          const cardObjects: Card[] = []
-          cardsReceived.forEach(card => {
-            const cID = Number(card)
-            const co = cards.find(c => Number(c.id) === cID)
-            if(co) { cardObjects.push(co) }
-          })
+        if (isLoadingDeck) return
+        if (playerAddress) {
+            setIsLoadingDeck(true)
+            getDeck({
+                playerAddress: playerAddress,
+                index: deckID,
+                onSuccess: () => {},
+            })
+                .then((response) => {
+                    if (!response.simulatedResult) return
 
-          setSelectedCards(cardObjects);
-  
-          const deckName = response.simulatedResult.name;
-          setCurrentDeck({ name: deckName, cards: cardObjects })
-          setEditingDeckIndex(deckID)
-          setIsEditing(true)
-  
-        }).catch(error => {
-          console.error("Error fetching deck:", error);
-        }).finally(_ => {
-          setIsLoadingDeck(false)
-        })
-      }
-    }  
+                    const cardsReceived = response.simulatedResult.cards
+                    const cardObjects: Card[] = []
+                    cardsReceived.forEach((card) => {
+                        const cID = Number(card)
+                        const co = cards.find((c) => Number(c.id) === cID)
+                        if (co) {
+                            cardObjects.push(co)
+                        }
+                    })
+
+                    setSelectedCards(cardObjects)
+
+                    const deckName = response.simulatedResult.name
+                    setCurrentDeck({ name: deckName, cards: cardObjects })
+                    setEditingDeckIndex(deckID)
+                    setIsEditing(true)
+                })
+                .catch((error) => {
+                    console.error("Error fetching deck:", error)
+                })
+                .finally((_) => {
+                    setIsLoadingDeck(false)
+                })
+        }
+    }
 
     // Sets up an event listener for route changes when deck editor is rendered.
     useEffect(() => {
@@ -220,65 +220,63 @@ const Collection: FablePage = ({ isHydrated }) => {
     }, [router.events, router.query.newDeck])
 
     return (
-      <>
-          <Head>
-              <title>0xFable: My Collection</title>
-          </Head>
-          {jotaiDebug()}
-          {isLoadingDeck ? (
-              <LoadingModal loading="Loading deck..." />
-          ) : (
-              <main className="flex h-screen flex-col">
-                  <Navbar />
-                  <div className="mx-6 mb-6 grid grow grid-cols-12 gap-4 min-h-0">
-                      {/* Left Panel - Search and Filters */}
-                      <div className="flex col-span-3 rounded-xl border overflow-y-auto">
-                          <FilterPanel
-                              effects={effects}
-                              types={types}
-                              effectMap={effectMap}
-                              typeMap={typeMap}
-                              handleEffectClick={handleEffectClick}
-                              handleTypeClick={handleTypeClick}
-                              handleInputChange={handleInputChange}
-                              selectedCard={selectedCard}
-                          />
-                      </div>
-                      {/* Middle Panel - Card Collection Display */}
-                      <div className="col-span-7 flex rounded-xl border overflow-y-auto">
-                          <CardCollectionDisplay
-                              cards={cards}
-                              isHydrated={isHydrated}
-                              setSelectedCard={setSelectedCard}
-                              onCardToggle={onCardToggle}
-                              selectedCards={selectedCards}
-                              isEditing={isEditing}
-                          />
-                      </div>
-                      {/* Right Panel - Deck List */}
-                      {isSaving ? (
-                          <LoadingModal loading="Saving deck..." />
-                      ) : (
-                          <div className="flex col-span-2 rounded-xl border overflow-y-auto">
-                              {isEditing && currentDeck ? (
-                                  <DeckPanel
-                                      deck={currentDeck}
-                                      selectedCards={selectedCards}
-                                      onCardSelect={addToDeck}
-                                      onSave={handleSaveDeck}
-                                      onCancel={handleCancelEditing}
-                                  />
-                              ) : (
-                                  <DeckList
-                                      decks={decks || []}
-                                      onDeckSelect={handleDeckSelect}
-                                  />
-                              )}
-                          </div>
-                      )}
-                  </div>
-              </main>
-          )}
-      </>
-  )}
+        <>
+            <Head>
+                <title>0xFable: My Collection</title>
+            </Head>
+            {jotaiDebug()}
+            {isLoadingDeck ? (
+                <LoadingModal loading="Loading deck..." />
+            ) : (
+                <main className="flex h-screen flex-col">
+                    <Navbar />
+                    <div className="mx-6 mb-6 grid min-h-0 grow grid-cols-12 gap-4">
+                        {/* Left Panel - Search and Filters */}
+                        <div className="col-span-3 flex overflow-y-auto rounded-xl border">
+                            <FilterPanel
+                                effects={effects}
+                                types={types}
+                                effectMap={effectMap}
+                                typeMap={typeMap}
+                                handleEffectClick={handleEffectClick}
+                                handleTypeClick={handleTypeClick}
+                                handleInputChange={handleInputChange}
+                                selectedCard={selectedCard}
+                            />
+                        </div>
+                        {/* Middle Panel - Card Collection Display */}
+                        <div className="col-span-7 flex overflow-y-auto rounded-xl border">
+                            <CardCollectionDisplay
+                                cards={cards}
+                                isHydrated={isHydrated}
+                                setSelectedCard={setSelectedCard}
+                                onCardToggle={onCardToggle}
+                                selectedCards={selectedCards}
+                                isEditing={isEditing}
+                            />
+                        </div>
+                        {/* Right Panel - Deck List */}
+                        {isSaving ? (
+                            <LoadingModal loading="Saving deck..." />
+                        ) : (
+                            <div className="col-span-2 flex overflow-y-auto rounded-xl border">
+                                {isEditing && currentDeck ? (
+                                    <DeckPanel
+                                        deck={currentDeck}
+                                        selectedCards={selectedCards}
+                                        onCardSelect={addToDeck}
+                                        onSave={handleSaveDeck}
+                                        onCancel={handleCancelEditing}
+                                    />
+                                ) : (
+                                    <DeckList onDeckSelect={handleDeckSelect} />
+                                )}
+                            </div>
+                        )}
+                    </div>
+                </main>
+            )}
+        </>
+    )
+}
 export default Collection

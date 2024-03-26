@@ -62,14 +62,15 @@ const DeckConstructionPanel: React.FC<DeckConstructionPanelProps> = ({
             {/* Counter Row */}
             <div className="w-full py-1">
                 <div className="relative pt-1">
-                <div className="overflow-hidden h-2 text-xs flex rounded bg-red-200">
-                    <div style={{ width: `${(selectedCards.length / MAX_CARDS) * 100}%` }} 
-                    className={`shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center ${selectedCards.length < MIN_CARDS ? 'bg-red-500' : selectedCards.length <= MAX_CARDS ? 'bg-green-500' : 'bg-yellow-500'}`}>
+                    <div className="flex h-2 overflow-hidden rounded bg-red-200 text-xs">
+                        <div
+                            style={{ width: `${(selectedCards.length / MAX_CARDS) * 100}%` }}
+                            className={`flex flex-col justify-center whitespace-nowrap text-center text-white shadow-none ${selectedCards.length < MIN_CARDS ? "bg-red-500" : selectedCards.length <= MAX_CARDS ? "bg-green-500" : "bg-yellow-500"}`}
+                        ></div>
                     </div>
                 </div>
-                </div>
                 <div className="text-center text-sm font-medium">
-                {selectedCards.length}/{MAX_CARDS}
+                    {selectedCards.length}/{MAX_CARDS}
                 </div>
             </div>
 
@@ -77,7 +78,7 @@ const DeckConstructionPanel: React.FC<DeckConstructionPanelProps> = ({
             <div className="flex w-full flex-wrap justify-center gap-2">
                 <Button
                     variant="default"
-                    className="border-2 border-yellow-500 normal-case hover:scale-105 font-fable text-xl hover:border-yellow-400"
+                    className="border-2 border-yellow-500 font-fable text-xl normal-case hover:scale-105 hover:border-yellow-400"
                     onClick={handleSave}
                 >
                     ✓ Save

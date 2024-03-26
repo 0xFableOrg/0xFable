@@ -7,14 +7,14 @@ import { inventoryABI } from "src/generated"
 // =================================================================================================
 
 export type GetDeckArgs = {
-  playerAddress: Address
-  onSuccess: () => void
+    playerAddress: Address
+    onSuccess: () => void
 }
 
 export type GetDeckAtArgs = {
-  playerAddress: Address
-  onSuccess: () => void
-  index: number
+    playerAddress: Address
+    onSuccess: () => void
+    index: number
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -25,12 +25,12 @@ export type GetDeckAtArgs = {
  * Returns `true` iff the transaction is successful.
  */
 export async function getAllDecks(args: GetDeckArgs): Promise<any> {
-  try {
-    return await getAllDecksImpl(args)
-  } catch (err) {
-    defaultErrorHandling("getAllDecks", err)
-    return false
-  }
+    try {
+        return await getAllDecksImpl(args)
+    } catch (err) {
+        defaultErrorHandling("getAllDecks", err)
+        return false
+    }
 }
 
 /**
@@ -39,12 +39,12 @@ export async function getAllDecks(args: GetDeckArgs): Promise<any> {
  * Returns `true` iff the transaction is successful.
  */
 export async function getDeck(args: GetDeckAtArgs): Promise<any> {
-  try {
-    return await getDeckImpl(args)
-  } catch (err) {
-    defaultErrorHandling("getDeck", err)
-    return false
-  }
+    try {
+        return await getDeckImpl(args)
+    } catch (err) {
+        defaultErrorHandling("getDeck", err)
+        return false
+    }
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -55,12 +55,12 @@ export async function getDeck(args: GetDeckAtArgs): Promise<any> {
  * Returns `true` iff the transaction is successful.
  */
 export async function getNumDecks(args: GetDeckArgs): Promise<any> {
-  try {
-    return await getNumDecksImpl(args)
-  } catch (err) {
-    defaultErrorHandling("getNumDecks", err)
-    return false
-  }
+    try {
+        return await getNumDecksImpl(args)
+    } catch (err) {
+        defaultErrorHandling("getNumDecks", err)
+        return false
+    }
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -71,88 +71,88 @@ export async function getNumDecks(args: GetDeckArgs): Promise<any> {
  * Returns `true` iff the transaction is successful.
  */
 export async function getDeckNames(args: GetDeckArgs): Promise<any> {
-  try {
-    return await getDeckNamesImpl(args)
-  } catch (err) {
-    defaultErrorHandling("getDeckNames", err)
-    return false
-  }
+    try {
+        return await getDeckNamesImpl(args)
+    } catch (err) {
+        defaultErrorHandling("getDeckNames", err)
+        return false
+    }
 }
 
 // -------------------------------------------------------------------------------------------------
 
 async function getAllDecksImpl(args: GetDeckArgs): Promise<any> {
     try {
-      const result = await contractWriteThrowing({
-        contract: deployment.Inventory,
-        abi: inventoryABI,
-        functionName: "getAllDecks",
-        args: [args.playerAddress],
-      }) 
+        const result = await contractWriteThrowing({
+            contract: deployment.Inventory,
+            abi: inventoryABI,
+            functionName: "getAllDecks",
+            args: [args.playerAddress],
+        })
 
-      args.onSuccess() 
-      return result 
+        args.onSuccess()
+        return result
     } catch (error) {
-      console.error("Error fetching decks:", error)
-      return null
+        console.error("Error fetching decks:", error)
+        return null
     }
-  }
+}
 
 // -------------------------------------------------------------------------------------------------
 
 async function getDeckImpl(args: GetDeckAtArgs): Promise<any> {
-  try {
-    const result = await contractWriteThrowing({
-      contract: deployment.Inventory,
-      abi: inventoryABI,
-      functionName: "getDeck",
-      args: [args.playerAddress, args.index],
-    }) 
+    try {
+        const result = await contractWriteThrowing({
+            contract: deployment.Inventory,
+            abi: inventoryABI,
+            functionName: "getDeck",
+            args: [args.playerAddress, args.index],
+        })
 
-    args.onSuccess() 
-    return result 
-  } catch (error) {
-    console.error("Error fetching deck:", error)
-    return null
-  }
+        args.onSuccess()
+        return result
+    } catch (error) {
+        console.error("Error fetching deck:", error)
+        return null
+    }
 }
 
 // -------------------------------------------------------------------------------------------------
 
 async function getNumDecksImpl(args: GetDeckArgs): Promise<any> {
-  try {
-    const result = await contractWriteThrowing({
-      contract: deployment.Inventory,
-      abi: inventoryABI,
-      functionName: "getNumDecks",
-      args: [args.playerAddress],
-    }) 
+    try {
+        const result = await contractWriteThrowing({
+            contract: deployment.Inventory,
+            abi: inventoryABI,
+            functionName: "getNumDecks",
+            args: [args.playerAddress],
+        })
 
-    args.onSuccess() 
-    return result 
-  } catch (error) {
-    console.error("Error fetching decks:", error)
-    return null
-  }
+        args.onSuccess()
+        return result
+    } catch (error) {
+        console.error("Error fetching decks:", error)
+        return null
+    }
 }
 
 // -------------------------------------------------------------------------------------------------
 
 async function getDeckNamesImpl(args: GetDeckArgs): Promise<any> {
-  try {
-    const result = await contractWriteThrowing({
-      contract: deployment.Inventory,
-      abi: inventoryABI,
-      functionName: "getDeckNames",
-      args: [args.playerAddress],
-    }) 
+    try {
+        const result = await contractWriteThrowing({
+            contract: deployment.Inventory,
+            abi: inventoryABI,
+            functionName: "getDeckNames",
+            args: [args.playerAddress],
+        })
 
-    args.onSuccess() 
-    return result 
-  } catch (error) {
-    console.error("Error fetching decks:", error)
-    return null
-  }
+        args.onSuccess()
+        return result
+    } catch (error) {
+        console.error("Error fetching decks:", error)
+        return null
+    }
 }
 
 // =================================================================================================
