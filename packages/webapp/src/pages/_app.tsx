@@ -15,6 +15,7 @@ import jotaiDebug from "src/components/lib/jotaiDebug"
 import { GlobalErrorModal } from "src/components/modals/globalErrorModal"
 import { Toaster } from "src/components/ui/sonner"
 import { useIsHydrated } from "src/hooks/useIsHydrated"
+import useOfflineCheck from "src/hooks/useOfflineCheck"
 import { useErrorConfig } from "src/store/hooks"
 
 import "src/styles/globals.css"
@@ -33,6 +34,7 @@ export type FablePage = NextPage<{ isHydrated: boolean }>
 // =================================================================================================
 
 const MyApp: AppType = ({ Component, pageProps }) => {
+    useOfflineCheck()
     return (
         <>
             <Head>
