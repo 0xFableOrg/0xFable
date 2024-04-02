@@ -6,17 +6,20 @@ import debounce from "lodash/debounce"
 import { navigate } from "utils/navigate"
 import { useAccount } from "wagmi"
 
+import { getDeck } from "src/actions/getDeck"
+import { modify, save } from "src/actions/setDeck"
 import { Address } from "src/chain"
 import CardCollectionDisplay from "src/components/collection/cardCollectionDisplay"
 import DeckList from "src/components/collection/deckList"
 import DeckPanel from "src/components/collection/deckPanel"
 import FilterPanel from "src/components/collection/filterPanel"
 import jotaiDebug from "src/components/lib/jotaiDebug"
+import { LoadingModal } from "src/components/modals/loadingModal"
 import { Navbar } from "src/components/navbar"
 import { deployment } from "src/deployment"
 import { useInventoryCardsCollectionGetCollection } from "src/generated"
 import { FablePage } from "src/pages/_app"
-import { Card, Deck } from "src/store/types"
+import * as store from "src/store/hooks"
 
 // NOTE(norswap & geniusgarlic): Just an example, when the game actually has effects & types,
 //   fetch those from the chain instead of hardcoding them here.
@@ -30,21 +33,23 @@ const initialTypeMap = Object.assign({}, ...types.map((name) => ({ [name]: false
 const Collection: FablePage = ({ isHydrated }) => {
     const router = useRouter()
     const { address } = useAccount()
-    const [isEditing, setIsEditing] = useState(false)
 
     // Filter Panel / Sorting Panel
     const [searchInput, setSearchInput] = useState("")
     const [effectMap, setEffectMap] = useState(initialEffectMap)
     const [typeMap, setTypeMap] = useState(initialTypeMap)
     const [selectedCard, setSelectedCard] = useState<Card | null>(null)
-
-    // Deck Collection Display
-    const [editingDeckIndex, setEditingDeckIndex] = useState<number | null>(null)
-    const [decks, setDecks] = useState<Deck[]>([])
+    const playerAddress = store.usePlayerAddress()
 
     // Deck Construction Panel
     const [currentDeck, setCurrentDeck] = useState<Deck | null>(null)
     const [selectedCards, setSelectedCards] = useState<Card[]>([])
+    const [isSaving, setIsSaving] = useState(false)
+    const [isEditing, setIsEditing] = useState(false)
+
+    // Deck Collection Display
+    const [editingDeckIndex, setEditingDeckIndex] = useState<number | null>(null)
+    const [isLoadingDeck, setIsLoadingDeck] = useState(false)
 
     const activeEffects = Object.keys(effectMap).filter((key) => effectMap[key])
     const activeTypes = Object.keys(typeMap).filter((key) => typeMap[key])
@@ -85,27 +90,47 @@ const Collection: FablePage = ({ isHydrated }) => {
         setTypeMap({ ...typeMap, [type]: !typeMap[type] })
     }
 
-    const handleDeckSelect = (deckID: number) => {
-        const selectedDeck = decks[deckID]
-        setCurrentDeck(selectedDeck)
-        setEditingDeckIndex(deckID)
-        setIsEditing(true)
-        setSelectedCards(selectedDeck.cards)
-    }
+    const handleSaveDeck = async (updatedDeck: Deck) => {
+        setIsSaving(true)
 
-    const handleSaveDeck = (updatedDeck: Deck) => {
-        const updatedDecks = [...(decks || [])]
         if (editingDeckIndex !== null) {
             // Update existing deck
-            updatedDecks[editingDeckIndex] = updatedDeck
+            await modifyOnchain(updatedDeck, editingDeckIndex)
         } else {
             // Add the new deck to the list
-            updatedDecks.push(updatedDeck)
+            await saveOnchain(updatedDeck)
         }
-        setDecks(updatedDecks)
+
+        setIsSaving(false)
+
         setIsEditing(false)
         setSelectedCards([])
         void navigate(router, "/collection")
+    }
+
+    function saveOnchain(deck: Deck): Promise<void> {
+        return new Promise((resolve) => {
+            save({
+                deck,
+                playerAddress: playerAddress!,
+                onSuccess: () => {
+                    resolve()
+                },
+            })
+        })
+    }
+
+    function modifyOnchain(deck: Deck, editingDeckIndex: number): Promise<void> {
+        return new Promise((resolve) => {
+            modify({
+                deck,
+                playerAddress: playerAddress!,
+                index: BigInt(editingDeckIndex),
+                onSuccess: () => {
+                    resolve()
+                },
+            })
+        })
     }
 
     const handleCancelEditing = () => {
@@ -138,6 +163,44 @@ const Collection: FablePage = ({ isHydrated }) => {
         })
     }
 
+    const handleDeckSelect = (deckID: number) => {
+        if (isLoadingDeck) return
+        if (playerAddress) {
+            setIsLoadingDeck(true)
+            getDeck({
+                playerAddress: playerAddress,
+                index: deckID,
+                onSuccess: () => {},
+            })
+                .then((response) => {
+                    if (!response.simulatedResult) return
+
+                    const cardsReceived = response.simulatedResult.cards
+                    const cardObjects: Card[] = []
+                    cardsReceived.forEach((card) => {
+                        const cID = Number(card)
+                        const co = cards.find((c) => Number(c.id) === cID)
+                        if (co) {
+                            cardObjects.push(co)
+                        }
+                    })
+
+                    setSelectedCards(cardObjects)
+
+                    const deckName = response.simulatedResult.name
+                    setCurrentDeck({ name: deckName, cards: cardObjects })
+                    setEditingDeckIndex(deckID)
+                    setIsEditing(true)
+                })
+                .catch((error) => {
+                    console.error("Error fetching deck:", error)
+                })
+                .finally((_) => {
+                    setIsLoadingDeck(false)
+                })
+        }
+    }
+
     // Sets up an event listener for route changes when deck editor is rendered.
     useEffect(() => {
         const handleRouteChange = () => {
@@ -162,53 +225,58 @@ const Collection: FablePage = ({ isHydrated }) => {
                 <title>0xFable: My Collection</title>
             </Head>
             {jotaiDebug()}
-            <main className="flex h-screen flex-col">
-                <Navbar />
-                <div className="mx-6 mb-6 grid min-h-0 grow grid-cols-12 gap-4">
-                    {/* Left Panel - Search and Filters */}
-                    <div className="col-span-3 flex overflow-y-auto rounded-xl border">
-                        <FilterPanel
-                            effects={effects}
-                            types={types}
-                            effectMap={effectMap}
-                            typeMap={typeMap}
-                            handleEffectClick={handleEffectClick}
-                            handleTypeClick={handleTypeClick}
-                            handleInputChange={handleInputChange}
-                            selectedCard={selectedCard}
-                        />
-                    </div>
-
-                    {/* Middle Panel - Card Collection Display */}
-                    <div className="col-span-7 flex overflow-y-auto rounded-xl border">
-                        <CardCollectionDisplay
-                            cards={cards}
-                            isHydrated={isHydrated}
-                            setSelectedCard={setSelectedCard}
-                            onCardToggle={onCardToggle}
-                            selectedCards={selectedCards}
-                            isEditing={isEditing}
-                        />
-                    </div>
-
-                    {/* Right Panel - Deck List */}
-                    <div className="col-span-2 flex overflow-y-auto rounded-xl border">
-                        {isEditing && currentDeck ? (
-                            <DeckPanel
-                                deck={currentDeck}
-                                selectedCards={selectedCards}
-                                onCardSelect={addToDeck}
-                                onSave={handleSaveDeck}
-                                onCancel={handleCancelEditing}
+            {isLoadingDeck ? (
+                <LoadingModal loading="Loading deck..." />
+            ) : (
+                <main className="flex h-screen flex-col">
+                    <Navbar />
+                    <div className="mx-6 mb-6 grid min-h-0 grow grid-cols-12 gap-4">
+                        {/* Left Panel - Search and Filters */}
+                        <div className="col-span-3 flex overflow-y-auto rounded-xl border">
+                            <FilterPanel
+                                effects={effects}
+                                types={types}
+                                effectMap={effectMap}
+                                typeMap={typeMap}
+                                handleEffectClick={handleEffectClick}
+                                handleTypeClick={handleTypeClick}
+                                handleInputChange={handleInputChange}
+                                selectedCard={selectedCard}
                             />
+                        </div>
+                        {/* Middle Panel - Card Collection Display */}
+                        <div className="col-span-7 flex overflow-y-auto rounded-xl border">
+                            <CardCollectionDisplay
+                                cards={cards}
+                                isHydrated={isHydrated}
+                                setSelectedCard={setSelectedCard}
+                                onCardToggle={onCardToggle}
+                                selectedCards={selectedCards}
+                                isEditing={isEditing}
+                            />
+                        </div>
+                        {/* Right Panel - Deck List */}
+                        {isSaving ? (
+                            <LoadingModal loading="Saving deck..." />
                         ) : (
-                            <DeckList decks={decks || []} onDeckSelect={handleDeckSelect} />
+                            <div className="col-span-2 flex overflow-y-auto rounded-xl border">
+                                {isEditing && currentDeck ? (
+                                    <DeckPanel
+                                        deck={currentDeck}
+                                        selectedCards={selectedCards}
+                                        onCardSelect={addToDeck}
+                                        onSave={handleSaveDeck}
+                                        onCancel={handleCancelEditing}
+                                    />
+                                ) : (
+                                    <DeckList onDeckSelect={handleDeckSelect} />
+                                )}
+                            </div>
                         )}
                     </div>
-                </div>
-            </main>
+                </main>
+            )}
         </>
     )
 }
-
 export default Collection

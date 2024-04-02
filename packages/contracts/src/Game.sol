@@ -527,6 +527,8 @@ contract Game {
             revert Errors.NotAllowedToJoin();
         }
 
+        inventory.checkDeck(msg.sender, deckID);
+
         // Update gdata.players, but not gdata.livePlayers, which is used to determine if the
         // game is ready to start (all players have joined & drawn their initial hand).
         gdata.players.push(msg.sender);
@@ -547,7 +549,7 @@ contract Game {
         uint256[] storage cards = gdata.cards;
         pdata.deckStart = uint8(cards.length);
         inventory.checkDeck(msg.sender, deckID);
-        uint256[] memory deck = inventory.getDeck(msg.sender, deckID);
+        uint256[] memory deck = inventory.getDeckCards(msg.sender, deckID);
 
         for (uint256 i = 0; i < deck.length; i++) {
             cards.push(deck[i]);
