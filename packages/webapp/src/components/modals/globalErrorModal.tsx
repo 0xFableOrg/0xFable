@@ -17,13 +17,16 @@ export const GlobalErrorModal = ({ config }: { config: ErrorConfig }) => {
     useEffect(() => {
         if (config !== null && !open) setOpen(true)
         else setOpen(false)
-    }, [config, open])
+
+        // removed open from the deps array since it keeps triggering the useEffect and keeps toggling between true and false
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [config])
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTitle>{config.title}</DialogTitle>
             <DialogContent>
-                {config.message !== "" && <p className="py-4 font-mono">{config.message}</p>}
+                {config.message !== "" && <p className="overflow-auto break-words py-4 font-mono">{config.message}</p>}
                 <div className="flex justify-center gap-4">
                     {config.buttons.map((button, i) => (
                         <Button key={i} variant={"secondary"} onClick={button.onClick}>
