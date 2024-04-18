@@ -61,7 +61,7 @@ export const privateInfoStore = atomWithStorage(
     {} as PrivateInfoStore,
     undefined,
     // Necessary, otherwise the storage only gets read when the atom is mounted in React.
-    { unstable_getOnInit: true }
+    { getOnInit: true }
 )
 
 // Without this, Jotai does not seem to pickup in updates from other tabs.

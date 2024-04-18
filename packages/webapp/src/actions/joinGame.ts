@@ -117,6 +117,7 @@ async function joinGameImpl(args: JoinGameArgs): Promise<boolean> {
         salt: privateInfo.salt,
         saltHash: privateInfo.saltHash,
         ...handDeckInfo,
+        gameAddress: deployment.Game
     }
 
     setPrivateInfo(args.gameID, args.playerAddress, privateInfo)

@@ -193,7 +193,7 @@ export async function refreshGameData() {
         const pdata = getPlayerData(gameData, player)!
 
         const blockNum =
-            pdata.saltHash != 0n && pdata.handRoot == ZeroHash
+            pdata?.saltHash != 0n && pdata?.handRoot == ZeroHash
                 ? pdata.joinBlockNum // joined, but hand not drawn
                 : gameData.lastBlockNum
 

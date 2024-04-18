@@ -5,6 +5,7 @@
  */
 
 import { Address } from "src/chain"
+import { deployment } from "src/deployment"
 import { PROOF_CURVE_ORDER } from "src/game/constants"
 import * as store from "src/store/atoms"
 import { ErrorConfig, PrivateInfo } from "src/store/types"
@@ -66,7 +67,7 @@ export function getOrInitPrivateInfo(gameID: bigint, playerAddress: Address): Pr
     const privateInfoStore = store.get(store.privateInfoStore)
     let privateInfo = privateInfoStore[gameID.toString()]?.[playerAddress]
 
-    if (privateInfo !== undefined) return privateInfo
+    if (privateInfo !== undefined && privateInfo.gameAddress === deployment.Game) return privateInfo
 
     // The player's secret salt, necessary to hide information.
     const salt = randomUint256() % PROOF_CURVE_ORDER
@@ -79,6 +80,7 @@ export function getOrInitPrivateInfo(gameID: bigint, playerAddress: Address): Pr
         deckIndexes: [],
         handRoot: `0x0`,
         deckRoot: `0x0`,
+        gameAddress: deployment.Game,
     }
 
     setPrivateInfo(gameID, playerAddress, privateInfo)

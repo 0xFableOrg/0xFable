@@ -125,13 +125,17 @@ export type PrivateInfo = {
      */
     deckIndexes: number[]
     /**
-     * Hash of {@link handIndexes}, packed over a few field elements, in conjnction with {@link hash}.
+     * Hash of {@link handIndexes}, packed over a few field elements, in conjunction with {@link hash}.
      */
     handRoot: Hash
     /**
-     * Hash of {@link deckIndexes}, packed over a few field elements, in conjnction with {@link hash}.
+     * Hash of {@link deckIndexes}, packed over a few field elements, in conjunction with {@link hash}.
      */
     deckRoot: Hash
+    /**
+     * Deployment address of the Game contract, used to identify and replace stale data.
+     */
+    gameAddress: Address
 }
 
 // -------------------------------------------------------------------------------------------------
