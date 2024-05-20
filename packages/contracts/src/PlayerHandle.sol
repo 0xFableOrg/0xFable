@@ -69,9 +69,9 @@ contract PlayerHandle is Ownable {
     function checkHandleValidity(string memory handle) public pure returns (bool) {
         bytes memory b = bytes(handle);
         if (b.length < 5) return false;
-        for (uint i; i < b.length; i++) {
+        for (uint256 i; i < b.length; i++) {
             bytes1 char = b[i];
-            if (char < 0x20 || char > 0x7E || char == 0x2E) { // ASCII range and no dots
+            if (char < 0x20 || char > 0x7E || char == 0x2E) {
                 return false;
             }
         }
