@@ -15,6 +15,8 @@ export interface Deployment {
     Game: Address
     DeckAirdrop: Address
     Multicall3: Address
+    PlayerHandle: Address
+    MockENSResolver: Address
 }
 
 // NOTE: This silly `default` affair is required for running the e2e tests which cause
