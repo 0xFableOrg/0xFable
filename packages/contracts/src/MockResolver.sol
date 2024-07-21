@@ -6,8 +6,8 @@ import "./PlayerHandle.sol";
 contract MockENSResolver is IENSResolver {
     mapping(bytes32 => string) public names;
 
-    function setName(bytes32 node, string memory name) public {
-        names[node] = name;
+    function setName(bytes32 node, string memory _name) public {
+        names[node] = _name;
     }
 
     function name(bytes32 node) external view override returns (string memory) {
