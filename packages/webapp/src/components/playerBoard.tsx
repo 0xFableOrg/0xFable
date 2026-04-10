@@ -2,7 +2,7 @@ import { horizontalListSortingStrategy, SortableContext, useSortable } from "@dn
 
 import CardContainer from "src/components/cards/cardContainer"
 import * as store from "src/store/hooks"
-import { CardPlacement } from "src/store/types"
+import { CardPlacement, GameStep } from "src/store/types"
 import { convertBigIntArrayToStringArray, shortenAddress } from "src/utils/js-utils"
 
 interface PlayerBoardProps {
@@ -16,7 +16,18 @@ const PlayerBoard: React.FC<PlayerBoardProps> = ({ playerAddress, playedCards })
     })
 
     const currentPlayerAddress = store.usePlayerAddress()
-    const playerActive = isOver && playerAddress === currentPlayerAddress
+    const gameData = store.useGameData()
+    const currentTurnAddress = store.useCurrentPlayerAddress()
+
+    // Only show the green drop indicator when:
+    // 1. A card is being dragged over this board
+    // 2. This is the local player's board
+    // 3. It is the local player's turn
+    // 4. The current game step is PLAY (player hasn't already played a card this turn)
+    const isMyBoard = playerAddress === currentPlayerAddress
+    const isMyTurn = currentTurnAddress === currentPlayerAddress
+    const canPlayCard = gameData?.currentStep === GameStep.PLAY
+    const playerActive = isOver && isMyBoard && isMyTurn && canPlayCard
     const convertedCards = convertBigIntArrayToStringArray(playedCards)
     return (
         <div
